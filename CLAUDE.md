@@ -32,6 +32,7 @@ dwlite/
 ### Backend (Symfony 6.4)
 - **Runtime**: FrankenPHP (PHP 8.2) with worker mode enabled (应用常驻内存)
 - **Web Server**: Caddy (via FrankenPHP)
+- **Database**: MySQL 8.0 (external, connects via `host.docker.internal:3306`)
 - **ORM**: Doctrine with migrations support
 - **Routing**: Attribute-based routes in `src/Controller/`
 - **Logging**: Monolog with JSON format, collected by Promtail
@@ -70,6 +71,7 @@ composer cache:clear              # Clear Symfony cache
 php bin/console debug:router      # List all routes
 php bin/console make:migration    # Generate migration from entity changes
 php bin/console doctrine:migrations:migrate  # Run pending migrations
+php bin/console lexik:jwt:generate-keypair   # Generate JWT keys (first-time setup)
 ```
 
 ### Frontend (from /frontend)
@@ -102,6 +104,7 @@ curl -X POST http://localhost:8000/async/dispatch
 - Prometheus: http://localhost:9090
 - Loki API: http://localhost:3100
 - Tempo API: http://localhost:3200
+- Redis: localhost:6379
 - MailHog UI: http://localhost:8025 (邮件测试)
 
 ## Tracing
