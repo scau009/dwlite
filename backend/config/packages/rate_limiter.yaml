@@ -1,0 +1,29 @@
+framework:
+    rate_limiter:
+        # Login attempts limiter
+        login:
+            policy: 'sliding_window'
+            limit: 5
+            interval: '1 minute'
+            cache_pool: cache.app
+
+        # Registration limiter
+        registration:
+            policy: 'sliding_window'
+            limit: 3
+            interval: '1 hour'
+            cache_pool: cache.app
+
+        # Password reset limiter
+        password_reset:
+            policy: 'sliding_window'
+            limit: 3
+            interval: '1 hour'
+            cache_pool: cache.app
+
+        # Email verification resend limiter
+        email_verification:
+            policy: 'sliding_window'
+            limit: 3
+            interval: '1 hour'
+            cache_pool: cache.app

@@ -1,0 +1,37 @@
+framework:
+    messenger:
+        failure_transport: failed
+
+        buses:
+            messenger.bus.default:
+                middleware:
+                    - App\Messenger\Middleware\TraceIdMiddleware
+
+        transports:
+            async:
+                dsn: '%env(REDIS_URL)%'
+                options:
+                    stream: dwlite_messages
+                    group: dwlite_consumer
+                    consumer: consumer
+                retry_strategy:
+                    max_retries: 3
+                    delay: 1000
+                    multiplier: 2
+
+            scheduler_default:
+                dsn: 'sync://'
+
+            failed:
+                dsn: '%env(REDIS_URL)%'
+                options:
+                    stream: dwlite_failed
+
+        routing:
+            App\Message\AsyncMessageInterface: async
+
+when@test:
+    framework:
+        messenger:
+            transports:
+                async: 'in-memory://'

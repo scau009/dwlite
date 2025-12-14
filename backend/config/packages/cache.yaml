@@ -1,0 +1,13 @@
+framework:
+    cache:
+        prefix_seed: dwlite
+
+        # Use Redis for application cache
+        app: cache.adapter.redis
+        default_redis_provider: '%env(REDIS_URL)%'
+
+        pools:
+            doctrine.result_cache_pool:
+                adapter: cache.adapter.redis
+            doctrine.system_cache_pool:
+                adapter: cache.adapter.redis
