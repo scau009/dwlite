@@ -1,8 +1,9 @@
 "use client"
 
-import { Bell, Search, Moon, Sun } from "lucide-react"
+import { Moon, Sun, Languages } from "lucide-react"
 import { Link, useLocation } from "react-router"
 import { useEffect, useState } from "react"
+import { useTranslation } from "react-i18next"
 
 import {
   Breadcrumb,
@@ -13,43 +14,18 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { Separator } from "@/components/ui/separator"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 
-// Breadcrumb mapping
-const breadcrumbMap: Record<string, string> = {
-  dashboard: "Dashboard",
-  products: "Products",
-  categories: "Categories",
-  inventory: "Inventory",
-  reviews: "Reviews",
-  orders: "Orders",
-  pending: "Pending",
-  completed: "Completed",
-  refunds: "Refunds",
-  customers: "Customers",
-  segments: "Segments",
-  promotions: "Promotions",
-  coupons: "Coupons",
-  campaigns: "Campaigns",
-  "flash-sales": "Flash Sales",
-  shipping: "Shipping",
-  payments: "Payments",
-  analytics: "Analytics",
-  sales: "Sales",
-  traffic: "Traffic",
-  conversions: "Conversions",
-  reports: "Reports",
-  settings: "Settings",
-  store: "Store",
-  notifications: "Notifications",
-  integrations: "Integrations",
-  profile: "Profile",
-}
-
 function ThemeToggle() {
   const [theme, setTheme] = useState<"light" | "dark">("light")
+  const { t } = useTranslation()
 
   useEffect(() => {
     const isDark = document.documentElement.classList.contains("dark")
@@ -70,14 +46,73 @@ function ThemeToggle() {
       ) : (
         <Sun className="h-4 w-4" />
       )}
-      <span className="sr-only">Toggle theme</span>
+      <span className="sr-only">{t('header.switchTheme')}</span>
     </Button>
+  )
+}
+
+function LanguageSwitcher() {
+  const { i18n, t } = useTranslation()
+
+  const changeLanguage = (lang: string) => {
+    i18n.changeLanguage(lang)
+  }
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="icon">
+          <Languages className="h-4 w-4" />
+          <span className="sr-only">{t('header.switchLanguage')}</span>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem onClick={() => changeLanguage('zh')}>
+          中文
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => changeLanguage('en')}>
+          English
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }
 
 export function AppHeader() {
   const location = useLocation()
+  const { t } = useTranslation()
   const pathSegments = location.pathname.split("/").filter(Boolean)
+
+  // Breadcrumb mapping with i18n
+  const getBreadcrumbLabel = (segment: string): string => {
+    const breadcrumbMap: Record<string, string> = {
+      dashboard: t('nav.dashboard'),
+      products: t('nav.products'),
+      categories: t('menu.productCategories'),
+      attributes: t('menu.productAttributes'),
+      inventory: t('nav.inventory'),
+      alerts: t('menu.inventoryAlerts'),
+      logs: t('menu.inventoryLogs'),
+      pricing: t('nav.pricing'),
+      rules: t('menu.priceRules'),
+      history: t('menu.priceHistory'),
+      orders: t('nav.orders'),
+      pending: t('menu.orderPending'),
+      completed: t('menu.orderCompleted'),
+      refunds: t('menu.orderRefunds'),
+      fulfillment: t('nav.fulfillment'),
+      shipped: t('menu.fulfillmentShipped'),
+      exceptions: t('menu.fulfillmentExceptions'),
+      data: t('nav.dataCenter'),
+      sales: t('menu.salesAnalysis'),
+      reports: t('menu.reports'),
+      settings: t('nav.settings'),
+      users: t('menu.userManagement'),
+      roles: t('menu.roleManagement'),
+      profile: t('header.profile'),
+    }
+    return breadcrumbMap[segment] || segment
+  }
 
   return (
     <header className="flex h-14 shrink-0 items-center gap-2 border-b bg-background px-4">
@@ -90,7 +125,7 @@ export function AppHeader() {
             {pathSegments.map((segment, index) => {
               const isLast = index === pathSegments.length - 1
               const path = "/" + pathSegments.slice(0, index + 1).join("/")
-              const label = breadcrumbMap[segment] || segment
+              const label = getBreadcrumbLabel(segment)
 
               return (
                 <BreadcrumbItem key={path}>
@@ -111,26 +146,10 @@ export function AppHeader() {
         </Breadcrumb>
       </div>
 
-      {/* Right: Search + Actions */}
-      <div className="ml-auto flex items-center gap-2">
-        {/* Search */}
-        <div className="relative hidden md:block">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            type="search"
-            placeholder="Search..."
-            className="w-64 pl-8"
-          />
-        </div>
-
-        {/* Notifications */}
-        <Button variant="ghost" size="icon" className="relative">
-          <Bell className="h-4 w-4" />
-          <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[10px] font-medium text-destructive-foreground">
-            3
-          </span>
-          <span className="sr-only">Notifications</span>
-        </Button>
+      {/* Right: Global actions only (no search per UI.md) */}
+      <div className="ml-auto flex items-center gap-1">
+        {/* Language Switcher */}
+        <LanguageSwitcher />
 
         {/* Theme Toggle */}
         <ThemeToggle />

@@ -1,10 +1,14 @@
+"use client"
+
+import { useNavigate } from "react-router"
+import { useTranslation } from "react-i18next"
 import {
   ArrowDownRight,
   ArrowUpRight,
-  DollarSign,
-  Package,
   ShoppingCart,
-  Users,
+  DollarSign,
+  AlertTriangle,
+  Truck,
 } from "lucide-react"
 
 import {
@@ -14,15 +18,17 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { StatusBadge } from "@/components/common"
 
-// Stat card component
+// Stat card component - clickable per UI.md spec
 interface StatCardProps {
   title: string
   value: string
   description: string
   icon: React.ElementType
-  trend: "up" | "down"
-  trendValue: string
+  trend?: "up" | "down"
+  trendValue?: string
+  onClick?: () => void
 }
 
 function StatCard({
@@ -32,26 +38,33 @@ function StatCard({
   icon: Icon,
   trend,
   trendValue,
+  onClick,
 }: StatCardProps) {
   return (
-    <Card>
+    <Card
+      className={onClick ? "cursor-pointer transition-colors hover:bg-muted/50" : ""}
+      onClick={onClick}
+    >
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium">{title}</CardTitle>
         <Icon className="h-4 w-4 text-muted-foreground" />
       </CardHeader>
       <CardContent>
         <div className="text-2xl font-bold">{value}</div>
-        <div className="flex items-center text-xs text-muted-foreground">
-          {trend === "up" ? (
-            <ArrowUpRight className="mr-1 h-4 w-4 text-green-500" />
-          ) : (
-            <ArrowDownRight className="mr-1 h-4 w-4 text-red-500" />
-          )}
-          <span className={trend === "up" ? "text-green-500" : "text-red-500"}>
-            {trendValue}
-          </span>
-          <span className="ml-1">{description}</span>
-        </div>
+        {trend && trendValue && (
+          <div className="flex items-center text-xs text-muted-foreground">
+            {trend === "up" ? (
+              <ArrowUpRight className="mr-1 h-4 w-4 text-green-500" />
+            ) : (
+              <ArrowDownRight className="mr-1 h-4 w-4 text-red-500" />
+            )}
+            <span className={trend === "up" ? "text-green-500" : "text-red-500"}>
+              {trendValue}
+            </span>
+            <span className="ml-1">{description}</span>
+          </div>
+        )}
+        {!trend && <p className="text-xs text-muted-foreground">{description}</p>}
       </CardContent>
     </Card>
   )
@@ -59,85 +72,63 @@ function StatCard({
 
 // Recent orders component
 function RecentOrders() {
+  const { t } = useTranslation()
+  const navigate = useNavigate()
+
   const orders = [
-    {
-      id: "ORD-001",
-      customer: "John Doe",
-      product: "Premium Sneakers",
-      amount: "$299.00",
-      status: "Completed",
-    },
-    {
-      id: "ORD-002",
-      customer: "Jane Smith",
-      product: "Designer Jacket",
-      amount: "$450.00",
-      status: "Processing",
-    },
-    {
-      id: "ORD-003",
-      customer: "Bob Johnson",
-      product: "Limited Edition Watch",
-      amount: "$1,299.00",
-      status: "Pending",
-    },
-    {
-      id: "ORD-004",
-      customer: "Alice Brown",
-      product: "Vintage Bag",
-      amount: "$189.00",
-      status: "Completed",
-    },
-    {
-      id: "ORD-005",
-      customer: "Charlie Wilson",
-      product: "Street Style Hoodie",
-      amount: "$129.00",
-      status: "Shipped",
-    },
+    { id: "ORD-001", customer: "John Doe", amount: "$299.00", status: "completed" },
+    { id: "ORD-002", customer: "Jane Smith", amount: "$450.00", status: "processing" },
+    { id: "ORD-003", customer: "Bob Johnson", amount: "$1,299.00", status: "pending" },
+    { id: "ORD-004", customer: "Alice Brown", amount: "$189.00", status: "completed" },
+    { id: "ORD-005", customer: "Charlie Wilson", amount: "$129.00", status: "shipped" },
   ]
 
-  const getStatusColor = (status: string) => {
+  const getStatusType = (status: string): "success" | "warning" | "error" | "info" | "default" => {
     switch (status) {
-      case "Completed":
-        return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
-      case "Processing":
-        return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300"
-      case "Pending":
-        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300"
-      case "Shipped":
-        return "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300"
-      default:
-        return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300"
+      case "completed": return "success"
+      case "processing": return "info"
+      case "pending": return "warning"
+      case "shipped": return "info"
+      default: return "default"
+    }
+  }
+
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case "completed": return t('orders.completed')
+      case "processing": return t('orders.processing')
+      case "pending": return t('orders.pending')
+      case "shipped": return t('orders.shipped')
+      default: return status
     }
   }
 
   return (
     <Card className="col-span-full lg:col-span-2">
-      <CardHeader>
-        <CardTitle>Recent Orders</CardTitle>
-        <CardDescription>Latest orders from your store</CardDescription>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <div>
+          <CardTitle>{t('dashboard.recentOrders')}</CardTitle>
+          <CardDescription>{t('orders.description')}</CardDescription>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
           {orders.map((order) => (
             <div
               key={order.id}
-              className="flex items-center justify-between border-b pb-4 last:border-0 last:pb-0"
+              className="flex items-center justify-between border-b pb-4 last:border-0 last:pb-0 cursor-pointer hover:bg-muted/50 -mx-2 px-2 py-2 rounded"
+              onClick={() => navigate(`/orders?id=${order.id}`)}
             >
               <div className="space-y-1">
                 <p className="text-sm font-medium">{order.customer}</p>
-                <p className="text-xs text-muted-foreground">{order.product}</p>
+                <p className="text-xs text-muted-foreground">{order.id}</p>
               </div>
               <div className="flex items-center gap-4">
                 <span className="text-sm font-medium">{order.amount}</span>
-                <span
-                  className={`rounded-full px-2 py-1 text-xs font-medium ${getStatusColor(
-                    order.status
-                  )}`}
-                >
-                  {order.status}
-                </span>
+                <StatusBadge
+                  status={getStatusType(order.status)}
+                  label={getStatusLabel(order.status)}
+                />
               </div>
             </div>
           ))}
@@ -149,31 +140,38 @@ function RecentOrders() {
 
 // Top products component
 function TopProducts() {
+  const { t } = useTranslation()
+  const navigate = useNavigate()
+
   const products = [
-    { name: "Premium Sneakers", sales: 234, revenue: "$70,026" },
-    { name: "Designer Jacket", sales: 189, revenue: "$85,050" },
-    { name: "Limited Edition Watch", sales: 156, revenue: "$202,644" },
-    { name: "Vintage Bag", sales: 142, revenue: "$26,838" },
-    { name: "Street Style Hoodie", sales: 128, revenue: "$16,512" },
+    { id: "1", name: "Premium Sneakers", sales: 234, revenue: "$70,026" },
+    { id: "2", name: "Designer Jacket", sales: 189, revenue: "$85,050" },
+    { id: "3", name: "Limited Edition Watch", sales: 156, revenue: "$202,644" },
+    { id: "4", name: "Vintage Bag", sales: 142, revenue: "$26,838" },
+    { id: "5", name: "Street Style Hoodie", sales: 128, revenue: "$16,512" },
   ]
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Top Products</CardTitle>
-        <CardDescription>Best sellers this month</CardDescription>
+        <CardTitle>{t('dashboard.topProducts')}</CardTitle>
+        <CardDescription>{t('products.description')}</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
           {products.map((product, index) => (
-            <div key={product.name} className="flex items-center gap-4">
+            <div
+              key={product.id}
+              className="flex items-center gap-4 cursor-pointer hover:bg-muted/50 -mx-2 px-2 py-2 rounded"
+              onClick={() => navigate(`/products/${product.id}`)}
+            >
               <span className="flex h-8 w-8 items-center justify-center rounded-full bg-muted text-sm font-medium">
                 {index + 1}
               </span>
               <div className="flex-1 space-y-1">
                 <p className="text-sm font-medium">{product.name}</p>
                 <p className="text-xs text-muted-foreground">
-                  {product.sales} sales
+                  {product.sales} {t('dashboard.activeListings')}
                 </p>
               </div>
               <span className="text-sm font-medium">{product.revenue}</span>
@@ -186,49 +184,50 @@ function TopProducts() {
 }
 
 export function DashboardPage() {
+  const { t } = useTranslation()
+  const navigate = useNavigate()
+
   return (
     <div className="space-y-6">
       {/* Page Header */}
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-muted-foreground">
-          Welcome back! Here's an overview of your store.
-        </p>
+        <h1 className="text-2xl font-bold tracking-tight">{t('dashboard.title')}</h1>
+        <p className="text-muted-foreground">{t('dashboard.description')}</p>
       </div>
 
-      {/* Stats Grid */}
+      {/* Stats Grid - per UI.md: clickable metrics that link to list pages */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatCard
-          title="Total Revenue"
-          value="$45,231.89"
-          description="from last month"
-          icon={DollarSign}
-          trend="up"
-          trendValue="+20.1%"
-        />
-        <StatCard
-          title="Orders"
-          value="2,350"
-          description="from last month"
+          title={t('dashboard.todayOrders')}
+          value="128"
+          description={t('dashboard.fromLastMonth')}
           icon={ShoppingCart}
           trend="up"
           trendValue="+15.2%"
+          onClick={() => navigate('/orders?date=today')}
         />
         <StatCard
-          title="Products"
-          value="1,234"
-          description="active listings"
-          icon={Package}
+          title={t('dashboard.todaySales')}
+          value="$12,450"
+          description={t('dashboard.fromLastMonth')}
+          icon={DollarSign}
           trend="up"
-          trendValue="+12"
+          trendValue="+20.1%"
+          onClick={() => navigate('/data/sales?date=today')}
         />
         <StatCard
-          title="Customers"
-          value="12,543"
-          description="from last month"
-          icon={Users}
-          trend="down"
-          trendValue="-2.4%"
+          title={t('dashboard.inventoryAlerts')}
+          value="23"
+          description={t('menu.inventoryAlerts')}
+          icon={AlertTriangle}
+          onClick={() => navigate('/inventory/alerts')}
+        />
+        <StatCard
+          title={t('dashboard.fulfillmentExceptions')}
+          value="5"
+          description={t('menu.fulfillmentExceptions')}
+          icon={Truck}
+          onClick={() => navigate('/fulfillment/exceptions')}
         />
       </div>
 

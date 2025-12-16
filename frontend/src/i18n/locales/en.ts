@@ -1,0 +1,198 @@
+export default {
+  // Common
+  common: {
+    search: 'Search',
+    reset: 'Reset',
+    query: 'Query',
+    add: 'Add',
+    edit: 'Edit',
+    view: 'View',
+    delete: 'Delete',
+    save: 'Save',
+    cancel: 'Cancel',
+    confirm: 'Confirm',
+    back: 'Back',
+    export: 'Export',
+    import: 'Import',
+    batchExport: 'Batch Export',
+    batchImport: 'Batch Import',
+    moreFilters: 'More Filters',
+    lessFilters: 'Less Filters',
+    filters: 'filters',
+    selected: '{{count}} items selected',
+    operation: 'Operation',
+    status: 'Status',
+    createdAt: 'Created At',
+    updatedAt: 'Updated At',
+    actions: 'Actions',
+    loading: 'Loading...',
+    noData: 'No Data',
+    showing: 'Showing {{from}}-{{to}} of {{total}}',
+    success: 'Operation Successful',
+    error: 'Operation Failed',
+    required: 'Required',
+    all: 'All',
+  },
+
+  // Navigation
+  nav: {
+    dashboard: 'Dashboard',
+    products: 'Products',
+    inventory: 'Inventory',
+    pricing: 'Pricing',
+    orders: 'Orders',
+    fulfillment: 'Fulfillment',
+    dataCenter: 'Data Center',
+    settings: 'Settings',
+  },
+
+  // Sidebar menu items
+  menu: {
+    // Products
+    productList: 'Product List',
+    productCategories: 'Categories',
+    productAttributes: 'Attributes',
+    // Inventory
+    inventoryList: 'Inventory List',
+    inventoryAlerts: 'Stock Alerts',
+    inventoryLogs: 'Stock Logs',
+    // Pricing
+    priceList: 'Price List',
+    priceRules: 'Price Rules',
+    priceHistory: 'Price History',
+    // Orders
+    orderList: 'All Orders',
+    orderPending: 'Pending Orders',
+    orderCompleted: 'Completed Orders',
+    orderRefunds: 'Refunds',
+    // Fulfillment
+    fulfillmentList: 'All Fulfillment',
+    fulfillmentPending: 'Pending Shipment',
+    fulfillmentShipped: 'Shipped',
+    fulfillmentExceptions: 'Exceptions',
+    // Data Center
+    dataOverview: 'Overview',
+    salesAnalysis: 'Sales Analysis',
+    inventoryAnalysis: 'Inventory Analysis',
+    reports: 'Reports',
+    // Settings
+    generalSettings: 'General',
+    userManagement: 'Users',
+    roleManagement: 'Roles',
+    operationLogs: 'Logs',
+  },
+
+  // Header
+  header: {
+    notifications: 'Notifications',
+    switchTheme: 'Switch Theme',
+    switchLanguage: 'Switch Language',
+    profile: 'Profile',
+    logout: 'Logout',
+  },
+
+  // Auth
+  auth: {
+    login: 'Login',
+    register: 'Register',
+    email: 'Email',
+    password: 'Password',
+    forgotPassword: 'Forgot Password',
+    resetPassword: 'Reset Password',
+    verifyEmail: 'Verify Email',
+  },
+
+  // Dashboard
+  dashboard: {
+    title: 'Dashboard',
+    description: 'Welcome back! Here\'s an overview of your business.',
+    todayOrders: 'Today\'s Orders',
+    todaySales: 'Today\'s Sales',
+    inventoryAlerts: 'Stock Alerts',
+    fulfillmentExceptions: 'Fulfillment Exceptions',
+    recentOrders: 'Recent Orders',
+    topProducts: 'Top Products',
+    fromLastMonth: 'from last month',
+    activeListings: 'active listings',
+  },
+
+  // Products
+  products: {
+    title: 'Products',
+    description: 'Manage your product catalog',
+    productName: 'Product Name',
+    sku: 'SKU',
+    category: 'Category',
+    price: 'Price',
+    stock: 'Stock',
+    status: 'Status',
+    onSale: 'On Sale',
+    offSale: 'Off Sale',
+    addProduct: 'Add Product',
+    batchOnSale: 'Batch On Sale',
+    batchOffSale: 'Batch Off Sale',
+    batchUpdateStock: 'Batch Update Stock',
+    batchUpdatePrice: 'Batch Update Price',
+  },
+
+  // Orders
+  orders: {
+    title: 'Orders',
+    description: 'Manage your orders',
+    orderNo: 'Order No',
+    customer: 'Customer',
+    amount: 'Amount',
+    status: 'Status',
+    pending: 'Pending',
+    processing: 'Processing',
+    shipped: 'Shipped',
+    completed: 'Completed',
+    cancelled: 'Cancelled',
+    refunded: 'Refunded',
+    orderTime: 'Order Time',
+  },
+
+  // Form page
+  form: {
+    basicInfoDescription: 'Enter the basic information for this product',
+    pricingDescription: 'Set the pricing for this product',
+    inventoryDescription: 'Manage inventory settings',
+    originalPrice: 'Original Price',
+  },
+
+  // Detail page
+  detail: {
+    basicInfo: 'Basic Info',
+    brand: 'Brand',
+    weight: 'Weight',
+    dimensions: 'Dimensions',
+    description: 'Description',
+    currentStock: 'Current Stock',
+    stockLogs: 'Stock Logs',
+    currentPrice: 'Current Price',
+  },
+
+  // Status
+  status: {
+    enabled: 'Enabled',
+    disabled: 'Disabled',
+    normal: 'Normal',
+    abnormal: 'Abnormal',
+  },
+
+  // Form validation
+  validation: {
+    required: '{{field}} is required',
+    email: 'Please enter a valid email address',
+    minLength: '{{field}} must be at least {{min}} characters',
+    maxLength: '{{field}} must be at most {{max}} characters',
+  },
+
+  // Confirm dialogs
+  confirm: {
+    deleteTitle: 'Confirm Delete',
+    deleteMessage: 'Are you sure you want to delete the selected items? This action cannot be undone.',
+    batchTitle: 'Confirm Batch Operation',
+    batchMessage: 'Are you sure you want to perform this operation on {{count}} selected items?',
+  },
+}

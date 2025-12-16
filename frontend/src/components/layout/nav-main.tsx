@@ -10,7 +10,6 @@ import {
 } from "@/components/ui/collapsible"
 import {
   SidebarGroup,
-  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -32,15 +31,13 @@ export interface NavItem {
 
 interface NavMainProps {
   items: NavItem[]
-  label?: string
 }
 
-export function NavMain({ items, label }: NavMainProps) {
+export function NavMain({ items }: NavMainProps) {
   const location = useLocation()
 
   return (
     <SidebarGroup>
-      {label && <SidebarGroupLabel>{label}</SidebarGroupLabel>}
       <SidebarMenu>
         {items.map((item) =>
           item.items && item.items.length > 0 ? (

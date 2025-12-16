@@ -10,6 +10,25 @@ import type { User, LoginRequest, RegisterRequest } from '@/types/auth';
 import { authApi } from '@/lib/auth-api';
 import { tokenStorage } from '@/lib/api-client';
 
+// Mock credentials for testing
+const MOCK_CREDENTIALS = {
+  email: 'test@demo.com',
+  password: '123456',
+};
+
+const MOCK_USER: User = {
+  id: 'mock-user-1',
+  email: 'test@demo.com',
+  roles: ['ROLE_USER'],
+  isVerified: true,
+  createdAt: new Date().toISOString(),
+};
+
+// Check if using mock login
+const isMockLogin = (email: string, password: string): boolean => {
+  return email === MOCK_CREDENTIALS.email && password === MOCK_CREDENTIALS.password;
+};
+
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
@@ -41,7 +60,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const initAuth = async () => {
       const token = tokenStorage.getAccessToken();
       if (token) {
-        await refreshUser();
+        // Check if it's a mock token
+        if (token === 'mock-access-token') {
+          setUser(MOCK_USER);
+        } else {
+          await refreshUser();
+        }
       }
       setIsLoading(false);
     };
@@ -49,6 +73,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [refreshUser]);
 
   const login = async (data: LoginRequest) => {
+    // Mock login for testing
+    if (isMockLogin(data.email, data.password)) {
+      // Set mock token to localStorage to persist session
+      tokenStorage.setTokens({
+        token: 'mock-access-token',
+        refresh_token: 'mock-refresh-token',
+      });
+      setUser(MOCK_USER);
+      return;
+    }
+
+    // Real login
     await authApi.login(data);
     await refreshUser();
   };
@@ -59,9 +95,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = async () => {
+    const token = tokenStorage.getAccessToken();
     try {
-      await authApi.logout();
+      // Skip API call for mock login
+      if (token !== 'mock-access-token') {
+        await authApi.logout();
+      }
     } finally {
+      tokenStorage.clearTokens();
       setUser(null);
     }
   };
