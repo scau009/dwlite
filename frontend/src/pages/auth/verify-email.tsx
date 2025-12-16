@@ -1,18 +1,15 @@
 import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router';
+import { useTranslation } from 'react-i18next';
+import { Card, Result, Spin } from 'antd';
+import { LoadingOutlined } from '@ant-design/icons';
+
 import { authApi } from '@/lib/auth-api';
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 
 type VerifyStatus = 'loading' | 'success' | 'error';
 
 export function VerifyEmailPage() {
+  const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const token = searchParams.get('token') || '';
 
@@ -45,36 +42,37 @@ export function VerifyEmailPage() {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>
-          {status === 'loading' && 'Verifying your email...'}
-          {status === 'success' && 'Email verified!'}
-          {status === 'error' && 'Verification failed'}
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        {status === 'loading' && (
-          <div className="flex justify-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-          </div>
-        )}
-        {status === 'success' && (
-          <Alert>
-            <AlertDescription>{message}</AlertDescription>
-          </Alert>
-        )}
-        {status === 'error' && (
-          <Alert variant="destructive">
-            <AlertDescription>{message}</AlertDescription>
-          </Alert>
-        )}
-      </CardContent>
-      {status !== 'loading' && (
-        <CardFooter>
-          <Link to="/login" className="text-primary hover:underline text-sm">
-            Go to login
-          </Link>
-        </CardFooter>
+      {status === 'loading' && (
+        <div className="text-center py-8">
+          <Spin indicator={<LoadingOutlined style={{ fontSize: 48 }} spin />} />
+          <p className="mt-4 text-lg">{t('auth.verifyEmail')}...</p>
+        </div>
+      )}
+
+      {status === 'success' && (
+        <Result
+          status="success"
+          title="Email verified!"
+          subTitle={message}
+          extra={
+            <Link to="/login" className="text-blue-500 hover:underline">
+              Go to login
+            </Link>
+          }
+        />
+      )}
+
+      {status === 'error' && (
+        <Result
+          status="error"
+          title="Verification failed"
+          subTitle={message}
+          extra={
+            <Link to="/login" className="text-blue-500 hover:underline">
+              Go to login
+            </Link>
+          }
+        />
       )}
     </Card>
   );

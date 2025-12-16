@@ -1,8 +1,0 @@
-export { PageHeader } from './page-header'
-export { FilterArea, type FilterField } from './filter-area'
-export { ActionBar, type ActionButton } from './action-bar'
-export { DataTable, type Column, type RowAction } from './data-table'
-export { StatusBadge, type StatusType } from './status-badge'
-export { ConfirmDialog } from './confirm-dialog'
-export { DetailHeader, InfoCard, InfoRow, DetailTabs } from './detail-page'
-export { FormHeader, FormSection, FormField, FormActions, FormInput } from './form-page'

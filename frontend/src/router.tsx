@@ -1,4 +1,7 @@
 import { createBrowserRouter, Navigate, Outlet } from 'react-router';
+import { Empty, Spin } from 'antd';
+import { LoadingOutlined } from '@ant-design/icons';
+
 import { useAuth } from '@/contexts/auth-context';
 
 // Layouts
@@ -20,9 +23,24 @@ import { ProductsListPage, ProductDetailPage, ProductFormPage } from '@/pages/pr
 // Placeholder component for pages not yet implemented
 function PlaceholderPage({ title }: { title: string }) {
   return (
-    <div className="flex flex-col items-center justify-center h-[50vh] text-center">
-      <h1 className="text-2xl font-bold mb-2">{title}</h1>
-      <p className="text-muted-foreground">This page is under construction.</p>
+    <div className="flex flex-col items-center justify-center h-[50vh]">
+      <Empty
+        description={
+          <div>
+            <h1 className="text-xl font-semibold mb-2">{title}</h1>
+            <p className="text-gray-500">This page is under construction.</p>
+          </div>
+        }
+      />
+    </div>
+  );
+}
+
+// Loading component
+function LoadingScreen() {
+  return (
+    <div className="flex min-h-screen items-center justify-center">
+      <Spin indicator={<LoadingOutlined style={{ fontSize: 32 }} spin />} />
     </div>
   );
 }
@@ -32,11 +50,7 @@ function ProtectedRoute() {
   const { isAuthenticated, isLoading } = useAuth();
 
   if (isLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   if (!isAuthenticated) {
@@ -51,11 +65,7 @@ function GuestRoute() {
   const { isAuthenticated, isLoading } = useAuth();
 
   if (isLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   if (isAuthenticated) {

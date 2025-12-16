@@ -1,105 +1,92 @@
-import { useState, type FormEvent } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router';
+import { useTranslation } from 'react-i18next';
+import { ProForm, ProFormText } from '@ant-design/pro-components';
+import { Card, Result, App } from 'antd';
+import { MailOutlined } from '@ant-design/icons';
+
 import { authApi } from '@/lib/auth-api';
 import { validateEmail } from '@/lib/validation';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export function ForgotPasswordPage() {
-  const [email, setEmail] = useState('');
-  const [error, setError] = useState<string | null>(null);
+  const { t } = useTranslation();
+  const { message } = App.useApp();
   const [success, setSuccess] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    setError(null);
-
-    const emailError = validateEmail(email);
+  const handleSubmit = async (values: { email: string }) => {
+    const emailError = validateEmail(values.email);
     if (emailError) {
-      setError(emailError);
-      return;
+      message.error(emailError);
+      return false;
     }
 
-    setIsSubmitting(true);
     try {
-      await authApi.forgotPassword({ email });
+      await authApi.forgotPassword({ email: values.email });
       setSuccess(true);
     } catch {
       // Always show success to prevent email enumeration
       setSuccess(true);
-    } finally {
-      setIsSubmitting(false);
     }
+    return true;
   };
 
   if (success) {
     return (
       <Card>
-        <CardHeader>
-          <CardTitle>Check your email</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            If an account with that email exists, we've sent you a password
-            reset link. Please check your inbox and spam folder.
-          </p>
-        </CardContent>
-        <CardFooter>
-          <Link to="/login" className="text-primary hover:underline text-sm">
-            Back to login
-          </Link>
-        </CardFooter>
+        <Result
+          status="success"
+          title="Check your email"
+          subTitle="If an account with that email exists, we've sent you a password reset link. Please check your inbox and spam folder."
+          extra={
+            <Link to="/login" className="text-blue-500 hover:underline">
+              Back to login
+            </Link>
+          }
+        />
       </Card>
     );
   }
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Forgot your password?</CardTitle>
-        <CardDescription>
+      <div className="text-center mb-6">
+        <h2 className="text-2xl font-semibold">{t('auth.forgotPassword')}</h2>
+        <p className="text-gray-500">
           Enter your email address and we'll send you a reset link
-        </CardDescription>
-      </CardHeader>
-      <form onSubmit={handleSubmit}>
-        <CardContent className="space-y-4">
-          {error && (
-            <Alert variant="destructive">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
-              disabled={isSubmitting}
-            />
-          </div>
-        </CardContent>
-        <CardFooter className="flex flex-col space-y-4">
-          <Button type="submit" className="w-full" disabled={isSubmitting}>
-            {isSubmitting ? 'Sending...' : 'Send reset link'}
-          </Button>
-          <Link to="/login" className="text-primary hover:underline text-sm">
-            Back to login
-          </Link>
-        </CardFooter>
-      </form>
+        </p>
+      </div>
+
+      <ProForm
+        layout="vertical"
+        onFinish={handleSubmit}
+        submitter={{
+          searchConfig: {
+            submitText: 'Send reset link',
+          },
+          resetButtonProps: { style: { display: 'none' } },
+          submitButtonProps: { block: true, size: 'large' },
+        }}
+      >
+        <ProFormText
+          name="email"
+          label={t('auth.email')}
+          fieldProps={{
+            size: 'large',
+            prefix: <MailOutlined />,
+          }}
+          placeholder="you@example.com"
+          rules={[
+            { required: true, message: 'Please enter your email' },
+            { type: 'email', message: 'Please enter a valid email' },
+          ]}
+        />
+      </ProForm>
+
+      <div className="text-center mt-4">
+        <Link to="/login" className="text-blue-500 hover:underline">
+          Back to login
+        </Link>
+      </div>
     </Card>
   );
 }

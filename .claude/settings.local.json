@@ -6,7 +6,10 @@
       "Bash(npm install:*)",
       "Bash(docker compose restart:*)",
       "Bash(npx shadcn:*)",
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "mcp__context7__resolve-library-id",
+      "mcp__context7__get-library-docs",
+      "Bash(find:*)"
     ]
   }
 }

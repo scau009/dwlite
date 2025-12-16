@@ -1,17 +1,8 @@
-"use client"
-
-import { useParams } from "react-router"
-import { useTranslation } from "react-i18next"
-
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { StatusBadge } from "@/components/common"
-import {
-  DetailHeader,
-  InfoCard,
-  InfoRow,
-  DetailTabs,
-} from "@/components/common/detail-page"
+import { useParams, useNavigate } from 'react-router';
+import { useTranslation } from 'react-i18next';
+import { ProDescriptions } from '@ant-design/pro-components';
+import { Card, Button, Tabs, Tag, Space, Table, Statistic, Row, Col, App } from 'antd';
+import { ArrowLeftOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 
 // Mock product data
 const mockProduct = {
@@ -29,7 +20,7 @@ const mockProduct = {
   dimensions: '30 x 20 x 12 cm',
   createdAt: '2024-01-01 10:00:00',
   updatedAt: '2024-01-15 10:30:00',
-}
+};
 
 // Mock inventory logs
 const inventoryLogs = [
@@ -37,194 +28,227 @@ const inventoryLogs = [
   { id: '2', type: 'out', quantity: 20, operator: 'System', time: '2024-01-14 15:30', remark: 'Order fulfillment' },
   { id: '3', type: 'in', quantity: 50, operator: 'Admin', time: '2024-01-13 10:00', remark: 'Restocking' },
   { id: '4', type: 'out', quantity: 30, operator: 'System', time: '2024-01-12 14:20', remark: 'Order fulfillment' },
-]
+];
 
 // Mock price history
 const priceHistory = [
   { id: '1', oldPrice: 399, newPrice: 299, operator: 'Admin', time: '2024-01-10 10:00', remark: 'Promotion' },
   { id: '2', oldPrice: 349, newPrice: 399, operator: 'Admin', time: '2024-01-01 09:00', remark: 'New season pricing' },
-]
+];
 
 // Mock operation logs
 const operationLogs = [
   { id: '1', action: 'Update', field: 'stock', oldValue: '100', newValue: '150', operator: 'Admin', time: '2024-01-15 10:30' },
   { id: '2', action: 'Update', field: 'price', oldValue: '399', newValue: '299', operator: 'Admin', time: '2024-01-10 10:00' },
   { id: '3', action: 'Update', field: 'status', oldValue: 'off_sale', newValue: 'on_sale', operator: 'Admin', time: '2024-01-05 14:00' },
-]
+];
 
 export function ProductDetailPage() {
-  useParams() // Read params for route matching
-  const { t } = useTranslation()
-  const product = mockProduct
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const { t } = useTranslation();
+  const { modal, message } = App.useApp();
+  const product = mockProduct;
 
-  const tabs = [
+  const handleDelete = () => {
+    modal.confirm({
+      title: t('confirm.deleteTitle'),
+      content: t('confirm.deleteMessage'),
+      okButtonProps: { danger: true },
+      onOk: () => {
+        console.log('Delete product:', id);
+        message.success(t('common.success'));
+        navigate('/products');
+      },
+    });
+  };
+
+  const tabItems = [
     {
-      value: 'basic',
-      label: t('detail.basicInfo') || 'Basic Info',
-      content: (
-        <InfoCard title={t('detail.basicInfo') || 'Basic Information'}>
-          <dl>
-            <InfoRow label={t('products.productName')} value={product.name} />
-            <InfoRow label={t('products.sku')} value={product.sku} />
-            <InfoRow label={t('products.category')} value={product.category} />
-            <InfoRow label={t('detail.brand') || 'Brand'} value={product.brand} />
-            <InfoRow label={t('detail.weight') || 'Weight'} value={product.weight} />
-            <InfoRow label={t('detail.dimensions') || 'Dimensions'} value={product.dimensions} />
-            <InfoRow label={t('detail.description') || 'Description'} value={product.description} />
-            <InfoRow label={t('common.createdAt')} value={product.createdAt} />
-            <InfoRow label={t('common.updatedAt')} value={product.updatedAt} />
-          </dl>
-        </InfoCard>
+      key: 'basic',
+      label: t('detail.basicInfo'),
+      children: (
+        <ProDescriptions
+          column={2}
+          dataSource={product}
+          columns={[
+            { title: t('products.productName'), dataIndex: 'name' },
+            { title: t('products.sku'), dataIndex: 'sku' },
+            { title: t('products.category'), dataIndex: 'category' },
+            { title: t('detail.brand'), dataIndex: 'brand' },
+            { title: t('detail.weight'), dataIndex: 'weight' },
+            { title: t('detail.dimensions'), dataIndex: 'dimensions' },
+            { title: t('detail.description'), dataIndex: 'description', span: 2 },
+            { title: t('common.createdAt'), dataIndex: 'createdAt' },
+            { title: t('common.updatedAt'), dataIndex: 'updatedAt' },
+          ]}
+        />
       ),
     },
     {
-      value: 'inventory',
+      key: 'inventory',
       label: t('nav.inventory'),
-      content: (
+      children: (
         <div className="space-y-4">
           <Card>
-            <CardHeader>
-              <CardTitle>{t('detail.currentStock') || 'Current Stock'}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">{product.stock}</div>
-            </CardContent>
+            <Statistic title={t('detail.currentStock')} value={product.stock} />
           </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle>{t('detail.stockLogs') || 'Stock Logs'}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                {inventoryLogs.map((log) => (
-                  <div key={log.id} className="flex items-center justify-between border-b pb-2 last:border-0">
-                    <div className="flex items-center gap-4">
-                      <StatusBadge
-                        status={log.type === 'in' ? 'success' : 'warning'}
-                        label={log.type === 'in' ? '+' + log.quantity : '-' + log.quantity}
-                      />
-                      <span className="text-sm text-muted-foreground">{log.remark}</span>
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      {log.operator} - {log.time}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
+          <Card title={t('detail.stockLogs')}>
+            <Table
+              dataSource={inventoryLogs}
+              rowKey="id"
+              pagination={false}
+              columns={[
+                {
+                  title: t('common.operation'),
+                  dataIndex: 'type',
+                  render: (type: string, record: typeof inventoryLogs[0]) => (
+                    <Tag color={type === 'in' ? 'success' : 'warning'}>
+                      {type === 'in' ? '+' : '-'}{record.quantity}
+                    </Tag>
+                  ),
+                },
+                { title: 'Remark', dataIndex: 'remark' },
+                { title: 'Operator', dataIndex: 'operator' },
+                { title: 'Time', dataIndex: 'time' },
+              ]}
+            />
           </Card>
         </div>
       ),
     },
     {
-      value: 'pricing',
+      key: 'pricing',
       label: t('nav.pricing'),
-      content: (
+      children: (
         <div className="space-y-4">
           <Card>
-            <CardHeader>
-              <CardTitle>{t('detail.currentPrice') || 'Current Price'}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-baseline gap-4">
-                <span className="text-3xl font-bold">${product.price}</span>
-                <span className="text-lg text-muted-foreground line-through">${product.originalPrice}</span>
-              </div>
-            </CardContent>
+            <Row gutter={24}>
+              <Col span={12}>
+                <Statistic
+                  title={t('detail.currentPrice')}
+                  value={product.price}
+                  prefix="$"
+                />
+              </Col>
+              <Col span={12}>
+                <Statistic
+                  title={t('form.originalPrice')}
+                  value={product.originalPrice}
+                  prefix="$"
+                  valueStyle={{ textDecoration: 'line-through', color: '#999' }}
+                />
+              </Col>
+            </Row>
           </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle>{t('menu.priceHistory')}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                {priceHistory.map((log) => (
-                  <div key={log.id} className="flex items-center justify-between border-b pb-2 last:border-0">
-                    <div className="flex items-center gap-4">
-                      <span className="text-sm">${log.oldPrice} → ${log.newPrice}</span>
-                      <span className="text-sm text-muted-foreground">{log.remark}</span>
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      {log.operator} - {log.time}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
+          <Card title={t('menu.priceHistory')}>
+            <Table
+              dataSource={priceHistory}
+              rowKey="id"
+              pagination={false}
+              columns={[
+                {
+                  title: 'Price Change',
+                  render: (_, record: typeof priceHistory[0]) => (
+                    <span>${record.oldPrice} → ${record.newPrice}</span>
+                  ),
+                },
+                { title: 'Remark', dataIndex: 'remark' },
+                { title: 'Operator', dataIndex: 'operator' },
+                { title: 'Time', dataIndex: 'time' },
+              ]}
+            />
           </Card>
         </div>
       ),
     },
     {
-      value: 'logs',
+      key: 'logs',
       label: t('menu.operationLogs'),
-      content: (
+      children: (
         <Card>
-          <CardHeader>
-            <CardTitle>{t('menu.operationLogs')}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              {operationLogs.map((log) => (
-                <div key={log.id} className="flex items-center justify-between border-b pb-2 last:border-0">
-                  <div className="flex items-center gap-4">
-                    <StatusBadge status="info" label={log.action} />
-                    <span className="text-sm">
-                      {log.field}: {log.oldValue} → {log.newValue}
-                    </span>
-                  </div>
-                  <div className="text-sm text-muted-foreground">
-                    {log.operator} - {log.time}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
+          <Table
+            dataSource={operationLogs}
+            rowKey="id"
+            pagination={false}
+            columns={[
+              {
+                title: 'Action',
+                dataIndex: 'action',
+                render: (action: string) => <Tag color="blue">{action}</Tag>,
+              },
+              { title: 'Field', dataIndex: 'field' },
+              {
+                title: 'Change',
+                render: (_, record: typeof operationLogs[0]) => (
+                  <span>{record.oldValue} → {record.newValue}</span>
+                ),
+              },
+              { title: 'Operator', dataIndex: 'operator' },
+              { title: 'Time', dataIndex: 'time' },
+            ]}
+          />
         </Card>
       ),
     },
-  ]
+  ];
 
   return (
     <div className="space-y-4">
-      {/* Header with back button and actions */}
-      <DetailHeader backUrl="/products">
-        <Button variant="outline">{t('common.edit')}</Button>
-        <Button variant="destructive">{t('common.delete')}</Button>
-      </DetailHeader>
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <a
+          onClick={() => navigate('/products')}
+          className="flex items-center gap-1 text-gray-500 hover:text-gray-700 cursor-pointer"
+        >
+          <ArrowLeftOutlined />
+          <span>{t('common.back')}</span>
+        </a>
+        <Space>
+          <Button
+            icon={<EditOutlined />}
+            onClick={() => navigate(`/products/${id}/edit`)}
+          >
+            {t('common.edit')}
+          </Button>
+          <Button
+            danger
+            icon={<DeleteOutlined />}
+            onClick={handleDelete}
+          >
+            {t('common.delete')}
+          </Button>
+        </Space>
+      </div>
 
       {/* Core Info Card */}
       <Card>
-        <CardContent className="pt-6">
-          <div className="flex items-start justify-between">
-            <div>
-              <h1 className="text-2xl font-bold">{product.name}</h1>
-              <p className="text-muted-foreground">{product.sku}</p>
-            </div>
-            <StatusBadge
-              status={product.status === 'on_sale' ? 'success' : 'default'}
-              label={product.status === 'on_sale' ? t('products.onSale') : t('products.offSale')}
-            />
+        <div className="flex items-start justify-between mb-4">
+          <div>
+            <h1 className="text-2xl font-bold">{product.name}</h1>
+            <p className="text-gray-500">{product.sku}</p>
           </div>
-          <div className="mt-4 grid grid-cols-3 gap-4">
-            <div>
-              <p className="text-sm text-muted-foreground">{t('products.price')}</p>
-              <p className="text-xl font-semibold">${product.price}</p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">{t('products.stock')}</p>
-              <p className="text-xl font-semibold">{product.stock}</p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">{t('products.category')}</p>
-              <p className="text-xl font-semibold">{product.category}</p>
-            </div>
-          </div>
-        </CardContent>
+          <Tag color={product.status === 'on_sale' ? 'success' : 'default'}>
+            {product.status === 'on_sale' ? t('products.onSale') : t('products.offSale')}
+          </Tag>
+        </div>
+        <Row gutter={24}>
+          <Col span={8}>
+            <Statistic title={t('products.price')} value={product.price} prefix="$" />
+          </Col>
+          <Col span={8}>
+            <Statistic title={t('products.stock')} value={product.stock} />
+          </Col>
+          <Col span={8}>
+            <Statistic title={t('products.category')} value={product.category} />
+          </Col>
+        </Row>
       </Card>
 
       {/* Tabs for detailed info */}
-      <DetailTabs tabs={tabs} />
+      <Card>
+        <Tabs items={tabItems} />
+      </Card>
     </div>
-  )
+  );
 }

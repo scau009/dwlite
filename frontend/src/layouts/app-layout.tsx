@@ -1,19 +1,57 @@
-import { Outlet } from "react-router"
+import { useState } from 'react';
+import { Outlet, useNavigate, useLocation } from 'react-router';
+import { ProLayout, PageContainer } from '@ant-design/pro-components';
+import { useTranslation } from 'react-i18next';
+import { ShopOutlined } from '@ant-design/icons';
 
-import { AppSidebar } from "@/components/layout/app-sidebar"
-import { AppHeader } from "@/components/layout/app-header"
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
+import { getMenuData } from '@/config/menu';
+import { HeaderRight } from '@/components/layout/header-right';
 
 export function AppLayout() {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [collapsed, setCollapsed] = useState(false);
+
+  const menuData = getMenuData(t);
+
   return (
-    <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset>
-        <AppHeader />
-        <main className="flex-1 overflow-auto p-4 md:p-6">
-          <Outlet />
-        </main>
-      </SidebarInset>
-    </SidebarProvider>
-  )
+    <ProLayout
+      title="DWLite"
+      logo={<ShopOutlined style={{ fontSize: 28, color: '#6366f1' }} />}
+      layout="mix"
+      fixedHeader
+      fixSiderbar
+      collapsed={collapsed}
+      onCollapse={setCollapsed}
+      siderWidth={220}
+      location={{ pathname: location.pathname }}
+      menu={{
+        request: async () => menuData,
+      }}
+      menuItemRender={(item, dom) => (
+        <div onClick={() => item.path && navigate(item.path)}>
+          {dom}
+        </div>
+      )}
+      subMenuItemRender={(_item, dom) => dom}
+      actionsRender={() => [<HeaderRight key="header-right" />]}
+      onMenuHeaderClick={() => navigate('/dashboard')}
+      token={{
+        header: {
+          heightLayoutHeader: 56,
+        },
+        sider: {
+          colorMenuBackground: 'transparent',
+        },
+      }}
+    >
+      <PageContainer
+        header={{ title: false, breadcrumb: {} }}
+        className="min-h-full"
+      >
+        <Outlet />
+      </PageContainer>
+    </ProLayout>
+  );
 }

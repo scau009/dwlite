@@ -1,34 +1,20 @@
-"use client"
-
-import { useState, useCallback } from "react"
-import { useTranslation } from "react-i18next"
-import { useNavigate } from "react-router"
-import { ArrowUp, ArrowDown } from "lucide-react"
-
-import {
-  PageHeader,
-  FilterArea,
-  ActionBar,
-  DataTable,
-  StatusBadge,
-  ConfirmDialog,
-  type FilterField,
-  type Column,
-  type RowAction,
-  type ActionButton,
-  type StatusType,
-} from "@/components/common"
+import { useRef, useState } from 'react';
+import { useNavigate } from 'react-router';
+import { useTranslation } from 'react-i18next';
+import { ProTable, type ActionType, type ProColumns } from '@ant-design/pro-components';
+import { Button, Tag, Space, App } from 'antd';
+import { PlusOutlined, UpOutlined, DownOutlined, ExportOutlined } from '@ant-design/icons';
 
 // Product type
 interface Product {
-  id: string
-  name: string
-  sku: string
-  category: string
-  price: number
-  stock: number
-  status: 'on_sale' | 'off_sale'
-  updatedAt: string
+  id: string;
+  name: string;
+  sku: string;
+  category: string;
+  price: number;
+  stock: number;
+  status: 'on_sale' | 'off_sale';
+  updatedAt: string;
 }
 
 // Mock data
@@ -43,277 +29,208 @@ const mockProducts: Product[] = [
   { id: '8', name: 'Casual T-Shirt', sku: 'SKU-008', category: 'Apparel', price: 39, stock: 500, status: 'on_sale', updatedAt: '2024-01-08 15:10' },
   { id: '9', name: 'Leather Wallet', sku: 'SKU-009', category: 'Accessories', price: 89, stock: 180, status: 'on_sale', updatedAt: '2024-01-07 10:00' },
   { id: '10', name: 'Winter Coat', sku: 'SKU-010', category: 'Apparel', price: 599, stock: 45, status: 'off_sale', updatedAt: '2024-01-06 09:45' },
-]
+];
 
 export function ProductsListPage() {
-  const { t } = useTranslation()
-  const navigate = useNavigate()
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const actionRef = useRef<ActionType>(null);
+  const { message, modal } = App.useApp();
+  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
 
-  // Filter state
-  const [filters, setFilters] = useState<Record<string, string>>({})
-
-  // Selection state
-  const [selectedIds, setSelectedIds] = useState<(string | number)[]>([])
-
-  // Sort state
-  const [sortKey, setSortKey] = useState<keyof Product | undefined>()
-  const [, setSortOrder] = useState<'asc' | 'desc'>('desc')
-
-  // Pagination state
-  const [page, setPage] = useState(1)
-  const pageSize = 10
-
-  // Confirm dialog state
-  const [confirmDialog, setConfirmDialog] = useState<{
-    open: boolean
-    title: string
-    description: string
-    onConfirm: () => void
-    danger?: boolean
-  }>({ open: false, title: '', description: '', onConfirm: () => {} })
-
-  // Filter fields
-  const filterFields: FilterField[] = [
+  const columns: ProColumns<Product>[] = [
     {
-      key: 'keyword',
-      label: t('products.productName') + ' / ' + t('products.sku'),
-      type: 'text',
-      placeholder: t('common.search') + '...',
+      title: t('products.productName'),
+      dataIndex: 'name',
+      ellipsis: true,
+      formItemProps: {
+        label: t('products.productName') + ' / ' + t('products.sku'),
+      },
+      fieldProps: {
+        placeholder: t('common.search') + '...',
+      },
     },
     {
-      key: 'category',
-      label: t('products.category'),
-      type: 'select',
-      options: [
-        { label: 'Footwear', value: 'Footwear' },
-        { label: 'Apparel', value: 'Apparel' },
-        { label: 'Accessories', value: 'Accessories' },
-      ],
+      title: t('products.sku'),
+      dataIndex: 'sku',
+      width: 120,
+      search: false,
     },
     {
-      key: 'status',
-      label: t('products.status'),
-      type: 'select',
-      options: [
-        { label: t('products.onSale'), value: 'on_sale' },
-        { label: t('products.offSale'), value: 'off_sale' },
-      ],
-    },
-  ]
-
-  // Table columns
-  const columns: Column<Product>[] = [
-    {
-      key: 'name',
-      header: t('products.productName'),
-      sortable: true,
+      title: t('products.category'),
+      dataIndex: 'category',
+      width: 120,
+      valueType: 'select',
+      valueEnum: {
+        Footwear: { text: 'Footwear' },
+        Apparel: { text: 'Apparel' },
+        Accessories: { text: 'Accessories' },
+      },
     },
     {
-      key: 'sku',
-      header: t('products.sku'),
-      width: '120px',
+      title: t('products.price'),
+      dataIndex: 'price',
+      width: 100,
+      search: false,
+      sorter: true,
+      render: (_, record) => `$${record.price.toFixed(2)}`,
     },
     {
-      key: 'category',
-      header: t('products.category'),
-      width: '120px',
-    },
-    {
-      key: 'price',
-      header: t('products.price'),
-      sortable: true,
-      width: '100px',
-      render: (row) => `$${row.price.toFixed(2)}`,
-    },
-    {
-      key: 'stock',
-      header: t('products.stock'),
-      sortable: true,
-      width: '100px',
-      render: (row) => (
-        <span className={row.stock === 0 ? 'text-destructive' : ''}>
-          {row.stock}
+      title: t('products.stock'),
+      dataIndex: 'stock',
+      width: 100,
+      search: false,
+      sorter: true,
+      render: (_, record) => (
+        <span style={{ color: record.stock === 0 ? '#ff4d4f' : undefined }}>
+          {record.stock}
         </span>
       ),
     },
     {
-      key: 'status',
-      header: t('products.status'),
-      width: '100px',
-      render: (row) => {
-        const statusMap: Record<Product['status'], { type: StatusType; label: string }> = {
-          on_sale: { type: 'success', label: t('products.onSale') },
-          off_sale: { type: 'default', label: t('products.offSale') },
-        }
-        const { type, label } = statusMap[row.status]
-        return <StatusBadge status={type} label={label} />
+      title: t('products.status'),
+      dataIndex: 'status',
+      width: 100,
+      valueType: 'select',
+      valueEnum: {
+        on_sale: { text: t('products.onSale'), status: 'Success' },
+        off_sale: { text: t('products.offSale'), status: 'Default' },
       },
+      render: (_, record) => (
+        <Tag color={record.status === 'on_sale' ? 'success' : 'default'}>
+          {record.status === 'on_sale' ? t('products.onSale') : t('products.offSale')}
+        </Tag>
+      ),
     },
     {
-      key: 'updatedAt',
-      header: t('common.updatedAt'),
-      sortable: true,
-      width: '160px',
+      title: t('common.updatedAt'),
+      dataIndex: 'updatedAt',
+      width: 160,
+      search: false,
+      sorter: true,
     },
     {
-      key: 'actions',
-      header: t('common.actions'),
-      width: '80px',
+      title: t('common.actions'),
+      valueType: 'option',
+      width: 120,
+      render: (_, record) => [
+        <a key="view" onClick={() => navigate(`/products/${record.id}`)}>
+          {t('common.view')}
+        </a>,
+        <a key="edit" onClick={() => navigate(`/products/${record.id}/edit`)}>
+          {t('common.edit')}
+        </a>,
+      ],
     },
-  ]
+  ];
 
-  // Row actions
-  const rowActions: RowAction<Product>[] = [
-    {
-      key: 'edit',
-      label: t('common.edit'),
-      onClick: (row) => navigate(`/products/${row.id}/edit`),
-    },
-    {
-      key: 'view',
-      label: t('common.view') || 'View',
-      onClick: (row) => navigate(`/products/${row.id}`),
-    },
-    {
-      key: 'delete',
-      label: t('common.delete'),
-      onClick: (row) => {
-        setConfirmDialog({
-          open: true,
-          title: t('confirm.deleteTitle'),
-          description: t('confirm.deleteMessage'),
-          danger: true,
-          onConfirm: () => {
-            console.log('Delete product:', row.id)
-            setConfirmDialog((prev) => ({ ...prev, open: false }))
-          },
-        })
+  const handleBatchAction = (action: 'on_sale' | 'off_sale' | 'delete') => {
+    modal.confirm({
+      title: t('confirm.batchTitle'),
+      content: t('confirm.batchMessage', { count: selectedRowKeys.length }),
+      okButtonProps: { danger: action === 'delete' },
+      onOk: () => {
+        console.log(`Batch ${action}:`, selectedRowKeys);
+        message.success(t('common.success'));
+        setSelectedRowKeys([]);
+        actionRef.current?.reload();
       },
-      danger: true,
-    },
-  ]
-
-  // Action bar actions
-  const actions: ActionButton[] = [
-    {
-      key: 'batchOnSale',
-      label: t('products.batchOnSale'),
-      icon: <ArrowUp className="mr-2 h-4 w-4" />,
-      showOnSelect: true,
-      onClick: () => {
-        setConfirmDialog({
-          open: true,
-          title: t('confirm.batchTitle'),
-          description: t('confirm.batchMessage', { count: selectedIds.length }),
-          onConfirm: () => {
-            console.log('Batch on sale:', selectedIds)
-            setSelectedIds([])
-            setConfirmDialog((prev) => ({ ...prev, open: false }))
-          },
-        })
-      },
-    },
-    {
-      key: 'batchOffSale',
-      label: t('products.batchOffSale'),
-      icon: <ArrowDown className="mr-2 h-4 w-4" />,
-      showOnSelect: true,
-      onClick: () => {
-        setConfirmDialog({
-          open: true,
-          title: t('confirm.batchTitle'),
-          description: t('confirm.batchMessage', { count: selectedIds.length }),
-          onConfirm: () => {
-            console.log('Batch off sale:', selectedIds)
-            setSelectedIds([])
-            setConfirmDialog((prev) => ({ ...prev, open: false }))
-          },
-        })
-      },
-    },
-  ]
-
-  // Handlers
-  const handleFilterChange = useCallback((key: string, value: string) => {
-    setFilters((prev) => ({ ...prev, [key]: value }))
-  }, [])
-
-  const handleSearch = useCallback(() => {
-    console.log('Search with filters:', filters)
-    setPage(1)
-  }, [filters])
-
-  const handleReset = useCallback(() => {
-    setFilters({})
-    setPage(1)
-  }, [])
-
-  const handleSort = useCallback((key: keyof Product) => {
-    if (sortKey === key) {
-      setSortOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'))
-    } else {
-      setSortKey(key)
-      setSortOrder('asc')
-    }
-  }, [sortKey])
-
-  const handleAdd = useCallback(() => {
-    navigate('/products/new')
-  }, [navigate])
-
-  const handleExport = useCallback(() => {
-    console.log('Export products:', selectedIds.length > 0 ? selectedIds : 'all')
-  }, [selectedIds])
+    });
+  };
 
   return (
     <div className="space-y-4">
-      {/* Page Header */}
-      <PageHeader
-        title={t('products.title')}
-        description={t('products.description')}
-      />
+      <div className="mb-4">
+        <h1 className="text-xl font-semibold">{t('products.title')}</h1>
+        <p className="text-gray-500">{t('products.description')}</p>
+      </div>
 
-      {/* Filter Area */}
-      <FilterArea
-        fields={filterFields}
-        values={filters}
-        onChange={handleFilterChange}
-        onSearch={handleSearch}
-        onReset={handleReset}
-      />
-
-      {/* Action Bar */}
-      <ActionBar
-        selectedCount={selectedIds.length}
-        actions={actions}
-        onAdd={handleAdd}
-        onExport={handleExport}
-      />
-
-      {/* Data Table */}
-      <DataTable
+      <ProTable<Product>
+        actionRef={actionRef}
         columns={columns}
-        data={mockProducts}
-        rowActions={rowActions}
-        selectedIds={selectedIds}
-        onSelectChange={setSelectedIds}
-        sortKey={sortKey}
-        onSort={handleSort}
-        page={page}
-        pageSize={pageSize}
-        total={mockProducts.length}
-        onPageChange={setPage}
-      />
+        rowKey="id"
+        rowSelection={{
+          selectedRowKeys,
+          onChange: setSelectedRowKeys,
+        }}
+        request={async (params, sort) => {
+          console.log('Query params:', params, sort);
+          // Simulate API delay
+          await new Promise((resolve) => setTimeout(resolve, 300));
 
-      {/* Confirm Dialog */}
-      <ConfirmDialog
-        open={confirmDialog.open}
-        onOpenChange={(open) => setConfirmDialog((prev) => ({ ...prev, open }))}
-        title={confirmDialog.title}
-        description={confirmDialog.description}
-        onConfirm={confirmDialog.onConfirm}
-        danger={confirmDialog.danger}
+          let data = [...mockProducts];
+
+          // Filter
+          if (params.name) {
+            data = data.filter(
+              (item) =>
+                item.name.toLowerCase().includes(params.name.toLowerCase()) ||
+                item.sku.toLowerCase().includes(params.name.toLowerCase())
+            );
+          }
+          if (params.category) {
+            data = data.filter((item) => item.category === params.category);
+          }
+          if (params.status) {
+            data = data.filter((item) => item.status === params.status);
+          }
+
+          return {
+            data,
+            success: true,
+            total: data.length,
+          };
+        }}
+        search={{
+          labelWidth: 'auto',
+          defaultCollapsed: false,
+        }}
+        options={{
+          density: true,
+          fullScreen: true,
+          reload: true,
+        }}
+        pagination={{
+          defaultPageSize: 10,
+          showSizeChanger: true,
+        }}
+        toolBarRender={() => [
+          <Button
+            key="add"
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={() => navigate('/products/new')}
+          >
+            {t('products.addProduct')}
+          </Button>,
+          <Button key="export" icon={<ExportOutlined />}>
+            {t('common.export')}
+          </Button>,
+        ]}
+        tableAlertRender={({ selectedRowKeys }) => (
+          <Space>
+            {t('common.selected', { count: selectedRowKeys.length })}
+          </Space>
+        )}
+        tableAlertOptionRender={() => (
+          <Space>
+            <Button
+              size="small"
+              icon={<UpOutlined />}
+              onClick={() => handleBatchAction('on_sale')}
+            >
+              {t('products.batchOnSale')}
+            </Button>
+            <Button
+              size="small"
+              icon={<DownOutlined />}
+              onClick={() => handleBatchAction('off_sale')}
+            >
+              {t('products.batchOffSale')}
+            </Button>
+          </Space>
+        )}
       />
     </div>
-  )
+  );
 }

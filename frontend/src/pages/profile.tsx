@@ -1,179 +1,123 @@
-import { useState, type FormEvent } from 'react';
+import { useTranslation } from 'react-i18next';
+import { ProForm, ProFormText } from '@ant-design/pro-components';
+import { Card, Descriptions, Row, Col, App, Tag } from 'antd';
+
 import { useAuth } from '@/contexts/auth-context';
 import { authApi } from '@/lib/auth-api';
 import { validateChangePasswordForm } from '@/lib/validation';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import type { ApiError } from '@/types/auth';
 
 export function ProfilePage() {
+  const { t } = useTranslation();
   const { user } = useAuth();
+  const { message } = App.useApp();
 
-  const [currentPassword, setCurrentPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [apiError, setApiError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const handleChangePassword = async (e: FormEvent) => {
-    e.preventDefault();
-    setApiError(null);
-    setSuccess(false);
-
+  const handleChangePassword = async (values: {
+    currentPassword: string;
+    newPassword: string;
+    confirmPassword: string;
+  }) => {
     const validation = validateChangePasswordForm(
-      currentPassword,
-      newPassword,
-      confirmPassword
+      values.currentPassword,
+      values.newPassword,
+      values.confirmPassword
     );
-    if (!validation.isValid) {
-      setErrors(validation.errors);
-      return;
-    }
-    setErrors({});
 
-    setIsSubmitting(true);
+    if (!validation.isValid) {
+      const firstError = Object.values(validation.errors)[0];
+      message.error(firstError);
+      return false;
+    }
+
     try {
-      await authApi.changePassword({ currentPassword, newPassword });
-      setSuccess(true);
-      setCurrentPassword('');
-      setNewPassword('');
-      setConfirmPassword('');
+      await authApi.changePassword({
+        currentPassword: values.currentPassword,
+        newPassword: values.newPassword,
+      });
+      message.success('Password changed successfully!');
+      return true;
     } catch (error) {
       const apiErr = error as ApiError;
-      if (apiErr.violations) {
-        setErrors(apiErr.violations);
-      } else {
-        setApiError(
-          apiErr.error || 'Failed to change password. Please try again.'
-        );
-      }
-    } finally {
-      setIsSubmitting(false);
+      message.error(apiErr.error || 'Failed to change password. Please try again.');
+      return false;
     }
   };
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-        Profile
-      </h1>
+      <h1 className="text-xl font-semibold">{t('header.profile')}</h1>
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <Row gutter={[24, 24]}>
         {/* User Info Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Account Information</CardTitle>
-            <CardDescription>Your account details</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label className="text-sm text-gray-500">User ID</Label>
-              <p className="font-mono text-sm">{user?.id}</p>
-            </div>
-            <div>
-              <Label className="text-sm text-gray-500">Email</Label>
-              <p>{user?.email}</p>
-            </div>
-            <div>
-              <Label className="text-sm text-gray-500">Email Verified</Label>
-              <p>{user?.isVerified ? 'Yes' : 'No'}</p>
-            </div>
-            <div>
-              <Label className="text-sm text-gray-500">Account Created</Label>
-              <p>
+        <Col xs={24} md={12}>
+          <Card title="Account Information">
+            <Descriptions column={1} bordered size="small">
+              <Descriptions.Item label="User ID">
+                <code className="text-sm">{user?.id}</code>
+              </Descriptions.Item>
+              <Descriptions.Item label="Email">
+                {user?.email}
+              </Descriptions.Item>
+              <Descriptions.Item label="Email Verified">
+                <Tag color={user?.isVerified ? 'success' : 'warning'}>
+                  {user?.isVerified ? 'Yes' : 'No'}
+                </Tag>
+              </Descriptions.Item>
+              <Descriptions.Item label="Account Created">
                 {user?.createdAt && new Date(user.createdAt).toLocaleString()}
-              </p>
-            </div>
-            <div>
-              <Label className="text-sm text-gray-500">Roles</Label>
-              <p>{user?.roles.join(', ')}</p>
-            </div>
-          </CardContent>
-        </Card>
+              </Descriptions.Item>
+              <Descriptions.Item label="Roles">
+                {user?.roles.map((role) => (
+                  <Tag key={role} color="blue">{role}</Tag>
+                ))}
+              </Descriptions.Item>
+            </Descriptions>
+          </Card>
+        </Col>
 
         {/* Change Password Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Change Password</CardTitle>
-            <CardDescription>Update your password</CardDescription>
-          </CardHeader>
-          <form onSubmit={handleChangePassword}>
-            <CardContent className="space-y-4">
-              {success && (
-                <Alert>
-                  <AlertDescription>
-                    Password changed successfully!
-                  </AlertDescription>
-                </Alert>
-              )}
-              {apiError && (
-                <Alert variant="destructive">
-                  <AlertDescription>{apiError}</AlertDescription>
-                </Alert>
-              )}
-              <div className="space-y-2">
-                <Label htmlFor="currentPassword">Current Password</Label>
-                <Input
-                  id="currentPassword"
-                  type="password"
-                  value={currentPassword}
-                  onChange={(e) => setCurrentPassword(e.target.value)}
-                  disabled={isSubmitting}
-                />
-                {errors.currentPassword && (
-                  <p className="text-sm text-red-500">{errors.currentPassword}</p>
-                )}
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="newPassword">New Password</Label>
-                <Input
-                  id="newPassword"
-                  type="password"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  disabled={isSubmitting}
-                />
-                {errors.newPassword && (
-                  <p className="text-sm text-red-500">{errors.newPassword}</p>
-                )}
-                <p className="text-xs text-gray-500">
-                  Min 8 characters with uppercase, lowercase, and number
-                </p>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirm New Password</Label>
-                <Input
-                  id="confirmPassword"
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  disabled={isSubmitting}
-                />
-                {errors.confirmPassword && (
-                  <p className="text-sm text-red-500">{errors.confirmPassword}</p>
-                )}
-              </div>
-            </CardContent>
-            <CardFooter>
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? 'Changing...' : 'Change Password'}
-              </Button>
-            </CardFooter>
-          </form>
-        </Card>
-      </div>
+        <Col xs={24} md={12}>
+          <Card title="Change Password">
+            <ProForm
+              layout="vertical"
+              onFinish={handleChangePassword}
+              submitter={{
+                searchConfig: {
+                  submitText: 'Change Password',
+                },
+                resetButtonProps: { style: { display: 'none' } },
+              }}
+            >
+              <ProFormText.Password
+                name="currentPassword"
+                label="Current Password"
+                rules={[{ required: true, message: 'Please enter current password' }]}
+              />
+              <ProFormText.Password
+                name="newPassword"
+                label="New Password"
+                rules={[{ required: true, message: 'Please enter new password' }]}
+                extra="Min 8 characters with uppercase, lowercase, and number"
+              />
+              <ProFormText.Password
+                name="confirmPassword"
+                label="Confirm New Password"
+                rules={[
+                  { required: true, message: 'Please confirm new password' },
+                  ({ getFieldValue }) => ({
+                    validator(_, value) {
+                      if (!value || getFieldValue('newPassword') === value) {
+                        return Promise.resolve();
+                      }
+                      return Promise.reject(new Error('Passwords do not match'));
+                    },
+                  }),
+                ]}
+              />
+            </ProForm>
+          </Card>
+        </Col>
+      </Row>
     </div>
   );
 }
