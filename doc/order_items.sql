@@ -1,0 +1,35 @@
+-- Entity: App\Entity\OrderItem
+-- Description: Order line items
+
+CREATE TABLE `order_items` (
+    `id` VARCHAR(26) NOT NULL PRIMARY KEY COMMENT 'ULID',
+    `order_id` VARCHAR(26) NOT NULL,
+    `product_sku_id` VARCHAR(26) NULL COMMENT 'Matched internal SKU',
+    `sku_code` VARCHAR(50) NULL COMMENT 'SKU snapshot',
+    `color_code` VARCHAR(20) NULL,
+    `size_value` VARCHAR(20) NULL,
+    `spec_info` JSON NULL,
+    `product_name` VARCHAR(255) NULL,
+    `product_image` VARCHAR(500) NULL,
+    `channel_product_id` VARCHAR(26) NULL COMMENT 'Source channel product',
+    `external_product_id` VARCHAR(100) NULL,
+    `external_product_name` VARCHAR(255) NULL,
+    `external_product_image` VARCHAR(500) NULL,
+    `quantity` INT NOT NULL,
+    `allocated_quantity` INT NOT NULL DEFAULT 0,
+    `shipped_quantity` INT NOT NULL DEFAULT 0,
+    `unit_price` DECIMAL(10,2) NOT NULL,
+    `total_price` DECIMAL(12,2) NOT NULL,
+    `discount_amount` DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    `payable_amount` DECIMAL(12,2) NOT NULL,
+    `allocation_status` VARCHAR(20) NOT NULL DEFAULT 'pending' COMMENT 'pending, partial, full, failed',
+    `remark` TEXT NULL,
+    `created_at` DATETIME NOT NULL,
+    `updated_at` DATETIME NOT NULL,
+    INDEX `idx_order_item_order` (`order_id`),
+    INDEX `idx_order_item_sku` (`product_sku_id`),
+    INDEX `idx_order_item_channel_product` (`channel_product_id`),
+    CONSTRAINT `fk_order_item_order` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_order_item_sku` FOREIGN KEY (`product_sku_id`) REFERENCES `product_skus` (`id`) ON DELETE SET NULL,
+    CONSTRAINT `fk_order_item_channel_product` FOREIGN KEY (`channel_product_id`) REFERENCES `channel_products` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Order items';

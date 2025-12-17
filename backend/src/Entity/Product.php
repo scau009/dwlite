@@ -32,16 +32,16 @@ class Product
     private ?Category $category = null;
 
     #[ORM\Column(length: 200)]
-    private string $name;
+    private string $name = '';
 
     #[ORM\Column(length: 220, unique: true)]
-    private string $slug;
+    private string $slug = '';
 
-    #[ORM\Column(length: 50, name: 'style_number')]
-    private string $styleNumber;  // 款号
+    #[ORM\Column(name: 'style_number', length: 50)]
+    private string $styleNumber = '';  // 款号
 
     #[ORM\Column(length: 20)]
-    private string $season;  // 季节：2024SS, 2024AW, 2024FW 等
+    private string $season = '';  // 季节：2024SS, 2024AW, 2024FW 等
 
     #[ORM\Column(length: 50, nullable: true)]
     private ?string $color = null;  // 颜色名，如：红色、深蓝
@@ -49,7 +49,7 @@ class Product
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $description = null;
 
-    #[ORM\Column(type: 'boolean', options: ['default' => true], name: 'is_active')]
+    #[ORM\Column(name: 'is_active', type: 'boolean', options: ['default' => true])]
     private bool $isActive = true;
 
     #[ORM\ManyToMany(targetEntity: Tag::class, inversedBy: 'products')]
