@@ -31,6 +31,7 @@ class AuthController extends AbstractController
         private TokenBlacklistService $tokenBlacklistService,
         private JWTTokenManagerInterface $jwtManager,
         private ValidatorInterface $validator,
+        private string $frontendUrl = 'http://localhost:5173',
     ) {
     }
 
@@ -66,25 +67,31 @@ class AuthController extends AbstractController
     }
 
     #[Route('/verify-email', name: 'auth_verify_email', methods: ['POST', 'GET'])]
-    public function verifyEmail(Request $request): JsonResponse
+    public function verifyEmail(Request $request): Response
     {
         $token = $request->query->get('token') ?? $request->request->get('token');
+        $loginUrl = $this->frontendUrl . '/login';
 
         if (empty($token)) {
-            return $this->json(['error' => 'Token is required'], Response::HTTP_BAD_REQUEST);
+            return $this->render('emails/verification_result.html.twig', [
+                'success' => false,
+                'error' => 'Invalid verification link. No token provided.',
+                'redirectUrl' => $loginUrl,
+            ], new Response('', Response::HTTP_BAD_REQUEST));
         }
 
         try {
-            $user = $this->emailVerificationService->verifyEmail($token);
-            return $this->json([
-                'message' => 'Email verified successfully',
-                'user' => [
-                    'id' => $user->getId(),
-                    'email' => $user->getEmail(),
-                ],
+            $this->emailVerificationService->verifyEmail($token);
+            return $this->render('emails/verification_result.html.twig', [
+                'success' => true,
+                'redirectUrl' => $loginUrl,
             ]);
         } catch (\InvalidArgumentException $e) {
-            return $this->json(['error' => $e->getMessage()], Response::HTTP_BAD_REQUEST);
+            return $this->render('emails/verification_result.html.twig', [
+                'success' => false,
+                'error' => $e->getMessage(),
+                'redirectUrl' => $loginUrl,
+            ], new Response('', Response::HTTP_BAD_REQUEST));
         }
     }
 
