@@ -13,6 +13,10 @@ use Symfony\Component\Uid\Ulid;
 #[ORM\HasLifecycleCallbacks]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
+    // 账户类型常量
+    public const ACCOUNT_TYPE_ADMIN = 'admin';      // 平台管理员
+    public const ACCOUNT_TYPE_MERCHANT = 'merchant'; // 商户账号
+
     #[ORM\Id]
     #[ORM\Column(type: 'string', length: 26)]
     private string $id;
@@ -28,6 +32,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(type: 'boolean')]
     private bool $isVerified = false;
+
+    #[ORM\Column(type: 'string', length: 50)]
+    private string $accountType;
 
     #[ORM\Column(type: 'datetime_immutable')]
     private \DateTimeImmutable $createdAt;
@@ -96,6 +103,27 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         $this->isVerified = $isVerified;
         return $this;
+    }
+
+    public function getAccountType(): string
+    {
+        return $this->accountType;
+    }
+
+    public function setAccountType(string $accountType): static
+    {
+        $this->accountType = $accountType;
+        return $this;
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->accountType === self::ACCOUNT_TYPE_ADMIN;
+    }
+
+    public function isMerchant(): bool
+    {
+        return $this->accountType === self::ACCOUNT_TYPE_MERCHANT;
     }
 
     public function getCreatedAt(): \DateTimeImmutable
