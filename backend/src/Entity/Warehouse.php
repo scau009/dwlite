@@ -11,15 +11,21 @@ use Symfony\Component\Uid\Ulid;
 #[ORM\Index(name: 'idx_warehouse_code', columns: ['code'])]
 #[ORM\Index(name: 'idx_warehouse_status', columns: ['status'])]
 #[ORM\Index(name: 'idx_warehouse_type', columns: ['type'])]
+#[ORM\Index(name: 'idx_warehouse_category', columns: ['category'])]
+#[ORM\Index(name: 'idx_warehouse_merchant', columns: ['merchant_id'])]
 #[ORM\Index(name: 'idx_warehouse_country', columns: ['countryCode'])]
 #[ORM\HasLifecycleCallbacks]
 class Warehouse
 {
-    // 仓库类型
+    // 仓库类型（物理类型/运营模式）
     public const TYPE_SELF = 'self';               // 自营仓
     public const TYPE_THIRD_PARTY = 'third_party'; // 第三方仓
     public const TYPE_BONDED = 'bonded';           // 保税仓
     public const TYPE_OVERSEAS = 'overseas';       // 海外仓
+
+    // 仓库分类（所有权）
+    public const CATEGORY_PLATFORM = 'platform';   // 平台仓库（送仓模式）
+    public const CATEGORY_MERCHANT = 'merchant';   // 商家自有仓库（不送仓模式）
 
     // 仓库状态
     public const STATUS_ACTIVE = 'active';             // 正常运营
@@ -41,6 +47,15 @@ class Warehouse
 
     #[ORM\Column(length: 20)]
     private string $type = self::TYPE_THIRD_PARTY;
+
+    // 仓库分类（所有权）
+    #[ORM\Column(length: 20, options: ['default' => 'platform'])]
+    private string $category = self::CATEGORY_PLATFORM;
+
+    // 关联商家（仅商家自有仓需要）
+    #[ORM\ManyToOne(targetEntity: Merchant::class)]
+    #[ORM\JoinColumn(name: 'merchant_id', nullable: true, onDelete: 'CASCADE')]
+    private ?Merchant $merchant = null;
 
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $description = null;
@@ -231,6 +246,28 @@ class Warehouse
     public function setType(string $type): static
     {
         $this->type = $type;
+        return $this;
+    }
+
+    public function getCategory(): string
+    {
+        return $this->category;
+    }
+
+    public function setCategory(string $category): static
+    {
+        $this->category = $category;
+        return $this;
+    }
+
+    public function getMerchant(): ?Merchant
+    {
+        return $this->merchant;
+    }
+
+    public function setMerchant(?Merchant $merchant): static
+    {
+        $this->merchant = $merchant;
         return $this;
     }
 
@@ -764,5 +801,35 @@ class Warehouse
     public function supportsCarrier(string $carrier): bool
     {
         return $this->supportedCarriers && in_array($carrier, $this->supportedCarriers, true);
+    }
+
+    /**
+     * 是否为平台仓库（送仓模式）
+     */
+    public function isPlatformWarehouse(): bool
+    {
+        return $this->category === self::CATEGORY_PLATFORM;
+    }
+
+    /**
+     * 是否为商家自有仓库（不送仓模式）
+     */
+    public function isMerchantWarehouse(): bool
+    {
+        return $this->category === self::CATEGORY_MERCHANT;
+    }
+
+    /**
+     * 创建商家自有仓库的工厂方法
+     */
+    public static function createMerchantWarehouse(Merchant $merchant, string $code, string $name): static
+    {
+        $warehouse = new static();
+        $warehouse->setCategory(self::CATEGORY_MERCHANT);
+        $warehouse->setMerchant($merchant);
+        $warehouse->setCode($code);
+        $warehouse->setName($name);
+        $warehouse->setType(self::TYPE_SELF);  // 商家自有仓默认为自营类型
+        return $warehouse;
     }
 }

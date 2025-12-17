@@ -49,6 +49,9 @@ class MerchantInventory
     #[ORM\Column(type: 'integer', options: ['default' => 0])]
     private int $quantityDamaged = 0;  // 损坏库存（不可销售）
 
+    #[ORM\Column(type: 'integer', options: ['default' => 0])]
+    private int $quantityAllocated = 0;  // 渠道独占分配的库存（全托管模式）
+
     // 成本信息（加权平均成本）
     #[ORM\Column(type: 'decimal', precision: 10, scale: 2, nullable: true)]
     private ?string $averageCost = null;  // 平均成本单价
@@ -63,6 +66,13 @@ class MerchantInventory
 
     #[ORM\Column(type: 'datetime_immutable', nullable: true)]
     private ?\DateTimeImmutable $lastOutboundAt = null;  // 最后出库时间
+
+    // 库存同步相关（不送仓模式使用）
+    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
+    private ?\DateTimeImmutable $lastSyncedAt = null;  // 最后同步时间（商家 API 同步）
+
+    #[ORM\Column(type: 'string', length: 100, nullable: true)]
+    private ?string $externalSkuId = null;  // 商家系统的 SKU ID（用于 API 对接）
 
     // 关联库存流水
     #[ORM\OneToMany(targetEntity: InventoryTransaction::class, mappedBy: 'merchantInventory')]
@@ -165,6 +175,17 @@ class MerchantInventory
         return $this;
     }
 
+    public function getQuantityAllocated(): int
+    {
+        return $this->quantityAllocated;
+    }
+
+    public function setQuantityAllocated(int $quantityAllocated): static
+    {
+        $this->quantityAllocated = $quantityAllocated;
+        return $this;
+    }
+
     public function getAverageCost(): ?string
     {
         return $this->averageCost;
@@ -206,6 +227,28 @@ class MerchantInventory
     public function setLastOutboundAt(?\DateTimeImmutable $lastOutboundAt): static
     {
         $this->lastOutboundAt = $lastOutboundAt;
+        return $this;
+    }
+
+    public function getLastSyncedAt(): ?\DateTimeImmutable
+    {
+        return $this->lastSyncedAt;
+    }
+
+    public function setLastSyncedAt(?\DateTimeImmutable $lastSyncedAt): static
+    {
+        $this->lastSyncedAt = $lastSyncedAt;
+        return $this;
+    }
+
+    public function getExternalSkuId(): ?string
+    {
+        return $this->externalSkuId;
+    }
+
+    public function setExternalSkuId(?string $externalSkuId): static
+    {
+        $this->externalSkuId = $externalSkuId;
         return $this;
     }
 
@@ -350,5 +393,82 @@ class MerchantInventory
         if ($totalQuantity > 0) {
             $this->averageCost = bcdiv(bcadd($currentValue, $newValue, 4), (string) $totalQuantity, 2);
         }
+    }
+
+    /**
+     * 获取可共享库存（可用库存 - 已分配）
+     */
+    public function getShareableQuantity(): int
+    {
+        return max(0, $this->quantityAvailable - $this->quantityAllocated);
+    }
+
+    /**
+     * 分配库存给渠道（全托管模式）
+     */
+    public function allocate(int $quantity): void
+    {
+        if ($quantity > $this->getShareableQuantity()) {
+            throw new \LogicException('Insufficient shareable inventory for allocation');
+        }
+        $this->quantityAllocated += $quantity;
+    }
+
+    /**
+     * 释放渠道分配的库存
+     */
+    public function deallocate(int $quantity): void
+    {
+        if ($quantity > $this->quantityAllocated) {
+            throw new \LogicException('Cannot deallocate more than allocated');
+        }
+        $this->quantityAllocated -= $quantity;
+    }
+
+    // 不送仓模式相关方法
+
+    /**
+     * 是否为商家自有库存（不送仓模式）
+     */
+    public function isMerchantOwned(): bool
+    {
+        return $this->warehouse->isMerchantWarehouse();
+    }
+
+    /**
+     * 是否为平台仓库存（送仓模式）
+     */
+    public function isPlatformWarehouse(): bool
+    {
+        return $this->warehouse->isPlatformWarehouse();
+    }
+
+    /**
+     * 同步商家自有库存（不送仓模式使用）
+     * 直接更新可用库存数量，不走入库流程
+     */
+    public function syncStock(int $quantity): void
+    {
+        if (!$this->isMerchantOwned()) {
+            throw new \LogicException('syncStock can only be used for merchant-owned inventory');
+        }
+
+        $this->quantityAvailable = max(0, $quantity);
+        $this->lastSyncedAt = new \DateTimeImmutable();
+    }
+
+    /**
+     * 检查库存同步是否过期
+     */
+    public function isSyncStale(int $thresholdMinutes = 60): bool
+    {
+        if ($this->lastSyncedAt === null) {
+            return true;
+        }
+
+        $now = new \DateTimeImmutable();
+        $diff = $now->getTimestamp() - $this->lastSyncedAt->getTimestamp();
+
+        return $diff > ($thresholdMinutes * 60);
     }
 }
