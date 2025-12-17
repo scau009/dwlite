@@ -49,8 +49,8 @@ class OutboundOrder
     private string $outboundNo;  // 出库单号
 
     #[ORM\OneToOne(targetEntity: Fulfillment::class, inversedBy: 'outboundOrder')]
-    #[ORM\JoinColumn(name: 'fulfillment_id', nullable: false)]
-    private Fulfillment $fulfillment;
+    #[ORM\JoinColumn(name: 'fulfillment_id', nullable: true)]
+    private ?Fulfillment $fulfillment = null;
 
     #[ORM\ManyToOne(targetEntity: Warehouse::class)]
     #[ORM\JoinColumn(name: 'warehouse_id', nullable: false)]
@@ -171,12 +171,12 @@ class OutboundOrder
         return $this;
     }
 
-    public function getFulfillment(): Fulfillment
+    public function getFulfillment(): ?Fulfillment
     {
         return $this->fulfillment;
     }
 
-    public function setFulfillment(Fulfillment $fulfillment): static
+    public function setFulfillment(?Fulfillment $fulfillment): static
     {
         $this->fulfillment = $fulfillment;
         return $this;
@@ -604,8 +604,10 @@ class OutboundOrder
         $this->trackingNumber = $trackingNumber;
         $this->shippedAt = new \DateTimeImmutable();
 
-        // 同步到履约单
-        $this->fulfillment->markShipped($carrier, $trackingNumber);
+        // 同步到履约单（如果有关联）
+        if ($this->fulfillment !== null) {
+            $this->fulfillment->markShipped($carrier, $trackingNumber);
+        }
     }
 
     /**

@@ -40,10 +40,32 @@ dwlite/
 - **Async Tasks**: Symfony Messenger with Redis transport
 - **Scheduled Tasks**: Symfony Scheduler (cron replacement)
 - **Authentication**: JWT (lexik/jwt-authentication-bundle) with refresh tokens
+- **File Storage**: Tencent COS (qcloud/cos-sdk-v5)
+- **Rate Limiting**: symfony/rate-limiter for API throttling
+- **Distributed Locks**: symfony/lock for concurrency control
 
 ### Frontend (React 19)
 - **Build Tool**: Vite 7
 - **Language**: TypeScript 5.9
+- **UI Framework**: Ant Design 5 + Pro Components
+- **Styling**: Tailwind CSS 4
+- **Routing**: React Router 7
+- **i18n**: i18next with browser language detection
+- **Path Alias**: `@/` maps to `src/`
+
+#### Frontend Structure
+```
+frontend/src/
+├── components/      # Shared UI components
+├── config/          # App configuration (menus, etc.)
+├── contexts/        # React contexts (auth, theme)
+├── layouts/         # Page layouts (AppLayout, AuthLayout)
+├── pages/           # Route pages
+│   ├── auth/        # Authentication pages
+│   └── products/    # Product CRUD pages
+├── router.tsx       # Route definitions
+└── main.tsx         # App entry point
+```
 
 ### Observability Stack
 - **Loki**: Log aggregation (port 3100)
@@ -99,6 +121,7 @@ curl -X POST http://localhost:8000/async/dispatch
 
 ## Service Ports
 - Backend API: http://localhost:8000
+- Backend Health: http://localhost:8000/health
 - Backend Metrics: http://localhost:8000/metrics
 - Grafana: http://localhost:3000
 - Prometheus: http://localhost:9090

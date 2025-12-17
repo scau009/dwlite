@@ -22,34 +22,34 @@ class ProductSku
     #[ORM\JoinColumn(name: 'product_id', referencedColumnName: 'id', onDelete: 'CASCADE', nullable: false)]
     private Product $product;
 
-    #[ORM\Column(length: 50, unique: true, name: 'sku_code')]
+    #[ORM\Column(name: 'sku_code', length: 50, unique: true)]
     private string $skuCode;  // SKU 编码，如：DR-2024SS-001-S-RED
 
-    #[ORM\Column(length: 20, nullable: true, name: 'color_code')]
+    #[ORM\Column(name: 'color_code', length: 20, nullable: true)]
     private ?string $colorCode = null;  // 颜色代码，如：RED、BLU、BLK
 
-    #[ORM\Column(length: 20, nullable: true, name: 'size_unit')]
+    #[ORM\Column(name: 'size_unit', length: 20, nullable: true)]
     private ?string $sizeUnit = null;  // 尺码单位，如：EU、US、CM
 
-    #[ORM\Column(length: 20, nullable: true, name: 'size_value')]
+    #[ORM\Column(name: 'size_value', length: 20, nullable: true)]
     private ?string $sizeValue = null;  // 尺码值，如：S、M、L、38、39、40
 
-    #[ORM\Column(type: 'json', nullable: true, name: 'spec_info')]
+    #[ORM\Column(name: 'spec_info', type: 'json', nullable: true)]
     private ?array $specInfo = null;  // 规格摘要，如：{"颜色": "红色", "尺码": "S"}
 
     #[ORM\Column(type: 'decimal', precision: 10, scale: 2)]
     private string $price;  // 参考价格
 
-    #[ORM\Column(type: 'decimal', precision: 10, scale: 2, nullable: true, name: 'original_price')]
+    #[ORM\Column(name: 'original_price', type: 'decimal', precision: 10, scale: 2, nullable: true)]
     private ?string $originalPrice = null;  // 原价/吊牌价
 
-    #[ORM\Column(type: 'decimal', precision: 10, scale: 2, nullable: true, name: 'cost_price')]
+    #[ORM\Column(name: 'cost_price', type: 'decimal', precision: 10, scale: 2, nullable: true)]
     private ?string $costPrice = null;  // 成本价（可选）
 
-    #[ORM\Column(type: 'boolean', options: ['default' => true], name: 'is_active')]
+    #[ORM\Column(name: 'is_active', type: 'boolean', options: ['default' => true])]
     private bool $isActive = true;
 
-    #[ORM\Column(type: 'integer', options: ['default' => 0], name: 'sort_order')]
+    #[ORM\Column(name: 'sort_order', type: 'integer', options: ['default' => 0])]
     private int $sortOrder = 0;
 
     #[ORM\Column(type: 'datetime_immutable')]

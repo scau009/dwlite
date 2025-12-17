@@ -7,13 +7,14 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Uid\Ulid;
 
 /**
- * 履约单明细 - 履约单中的商品明细，关联到具体的库存来源
+ * 履约单明细 - 履约单中的商品明细
  */
 #[ORM\Entity(repositoryClass: FulfillmentItemRepository::class)]
 #[ORM\Table(name: 'fulfillment_items')]
 #[ORM\Index(name: 'idx_fulfillment_item_fulfillment', columns: ['fulfillment_id'])]
 #[ORM\Index(name: 'idx_fulfillment_item_order_item', columns: ['order_item_id'])]
-#[ORM\Index(name: 'idx_fulfillment_item_inventory', columns: ['merchant_inventory_id'])]
+#[ORM\Index(name: 'idx_fulfillment_item_merchant', columns: ['merchant_id'])]
+#[ORM\Index(name: 'idx_fulfillment_item_warehouse', columns: ['warehouse_id'])]
 #[ORM\HasLifecycleCallbacks]
 class FulfillmentItem
 {
@@ -29,28 +30,30 @@ class FulfillmentItem
     #[ORM\JoinColumn(name: 'order_item_id', nullable: false)]
     private OrderItem $orderItem;
 
-    // 库存来源
-    #[ORM\ManyToOne(targetEntity: MerchantInventory::class)]
-    #[ORM\JoinColumn(name: 'merchant_inventory_id', nullable: false)]
-    private MerchantInventory $merchantInventory;
+    // 商户和仓库快照（保留关联，nullable）
+    #[ORM\ManyToOne(targetEntity: Merchant::class)]
+    #[ORM\JoinColumn(name: 'merchant_id', nullable: true)]
+    private ?Merchant $merchant = null;
 
-    // 上架配置（用于获取价格和结算信息）
-    #[ORM\ManyToOne(targetEntity: InventoryListing::class)]
-    #[ORM\JoinColumn(name: 'inventory_listing_id', nullable: true)]
-    private ?InventoryListing $inventoryListing = null;
+    #[ORM\ManyToOne(targetEntity: Warehouse::class)]
+    #[ORM\JoinColumn(name: 'warehouse_id', nullable: true)]
+    private ?Warehouse $warehouse = null;
 
     // 数量
     #[ORM\Column(type: 'integer')]
     private int $quantity;
 
-    // 结算信息（从 InventoryListing 快照）
-    #[ORM\Column(type: 'decimal', precision: 10, scale: 2, nullable: true)]
+    // 结算信息快照（从 InventoryListing 快照，用于结算流程）
+    #[ORM\Column(name: 'list_price', type: 'decimal', precision: 10, scale: 2, nullable: true)]
+    private ?string $listPrice = null;  // 上架价格
+
+    #[ORM\Column(name: 'settlement_price', type: 'decimal', precision: 10, scale: 2, nullable: true)]
     private ?string $settlementPrice = null;  // 结算价格（商家获得的金额）
 
-    #[ORM\Column(type: 'decimal', precision: 5, scale: 2, nullable: true)]
+    #[ORM\Column(name: 'commission_rate', type: 'decimal', precision: 5, scale: 2, nullable: true)]
     private ?string $commissionRate = null;  // 佣金比例
 
-    #[ORM\Column(type: 'decimal', precision: 10, scale: 2, nullable: true)]
+    #[ORM\Column(name: 'commission_amount', type: 'decimal', precision: 10, scale: 2, nullable: true)]
     private ?string $commissionAmount = null;  // 佣金金额
 
     #[ORM\Column(type: 'datetime_immutable')]
@@ -93,25 +96,25 @@ class FulfillmentItem
         return $this;
     }
 
-    public function getMerchantInventory(): MerchantInventory
+    public function getMerchant(): ?Merchant
     {
-        return $this->merchantInventory;
+        return $this->merchant;
     }
 
-    public function setMerchantInventory(MerchantInventory $merchantInventory): static
+    public function setMerchant(?Merchant $merchant): static
     {
-        $this->merchantInventory = $merchantInventory;
+        $this->merchant = $merchant;
         return $this;
     }
 
-    public function getInventoryListing(): ?InventoryListing
+    public function getWarehouse(): ?Warehouse
     {
-        return $this->inventoryListing;
+        return $this->warehouse;
     }
 
-    public function setInventoryListing(?InventoryListing $inventoryListing): static
+    public function setWarehouse(?Warehouse $warehouse): static
     {
-        $this->inventoryListing = $inventoryListing;
+        $this->warehouse = $warehouse;
         return $this;
     }
 
@@ -123,6 +126,17 @@ class FulfillmentItem
     public function setQuantity(int $quantity): static
     {
         $this->quantity = $quantity;
+        return $this;
+    }
+
+    public function getListPrice(): ?string
+    {
+        return $this->listPrice;
+    }
+
+    public function setListPrice(?string $listPrice): static
+    {
+        $this->listPrice = $listPrice;
         return $this;
     }
 
@@ -178,35 +192,11 @@ class FulfillmentItem
     // 便捷方法
 
     /**
-     * 获取关联的商家
-     */
-    public function getMerchant(): Merchant
-    {
-        return $this->merchantInventory->getMerchant();
-    }
-
-    /**
-     * 获取关联的仓库
-     */
-    public function getWarehouse(): Warehouse
-    {
-        return $this->merchantInventory->getWarehouse();
-    }
-
-    /**
-     * 获取关联的 SKU
-     */
-    public function getProductSku(): ProductSku
-    {
-        return $this->merchantInventory->getProductSku();
-    }
-
-    /**
      * 计算结算金额
      */
     public function calculateSettlement(): void
     {
-        if ($this->inventoryListing === null || $this->settlementPrice === null) {
+        if ($this->settlementPrice === null) {
             return;
         }
 
@@ -240,8 +230,16 @@ class FulfillmentItem
      */
     public function snapshotFromListing(InventoryListing $listing): void
     {
-        $this->inventoryListing = $listing;
-        $this->settlementPrice = $listing->getListPrice();
-        // 佣金比例可以从其他配置获取，这里暂不设置
+        $this->listPrice = $listing->getPrice();
+        // settlementPrice 和 commissionRate 可从其他配置获取
+    }
+
+    /**
+     * 从 MerchantInventory 快照商户和仓库信息
+     */
+    public function snapshotFromInventory(MerchantInventory $inventory): void
+    {
+        $this->merchant = $inventory->getMerchant();
+        $this->warehouse = $inventory->getWarehouse();
     }
 }

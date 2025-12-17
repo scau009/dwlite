@@ -32,8 +32,27 @@ class OrderItem
     private Order $order;
 
     #[ORM\ManyToOne(targetEntity: ProductSku::class)]
-    #[ORM\JoinColumn(name: 'product_sku_id', nullable: false)]
-    private ProductSku $productSku;
+    #[ORM\JoinColumn(name: 'product_sku_id', nullable: true)]
+    private ?ProductSku $productSku = null;
+
+    // SKU 快照字段（保留下单时的商品信息）
+    #[ORM\Column(name: 'sku_code', length: 50, nullable: true)]
+    private ?string $skuCode = null;
+
+    #[ORM\Column(name: 'color_code', length: 20, nullable: true)]
+    private ?string $colorCode = null;
+
+    #[ORM\Column(name: 'size_value', length: 20, nullable: true)]
+    private ?string $sizeValue = null;
+
+    #[ORM\Column(type: 'json', nullable: true, name: 'spec_info')]
+    private ?array $specInfo = null;
+
+    #[ORM\Column(name: 'product_name', length: 255, nullable: true)]
+    private ?string $productName = null;
+
+    #[ORM\Column(name: 'product_image', length: 500, nullable: true)]
+    private ?string $productImage = null;
 
     // 渠道商品（用于追溯定价来源）
     #[ORM\ManyToOne(targetEntity: ChannelProduct::class)]
@@ -110,15 +129,102 @@ class OrderItem
         return $this;
     }
 
-    public function getProductSku(): ProductSku
+    public function getProductSku(): ?ProductSku
     {
         return $this->productSku;
     }
 
-    public function setProductSku(ProductSku $productSku): static
+    public function setProductSku(?ProductSku $productSku): static
     {
         $this->productSku = $productSku;
         return $this;
+    }
+
+    // SKU 快照字段 getter/setter
+
+    public function getSkuCode(): ?string
+    {
+        return $this->skuCode;
+    }
+
+    public function setSkuCode(?string $skuCode): static
+    {
+        $this->skuCode = $skuCode;
+        return $this;
+    }
+
+    public function getColorCode(): ?string
+    {
+        return $this->colorCode;
+    }
+
+    public function setColorCode(?string $colorCode): static
+    {
+        $this->colorCode = $colorCode;
+        return $this;
+    }
+
+    public function getSizeValue(): ?string
+    {
+        return $this->sizeValue;
+    }
+
+    public function setSizeValue(?string $sizeValue): static
+    {
+        $this->sizeValue = $sizeValue;
+        return $this;
+    }
+
+    public function getSpecInfo(): ?array
+    {
+        return $this->specInfo;
+    }
+
+    public function setSpecInfo(?array $specInfo): static
+    {
+        $this->specInfo = $specInfo;
+        return $this;
+    }
+
+    public function getProductName(): ?string
+    {
+        return $this->productName;
+    }
+
+    public function setProductName(?string $productName): static
+    {
+        $this->productName = $productName;
+        return $this;
+    }
+
+    public function getProductImage(): ?string
+    {
+        return $this->productImage;
+    }
+
+    public function setProductImage(?string $productImage): static
+    {
+        $this->productImage = $productImage;
+        return $this;
+    }
+
+    /**
+     * 从 SKU 快照关键信息
+     */
+    public function snapshotFromSku(ProductSku $sku): void
+    {
+        $product = $sku->getProduct();
+
+        $this->skuCode = $sku->getSkuCode();
+        $this->colorCode = $sku->getColorCode();
+        $this->sizeValue = $sku->getSizeValue();
+        $this->specInfo = $sku->getSpecInfo();
+        $this->productName = $product->getName();
+
+        $primaryImage = $product->getPrimaryImage();
+        if ($primaryImage !== null) {
+            $this->productImage = $primaryImage->getUrl();
+        }
     }
 
     public function getChannelProduct(): ?ChannelProduct

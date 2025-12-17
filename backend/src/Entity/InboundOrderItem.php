@@ -33,8 +33,27 @@ class InboundOrderItem
     private InboundOrder $inboundOrder;
 
     #[ORM\ManyToOne(targetEntity: ProductSku::class)]
-    #[ORM\JoinColumn(nullable: false)]
-    private ProductSku $productSku;
+    #[ORM\JoinColumn(nullable: true)]
+    private ?ProductSku $productSku = null;
+
+    // SKU 快照字段（保留送仓时的商品信息）
+    #[ORM\Column(length: 50, nullable: true, name: 'sku_code')]
+    private ?string $skuCode = null;
+
+    #[ORM\Column(length: 20, nullable: true, name: 'color_code')]
+    private ?string $colorCode = null;
+
+    #[ORM\Column(length: 20, nullable: true, name: 'size_value')]
+    private ?string $sizeValue = null;
+
+    #[ORM\Column(type: 'json', nullable: true, name: 'spec_info')]
+    private ?array $specInfo = null;
+
+    #[ORM\Column(length: 255, nullable: true, name: 'product_name')]
+    private ?string $productName = null;
+
+    #[ORM\Column(length: 500, nullable: true, name: 'product_image')]
+    private ?string $productImage = null;
 
     // 数量信息
     #[ORM\Column(type: 'integer')]
@@ -89,15 +108,102 @@ class InboundOrderItem
         return $this;
     }
 
-    public function getProductSku(): ProductSku
+    public function getProductSku(): ?ProductSku
     {
         return $this->productSku;
     }
 
-    public function setProductSku(ProductSku $productSku): static
+    public function setProductSku(?ProductSku $productSku): static
     {
         $this->productSku = $productSku;
         return $this;
+    }
+
+    // SKU 快照字段 getter/setter
+
+    public function getSkuCode(): ?string
+    {
+        return $this->skuCode;
+    }
+
+    public function setSkuCode(?string $skuCode): static
+    {
+        $this->skuCode = $skuCode;
+        return $this;
+    }
+
+    public function getColorCode(): ?string
+    {
+        return $this->colorCode;
+    }
+
+    public function setColorCode(?string $colorCode): static
+    {
+        $this->colorCode = $colorCode;
+        return $this;
+    }
+
+    public function getSizeValue(): ?string
+    {
+        return $this->sizeValue;
+    }
+
+    public function setSizeValue(?string $sizeValue): static
+    {
+        $this->sizeValue = $sizeValue;
+        return $this;
+    }
+
+    public function getSpecInfo(): ?array
+    {
+        return $this->specInfo;
+    }
+
+    public function setSpecInfo(?array $specInfo): static
+    {
+        $this->specInfo = $specInfo;
+        return $this;
+    }
+
+    public function getProductName(): ?string
+    {
+        return $this->productName;
+    }
+
+    public function setProductName(?string $productName): static
+    {
+        $this->productName = $productName;
+        return $this;
+    }
+
+    public function getProductImage(): ?string
+    {
+        return $this->productImage;
+    }
+
+    public function setProductImage(?string $productImage): static
+    {
+        $this->productImage = $productImage;
+        return $this;
+    }
+
+    /**
+     * 从 SKU 快照关键信息
+     */
+    public function snapshotFromSku(ProductSku $sku): void
+    {
+        $product = $sku->getProduct();
+
+        $this->skuCode = $sku->getSkuCode();
+        $this->colorCode = $sku->getColorCode();
+        $this->sizeValue = $sku->getSizeValue();
+        $this->specInfo = $sku->getSpecInfo();
+        $this->productName = $product->getName();
+
+        $primaryImage = $product->getPrimaryImage();
+        if ($primaryImage !== null) {
+            $this->productImage = $primaryImage->getUrl();
+        }
     }
 
     public function getExpectedQuantity(): int

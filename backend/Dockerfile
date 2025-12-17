@@ -1,17 +1,9 @@
-FROM dunglas/frankenphp:latest-php8.2
-
-RUN install-php-extensions \
-    pdo_mysql \
-    pdo_pgsql \
-    intl \
-    opcache \
-    zip \
-    apcu \
-    redis
+# Use base image with pre-installed extensions
+# Build base first: docker buildx build --platform linux/amd64 -t dwlite-php-base:latest -f Dockerfile.base .
+ARG BASE_IMAGE=dwlite-php-base:latest
+FROM ${BASE_IMAGE}
 
 WORKDIR /app
-
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 COPY composer.json composer.lock ./
 RUN composer install --no-dev --no-scripts --no-autoloader

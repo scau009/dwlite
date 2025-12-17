@@ -12,8 +12,8 @@ use Symfony\Component\Uid\Ulid;
 #[ORM\Entity(repositoryClass: OutboundOrderItemRepository::class)]
 #[ORM\Table(name: 'outbound_order_items')]
 #[ORM\Index(name: 'idx_outbound_item_outbound', columns: ['outbound_order_id'])]
-#[ORM\Index(name: 'idx_outbound_item_sku', columns: ['product_sku_id'])]
-#[ORM\Index(name: 'idx_outbound_item_inventory', columns: ['merchant_inventory_id'])]
+#[ORM\Index(name: 'idx_outbound_item_merchant', columns: ['merchant_id'])]
+#[ORM\Index(name: 'idx_outbound_item_warehouse', columns: ['warehouse_id'])]
 #[ORM\HasLifecycleCallbacks]
 class OutboundOrderItem
 {
@@ -25,42 +25,37 @@ class OutboundOrderItem
     #[ORM\JoinColumn(name: 'outbound_order_id', nullable: false, onDelete: 'CASCADE')]
     private OutboundOrder $outboundOrder;
 
-    #[ORM\ManyToOne(targetEntity: FulfillmentItem::class)]
-    #[ORM\JoinColumn(name: 'fulfillment_item_id', nullable: false)]
-    private FulfillmentItem $fulfillmentItem;
+    // 商户和仓库快照（保留关联，nullable）
+    #[ORM\ManyToOne(targetEntity: Merchant::class)]
+    #[ORM\JoinColumn(name: 'merchant_id', nullable: true)]
+    private ?Merchant $merchant = null;
 
-    #[ORM\ManyToOne(targetEntity: ProductSku::class)]
-    #[ORM\JoinColumn(name: 'product_sku_id', nullable: false)]
-    private ProductSku $productSku;
+    #[ORM\ManyToOne(targetEntity: Warehouse::class)]
+    #[ORM\JoinColumn(name: 'warehouse_id', nullable: true)]
+    private ?Warehouse $warehouse = null;
 
-    #[ORM\ManyToOne(targetEntity: MerchantInventory::class)]
-    #[ORM\JoinColumn(name: 'merchant_inventory_id', nullable: false)]
-    private MerchantInventory $merchantInventory;
+    // SKU 快照字段（保留出库时的商品信息）
+    #[ORM\Column(name: 'sku_code', length: 50, nullable: true)]
+    private ?string $skuCode = null;
+
+    #[ORM\Column(name: 'color_code', length: 20, nullable: true)]
+    private ?string $colorCode = null;
+
+    #[ORM\Column(name: 'size_value', length: 20, nullable: true)]
+    private ?string $sizeValue = null;
+
+    #[ORM\Column(name: 'spec_info', type: 'json', nullable: true)]
+    private ?array $specInfo = null;
+
+    #[ORM\Column(name: 'product_name', length: 255, nullable: true)]
+    private ?string $productName = null;
+
+    #[ORM\Column(name: 'product_image', length: 500, nullable: true)]
+    private ?string $productImage = null;
 
     // 数量
     #[ORM\Column(type: 'integer')]
-    private int $quantity;  // 应出库数量
-
-    #[ORM\Column(type: 'integer', options: ['default' => 0])]
-    private int $pickedQuantity = 0;  // 已拣货数量
-
-    #[ORM\Column(type: 'integer', options: ['default' => 0])]
-    private int $shippedQuantity = 0;  // 实际发货数量
-
-    // 库位信息（从库存获取或 WMS 返回）
-    #[ORM\Column(type: 'string', length: 50, nullable: true)]
-    private ?string $locationCode = null;  // 库位编码
-
-    // 批次/序列号（可选）
-    #[ORM\Column(type: 'string', length: 100, nullable: true)]
-    private ?string $batchNo = null;
-
-    #[ORM\Column(type: 'json', nullable: true)]
-    private ?array $serialNumbers = null;
-
-    // 备注
-    #[ORM\Column(type: 'text', nullable: true)]
-    private ?string $remark = null;
+    private int $quantity;
 
     #[ORM\Column(type: 'datetime_immutable')]
     private \DateTimeImmutable $createdAt;
@@ -91,36 +86,93 @@ class OutboundOrderItem
         return $this;
     }
 
-    public function getFulfillmentItem(): FulfillmentItem
+    public function getMerchant(): ?Merchant
     {
-        return $this->fulfillmentItem;
+        return $this->merchant;
     }
 
-    public function setFulfillmentItem(FulfillmentItem $fulfillmentItem): static
+    public function setMerchant(?Merchant $merchant): static
     {
-        $this->fulfillmentItem = $fulfillmentItem;
+        $this->merchant = $merchant;
         return $this;
     }
 
-    public function getProductSku(): ProductSku
+    public function getWarehouse(): ?Warehouse
     {
-        return $this->productSku;
+        return $this->warehouse;
     }
 
-    public function setProductSku(ProductSku $productSku): static
+    public function setWarehouse(?Warehouse $warehouse): static
     {
-        $this->productSku = $productSku;
+        $this->warehouse = $warehouse;
         return $this;
     }
 
-    public function getMerchantInventory(): MerchantInventory
+    // SKU 快照字段 getter/setter
+
+    public function getSkuCode(): ?string
     {
-        return $this->merchantInventory;
+        return $this->skuCode;
     }
 
-    public function setMerchantInventory(MerchantInventory $merchantInventory): static
+    public function setSkuCode(?string $skuCode): static
     {
-        $this->merchantInventory = $merchantInventory;
+        $this->skuCode = $skuCode;
+        return $this;
+    }
+
+    public function getColorCode(): ?string
+    {
+        return $this->colorCode;
+    }
+
+    public function setColorCode(?string $colorCode): static
+    {
+        $this->colorCode = $colorCode;
+        return $this;
+    }
+
+    public function getSizeValue(): ?string
+    {
+        return $this->sizeValue;
+    }
+
+    public function setSizeValue(?string $sizeValue): static
+    {
+        $this->sizeValue = $sizeValue;
+        return $this;
+    }
+
+    public function getSpecInfo(): ?array
+    {
+        return $this->specInfo;
+    }
+
+    public function setSpecInfo(?array $specInfo): static
+    {
+        $this->specInfo = $specInfo;
+        return $this;
+    }
+
+    public function getProductName(): ?string
+    {
+        return $this->productName;
+    }
+
+    public function setProductName(?string $productName): static
+    {
+        $this->productName = $productName;
+        return $this;
+    }
+
+    public function getProductImage(): ?string
+    {
+        return $this->productImage;
+    }
+
+    public function setProductImage(?string $productImage): static
+    {
+        $this->productImage = $productImage;
         return $this;
     }
 
@@ -132,72 +184,6 @@ class OutboundOrderItem
     public function setQuantity(int $quantity): static
     {
         $this->quantity = $quantity;
-        return $this;
-    }
-
-    public function getPickedQuantity(): int
-    {
-        return $this->pickedQuantity;
-    }
-
-    public function setPickedQuantity(int $pickedQuantity): static
-    {
-        $this->pickedQuantity = $pickedQuantity;
-        return $this;
-    }
-
-    public function getShippedQuantity(): int
-    {
-        return $this->shippedQuantity;
-    }
-
-    public function setShippedQuantity(int $shippedQuantity): static
-    {
-        $this->shippedQuantity = $shippedQuantity;
-        return $this;
-    }
-
-    public function getLocationCode(): ?string
-    {
-        return $this->locationCode;
-    }
-
-    public function setLocationCode(?string $locationCode): static
-    {
-        $this->locationCode = $locationCode;
-        return $this;
-    }
-
-    public function getBatchNo(): ?string
-    {
-        return $this->batchNo;
-    }
-
-    public function setBatchNo(?string $batchNo): static
-    {
-        $this->batchNo = $batchNo;
-        return $this;
-    }
-
-    public function getSerialNumbers(): ?array
-    {
-        return $this->serialNumbers;
-    }
-
-    public function setSerialNumbers(?array $serialNumbers): static
-    {
-        $this->serialNumbers = $serialNumbers;
-        return $this;
-    }
-
-    public function getRemark(): ?string
-    {
-        return $this->remark;
-    }
-
-    public function setRemark(?string $remark): static
-    {
-        $this->remark = $remark;
         return $this;
     }
 
@@ -217,58 +203,22 @@ class OutboundOrderItem
         $this->updatedAt = new \DateTimeImmutable();
     }
 
-    // 便捷方法
-
     /**
-     * 是否已全部拣货
+     * 从 SKU 快照关键信息
      */
-    public function isFullyPicked(): bool
+    public function snapshotFromSku(ProductSku $sku): void
     {
-        return $this->pickedQuantity >= $this->quantity;
-    }
+        $product = $sku->getProduct();
 
-    /**
-     * 是否已全部发货
-     */
-    public function isFullyShipped(): bool
-    {
-        return $this->shippedQuantity >= $this->quantity;
-    }
+        $this->skuCode = $sku->getSkuCode();
+        $this->colorCode = $sku->getColorCode();
+        $this->sizeValue = $sku->getSizeValue();
+        $this->specInfo = $sku->getSpecInfo();
+        $this->productName = $product->getName();
 
-    /**
-     * 获取待拣货数量
-     */
-    public function getPendingPickQuantity(): int
-    {
-        return max(0, $this->quantity - $this->pickedQuantity);
-    }
-
-    /**
-     * 记录拣货
-     */
-    public function recordPicked(int $quantity): void
-    {
-        $this->pickedQuantity += $quantity;
-    }
-
-    /**
-     * 记录发货
-     */
-    public function recordShipped(int $quantity): void
-    {
-        $this->shippedQuantity += $quantity;
-    }
-
-    /**
-     * 从履约单明细创建
-     */
-    public static function createFromFulfillmentItem(FulfillmentItem $fulfillmentItem): static
-    {
-        $item = new static();
-        $item->setFulfillmentItem($fulfillmentItem);
-        $item->setProductSku($fulfillmentItem->getProductSku());
-        $item->setMerchantInventory($fulfillmentItem->getMerchantInventory());
-        $item->setQuantity($fulfillmentItem->getQuantity());
-        return $item;
+        $primaryImage = $product->getPrimaryImage();
+        if ($primaryImage !== null) {
+            $this->productImage = $primaryImage->getUrl();
+        }
     }
 }
