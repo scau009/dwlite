@@ -7,7 +7,6 @@ use App\Dto\Auth\ForgotPasswordRequest;
 use App\Dto\Auth\RefreshTokenRequest;
 use App\Dto\Auth\RegisterRequest;
 use App\Dto\Auth\ResetPasswordRequest;
-use App\Dto\Auth\VerifyEmailRequest;
 use App\Entity\User;
 use App\Service\Auth\AuthService;
 use App\Service\Auth\EmailVerificationService;

@@ -28,13 +28,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private array $roles = [];
 
     #[ORM\Column(type: 'string')]
-    private string $password;
+    private string $password = '';
 
     #[ORM\Column(type: 'boolean')]
     private bool $isVerified = false;
 
     #[ORM\Column(type: 'string', length: 50)]
-    private string $accountType;
+    private string $accountType = '';
 
     #[ORM\Column(type: 'datetime_immutable')]
     private \DateTimeImmutable $createdAt;
@@ -47,6 +47,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->id = (string) new Ulid();
         $this->createdAt = new \DateTimeImmutable();
         $this->updatedAt = new \DateTimeImmutable();
+        $this->accountType = self::ACCOUNT_TYPE_MERCHANT;
     }
 
     public function getId(): string
