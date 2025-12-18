@@ -8,10 +8,18 @@ import {
   CarOutlined,
   BarChartOutlined,
   SettingOutlined,
+  TeamOutlined,
 } from '@ant-design/icons';
 import type { TFunction } from 'i18next';
+import type { AccountType } from '@/types/auth';
 
-export function getMenuData(t: TFunction): MenuDataItem[] {
+// Extended menu item with access control
+export interface AccessMenuDataItem extends MenuDataItem {
+  access?: AccountType | AccountType[];
+  children?: AccessMenuDataItem[];
+}
+
+export function getMenuData(t: TFunction): AccessMenuDataItem[] {
   return [
     {
       path: '/dashboard',
@@ -24,8 +32,8 @@ export function getMenuData(t: TFunction): MenuDataItem[] {
       icon: <ShoppingOutlined />,
       children: [
         { path: '/products', name: t('menu.productList') },
-        { path: '/products/categories', name: t('menu.productCategories') },
-        { path: '/products/attributes', name: t('menu.productAttributes') },
+        { path: '/products/categories', name: t('menu.productCategories'), access: 'admin' },
+        { path: '/products/attributes', name: t('menu.productAttributes'), access: 'admin' },
       ],
     },
     {
@@ -44,7 +52,7 @@ export function getMenuData(t: TFunction): MenuDataItem[] {
       icon: <DollarOutlined />,
       children: [
         { path: '/pricing', name: t('menu.priceList') },
-        { path: '/pricing/rules', name: t('menu.priceRules') },
+        { path: '/pricing/rules', name: t('menu.priceRules'), access: 'admin' },
         { path: '/pricing/history', name: t('menu.priceHistory') },
       ],
     },
@@ -71,6 +79,15 @@ export function getMenuData(t: TFunction): MenuDataItem[] {
       ],
     },
     {
+      path: '/merchants',
+      name: t('nav.merchants'),
+      icon: <TeamOutlined />,
+      access: 'admin',
+      children: [
+        { path: '/merchants', name: t('menu.merchantList') },
+      ],
+    },
+    {
       path: '/data',
       name: t('nav.dataCenter'),
       icon: <BarChartOutlined />,
@@ -78,7 +95,7 @@ export function getMenuData(t: TFunction): MenuDataItem[] {
         { path: '/data', name: t('menu.dataOverview') },
         { path: '/data/sales', name: t('menu.salesAnalysis') },
         { path: '/data/inventory', name: t('menu.inventoryAnalysis') },
-        { path: '/data/reports', name: t('menu.reports') },
+        { path: '/data/reports', name: t('menu.reports'), access: 'admin' },
       ],
     },
     {
@@ -87,9 +104,9 @@ export function getMenuData(t: TFunction): MenuDataItem[] {
       icon: <SettingOutlined />,
       children: [
         { path: '/settings', name: t('menu.generalSettings') },
-        { path: '/settings/users', name: t('menu.userManagement') },
-        { path: '/settings/roles', name: t('menu.roleManagement') },
-        { path: '/settings/logs', name: t('menu.operationLogs') },
+        { path: '/settings/users', name: t('menu.userManagement'), access: 'admin' },
+        { path: '/settings/roles', name: t('menu.roleManagement'), access: 'admin' },
+        { path: '/settings/logs', name: t('menu.operationLogs'), access: 'admin' },
       ],
     },
   ];

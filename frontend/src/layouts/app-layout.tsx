@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router';
 import { ProLayout, PageContainer } from '@ant-design/pro-components';
 import { useTranslation } from 'react-i18next';
@@ -6,14 +6,21 @@ import { ShopOutlined } from '@ant-design/icons';
 
 import { getMenuData } from '@/config/menu';
 import { HeaderRight } from '@/components/layout/header-right';
+import { useAuth } from '@/contexts/auth-context';
+import { filterMenuByAccess } from '@/lib/menu-access';
 
 export function AppLayout() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
+  const { user } = useAuth();
 
-  const menuData = getMenuData(t);
+  const menuData = useMemo(() => {
+    const allMenus = getMenuData(t);
+    if (!user?.accountType) return allMenus;
+    return filterMenuByAccess(allMenus, user.accountType);
+  }, [t, user?.accountType]);
 
   return (
     <ProLayout

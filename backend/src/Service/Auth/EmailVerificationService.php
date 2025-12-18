@@ -17,7 +17,7 @@ class EmailVerificationService
         private UserRepository $userRepository,
         private MailerInterface $mailer,
         private Environment $twig,
-        private string $appUrl = 'http://localhost:8000',
+        private string $frontendUrl = 'http://localhost:5173',
     ) {
     }
 
@@ -37,7 +37,7 @@ class EmailVerificationService
             ->html($this->twig->render('emails/verification.html.twig', [
                 'user' => $user,
                 'token' => $token->getToken(),
-                'verifyUrl' => $this->appUrl . '/api/auth/verify-email?token=' . $token->getToken(),
+                'verifyUrl' => $this->frontendUrl . '/verify-email?token=' . $token->getToken(),
             ]));
 
         $this->mailer->send($email);

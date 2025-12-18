@@ -8,6 +8,9 @@ import { useAuth } from '@/contexts/auth-context';
 import { AuthLayout } from '@/layouts/auth-layout';
 import { AppLayout } from '@/layouts/app-layout';
 
+// Components
+import { AccessRoute } from '@/components/access-route';
+
 // Auth pages
 import { LoginPage } from '@/pages/auth/login';
 import { RegisterPage } from '@/pages/auth/register';
@@ -19,6 +22,7 @@ import { VerifyEmailPage } from '@/pages/auth/verify-email';
 import { DashboardPage } from '@/pages/dashboard';
 import { ProfilePage } from '@/pages/profile';
 import { ProductsListPage, ProductDetailPage, ProductFormPage } from '@/pages/products';
+import { MerchantsListPage } from '@/pages/merchants';
 
 // Placeholder component for pages not yet implemented
 function PlaceholderPage({ title }: { title: string }) {
@@ -99,53 +103,61 @@ export const router = createBrowserRouter([
       {
         element: <AppLayout />,
         children: [
-          // Dashboard
-          { path: '/dashboard', element: <DashboardPage /> },
+          {
+            element: <AccessRoute />,
+            children: [
+              // Dashboard
+              { path: '/dashboard', element: <DashboardPage /> },
 
-          // Products
-          { path: '/products', element: <ProductsListPage /> },
-          { path: '/products/new', element: <ProductFormPage /> },
-          { path: '/products/:id', element: <ProductDetailPage /> },
-          { path: '/products/:id/edit', element: <ProductFormPage /> },
-          { path: '/products/categories', element: <PlaceholderPage title="Product Categories" /> },
-          { path: '/products/attributes', element: <PlaceholderPage title="Product Attributes" /> },
+              // Products
+              { path: '/products', element: <ProductsListPage /> },
+              { path: '/products/new', element: <ProductFormPage /> },
+              { path: '/products/:id', element: <ProductDetailPage /> },
+              { path: '/products/:id/edit', element: <ProductFormPage /> },
+              { path: '/products/categories', element: <PlaceholderPage title="Product Categories" /> },
+              { path: '/products/attributes', element: <PlaceholderPage title="Product Attributes" /> },
 
-          // Inventory
-          { path: '/inventory', element: <PlaceholderPage title="Inventory List" /> },
-          { path: '/inventory/alerts', element: <PlaceholderPage title="Stock Alerts" /> },
-          { path: '/inventory/logs', element: <PlaceholderPage title="Stock Logs" /> },
+              // Inventory
+              { path: '/inventory', element: <PlaceholderPage title="Inventory List" /> },
+              { path: '/inventory/alerts', element: <PlaceholderPage title="Stock Alerts" /> },
+              { path: '/inventory/logs', element: <PlaceholderPage title="Stock Logs" /> },
 
-          // Pricing
-          { path: '/pricing', element: <PlaceholderPage title="Price List" /> },
-          { path: '/pricing/rules', element: <PlaceholderPage title="Price Rules" /> },
-          { path: '/pricing/history', element: <PlaceholderPage title="Price History" /> },
+              // Pricing
+              { path: '/pricing', element: <PlaceholderPage title="Price List" /> },
+              { path: '/pricing/rules', element: <PlaceholderPage title="Price Rules" /> },
+              { path: '/pricing/history', element: <PlaceholderPage title="Price History" /> },
 
-          // Orders
-          { path: '/orders', element: <PlaceholderPage title="Order List" /> },
-          { path: '/orders/pending', element: <PlaceholderPage title="Pending Orders" /> },
-          { path: '/orders/completed', element: <PlaceholderPage title="Completed Orders" /> },
-          { path: '/orders/refunds', element: <PlaceholderPage title="Refunds" /> },
+              // Orders
+              { path: '/orders', element: <PlaceholderPage title="Order List" /> },
+              { path: '/orders/pending', element: <PlaceholderPage title="Pending Orders" /> },
+              { path: '/orders/completed', element: <PlaceholderPage title="Completed Orders" /> },
+              { path: '/orders/refunds', element: <PlaceholderPage title="Refunds" /> },
 
-          // Fulfillment
-          { path: '/fulfillment', element: <PlaceholderPage title="Fulfillment List" /> },
-          { path: '/fulfillment/pending', element: <PlaceholderPage title="Pending Shipment" /> },
-          { path: '/fulfillment/shipped', element: <PlaceholderPage title="Shipped" /> },
-          { path: '/fulfillment/exceptions', element: <PlaceholderPage title="Fulfillment Exceptions" /> },
+              // Fulfillment
+              { path: '/fulfillment', element: <PlaceholderPage title="Fulfillment List" /> },
+              { path: '/fulfillment/pending', element: <PlaceholderPage title="Pending Shipment" /> },
+              { path: '/fulfillment/shipped', element: <PlaceholderPage title="Shipped" /> },
+              { path: '/fulfillment/exceptions', element: <PlaceholderPage title="Fulfillment Exceptions" /> },
 
-          // Data Center
-          { path: '/data', element: <PlaceholderPage title="Data Overview" /> },
-          { path: '/data/sales', element: <PlaceholderPage title="Sales Analysis" /> },
-          { path: '/data/inventory', element: <PlaceholderPage title="Inventory Analysis" /> },
-          { path: '/data/reports', element: <PlaceholderPage title="Reports" /> },
+              // Merchants
+              { path: '/merchants', element: <MerchantsListPage /> },
 
-          // Settings
-          { path: '/settings', element: <PlaceholderPage title="General Settings" /> },
-          { path: '/settings/users', element: <PlaceholderPage title="User Management" /> },
-          { path: '/settings/roles', element: <PlaceholderPage title="Role Management" /> },
-          { path: '/settings/logs', element: <PlaceholderPage title="Operation Logs" /> },
+              // Data Center
+              { path: '/data', element: <PlaceholderPage title="Data Overview" /> },
+              { path: '/data/sales', element: <PlaceholderPage title="Sales Analysis" /> },
+              { path: '/data/inventory', element: <PlaceholderPage title="Inventory Analysis" /> },
+              { path: '/data/reports', element: <PlaceholderPage title="Reports" /> },
 
-          // Profile
-          { path: '/profile', element: <ProfilePage /> },
+              // Settings
+              { path: '/settings', element: <PlaceholderPage title="General Settings" /> },
+              { path: '/settings/users', element: <PlaceholderPage title="User Management" /> },
+              { path: '/settings/roles', element: <PlaceholderPage title="Role Management" /> },
+              { path: '/settings/logs', element: <PlaceholderPage title="Operation Logs" /> },
+
+              // Profile
+              { path: '/profile', element: <ProfilePage /> },
+            ],
+          },
         ],
       },
     ],

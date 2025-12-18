@@ -21,6 +21,7 @@ const MOCK_USER: User = {
   email: 'test@demo.com',
   roles: ['ROLE_USER'],
   isVerified: true,
+  accountType: 'admin',
   createdAt: new Date().toISOString(),
 };
 

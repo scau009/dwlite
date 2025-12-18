@@ -31,7 +31,6 @@ class AuthController extends AbstractController
         private TokenBlacklistService $tokenBlacklistService,
         private JWTTokenManagerInterface $jwtManager,
         private ValidatorInterface $validator,
-        private string $frontendUrl = 'http://localhost:5173',
     ) {
     }
 
@@ -67,31 +66,29 @@ class AuthController extends AbstractController
     }
 
     #[Route('/verify-email', name: 'auth_verify_email', methods: ['POST', 'GET'])]
-    public function verifyEmail(Request $request): Response
+    public function verifyEmail(Request $request): JsonResponse
     {
         $token = $request->query->get('token') ?? $request->request->get('token');
-        $loginUrl = $this->frontendUrl . '/login';
 
         if (empty($token)) {
-            return $this->render('emails/verification_result.html.twig', [
-                'success' => false,
+            return $this->json([
                 'error' => 'Invalid verification link. No token provided.',
-                'redirectUrl' => $loginUrl,
-            ], new Response('', Response::HTTP_BAD_REQUEST));
+            ], Response::HTTP_BAD_REQUEST);
         }
 
         try {
-            $this->emailVerificationService->verifyEmail($token);
-            return $this->render('emails/verification_result.html.twig', [
-                'success' => true,
-                'redirectUrl' => $loginUrl,
+            $user = $this->emailVerificationService->verifyEmail($token);
+            return $this->json([
+                'message' => 'Email verified successfully',
+                'user' => [
+                    'id' => $user->getId(),
+                    'email' => $user->getEmail(),
+                ],
             ]);
         } catch (\InvalidArgumentException $e) {
-            return $this->render('emails/verification_result.html.twig', [
-                'success' => false,
+            return $this->json([
                 'error' => $e->getMessage(),
-                'redirectUrl' => $loginUrl,
-            ], new Response('', Response::HTTP_BAD_REQUEST));
+            ], Response::HTTP_BAD_REQUEST);
         }
     }
 
@@ -218,6 +215,7 @@ class AuthController extends AbstractController
             'email' => $user->getEmail(),
             'roles' => $user->getRoles(),
             'isVerified' => $user->isVerified(),
+            'accountType' => $user->getAccountType(),
             'createdAt' => $user->getCreatedAt()->format('c'),
         ]);
     }

@@ -54,4 +54,48 @@ class MerchantRepository extends ServiceEntityRepository
     {
         return $this->findByStatus(Merchant::STATUS_APPROVED);
     }
+
+    /**
+     * 分页查询商户列表
+     *
+     * @param int $page 页码（从1开始）
+     * @param int $limit 每页数量
+     * @param array $filters 筛选条件 ['status' => string, 'name' => string]
+     * @return array ['data' => Merchant[], 'total' => int]
+     */
+    public function findPaginated(int $page = 1, int $limit = 20, array $filters = []): array
+    {
+        $qb = $this->createQueryBuilder('m')
+            ->orderBy('m.createdAt', 'DESC');
+
+        // 状态筛选
+        if (!empty($filters['status'])) {
+            $qb->andWhere('m.status = :status')
+                ->setParameter('status', $filters['status']);
+        }
+
+        // 名称筛选（模糊匹配）
+        if (!empty($filters['name'])) {
+            $qb->andWhere('m.name LIKE :name OR m.shortName LIKE :name')
+                ->setParameter('name', '%' . $filters['name'] . '%');
+        }
+
+        // 获取总数
+        $countQb = clone $qb;
+        $total = $countQb->select('COUNT(m.id)')
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        // 分页
+        $offset = ($page - 1) * $limit;
+        $data = $qb->setFirstResult($offset)
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+
+        return [
+            'data' => $data,
+            'total' => (int) $total,
+        ];
+    }
 }

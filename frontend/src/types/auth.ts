@@ -1,9 +1,13 @@
+// Account types
+export type AccountType = 'admin' | 'merchant';
+
 // User type matching backend User entity
 export interface User {
   id: string;
   email: string;
   roles: string[];
   isVerified: boolean;
+  accountType: AccountType;
   createdAt: string;
 }
 

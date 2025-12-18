@@ -38,6 +38,37 @@ class WalletTransactionRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    /**
+     * 分页查询钱包交易记录
+     *
+     * @return array ['data' => WalletTransaction[], 'total' => int]
+     */
+    public function findByWalletPaginated(Wallet $wallet, int $page = 1, int $limit = 20): array
+    {
+        $qb = $this->createQueryBuilder('t')
+            ->where('t.wallet = :wallet')
+            ->setParameter('wallet', $wallet)
+            ->orderBy('t.createdAt', 'DESC');
+
+        // 获取总数
+        $countQb = clone $qb;
+        $total = $countQb->select('COUNT(t.id)')
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        // 分页
+        $offset = ($page - 1) * $limit;
+        $data = $qb->setFirstResult($offset)
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+
+        return [
+            'data' => $data,
+            'total' => (int) $total,
+        ];
+    }
+
     public function findByBiz(string $bizType, string $bizId): array
     {
         return $this->findBy([
