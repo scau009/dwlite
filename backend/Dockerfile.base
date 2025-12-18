@@ -7,6 +7,8 @@ RUN install-php-extensions \
     opcache \
     zip \
     apcu \
-    redis
+    redis \
+    bcmath \
+    xdebug
 
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer

@@ -2,6 +2,7 @@
 
 namespace App\Controller\Admin;
 
+use App\Attribute\AdminOnly;
 use App\Entity\Merchant;
 use App\Entity\User;
 use App\Repository\MerchantRepository;
@@ -15,6 +16,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\CurrentUser;
 
 #[Route('/api/admin/merchants')]
+#[AdminOnly]
 class MerchantController extends AbstractController
 {
     public function __construct(
@@ -24,24 +26,9 @@ class MerchantController extends AbstractController
     ) {
     }
 
-    /**
-     * 检查管理员权限
-     */
-    private function checkAdmin(User $user): ?JsonResponse
-    {
-        if (!$user->isAdmin()) {
-            return $this->json(['error' => 'Access denied'], Response::HTTP_FORBIDDEN);
-        }
-        return null;
-    }
-
     #[Route('', name: 'admin_merchant_list', methods: ['GET'])]
-    public function list(Request $request, #[CurrentUser] User $user): JsonResponse
+    public function list(Request $request): JsonResponse
     {
-        if ($error = $this->checkAdmin($user)) {
-            return $error;
-        }
-
         $page = max(1, (int) $request->query->get('page', 1));
         $limit = min(100, max(1, (int) $request->query->get('limit', 20)));
 
@@ -64,12 +51,8 @@ class MerchantController extends AbstractController
     }
 
     #[Route('/{id}', name: 'admin_merchant_detail', methods: ['GET'])]
-    public function detail(string $id, #[CurrentUser] User $user): JsonResponse
+    public function detail(string $id): JsonResponse
     {
-        if ($error = $this->checkAdmin($user)) {
-            return $error;
-        }
-
         $merchant = $this->merchantRepository->find($id);
         if (!$merchant) {
             return $this->json(['error' => 'Merchant not found'], Response::HTTP_NOT_FOUND);
@@ -79,12 +62,8 @@ class MerchantController extends AbstractController
     }
 
     #[Route('/{id}/status', name: 'admin_merchant_status', methods: ['PUT'])]
-    public function updateStatus(string $id, Request $request, #[CurrentUser] User $user): JsonResponse
+    public function updateStatus(string $id, Request $request): JsonResponse
     {
-        if ($error = $this->checkAdmin($user)) {
-            return $error;
-        }
-
         $merchant = $this->merchantRepository->find($id);
         if (!$merchant) {
             return $this->json(['error' => 'Merchant not found'], Response::HTTP_NOT_FOUND);
@@ -112,12 +91,8 @@ class MerchantController extends AbstractController
     }
 
     #[Route('/{id}/wallets/init', name: 'admin_merchant_init_wallets', methods: ['POST'])]
-    public function initWallets(string $id, #[CurrentUser] User $user): JsonResponse
+    public function initWallets(string $id): JsonResponse
     {
-        if ($error = $this->checkAdmin($user)) {
-            return $error;
-        }
-
         $merchant = $this->merchantRepository->find($id);
         if (!$merchant) {
             return $this->json(['error' => 'Merchant not found'], Response::HTTP_NOT_FOUND);
@@ -142,10 +117,6 @@ class MerchantController extends AbstractController
     #[Route('/{id}/wallets/deposit/charge', name: 'admin_merchant_charge_deposit', methods: ['POST'])]
     public function chargeDeposit(string $id, Request $request, #[CurrentUser] User $user): JsonResponse
     {
-        if ($error = $this->checkAdmin($user)) {
-            return $error;
-        }
-
         $merchant = $this->merchantRepository->find($id);
         if (!$merchant) {
             return $this->json(['error' => 'Merchant not found'], Response::HTTP_NOT_FOUND);
@@ -189,12 +160,8 @@ class MerchantController extends AbstractController
     }
 
     #[Route('/{id}/wallets/deposit/transactions', name: 'admin_merchant_deposit_transactions', methods: ['GET'])]
-    public function depositTransactions(string $id, Request $request, #[CurrentUser] User $user): JsonResponse
+    public function depositTransactions(string $id, Request $request): JsonResponse
     {
-        if ($error = $this->checkAdmin($user)) {
-            return $error;
-        }
-
         $merchant = $this->merchantRepository->find($id);
         if (!$merchant) {
             return $this->json(['error' => 'Merchant not found'], Response::HTTP_NOT_FOUND);

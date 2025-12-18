@@ -73,4 +73,96 @@ class CategoryRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    /**
+     * 分页查询分类列表
+     *
+     * @param int $page 页码（从1开始）
+     * @param int $limit 每页数量
+     * @param array $filters 筛选条件 ['name' => string, 'isActive' => bool, 'parentId' => string|null]
+     * @return array ['data' => Category[], 'total' => int]
+     */
+    public function findPaginated(int $page = 1, int $limit = 20, array $filters = []): array
+    {
+        $qb = $this->createQueryBuilder('c')
+            ->orderBy('c.sortOrder', 'ASC')
+            ->addOrderBy('c.createdAt', 'DESC');
+
+        // 名称筛选（模糊匹配）
+        if (!empty($filters['name'])) {
+            $qb->andWhere('c.name LIKE :name OR c.slug LIKE :name')
+                ->setParameter('name', '%' . $filters['name'] . '%');
+        }
+
+        // 状态筛选
+        if (isset($filters['isActive'])) {
+            $qb->andWhere('c.isActive = :isActive')
+                ->setParameter('isActive', $filters['isActive']);
+        }
+
+        // 父级分类筛选
+        if (array_key_exists('parentId', $filters)) {
+            if ($filters['parentId'] === null) {
+                $qb->andWhere('c.parent IS NULL');
+            } else {
+                $qb->andWhere('c.parent = :parentId')
+                    ->setParameter('parentId', $filters['parentId']);
+            }
+        }
+
+        // 获取总数
+        $countQb = clone $qb;
+        $total = $countQb->select('COUNT(c.id)')
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        // 分页
+        $offset = ($page - 1) * $limit;
+        $data = $qb->setFirstResult($offset)
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+
+        return [
+            'data' => $data,
+            'total' => (int) $total,
+        ];
+    }
+
+    /**
+     * 检查 slug 是否已存在
+     */
+    public function existsBySlug(string $slug, ?string $excludeId = null): bool
+    {
+        $qb = $this->createQueryBuilder('c')
+            ->select('COUNT(c.id)')
+            ->where('c.slug = :slug')
+            ->setParameter('slug', $slug);
+
+        if ($excludeId !== null) {
+            $qb->andWhere('c.id != :excludeId')
+                ->setParameter('excludeId', $excludeId);
+        }
+
+        return (int) $qb->getQuery()->getSingleScalarResult() > 0;
+    }
+
+    /**
+     * 获取所有分类（包括子分类），用于构建树结构
+     */
+    public function findAllForTree(bool $activeOnly = false): array
+    {
+        $qb = $this->createQueryBuilder('c')
+            ->leftJoin('c.parent', 'p')
+            ->addSelect('p')
+            ->orderBy('c.sortOrder', 'ASC')
+            ->addOrderBy('c.name', 'ASC');
+
+        if ($activeOnly) {
+            $qb->andWhere('c.isActive = :active')
+                ->setParameter('active', true);
+        }
+
+        return $qb->getQuery()->getResult();
+    }
 }
