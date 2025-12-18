@@ -1,0 +1,122 @@
+# English translations
+
+# Authentication messages
+auth:
+  register:
+    success: 'Registration successful. Please check your email to verify your account.'
+  verify_email:
+    success: 'Email verified successfully'
+    token_required: 'Token is required'
+    invalid_token: 'Invalid verification token'
+    token_expired: 'Verification token has expired'
+    already_verified: 'Email is already verified'
+  login:
+    success: 'Login successful'
+  logout:
+    success: 'Logged out successfully'
+  refresh:
+    invalid_token: 'Invalid or expired refresh token'
+    email_not_verified: 'User email is not verified'
+  forgot_password:
+    success: 'If an account with that email exists, a password reset link has been sent.'
+  reset_password:
+    success: 'Password reset successfully'
+    invalid_token: 'Invalid reset token'
+    token_expired: 'Reset token has expired'
+  change_password:
+    success: 'Password changed successfully'
+    incorrect_current: 'Current password is incorrect'
+  error:
+    user_exists: 'User with this email already exists'
+
+# Brand management messages
+admin:
+  brand:
+    not_found: 'Brand not found'
+    slug_exists: 'slug already exists'
+    created: 'Brand created successfully'
+    updated: 'Brand updated successfully'
+    deleted: 'Brand deleted successfully'
+    activated: 'Brand activated'
+    deactivated: 'Brand deactivated'
+    has_products: 'Cannot delete brand with associated products'
+
+  # Category management messages
+  category:
+    not_found: 'Category not found'
+    slug_exists: 'slug already exists'
+    parent_not_found: 'Parent category not found'
+    max_depth: 'Maximum category depth is 3 levels'
+    self_parent: 'Cannot set self as parent'
+    descendant_parent: 'Cannot set a descendant as parent'
+    created: 'Category created successfully'
+    updated: 'Category updated successfully'
+    deleted: 'Category deleted successfully'
+    activated: 'Category activated'
+    deactivated: 'Category deactivated'
+    has_children: 'Cannot delete category with child categories'
+    has_products: 'Cannot delete category with associated products'
+
+  # Merchant management messages
+  merchant:
+    not_found: 'Merchant not found'
+    enabled: 'Merchant enabled'
+    disabled: 'Merchant disabled'
+
+# Wallet messages
+wallet:
+  init_success: 'Wallets initialized successfully'
+  already_initialized: 'Merchant wallets already initialized'
+  deposit_not_found: 'Deposit wallet not found. Please initialize wallets first.'
+  deposit_wallet_not_found: 'Deposit wallet not found'
+  amount_positive: 'Amount must be greater than 0'
+  deposit_charged: 'Deposit charged successfully'
+
+# Validation messages
+validation:
+  # Common
+  field_required: 'This field is required'
+  invalid_format: 'Invalid format'
+
+  # Email
+  email_required: 'Email is required'
+  email_invalid: 'Invalid email format'
+
+  # Password
+  password_required: 'Password is required'
+  password_min_length: 'Password must be at least 8 characters'
+  password_complexity: 'Password must contain at least one uppercase letter, one lowercase letter, and one number'
+  current_password_required: 'Current password is required'
+  new_password_required: 'New password is required'
+
+  # Token
+  token_required: 'Token is required'
+  refresh_token_required: 'Refresh token is required'
+
+  # Name
+  name_required: 'name is required'
+  name_max_length: 'name must be at most 100 characters'
+
+  # Slug
+  slug_max_length: 'slug must be at most 100 characters'
+  slug_format: 'slug can only contain lowercase letters, numbers, and hyphens'
+
+  # URL
+  url_invalid: 'logoUrl must be a valid URL'
+
+  # Description
+  description_max_length: 'description must be at most 500 characters'
+
+  # Sort order
+  sort_order_positive: 'sortOrder must be a non-negative integer'
+
+  # UUID
+  uuid_invalid: 'parentId must be a valid UUID'
+
+  # Amount
+  amount_required: 'amount field is required'
+  amount_format: 'amount must be a valid decimal number with up to 2 decimal places'
+
+  # Status
+  is_active_required: 'isActive field is required'
+  enabled_required: 'enabled field is required'

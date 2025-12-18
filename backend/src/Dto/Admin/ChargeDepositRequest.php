@@ -6,10 +6,10 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 class ChargeDepositRequest
 {
-    #[Assert\NotBlank(message: 'amount field is required')]
+    #[Assert\NotBlank(message: 'validation.amount_required')]
     #[Assert\Regex(
         pattern: '/^-?\d+(\.\d{1,2})?$/',
-        message: 'amount must be a valid decimal number with up to 2 decimal places'
+        message: 'validation.amount_format'
     )]
     public string $amount = '';
 

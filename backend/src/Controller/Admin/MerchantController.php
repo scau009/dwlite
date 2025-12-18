@@ -17,6 +17,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\CurrentUser;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 #[Route('/api/admin/merchants')]
 #[AdminOnly]
@@ -26,6 +27,7 @@ class MerchantController extends AbstractController
         private MerchantRepository $merchantRepository,
         private WalletService $walletService,
         private WalletTransactionRepository $transactionRepository,
+        private TranslatorInterface $translator,
     ) {
     }
 
@@ -58,7 +60,7 @@ class MerchantController extends AbstractController
     {
         $merchant = $this->merchantRepository->find($id);
         if (!$merchant) {
-            return $this->json(['error' => 'Merchant not found'], Response::HTTP_NOT_FOUND);
+            return $this->json(['error' => $this->translator->trans('admin.merchant.not_found')], Response::HTTP_NOT_FOUND);
         }
 
         return $this->json($this->serializeMerchant($merchant, true));
@@ -69,7 +71,7 @@ class MerchantController extends AbstractController
     {
         $merchant = $this->merchantRepository->find($id);
         if (!$merchant) {
-            return $this->json(['error' => 'Merchant not found'], Response::HTTP_NOT_FOUND);
+            return $this->json(['error' => $this->translator->trans('admin.merchant.not_found')], Response::HTTP_NOT_FOUND);
         }
 
         if ($dto->enabled) {
@@ -81,7 +83,7 @@ class MerchantController extends AbstractController
         $this->merchantRepository->save($merchant, true);
 
         return $this->json([
-            'message' => $dto->enabled ? 'Merchant enabled' : 'Merchant disabled',
+            'message' => $dto->enabled ? $this->translator->trans('admin.merchant.enabled') : $this->translator->trans('admin.merchant.disabled'),
             'merchant' => $this->serializeMerchant($merchant),
         ]);
     }
@@ -91,13 +93,13 @@ class MerchantController extends AbstractController
     {
         $merchant = $this->merchantRepository->find($id);
         if (!$merchant) {
-            return $this->json(['error' => 'Merchant not found'], Response::HTTP_NOT_FOUND);
+            return $this->json(['error' => $this->translator->trans('admin.merchant.not_found')], Response::HTTP_NOT_FOUND);
         }
 
         try {
             $wallets = $this->walletService->initWallets($merchant);
             return $this->json([
-                'message' => 'Wallets initialized successfully',
+                'message' => $this->translator->trans('wallet.init_success'),
                 'wallets' => array_map(fn($w) => [
                     'id' => $w->getId(),
                     'type' => $w->getType(),
@@ -118,7 +120,7 @@ class MerchantController extends AbstractController
     ): JsonResponse {
         $merchant = $this->merchantRepository->find($id);
         if (!$merchant) {
-            return $this->json(['error' => 'Merchant not found'], Response::HTTP_NOT_FOUND);
+            return $this->json(['error' => $this->translator->trans('admin.merchant.not_found')], Response::HTTP_NOT_FOUND);
         }
 
         try {
@@ -132,7 +134,7 @@ class MerchantController extends AbstractController
             $wallet = $this->walletService->getDepositWallet($merchant);
 
             return $this->json([
-                'message' => 'Deposit charged successfully',
+                'message' => $this->translator->trans('wallet.deposit_charged'),
                 'transaction' => [
                     'id' => $transaction->getId(),
                     'amount' => $transaction->getAmount(),
@@ -155,12 +157,12 @@ class MerchantController extends AbstractController
     {
         $merchant = $this->merchantRepository->find($id);
         if (!$merchant) {
-            return $this->json(['error' => 'Merchant not found'], Response::HTTP_NOT_FOUND);
+            return $this->json(['error' => $this->translator->trans('admin.merchant.not_found')], Response::HTTP_NOT_FOUND);
         }
 
         $wallet = $this->walletService->getDepositWallet($merchant);
         if (!$wallet) {
-            return $this->json(['error' => 'Deposit wallet not found'], Response::HTTP_NOT_FOUND);
+            return $this->json(['error' => $this->translator->trans('wallet.deposit_wallet_not_found')], Response::HTTP_NOT_FOUND);
         }
 
         $page = max(1, (int) $request->query->get('page', 1));

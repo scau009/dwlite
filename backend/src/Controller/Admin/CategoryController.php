@@ -15,6 +15,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\String\Slugger\AsciiSlugger;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 #[Route('/api/admin/categories')]
 #[AdminOnly]
@@ -22,6 +23,7 @@ class CategoryController extends AbstractController
 {
     public function __construct(
         private CategoryRepository $categoryRepository,
+        private TranslatorInterface $translator,
     ) {
     }
 
@@ -69,7 +71,7 @@ class CategoryController extends AbstractController
     {
         $category = $this->categoryRepository->find($id);
         if (!$category) {
-            return $this->json(['error' => 'Category not found'], Response::HTTP_NOT_FOUND);
+            return $this->json(['error' => $this->translator->trans('admin.category.not_found')], Response::HTTP_NOT_FOUND);
         }
 
         return $this->json($this->serializeCategory($category, true));
@@ -83,7 +85,7 @@ class CategoryController extends AbstractController
 
         // 检查 slug 是否已存在
         if ($this->categoryRepository->existsBySlug($slug)) {
-            return $this->json(['error' => 'slug already exists'], Response::HTTP_CONFLICT);
+            return $this->json(['error' => $this->translator->trans('admin.category.slug_exists')], Response::HTTP_CONFLICT);
         }
 
         $category = new Category();
@@ -94,11 +96,11 @@ class CategoryController extends AbstractController
         if ($dto->parentId !== null) {
             $parent = $this->categoryRepository->find($dto->parentId);
             if (!$parent) {
-                return $this->json(['error' => 'Parent category not found'], Response::HTTP_BAD_REQUEST);
+                return $this->json(['error' => $this->translator->trans('admin.category.parent_not_found')], Response::HTTP_BAD_REQUEST);
             }
             // 检查层级深度（限制为3级）
             if ($parent->getLevel() >= 2) {
-                return $this->json(['error' => 'Maximum category depth is 3 levels'], Response::HTTP_BAD_REQUEST);
+                return $this->json(['error' => $this->translator->trans('admin.category.max_depth')], Response::HTTP_BAD_REQUEST);
             }
             $category->setParent($parent);
         }
@@ -116,7 +118,7 @@ class CategoryController extends AbstractController
         $this->categoryRepository->save($category, true);
 
         return $this->json([
-            'message' => 'Category created successfully',
+            'message' => $this->translator->trans('admin.category.created'),
             'category' => $this->serializeCategory($category, true),
         ], Response::HTTP_CREATED);
     }
@@ -126,7 +128,7 @@ class CategoryController extends AbstractController
     {
         $category = $this->categoryRepository->find($id);
         if (!$category) {
-            return $this->json(['error' => 'Category not found'], Response::HTTP_NOT_FOUND);
+            return $this->json(['error' => $this->translator->trans('admin.category.not_found')], Response::HTTP_NOT_FOUND);
         }
 
         if ($dto->name !== null) {
@@ -135,26 +137,26 @@ class CategoryController extends AbstractController
         if ($dto->slug !== null) {
             // 检查 slug 是否已被其他分类使用
             if ($this->categoryRepository->existsBySlug($dto->slug, $category->getId())) {
-                return $this->json(['error' => 'slug already exists'], Response::HTTP_CONFLICT);
+                return $this->json(['error' => $this->translator->trans('admin.category.slug_exists')], Response::HTTP_CONFLICT);
             }
             $category->setSlug($dto->slug);
         }
         if ($dto->parentId !== null) {
             // 不能设置自己为父级
             if ($dto->parentId === $category->getId()) {
-                return $this->json(['error' => 'Cannot set self as parent'], Response::HTTP_BAD_REQUEST);
+                return $this->json(['error' => $this->translator->trans('admin.category.self_parent')], Response::HTTP_BAD_REQUEST);
             }
             $parent = $this->categoryRepository->find($dto->parentId);
             if (!$parent) {
-                return $this->json(['error' => 'Parent category not found'], Response::HTTP_BAD_REQUEST);
+                return $this->json(['error' => $this->translator->trans('admin.category.parent_not_found')], Response::HTTP_BAD_REQUEST);
             }
             // 检查是否会造成循环引用
             if ($this->wouldCreateCycle($category, $parent)) {
-                return $this->json(['error' => 'Cannot set a descendant as parent'], Response::HTTP_BAD_REQUEST);
+                return $this->json(['error' => $this->translator->trans('admin.category.descendant_parent')], Response::HTTP_BAD_REQUEST);
             }
             // 检查层级深度
             if ($parent->getLevel() >= 2) {
-                return $this->json(['error' => 'Maximum category depth is 3 levels'], Response::HTTP_BAD_REQUEST);
+                return $this->json(['error' => $this->translator->trans('admin.category.max_depth')], Response::HTTP_BAD_REQUEST);
             }
             $category->setParent($parent);
         }
@@ -171,7 +173,7 @@ class CategoryController extends AbstractController
         $this->categoryRepository->save($category, true);
 
         return $this->json([
-            'message' => 'Category updated successfully',
+            'message' => $this->translator->trans('admin.category.updated'),
             'category' => $this->serializeCategory($category, true),
         ]);
     }
@@ -181,13 +183,13 @@ class CategoryController extends AbstractController
     {
         $category = $this->categoryRepository->find($id);
         if (!$category) {
-            return $this->json(['error' => 'Category not found'], Response::HTTP_NOT_FOUND);
+            return $this->json(['error' => $this->translator->trans('admin.category.not_found')], Response::HTTP_NOT_FOUND);
         }
 
         // 检查是否有子分类
         if ($category->hasChildren()) {
             return $this->json([
-                'error' => 'Cannot delete category with child categories',
+                'error' => $this->translator->trans('admin.category.has_children'),
                 'childCount' => $category->getChildren()->count(),
             ], Response::HTTP_CONFLICT);
         }
@@ -195,14 +197,14 @@ class CategoryController extends AbstractController
         // 检查是否有关联的商品
         if ($category->getProducts()->count() > 0) {
             return $this->json([
-                'error' => 'Cannot delete category with associated products',
+                'error' => $this->translator->trans('admin.category.has_products'),
                 'productCount' => $category->getProducts()->count(),
             ], Response::HTTP_CONFLICT);
         }
 
         $this->categoryRepository->remove($category, true);
 
-        return $this->json(['message' => 'Category deleted successfully']);
+        return $this->json(['message' => $this->translator->trans('admin.category.deleted')]);
     }
 
     #[Route('/{id}/status', name: 'admin_category_status', methods: ['PUT'])]
@@ -210,14 +212,14 @@ class CategoryController extends AbstractController
     {
         $category = $this->categoryRepository->find($id);
         if (!$category) {
-            return $this->json(['error' => 'Category not found'], Response::HTTP_NOT_FOUND);
+            return $this->json(['error' => $this->translator->trans('admin.category.not_found')], Response::HTTP_NOT_FOUND);
         }
 
         $category->setIsActive($dto->isActive);
         $this->categoryRepository->save($category, true);
 
         return $this->json([
-            'message' => $dto->isActive ? 'Category activated' : 'Category deactivated',
+            'message' => $dto->isActive ? $this->translator->trans('admin.category.activated') : $this->translator->trans('admin.category.deactivated'),
             'category' => $this->serializeCategory($category),
         ]);
     }

@@ -15,6 +15,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\String\Slugger\AsciiSlugger;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 #[Route('/api/admin/brands')]
 #[AdminOnly]
@@ -22,6 +23,7 @@ class BrandController extends AbstractController
 {
     public function __construct(
         private BrandRepository $brandRepository,
+        private TranslatorInterface $translator,
     ) {
     }
 
@@ -54,7 +56,7 @@ class BrandController extends AbstractController
     {
         $brand = $this->brandRepository->find($id);
         if (!$brand) {
-            return $this->json(['error' => 'Brand not found'], Response::HTTP_NOT_FOUND);
+            return $this->json(['error' => $this->translator->trans('admin.brand.not_found')], Response::HTTP_NOT_FOUND);
         }
 
         return $this->json($this->serializeBrand($brand, true));
@@ -68,7 +70,7 @@ class BrandController extends AbstractController
 
         // 检查 slug 是否已存在
         if ($this->brandRepository->existsBySlug($slug)) {
-            return $this->json(['error' => 'slug already exists'], Response::HTTP_CONFLICT);
+            return $this->json(['error' => $this->translator->trans('admin.brand.slug_exists')], Response::HTTP_CONFLICT);
         }
 
         $brand = new Brand();
@@ -91,7 +93,7 @@ class BrandController extends AbstractController
         $this->brandRepository->save($brand, true);
 
         return $this->json([
-            'message' => 'Brand created successfully',
+            'message' => $this->translator->trans('admin.brand.created'),
             'brand' => $this->serializeBrand($brand, true),
         ], Response::HTTP_CREATED);
     }
@@ -101,7 +103,7 @@ class BrandController extends AbstractController
     {
         $brand = $this->brandRepository->find($id);
         if (!$brand) {
-            return $this->json(['error' => 'Brand not found'], Response::HTTP_NOT_FOUND);
+            return $this->json(['error' => $this->translator->trans('admin.brand.not_found')], Response::HTTP_NOT_FOUND);
         }
 
         if ($dto->name !== null) {
@@ -110,7 +112,7 @@ class BrandController extends AbstractController
         if ($dto->slug !== null) {
             // 检查 slug 是否已被其他品牌使用
             if ($this->brandRepository->existsBySlug($dto->slug, $brand->getId())) {
-                return $this->json(['error' => 'slug already exists'], Response::HTTP_CONFLICT);
+                return $this->json(['error' => $this->translator->trans('admin.brand.slug_exists')], Response::HTTP_CONFLICT);
             }
             $brand->setSlug($dto->slug);
         }
@@ -130,7 +132,7 @@ class BrandController extends AbstractController
         $this->brandRepository->save($brand, true);
 
         return $this->json([
-            'message' => 'Brand updated successfully',
+            'message' => $this->translator->trans('admin.brand.updated'),
             'brand' => $this->serializeBrand($brand, true),
         ]);
     }
@@ -140,20 +142,20 @@ class BrandController extends AbstractController
     {
         $brand = $this->brandRepository->find($id);
         if (!$brand) {
-            return $this->json(['error' => 'Brand not found'], Response::HTTP_NOT_FOUND);
+            return $this->json(['error' => $this->translator->trans('admin.brand.not_found')], Response::HTTP_NOT_FOUND);
         }
 
         // 检查是否有关联的商品
         if ($brand->getProducts()->count() > 0) {
             return $this->json([
-                'error' => 'Cannot delete brand with associated products',
+                'error' => $this->translator->trans('admin.brand.has_products'),
                 'productCount' => $brand->getProducts()->count(),
             ], Response::HTTP_CONFLICT);
         }
 
         $this->brandRepository->remove($brand, true);
 
-        return $this->json(['message' => 'Brand deleted successfully']);
+        return $this->json(['message' => $this->translator->trans('admin.brand.deleted')]);
     }
 
     #[Route('/{id}/status', name: 'admin_brand_status', methods: ['PUT'])]
@@ -161,14 +163,14 @@ class BrandController extends AbstractController
     {
         $brand = $this->brandRepository->find($id);
         if (!$brand) {
-            return $this->json(['error' => 'Brand not found'], Response::HTTP_NOT_FOUND);
+            return $this->json(['error' => $this->translator->trans('admin.brand.not_found')], Response::HTTP_NOT_FOUND);
         }
 
         $brand->setIsActive($dto->isActive);
         $this->brandRepository->save($brand, true);
 
         return $this->json([
-            'message' => $dto->isActive ? 'Brand activated' : 'Brand deactivated',
+            'message' => $dto->isActive ? $this->translator->trans('admin.brand.activated') : $this->translator->trans('admin.brand.deactivated'),
             'brand' => $this->serializeBrand($brand),
         ]);
     }

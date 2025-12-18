@@ -1,0 +1,122 @@
+# Chinese translations
+
+# Authentication messages
+auth:
+  register:
+    success: '注册成功，请查收邮件验证您的账户。'
+  verify_email:
+    success: '邮箱验证成功'
+    token_required: '验证令牌不能为空'
+    invalid_token: '无效的验证令牌'
+    token_expired: '验证令牌已过期'
+    already_verified: '邮箱已经验证过了'
+  login:
+    success: '登录成功'
+  logout:
+    success: '退出成功'
+  refresh:
+    invalid_token: '无效或已过期的刷新令牌'
+    email_not_verified: '用户邮箱未验证'
+  forgot_password:
+    success: '如果该邮箱账户存在，重置密码的链接已发送。'
+  reset_password:
+    success: '密码重置成功'
+    invalid_token: '无效的重置令牌'
+    token_expired: '重置令牌已过期'
+  change_password:
+    success: '密码修改成功'
+    incorrect_current: '当前密码不正确'
+  error:
+    user_exists: '该邮箱已被注册'
+
+# Brand management messages
+admin:
+  brand:
+    not_found: '品牌不存在'
+    slug_exists: '别名已存在'
+    created: '品牌创建成功'
+    updated: '品牌更新成功'
+    deleted: '品牌删除成功'
+    activated: '品牌已启用'
+    deactivated: '品牌已禁用'
+    has_products: '无法删除已关联商品的品牌'
+
+  # Category management messages
+  category:
+    not_found: '分类不存在'
+    slug_exists: '别名已存在'
+    parent_not_found: '父分类不存在'
+    max_depth: '分类层级最多为3级'
+    self_parent: '不能将自己设为父分类'
+    descendant_parent: '不能将子分类设为父分类'
+    created: '分类创建成功'
+    updated: '分类更新成功'
+    deleted: '分类删除成功'
+    activated: '分类已启用'
+    deactivated: '分类已禁用'
+    has_children: '无法删除含有子分类的分类'
+    has_products: '无法删除已关联商品的分类'
+
+  # Merchant management messages
+  merchant:
+    not_found: '商户不存在'
+    enabled: '商户已启用'
+    disabled: '商户已禁用'
+
+# Wallet messages
+wallet:
+  init_success: '钱包初始化成功'
+  already_initialized: '商户钱包已初始化'
+  deposit_not_found: '保证金钱包不存在，请先初始化钱包。'
+  deposit_wallet_not_found: '保证金钱包不存在'
+  amount_positive: '金额必须大于0'
+  deposit_charged: '保证金充值成功'
+
+# Validation messages
+validation:
+  # Common
+  field_required: '此字段为必填项'
+  invalid_format: '格式无效'
+
+  # Email
+  email_required: '邮箱不能为空'
+  email_invalid: '邮箱格式不正确'
+
+  # Password
+  password_required: '密码不能为空'
+  password_min_length: '密码至少需要8个字符'
+  password_complexity: '密码必须包含至少一个大写字母、一个小写字母和一个数字'
+  current_password_required: '当前密码不能为空'
+  new_password_required: '新密码不能为空'
+
+  # Token
+  token_required: '令牌不能为空'
+  refresh_token_required: '刷新令牌不能为空'
+
+  # Name
+  name_required: '名称不能为空'
+  name_max_length: '名称最多100个字符'
+
+  # Slug
+  slug_max_length: '别名最多100个字符'
+  slug_format: '别名只能包含小写字母、数字和连字符'
+
+  # URL
+  url_invalid: 'Logo地址必须是有效的URL'
+
+  # Description
+  description_max_length: '描述最多500个字符'
+
+  # Sort order
+  sort_order_positive: '排序值必须是非负整数'
+
+  # UUID
+  uuid_invalid: '父分类ID必须是有效的UUID'
+
+  # Amount
+  amount_required: '金额不能为空'
+  amount_format: '金额必须是有效的数字，最多保留两位小数'
+
+  # Status
+  is_active_required: '启用状态不能为空'
+  enabled_required: '启用状态不能为空'

@@ -7,7 +7,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 class RefreshTokenRequest
 {
-    #[Assert\NotBlank(message: 'Refresh token is required')]
+    #[Assert\NotBlank(message: 'validation.refresh_token_required')]
     #[SerializedName('refresh_token')]
     public string $refreshToken = '';
 }

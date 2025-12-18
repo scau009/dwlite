@@ -10,6 +10,7 @@ use App\Repository\UserRepository;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Environment;
 
 class PasswordResetService
@@ -20,6 +21,7 @@ class PasswordResetService
         private UserPasswordHasherInterface $passwordHasher,
         private MailerInterface $mailer,
         private Environment $twig,
+        private TranslatorInterface $translator,
         private string $appUrl = 'http://localhost:8000',
     ) {
     }
@@ -58,12 +60,12 @@ class PasswordResetService
         $token = $this->tokenRepository->findByToken($request->token);
 
         if ($token === null) {
-            throw new \InvalidArgumentException('Invalid reset token');
+            throw new \InvalidArgumentException($this->translator->trans('auth.reset_password.invalid_token'));
         }
 
         if ($token->isExpired()) {
             $this->tokenRepository->remove($token, true);
-            throw new \InvalidArgumentException('Reset token has expired');
+            throw new \InvalidArgumentException($this->translator->trans('auth.reset_password.token_expired'));
         }
 
         $user = $token->getUser();

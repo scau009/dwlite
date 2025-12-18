@@ -8,6 +8,7 @@ use App\Entity\WalletTransaction;
 use App\Repository\WalletRepository;
 use App\Repository\WalletTransactionRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 class WalletService
 {
@@ -15,6 +16,7 @@ class WalletService
         private WalletRepository $walletRepository,
         private WalletTransactionRepository $transactionRepository,
         private EntityManagerInterface $entityManager,
+        private TranslatorInterface $translator,
     ) {
     }
 
@@ -26,7 +28,7 @@ class WalletService
         // 检查是否已有钱包
         $existingWallets = $this->walletRepository->findByMerchant($merchant);
         if (count($existingWallets) > 0) {
-            throw new \InvalidArgumentException('Merchant wallets already initialized');
+            throw new \InvalidArgumentException($this->translator->trans('wallet.already_initialized'));
         }
 
         $wallets = $this->walletRepository->createWalletsForMerchant($merchant);
@@ -47,11 +49,11 @@ class WalletService
         $wallet = $this->walletRepository->findDepositWallet($merchant);
 
         if ($wallet === null) {
-            throw new \InvalidArgumentException('Deposit wallet not found. Please initialize wallets first.');
+            throw new \InvalidArgumentException($this->translator->trans('wallet.deposit_not_found'));
         }
 
         if (bccomp($amount, '0', 2) <= 0) {
-            throw new \InvalidArgumentException('Amount must be greater than 0');
+            throw new \InvalidArgumentException($this->translator->trans('wallet.amount_positive'));
         }
 
         // 记录变动前余额

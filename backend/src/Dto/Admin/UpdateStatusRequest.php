@@ -6,6 +6,6 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 class UpdateStatusRequest
 {
-    #[Assert\NotNull(message: 'isActive field is required')]
+    #[Assert\NotNull(message: 'validation.is_active_required')]
     public bool $isActive = false;
 }

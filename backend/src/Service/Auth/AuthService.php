@@ -7,6 +7,7 @@ use App\Dto\Auth\RegisterRequest;
 use App\Entity\User;
 use App\Repository\UserRepository;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 class AuthService
 {
@@ -14,6 +15,7 @@ class AuthService
         private UserRepository $userRepository,
         private UserPasswordHasherInterface $passwordHasher,
         private EmailVerificationService $emailVerificationService,
+        private TranslatorInterface $translator,
     ) {
     }
 
@@ -22,7 +24,7 @@ class AuthService
         // Check if user already exists
         $existingUser = $this->userRepository->findByEmail($request->email);
         if ($existingUser !== null) {
-            throw new \InvalidArgumentException('User with this email already exists');
+            throw new \InvalidArgumentException($this->translator->trans('auth.error.user_exists'));
         }
 
         $user = new User();
@@ -42,7 +44,7 @@ class AuthService
     {
         // Verify current password
         if (!$this->passwordHasher->isPasswordValid($user, $request->currentPassword)) {
-            throw new \InvalidArgumentException('Current password is incorrect');
+            throw new \InvalidArgumentException($this->translator->trans('auth.change_password.incorrect_current'));
         }
 
         // Hash and set new password

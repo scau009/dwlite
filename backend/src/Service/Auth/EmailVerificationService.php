@@ -8,6 +8,7 @@ use App\Repository\EmailVerificationTokenRepository;
 use App\Repository\UserRepository;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
+use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Environment;
 
 class EmailVerificationService
@@ -17,6 +18,7 @@ class EmailVerificationService
         private UserRepository $userRepository,
         private MailerInterface $mailer,
         private Environment $twig,
+        private TranslatorInterface $translator,
         private string $frontendUrl = 'http://localhost:5173',
     ) {
     }
@@ -48,12 +50,12 @@ class EmailVerificationService
         $verificationToken = $this->tokenRepository->findByToken($token);
 
         if ($verificationToken === null) {
-            throw new \InvalidArgumentException('Invalid verification token');
+            throw new \InvalidArgumentException($this->translator->trans('auth.verify_email.invalid_token'));
         }
 
         if ($verificationToken->isExpired()) {
             $this->tokenRepository->remove($verificationToken, true);
-            throw new \InvalidArgumentException('Verification token has expired');
+            throw new \InvalidArgumentException($this->translator->trans('auth.verify_email.token_expired'));
         }
 
         $user = $verificationToken->getUser();
@@ -69,7 +71,7 @@ class EmailVerificationService
     public function resendVerificationEmail(User $user): void
     {
         if ($user->isVerified()) {
-            throw new \InvalidArgumentException('Email is already verified');
+            throw new \InvalidArgumentException($this->translator->trans('auth.verify_email.already_verified'));
         }
 
         $this->sendVerificationEmail($user);

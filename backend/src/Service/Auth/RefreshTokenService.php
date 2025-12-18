@@ -6,6 +6,7 @@ use App\Entity\RefreshToken;
 use App\Entity\User;
 use App\Repository\RefreshTokenRepository;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 class RefreshTokenService
 {
@@ -15,6 +16,7 @@ class RefreshTokenService
     public function __construct(
         private RefreshTokenRepository $refreshTokenRepository,
         private JWTTokenManagerInterface $jwtManager,
+        private TranslatorInterface $translator,
         private int $ttl = self::DEFAULT_TTL,
     ) {
     }
@@ -39,14 +41,14 @@ class RefreshTokenService
         $refreshToken = $this->refreshTokenRepository->findValidByToken($token);
 
         if ($refreshToken === null) {
-            throw new \InvalidArgumentException('Invalid or expired refresh token');
+            throw new \InvalidArgumentException($this->translator->trans('auth.refresh.invalid_token'));
         }
 
         $user = $refreshToken->getUser();
 
         // Check if user is still valid
         if (!$user->isVerified()) {
-            throw new \InvalidArgumentException('User email is not verified');
+            throw new \InvalidArgumentException($this->translator->trans('auth.refresh.email_not_verified'));
         }
 
         // Revoke the old refresh token (single use)
