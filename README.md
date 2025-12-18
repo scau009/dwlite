@@ -10,7 +10,16 @@
 
 ## 快速启动
 
+### 本地开发
 ```bash
+# 登录容器镜像仓库
+docker login 
+
+cd backend
+
+# 构建基础镜像
+docker build -t dwlite-php-base:latest -f Dockerfile.base .
+
 # 启动所有服务
 docker compose up -d
 
