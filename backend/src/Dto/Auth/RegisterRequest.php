@@ -8,7 +8,7 @@ class RegisterRequest
 {
     #[Assert\NotBlank(message: 'Email is required')]
     #[Assert\Email(message: 'Invalid email format')]
-    public string $email;
+    public string $email = '';
 
     #[Assert\NotBlank(message: 'Password is required')]
     #[Assert\Length(min: 8, minMessage: 'Password must be at least 8 characters')]
@@ -16,5 +16,5 @@ class RegisterRequest
         pattern: '/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/',
         message: 'Password must contain at least one uppercase letter, one lowercase letter, and one number'
     )]
-    public string $password;
+    public string $password = '';
 }

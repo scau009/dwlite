@@ -3,6 +3,8 @@
 namespace App\Controller\Admin;
 
 use App\Attribute\AdminOnly;
+use App\Dto\Admin\ChargeDepositRequest;
+use App\Dto\Admin\UpdateMerchantStatusRequest;
 use App\Entity\Merchant;
 use App\Entity\User;
 use App\Repository\MerchantRepository;
@@ -12,6 +14,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\CurrentUser;
 
@@ -62,21 +65,14 @@ class MerchantController extends AbstractController
     }
 
     #[Route('/{id}/status', name: 'admin_merchant_status', methods: ['PUT'])]
-    public function updateStatus(string $id, Request $request): JsonResponse
+    public function updateStatus(string $id, #[MapRequestPayload] UpdateMerchantStatusRequest $dto): JsonResponse
     {
         $merchant = $this->merchantRepository->find($id);
         if (!$merchant) {
             return $this->json(['error' => 'Merchant not found'], Response::HTTP_NOT_FOUND);
         }
 
-        $data = json_decode($request->getContent(), true);
-        $enabled = $data['enabled'] ?? null;
-
-        if ($enabled === null) {
-            return $this->json(['error' => 'enabled field is required'], Response::HTTP_BAD_REQUEST);
-        }
-
-        if ($enabled) {
+        if ($dto->enabled) {
             $merchant->enable();
         } else {
             $merchant->disable();
@@ -85,7 +81,7 @@ class MerchantController extends AbstractController
         $this->merchantRepository->save($merchant, true);
 
         return $this->json([
-            'message' => $enabled ? 'Merchant enabled' : 'Merchant disabled',
+            'message' => $dto->enabled ? 'Merchant enabled' : 'Merchant disabled',
             'merchant' => $this->serializeMerchant($merchant),
         ]);
     }
@@ -115,26 +111,21 @@ class MerchantController extends AbstractController
     }
 
     #[Route('/{id}/wallets/deposit/charge', name: 'admin_merchant_charge_deposit', methods: ['POST'])]
-    public function chargeDeposit(string $id, Request $request, #[CurrentUser] User $user): JsonResponse
-    {
+    public function chargeDeposit(
+        string $id,
+        #[MapRequestPayload] ChargeDepositRequest $dto,
+        #[CurrentUser] User $user
+    ): JsonResponse {
         $merchant = $this->merchantRepository->find($id);
         if (!$merchant) {
             return $this->json(['error' => 'Merchant not found'], Response::HTTP_NOT_FOUND);
         }
 
-        $data = json_decode($request->getContent(), true);
-        $amount = $data['amount'] ?? null;
-        $remark = $data['remark'] ?? null;
-
-        if ($amount === null) {
-            return $this->json(['error' => 'amount field is required'], Response::HTTP_BAD_REQUEST);
-        }
-
         try {
             $transaction = $this->walletService->chargeDeposit(
                 $merchant,
-                (string) $amount,
-                $remark,
+                $dto->amount,
+                $dto->remark,
                 $user->getId()
             );
 

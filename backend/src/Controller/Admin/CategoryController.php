@@ -3,12 +3,16 @@
 namespace App\Controller\Admin;
 
 use App\Attribute\AdminOnly;
+use App\Dto\Admin\CreateCategoryRequest;
+use App\Dto\Admin\UpdateCategoryRequest;
+use App\Dto\Admin\UpdateStatusRequest;
 use App\Entity\Category;
 use App\Repository\CategoryRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\String\Slugger\AsciiSlugger;
 
@@ -72,17 +76,10 @@ class CategoryController extends AbstractController
     }
 
     #[Route('', name: 'admin_category_create', methods: ['POST'])]
-    public function create(Request $request): JsonResponse
+    public function create(#[MapRequestPayload] CreateCategoryRequest $dto): JsonResponse
     {
-        $data = json_decode($request->getContent(), true);
-
-        // 验证必填字段
-        if (empty($data['name'])) {
-            return $this->json(['error' => 'name is required'], Response::HTTP_BAD_REQUEST);
-        }
-
         // 生成或使用提供的 slug
-        $slug = $data['slug'] ?? $this->generateSlug($data['name']);
+        $slug = $dto->slug ?? $this->generateSlug($dto->name);
 
         // 检查 slug 是否已存在
         if ($this->categoryRepository->existsBySlug($slug)) {
@@ -90,12 +87,12 @@ class CategoryController extends AbstractController
         }
 
         $category = new Category();
-        $category->setName($data['name']);
+        $category->setName($dto->name);
         $category->setSlug($slug);
 
         // 处理父级分类
-        if (!empty($data['parentId'])) {
-            $parent = $this->categoryRepository->find($data['parentId']);
+        if ($dto->parentId !== null) {
+            $parent = $this->categoryRepository->find($dto->parentId);
             if (!$parent) {
                 return $this->json(['error' => 'Parent category not found'], Response::HTTP_BAD_REQUEST);
             }
@@ -106,14 +103,14 @@ class CategoryController extends AbstractController
             $category->setParent($parent);
         }
 
-        if (isset($data['description'])) {
-            $category->setDescription($data['description']);
+        if ($dto->description !== null) {
+            $category->setDescription($dto->description);
         }
-        if (isset($data['sortOrder'])) {
-            $category->setSortOrder((int) $data['sortOrder']);
+        if ($dto->sortOrder !== null) {
+            $category->setSortOrder($dto->sortOrder);
         }
-        if (isset($data['isActive'])) {
-            $category->setIsActive((bool) $data['isActive']);
+        if ($dto->isActive !== null) {
+            $category->setIsActive($dto->isActive);
         }
 
         $this->categoryRepository->save($category, true);
@@ -125,56 +122,50 @@ class CategoryController extends AbstractController
     }
 
     #[Route('/{id}', name: 'admin_category_update', methods: ['PUT'])]
-    public function update(string $id, Request $request): JsonResponse
+    public function update(string $id, #[MapRequestPayload] UpdateCategoryRequest $dto): JsonResponse
     {
         $category = $this->categoryRepository->find($id);
         if (!$category) {
             return $this->json(['error' => 'Category not found'], Response::HTTP_NOT_FOUND);
         }
 
-        $data = json_decode($request->getContent(), true);
-
-        if (isset($data['name'])) {
-            $category->setName($data['name']);
+        if ($dto->name !== null) {
+            $category->setName($dto->name);
         }
-        if (isset($data['slug'])) {
+        if ($dto->slug !== null) {
             // 检查 slug 是否已被其他分类使用
-            if ($this->categoryRepository->existsBySlug($data['slug'], $category->getId())) {
+            if ($this->categoryRepository->existsBySlug($dto->slug, $category->getId())) {
                 return $this->json(['error' => 'slug already exists'], Response::HTTP_CONFLICT);
             }
-            $category->setSlug($data['slug']);
+            $category->setSlug($dto->slug);
         }
-        if (array_key_exists('parentId', $data)) {
-            if ($data['parentId'] === null) {
-                $category->setParent(null);
-            } else {
-                // 不能设置自己为父级
-                if ($data['parentId'] === $category->getId()) {
-                    return $this->json(['error' => 'Cannot set self as parent'], Response::HTTP_BAD_REQUEST);
-                }
-                $parent = $this->categoryRepository->find($data['parentId']);
-                if (!$parent) {
-                    return $this->json(['error' => 'Parent category not found'], Response::HTTP_BAD_REQUEST);
-                }
-                // 检查是否会造成循环引用
-                if ($this->wouldCreateCycle($category, $parent)) {
-                    return $this->json(['error' => 'Cannot set a descendant as parent'], Response::HTTP_BAD_REQUEST);
-                }
-                // 检查层级深度
-                if ($parent->getLevel() >= 2) {
-                    return $this->json(['error' => 'Maximum category depth is 3 levels'], Response::HTTP_BAD_REQUEST);
-                }
-                $category->setParent($parent);
+        if ($dto->parentId !== null) {
+            // 不能设置自己为父级
+            if ($dto->parentId === $category->getId()) {
+                return $this->json(['error' => 'Cannot set self as parent'], Response::HTTP_BAD_REQUEST);
             }
+            $parent = $this->categoryRepository->find($dto->parentId);
+            if (!$parent) {
+                return $this->json(['error' => 'Parent category not found'], Response::HTTP_BAD_REQUEST);
+            }
+            // 检查是否会造成循环引用
+            if ($this->wouldCreateCycle($category, $parent)) {
+                return $this->json(['error' => 'Cannot set a descendant as parent'], Response::HTTP_BAD_REQUEST);
+            }
+            // 检查层级深度
+            if ($parent->getLevel() >= 2) {
+                return $this->json(['error' => 'Maximum category depth is 3 levels'], Response::HTTP_BAD_REQUEST);
+            }
+            $category->setParent($parent);
         }
-        if (array_key_exists('description', $data)) {
-            $category->setDescription($data['description']);
+        if ($dto->description !== null) {
+            $category->setDescription($dto->description);
         }
-        if (isset($data['sortOrder'])) {
-            $category->setSortOrder((int) $data['sortOrder']);
+        if ($dto->sortOrder !== null) {
+            $category->setSortOrder($dto->sortOrder);
         }
-        if (isset($data['isActive'])) {
-            $category->setIsActive((bool) $data['isActive']);
+        if ($dto->isActive !== null) {
+            $category->setIsActive($dto->isActive);
         }
 
         $this->categoryRepository->save($category, true);
@@ -215,25 +206,18 @@ class CategoryController extends AbstractController
     }
 
     #[Route('/{id}/status', name: 'admin_category_status', methods: ['PUT'])]
-    public function updateStatus(string $id, Request $request): JsonResponse
+    public function updateStatus(string $id, #[MapRequestPayload] UpdateStatusRequest $dto): JsonResponse
     {
         $category = $this->categoryRepository->find($id);
         if (!$category) {
             return $this->json(['error' => 'Category not found'], Response::HTTP_NOT_FOUND);
         }
 
-        $data = json_decode($request->getContent(), true);
-        $isActive = $data['isActive'] ?? null;
-
-        if ($isActive === null) {
-            return $this->json(['error' => 'isActive field is required'], Response::HTTP_BAD_REQUEST);
-        }
-
-        $category->setIsActive((bool) $isActive);
+        $category->setIsActive($dto->isActive);
         $this->categoryRepository->save($category, true);
 
         return $this->json([
-            'message' => $isActive ? 'Category activated' : 'Category deactivated',
+            'message' => $dto->isActive ? 'Category activated' : 'Category deactivated',
             'category' => $this->serializeCategory($category),
         ]);
     }

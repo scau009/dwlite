@@ -3,12 +3,16 @@
 namespace App\Controller\Admin;
 
 use App\Attribute\AdminOnly;
+use App\Dto\Admin\CreateBrandRequest;
+use App\Dto\Admin\UpdateBrandRequest;
+use App\Dto\Admin\UpdateStatusRequest;
 use App\Entity\Brand;
 use App\Repository\BrandRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\String\Slugger\AsciiSlugger;
 
@@ -57,17 +61,10 @@ class BrandController extends AbstractController
     }
 
     #[Route('', name: 'admin_brand_create', methods: ['POST'])]
-    public function create(Request $request): JsonResponse
+    public function create(#[MapRequestPayload] CreateBrandRequest $dto): JsonResponse
     {
-        $data = json_decode($request->getContent(), true);
-
-        // 验证必填字段
-        if (empty($data['name'])) {
-            return $this->json(['error' => 'name is required'], Response::HTTP_BAD_REQUEST);
-        }
-
         // 生成或使用提供的 slug
-        $slug = $data['slug'] ?? $this->generateSlug($data['name']);
+        $slug = $dto->slug ?? $this->generateSlug($dto->name);
 
         // 检查 slug 是否已存在
         if ($this->brandRepository->existsBySlug($slug)) {
@@ -75,20 +72,20 @@ class BrandController extends AbstractController
         }
 
         $brand = new Brand();
-        $brand->setName($data['name']);
+        $brand->setName($dto->name);
         $brand->setSlug($slug);
 
-        if (isset($data['logoUrl'])) {
-            $brand->setLogoUrl($data['logoUrl']);
+        if ($dto->logoUrl !== null) {
+            $brand->setLogoUrl($dto->logoUrl);
         }
-        if (isset($data['description'])) {
-            $brand->setDescription($data['description']);
+        if ($dto->description !== null) {
+            $brand->setDescription($dto->description);
         }
-        if (isset($data['sortOrder'])) {
-            $brand->setSortOrder((int) $data['sortOrder']);
+        if ($dto->sortOrder !== null) {
+            $brand->setSortOrder($dto->sortOrder);
         }
-        if (isset($data['isActive'])) {
-            $brand->setIsActive((bool) $data['isActive']);
+        if ($dto->isActive !== null) {
+            $brand->setIsActive($dto->isActive);
         }
 
         $this->brandRepository->save($brand, true);
@@ -100,36 +97,34 @@ class BrandController extends AbstractController
     }
 
     #[Route('/{id}', name: 'admin_brand_update', methods: ['PUT'])]
-    public function update(string $id, Request $request): JsonResponse
+    public function update(string $id, #[MapRequestPayload] UpdateBrandRequest $dto): JsonResponse
     {
         $brand = $this->brandRepository->find($id);
         if (!$brand) {
             return $this->json(['error' => 'Brand not found'], Response::HTTP_NOT_FOUND);
         }
 
-        $data = json_decode($request->getContent(), true);
-
-        if (isset($data['name'])) {
-            $brand->setName($data['name']);
+        if ($dto->name !== null) {
+            $brand->setName($dto->name);
         }
-        if (isset($data['slug'])) {
+        if ($dto->slug !== null) {
             // 检查 slug 是否已被其他品牌使用
-            if ($this->brandRepository->existsBySlug($data['slug'], $brand->getId())) {
+            if ($this->brandRepository->existsBySlug($dto->slug, $brand->getId())) {
                 return $this->json(['error' => 'slug already exists'], Response::HTTP_CONFLICT);
             }
-            $brand->setSlug($data['slug']);
+            $brand->setSlug($dto->slug);
         }
-        if (array_key_exists('logoUrl', $data)) {
-            $brand->setLogoUrl($data['logoUrl']);
+        if ($dto->logoUrl !== null) {
+            $brand->setLogoUrl($dto->logoUrl);
         }
-        if (array_key_exists('description', $data)) {
-            $brand->setDescription($data['description']);
+        if ($dto->description !== null) {
+            $brand->setDescription($dto->description);
         }
-        if (isset($data['sortOrder'])) {
-            $brand->setSortOrder((int) $data['sortOrder']);
+        if ($dto->sortOrder !== null) {
+            $brand->setSortOrder($dto->sortOrder);
         }
-        if (isset($data['isActive'])) {
-            $brand->setIsActive((bool) $data['isActive']);
+        if ($dto->isActive !== null) {
+            $brand->setIsActive($dto->isActive);
         }
 
         $this->brandRepository->save($brand, true);
@@ -162,25 +157,18 @@ class BrandController extends AbstractController
     }
 
     #[Route('/{id}/status', name: 'admin_brand_status', methods: ['PUT'])]
-    public function updateStatus(string $id, Request $request): JsonResponse
+    public function updateStatus(string $id, #[MapRequestPayload] UpdateStatusRequest $dto): JsonResponse
     {
         $brand = $this->brandRepository->find($id);
         if (!$brand) {
             return $this->json(['error' => 'Brand not found'], Response::HTTP_NOT_FOUND);
         }
 
-        $data = json_decode($request->getContent(), true);
-        $isActive = $data['isActive'] ?? null;
-
-        if ($isActive === null) {
-            return $this->json(['error' => 'isActive field is required'], Response::HTTP_BAD_REQUEST);
-        }
-
-        $brand->setIsActive((bool) $isActive);
+        $brand->setIsActive($dto->isActive);
         $this->brandRepository->save($brand, true);
 
         return $this->json([
-            'message' => $isActive ? 'Brand activated' : 'Brand deactivated',
+            'message' => $dto->isActive ? 'Brand activated' : 'Brand deactivated',
             'brand' => $this->serializeBrand($brand),
         ]);
     }

@@ -7,7 +7,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 class ResetPasswordRequest
 {
     #[Assert\NotBlank(message: 'Token is required')]
-    public string $token;
+    public string $token = '';
 
     #[Assert\NotBlank(message: 'Password is required')]
     #[Assert\Length(min: 8, minMessage: 'Password must be at least 8 characters')]
@@ -15,5 +15,5 @@ class ResetPasswordRequest
         pattern: '/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/',
         message: 'Password must contain at least one uppercase letter, one lowercase letter, and one number'
     )]
-    public string $password;
+    public string $password = '';
 }

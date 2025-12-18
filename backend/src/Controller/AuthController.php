@@ -3,8 +3,11 @@
 namespace App\Controller;
 
 use App\Dto\Auth\ChangePasswordRequest;
+use App\Dto\Auth\ForgotPasswordRequest;
+use App\Dto\Auth\RefreshTokenRequest;
 use App\Dto\Auth\RegisterRequest;
 use App\Dto\Auth\ResetPasswordRequest;
+use App\Dto\Auth\VerifyEmailRequest;
 use App\Entity\User;
 use App\Service\Auth\AuthService;
 use App\Service\Auth\EmailVerificationService;
@@ -16,9 +19,9 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\CurrentUser;
-use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 #[Route('/api/auth')]
 class AuthController extends AbstractController
@@ -30,27 +33,12 @@ class AuthController extends AbstractController
         private RefreshTokenService $refreshTokenService,
         private TokenBlacklistService $tokenBlacklistService,
         private JWTTokenManagerInterface $jwtManager,
-        private ValidatorInterface $validator,
     ) {
     }
 
     #[Route('/register', name: 'auth_register', methods: ['POST'])]
-    public function register(Request $request): JsonResponse
+    public function register(#[MapRequestPayload] RegisterRequest $dto): JsonResponse
     {
-        $data = json_decode($request->getContent(), true);
-
-        $dto = new RegisterRequest();
-        $dto->email = $data['email'] ?? '';
-        $dto->password = $data['password'] ?? '';
-
-        $errors = $this->validator->validate($dto);
-        if (count($errors) > 0) {
-            return $this->json([
-                'error' => 'Validation failed',
-                'violations' => $this->formatValidationErrors($errors),
-            ], Response::HTTP_BAD_REQUEST);
-        }
-
         try {
             $user = $this->authService->register($dto);
             return $this->json([
@@ -68,11 +56,17 @@ class AuthController extends AbstractController
     #[Route('/verify-email', name: 'auth_verify_email', methods: ['POST', 'GET'])]
     public function verifyEmail(Request $request): JsonResponse
     {
-        $token = $request->query->get('token') ?? $request->request->get('token');
+        // 支持 GET 请求中的 query 参数
+        $token = $request->query->get('token');
+        if (!$token) {
+            $data = json_decode($request->getContent(), true) ?? [];
+            $token = $data['token'] ?? '';
+        }
 
         if (empty($token)) {
             return $this->json([
-                'error' => 'Invalid verification link. No token provided.',
+                'error' => 'Validation failed',
+                'violations' => ['token' => 'Token is required'],
             ], Response::HTTP_BAD_REQUEST);
         }
 
@@ -86,24 +80,15 @@ class AuthController extends AbstractController
                 ],
             ]);
         } catch (\InvalidArgumentException $e) {
-            return $this->json([
-                'error' => $e->getMessage(),
-            ], Response::HTTP_BAD_REQUEST);
+            return $this->json(['error' => $e->getMessage()], Response::HTTP_BAD_REQUEST);
         }
     }
 
     #[Route('/refresh', name: 'auth_refresh', methods: ['POST'])]
-    public function refresh(Request $request): JsonResponse
+    public function refresh(#[MapRequestPayload] RefreshTokenRequest $dto): JsonResponse
     {
-        $data = json_decode($request->getContent(), true);
-        $refreshToken = $data['refresh_token'] ?? '';
-
-        if (empty($refreshToken)) {
-            return $this->json(['error' => 'Refresh token is required'], Response::HTTP_BAD_REQUEST);
-        }
-
         try {
-            $tokens = $this->refreshTokenService->refresh($refreshToken);
+            $tokens = $this->refreshTokenService->refresh($dto->refreshToken);
             return $this->json($tokens);
         } catch (\InvalidArgumentException $e) {
             return $this->json(['error' => $e->getMessage()], Response::HTTP_UNAUTHORIZED);
@@ -140,16 +125,9 @@ class AuthController extends AbstractController
     }
 
     #[Route('/forgot-password', name: 'auth_forgot_password', methods: ['POST'])]
-    public function forgotPassword(Request $request): JsonResponse
+    public function forgotPassword(#[MapRequestPayload] ForgotPasswordRequest $dto): JsonResponse
     {
-        $data = json_decode($request->getContent(), true);
-        $email = $data['email'] ?? '';
-
-        if (empty($email)) {
-            return $this->json(['error' => 'Email is required'], Response::HTTP_BAD_REQUEST);
-        }
-
-        $this->passwordResetService->sendResetEmail($email);
+        $this->passwordResetService->sendResetEmail($dto->email);
 
         // Always return success to prevent email enumeration
         return $this->json([
@@ -158,22 +136,8 @@ class AuthController extends AbstractController
     }
 
     #[Route('/reset-password', name: 'auth_reset_password', methods: ['POST'])]
-    public function resetPassword(Request $request): JsonResponse
+    public function resetPassword(#[MapRequestPayload] ResetPasswordRequest $dto): JsonResponse
     {
-        $data = json_decode($request->getContent(), true);
-
-        $dto = new ResetPasswordRequest();
-        $dto->token = $data['token'] ?? '';
-        $dto->password = $data['password'] ?? '';
-
-        $errors = $this->validator->validate($dto);
-        if (count($errors) > 0) {
-            return $this->json([
-                'error' => 'Validation failed',
-                'violations' => $this->formatValidationErrors($errors),
-            ], Response::HTTP_BAD_REQUEST);
-        }
-
         try {
             $this->passwordResetService->resetPassword($dto);
             return $this->json(['message' => 'Password reset successfully']);
@@ -183,22 +147,10 @@ class AuthController extends AbstractController
     }
 
     #[Route('/change-password', name: 'auth_change_password', methods: ['PUT'])]
-    public function changePassword(Request $request, #[CurrentUser] User $user): JsonResponse
-    {
-        $data = json_decode($request->getContent(), true);
-
-        $dto = new ChangePasswordRequest();
-        $dto->currentPassword = $data['currentPassword'] ?? '';
-        $dto->newPassword = $data['newPassword'] ?? '';
-
-        $errors = $this->validator->validate($dto);
-        if (count($errors) > 0) {
-            return $this->json([
-                'error' => 'Validation failed',
-                'violations' => $this->formatValidationErrors($errors),
-            ], Response::HTTP_BAD_REQUEST);
-        }
-
+    public function changePassword(
+        #[MapRequestPayload] ChangePasswordRequest $dto,
+        #[CurrentUser] User $user
+    ): JsonResponse {
         try {
             $this->authService->changePassword($user, $dto);
             return $this->json(['message' => 'Password changed successfully']);
@@ -218,14 +170,5 @@ class AuthController extends AbstractController
             'accountType' => $user->getAccountType(),
             'createdAt' => $user->getCreatedAt()->format('c'),
         ]);
-    }
-
-    private function formatValidationErrors($errors): array
-    {
-        $violations = [];
-        foreach ($errors as $error) {
-            $violations[$error->getPropertyPath()] = $error->getMessage();
-        }
-        return $violations;
     }
 }
