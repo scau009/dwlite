@@ -4,14 +4,15 @@ namespace App\Controller\Admin;
 
 use App\Attribute\AdminOnly;
 use App\Dto\Admin\CreateBrandRequest;
+use App\Dto\Admin\Query\BrandListQuery;
 use App\Dto\Admin\UpdateBrandRequest;
 use App\Dto\Admin\UpdateStatusRequest;
 use App\Entity\Brand;
 use App\Repository\BrandRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Attribute\MapQueryString;
 use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\String\Slugger\AsciiSlugger;
@@ -28,26 +29,19 @@ class BrandController extends AbstractController
     }
 
     #[Route('', name: 'admin_brand_list', methods: ['GET'])]
-    public function list(Request $request): JsonResponse
+    public function list(#[MapQueryString] BrandListQuery $query = new BrandListQuery()): JsonResponse
     {
-        $page = max(1, (int) $request->query->get('page', 1));
-        $limit = min(100, max(1, (int) $request->query->get('limit', 20)));
-
-        $filters = [];
-        if ($name = $request->query->get('name')) {
-            $filters['name'] = $name;
-        }
-        if ($request->query->has('isActive')) {
-            $filters['isActive'] = filter_var($request->query->get('isActive'), FILTER_VALIDATE_BOOLEAN);
-        }
-
-        $result = $this->brandRepository->findPaginated($page, $limit, $filters);
+        $result = $this->brandRepository->findPaginated(
+            $query->getPage(),
+            $query->getLimit(),
+            $query->toFilters()
+        );
 
         return $this->json([
             'data' => array_map(fn(Brand $b) => $this->serializeBrand($b), $result['data']),
             'total' => $result['total'],
-            'page' => $page,
-            'limit' => $limit,
+            'page' => $query->getPage(),
+            'limit' => $query->getLimit(),
         ]);
     }
 

@@ -4,6 +4,7 @@ namespace App\Controller\Admin;
 
 use App\Attribute\AdminOnly;
 use App\Dto\Admin\CreateCategoryRequest;
+use App\Dto\Admin\Query\CategoryListQuery;
 use App\Dto\Admin\UpdateCategoryRequest;
 use App\Dto\Admin\UpdateStatusRequest;
 use App\Entity\Category;
@@ -12,6 +13,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Attribute\MapQueryString;
 use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\String\Slugger\AsciiSlugger;
@@ -28,30 +30,19 @@ class CategoryController extends AbstractController
     }
 
     #[Route('', name: 'admin_category_list', methods: ['GET'])]
-    public function list(Request $request): JsonResponse
+    public function list(#[MapQueryString] CategoryListQuery $query = new CategoryListQuery()): JsonResponse
     {
-        $page = max(1, (int) $request->query->get('page', 1));
-        $limit = min(100, max(1, (int) $request->query->get('limit', 20)));
-
-        $filters = [];
-        if ($name = $request->query->get('name')) {
-            $filters['name'] = $name;
-        }
-        if ($request->query->has('isActive')) {
-            $filters['isActive'] = filter_var($request->query->get('isActive'), FILTER_VALIDATE_BOOLEAN);
-        }
-        if ($request->query->has('parentId')) {
-            $parentId = $request->query->get('parentId');
-            $filters['parentId'] = $parentId === '' || $parentId === 'null' ? null : $parentId;
-        }
-
-        $result = $this->categoryRepository->findPaginated($page, $limit, $filters);
+        $result = $this->categoryRepository->findPaginated(
+            $query->getPage(),
+            $query->getLimit(),
+            $query->toFilters()
+        );
 
         return $this->json([
             'data' => array_map(fn(Category $c) => $this->serializeCategory($c), $result['data']),
             'total' => $result['total'],
-            'page' => $page,
-            'limit' => $limit,
+            'page' => $query->getPage(),
+            'limit' => $query->getLimit(),
         ]);
     }
 

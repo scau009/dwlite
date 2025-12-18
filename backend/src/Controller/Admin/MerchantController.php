@@ -4,6 +4,8 @@ namespace App\Controller\Admin;
 
 use App\Attribute\AdminOnly;
 use App\Dto\Admin\ChargeDepositRequest;
+use App\Dto\Admin\Query\MerchantListQuery;
+use App\Dto\Admin\Query\PaginationQuery;
 use App\Dto\Admin\UpdateMerchantStatusRequest;
 use App\Entity\Merchant;
 use App\Entity\User;
@@ -12,8 +14,8 @@ use App\Repository\WalletTransactionRepository;
 use App\Service\WalletService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Attribute\MapQueryString;
 use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\CurrentUser;
@@ -32,26 +34,19 @@ class MerchantController extends AbstractController
     }
 
     #[Route('', name: 'admin_merchant_list', methods: ['GET'])]
-    public function list(Request $request): JsonResponse
+    public function list(#[MapQueryString] MerchantListQuery $query = new MerchantListQuery()): JsonResponse
     {
-        $page = max(1, (int) $request->query->get('page', 1));
-        $limit = min(100, max(1, (int) $request->query->get('limit', 20)));
-
-        $filters = [];
-        if ($status = $request->query->get('status')) {
-            $filters['status'] = $status;
-        }
-        if ($name = $request->query->get('name')) {
-            $filters['name'] = $name;
-        }
-
-        $result = $this->merchantRepository->findPaginated($page, $limit, $filters);
+        $result = $this->merchantRepository->findPaginated(
+            $query->getPage(),
+            $query->getLimit(),
+            $query->toFilters()
+        );
 
         return $this->json([
             'data' => array_map(fn(Merchant $m) => $this->serializeMerchant($m), $result['data']),
             'total' => $result['total'],
-            'page' => $page,
-            'limit' => $limit,
+            'page' => $query->getPage(),
+            'limit' => $query->getLimit(),
         ]);
     }
 
@@ -153,8 +148,10 @@ class MerchantController extends AbstractController
     }
 
     #[Route('/{id}/wallets/deposit/transactions', name: 'admin_merchant_deposit_transactions', methods: ['GET'])]
-    public function depositTransactions(string $id, Request $request): JsonResponse
-    {
+    public function depositTransactions(
+        string $id,
+        #[MapQueryString] PaginationQuery $query = new PaginationQuery()
+    ): JsonResponse {
         $merchant = $this->merchantRepository->find($id);
         if (!$merchant) {
             return $this->json(['error' => $this->translator->trans('admin.merchant.not_found')], Response::HTTP_NOT_FOUND);
@@ -165,10 +162,11 @@ class MerchantController extends AbstractController
             return $this->json(['error' => $this->translator->trans('wallet.deposit_wallet_not_found')], Response::HTTP_NOT_FOUND);
         }
 
-        $page = max(1, (int) $request->query->get('page', 1));
-        $limit = min(100, max(1, (int) $request->query->get('limit', 20)));
-
-        $result = $this->transactionRepository->findByWalletPaginated($wallet, $page, $limit);
+        $result = $this->transactionRepository->findByWalletPaginated(
+            $wallet,
+            $query->getPage(),
+            $query->getLimit()
+        );
 
         return $this->json([
             'data' => array_map(fn($t) => [
@@ -183,8 +181,8 @@ class MerchantController extends AbstractController
                 'createdAt' => $t->getCreatedAt()->format('c'),
             ], $result['data']),
             'total' => $result['total'],
-            'page' => $page,
-            'limit' => $limit,
+            'page' => $query->getPage(),
+            'limit' => $query->getLimit(),
             'wallet' => [
                 'id' => $wallet->getId(),
                 'balance' => $wallet->getBalance(),
