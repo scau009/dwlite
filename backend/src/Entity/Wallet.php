@@ -10,7 +10,6 @@ use Symfony\Component\Uid\Ulid;
 
 #[ORM\Entity(repositoryClass: WalletRepository::class)]
 #[ORM\Table(name: 'wallets')]
-#[ORM\UniqueConstraint(name: 'uk_merchant_type', columns: ['merchant_id', 'type'])]
 #[ORM\HasLifecycleCallbacks]
 class Wallet
 {

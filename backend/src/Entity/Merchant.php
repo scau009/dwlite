@@ -30,9 +30,6 @@ class Merchant
     #[ORM\Column(type: 'string', length: 100)]
     private string $name;
 
-    #[ORM\Column(type: 'string', length: 50, nullable: true)]
-    private ?string $shortName = null;
-
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private ?string $logo = null;
 
@@ -57,7 +54,7 @@ class Merchant
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private ?string $address = null;
 
-    #[ORM\Column(type: 'string', length: 50, nullable: true)]
+    #[ORM\Column(type: 'string', length: 100, nullable: true)]
     private ?string $businessLicense = null;
 
     #[ORM\Column(type: 'string', length: 20)]
@@ -114,17 +111,6 @@ class Merchant
     public function setName(string $name): static
     {
         $this->name = $name;
-        return $this;
-    }
-
-    public function getShortName(): ?string
-    {
-        return $this->shortName;
-    }
-
-    public function setShortName(?string $shortName): static
-    {
-        $this->shortName = $shortName;
         return $this;
     }
 
