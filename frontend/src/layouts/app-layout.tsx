@@ -10,7 +10,7 @@ import { useAuth } from '@/contexts/auth-context';
 import { filterMenuByAccess } from '@/lib/menu-access';
 
 export function AppLayout() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
@@ -20,7 +20,7 @@ export function AppLayout() {
     const allMenus = getMenuData(t);
     if (!user?.accountType) return allMenus;
     return filterMenuByAccess(allMenus, user.accountType);
-  }, [t, user?.accountType]);
+  }, [t, i18n.language, user?.accountType]);
 
   return (
     <ProLayout
@@ -34,6 +34,7 @@ export function AppLayout() {
       siderWidth={220}
       location={{ pathname: location.pathname }}
       menu={{
+        params: { language: i18n.language },
         request: async () => menuData,
       }}
       menuItemRender={(item, dom) => (

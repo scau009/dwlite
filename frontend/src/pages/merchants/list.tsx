@@ -1,12 +1,13 @@
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ProTable, type ActionType, type ProColumns } from '@ant-design/pro-components';
-import { Button, Tag, Space, Switch, App } from 'antd';
-import { WalletOutlined, HistoryOutlined, PlusCircleOutlined } from '@ant-design/icons';
+import { Button, Tag, Space, Switch, App, Popconfirm } from 'antd';
+import { WalletOutlined, HistoryOutlined, PlusCircleOutlined, AuditOutlined } from '@ant-design/icons';
 
 import { merchantApi, type Merchant } from '@/lib/merchant-api';
 import { ChargeModal } from './components/charge-modal';
 import { TransactionsModal } from './components/transactions-modal';
+import { ReviewModal } from './components/review-modal';
 
 export function MerchantsListPage() {
   const { t } = useTranslation();
@@ -15,9 +16,12 @@ export function MerchantsListPage() {
 
   const [chargeModalOpen, setChargeModalOpen] = useState(false);
   const [transactionsModalOpen, setTransactionsModalOpen] = useState(false);
+  const [reviewModalOpen, setReviewModalOpen] = useState(false);
   const [selectedMerchant, setSelectedMerchant] = useState<Merchant | null>(null);
+  const [statusLoading, setStatusLoading] = useState<string | null>(null);
 
   const handleStatusChange = async (merchant: Merchant, enabled: boolean) => {
+    setStatusLoading(merchant.id);
     try {
       await merchantApi.updateMerchantStatus(merchant.id, enabled);
       message.success(enabled ? t('merchants.enabled') : t('merchants.disabled'));
@@ -25,6 +29,8 @@ export function MerchantsListPage() {
     } catch (error) {
       const err = error as { error?: string };
       message.error(err.error || t('common.error'));
+    } finally {
+      setStatusLoading(null);
     }
   };
 
@@ -47,6 +53,11 @@ export function MerchantsListPage() {
   const handleOpenTransactions = (merchant: Merchant) => {
     setSelectedMerchant(merchant);
     setTransactionsModalOpen(true);
+  };
+
+  const handleOpenReview = (merchant: Merchant) => {
+    setSelectedMerchant(merchant);
+    setReviewModalOpen(true);
   };
 
   const columns: ProColumns<Merchant>[] = [
@@ -118,16 +129,31 @@ export function MerchantsListPage() {
     {
       title: t('merchants.enableSwitch'),
       dataIndex: 'enabled',
-      width: 80,
+      width: 100,
       search: false,
-      render: (_, record) => (
-        <Switch
-          checked={record.status === 'approved'}
-          disabled={record.status === 'pending' || record.status === 'rejected'}
-          onChange={(checked) => handleStatusChange(record, checked)}
-          size="small"
-        />
-      ),
+      render: (_, record) => {
+        const isEnabled = record.status === 'approved';
+        const isDisabled = record.status === 'pending' || record.status === 'rejected';
+        const isLoading = statusLoading === record.id;
+
+        return (
+          <Popconfirm
+            title={isEnabled ? t('merchants.confirmDisable') : t('merchants.confirmEnable')}
+            description={isEnabled ? t('merchants.confirmDisableDesc') : t('merchants.confirmEnableDesc')}
+            onConfirm={() => handleStatusChange(record, !isEnabled)}
+            okText={t('common.confirm')}
+            cancelText={t('common.cancel')}
+            disabled={isDisabled || isLoading}
+          >
+            <Switch
+              checked={isEnabled}
+              disabled={isDisabled}
+              loading={isLoading}
+              size="small"
+            />
+          </Popconfirm>
+        );
+      },
     },
     {
       title: t('common.createdAt'),
@@ -139,10 +165,20 @@ export function MerchantsListPage() {
     {
       title: t('common.actions'),
       valueType: 'option',
-      width: 200,
+      width: 220,
       render: (_, record) => (
         <Space size="small">
-          {!record.hasWallets ? (
+          {record.status === 'pending' && (
+            <Button
+              type="primary"
+              size="small"
+              icon={<AuditOutlined />}
+              onClick={() => handleOpenReview(record)}
+            >
+              {t('merchants.review')}
+            </Button>
+          )}
+          {record.status !== 'pending' && !record.hasWallets && (
             <Button
               type="link"
               size="small"
@@ -151,7 +187,8 @@ export function MerchantsListPage() {
             >
               {t('merchants.initWallets')}
             </Button>
-          ) : (
+          )}
+          {record.status !== 'pending' && record.hasWallets && (
             <>
               <Button
                 type="link"
@@ -245,6 +282,20 @@ export function MerchantsListPage() {
         onClose={() => {
           setTransactionsModalOpen(false);
           setSelectedMerchant(null);
+        }}
+      />
+
+      <ReviewModal
+        open={reviewModalOpen}
+        merchant={selectedMerchant}
+        onClose={() => {
+          setReviewModalOpen(false);
+          setSelectedMerchant(null);
+        }}
+        onSuccess={() => {
+          setReviewModalOpen(false);
+          setSelectedMerchant(null);
+          actionRef.current?.reload();
         }}
       />
     </div>

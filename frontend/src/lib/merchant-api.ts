@@ -150,4 +150,26 @@ export const merchantApi = {
       `/api/admin/merchants/${id}/wallets/deposit/transactions${query ? `?${query}` : ''}`
     );
   },
+
+  /**
+   * 审核通过商户
+   */
+  approveMerchant: async (id: string): Promise<{ message: string; merchant: Merchant }> => {
+    return apiFetch(`/api/admin/merchants/${id}/approve`, {
+      method: 'POST',
+    });
+  },
+
+  /**
+   * 审核拒绝商户
+   */
+  rejectMerchant: async (
+    id: string,
+    reason: string
+  ): Promise<{ message: string; merchant: Merchant }> => {
+    return apiFetch(`/api/admin/merchants/${id}/reject`, {
+      method: 'POST',
+      body: JSON.stringify({ reason }),
+    });
+  },
 };

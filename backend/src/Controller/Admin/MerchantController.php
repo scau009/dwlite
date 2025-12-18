@@ -6,6 +6,7 @@ use App\Attribute\AdminOnly;
 use App\Dto\Admin\ChargeDepositRequest;
 use App\Dto\Admin\Query\MerchantListQuery;
 use App\Dto\Admin\Query\PaginationQuery;
+use App\Dto\Admin\RejectMerchantRequest;
 use App\Dto\Admin\UpdateMerchantStatusRequest;
 use App\Entity\Merchant;
 use App\Entity\User;
@@ -79,6 +80,48 @@ class MerchantController extends AbstractController
 
         return $this->json([
             'message' => $dto->enabled ? $this->translator->trans('admin.merchant.enabled') : $this->translator->trans('admin.merchant.disabled'),
+            'merchant' => $this->serializeMerchant($merchant),
+        ]);
+    }
+
+    #[Route('/{id}/approve', name: 'admin_merchant_approve', methods: ['POST'])]
+    public function approve(string $id): JsonResponse
+    {
+        $merchant = $this->merchantRepository->find($id);
+        if (!$merchant) {
+            return $this->json(['error' => $this->translator->trans('admin.merchant.not_found')], Response::HTTP_NOT_FOUND);
+        }
+
+        if (!$merchant->isPending()) {
+            return $this->json(['error' => $this->translator->trans('admin.merchant.not_pending')], Response::HTTP_BAD_REQUEST);
+        }
+
+        $merchant->approve();
+        $this->merchantRepository->save($merchant, true);
+
+        return $this->json([
+            'message' => $this->translator->trans('admin.merchant.approved'),
+            'merchant' => $this->serializeMerchant($merchant),
+        ]);
+    }
+
+    #[Route('/{id}/reject', name: 'admin_merchant_reject', methods: ['POST'])]
+    public function reject(string $id, #[MapRequestPayload] RejectMerchantRequest $dto): JsonResponse
+    {
+        $merchant = $this->merchantRepository->find($id);
+        if (!$merchant) {
+            return $this->json(['error' => $this->translator->trans('admin.merchant.not_found')], Response::HTTP_NOT_FOUND);
+        }
+
+        if (!$merchant->isPending()) {
+            return $this->json(['error' => $this->translator->trans('admin.merchant.not_pending')], Response::HTTP_BAD_REQUEST);
+        }
+
+        $merchant->reject($dto->reason);
+        $this->merchantRepository->save($merchant, true);
+
+        return $this->json([
+            'message' => $this->translator->trans('admin.merchant.rejected'),
             'merchant' => $this->serializeMerchant($merchant),
         ]);
     }
