@@ -6,6 +6,7 @@ CREATE TABLE `users` (
     `email` VARCHAR(180) NOT NULL UNIQUE,
     `password` VARCHAR(255) NOT NULL,
     `roles` JSON NOT NULL COMMENT 'User roles array',
+    `account_type` VARCHAR(50) NOT NULL DEFAULT 'merchant' COMMENT 'User account type',
     `is_verified` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Email verification status',
     `is_active` BOOLEAN NOT NULL DEFAULT TRUE,
     `created_at` DATETIME NOT NULL,
