@@ -8,6 +8,8 @@ class MerchantListQuery extends PaginationQuery
 
     public ?string $status = null;
 
+    public ?string $email = null;
+
     public function toFilters(): array
     {
         $filters = [];
@@ -18,6 +20,10 @@ class MerchantListQuery extends PaginationQuery
 
         if ($this->status !== null && $this->status !== '') {
             $filters['status'] = $this->status;
+        }
+
+        if ($this->email !== null && $this->email !== '') {
+            $filters['email'] = $this->email;
         }
 
         return $filters;

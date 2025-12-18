@@ -194,10 +194,12 @@ class MerchantController extends AbstractController
 
     private function serializeMerchant(Merchant $merchant, bool $detail = false): array
     {
+        $user = $merchant->getUser();
+
         $data = [
             'id' => $merchant->getId(),
             'name' => $merchant->getName(),
-            'shortName' => $merchant->getShortName(),
+            'email' => $user->getEmail(),
             'status' => $merchant->getStatus(),
             'contactName' => $merchant->getContactName(),
             'contactPhone' => $merchant->getContactPhone(),
@@ -225,8 +227,9 @@ class MerchantController extends AbstractController
             $data['approvedAt'] = $merchant->getApprovedAt()?->format('c');
             $data['rejectedReason'] = $merchant->getRejectedReason();
             $data['user'] = [
-                'id' => $merchant->getUser()->getId(),
-                'email' => $merchant->getUser()->getEmail(),
+                'id' => $user->getId(),
+                'email' => $user->getEmail(),
+                'isVerified' => $user->isVerified(),
             ];
         }
 

@@ -204,7 +204,7 @@ export default {
     title: '商户管理',
     description: '管理平台商户信息',
     name: '商户名称',
-    shortName: '简称',
+    email: '邮箱',
     contactName: '联系人',
     contactPhone: '联系电话',
     depositBalance: '保证金余额',

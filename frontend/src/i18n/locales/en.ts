@@ -204,7 +204,7 @@ export default {
     title: 'Merchants',
     description: 'Manage platform merchants',
     name: 'Merchant Name',
-    shortName: 'Short Name',
+    email: 'Email',
     contactName: 'Contact',
     contactPhone: 'Phone',
     depositBalance: 'Deposit Balance',

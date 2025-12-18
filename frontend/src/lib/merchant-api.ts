@@ -4,7 +4,7 @@ import { apiFetch } from './api-client';
 export interface Merchant {
   id: string;
   name: string;
-  shortName: string | null;
+  email: string;
   status: 'pending' | 'approved' | 'rejected' | 'disabled';
   contactName: string;
   contactPhone: string;
@@ -29,6 +29,7 @@ export interface MerchantDetail extends Merchant {
   user: {
     id: string;
     email: string;
+    isVerified: boolean;
   };
 }
 
@@ -63,6 +64,7 @@ export interface MerchantListParams {
   limit?: number;
   status?: string;
   name?: string;
+  email?: string;
 }
 
 export const merchantApi = {
@@ -75,6 +77,7 @@ export const merchantApi = {
     if (params.limit) searchParams.set('limit', String(params.limit));
     if (params.status) searchParams.set('status', params.status);
     if (params.name) searchParams.set('name', params.name);
+    if (params.email) searchParams.set('email', params.email);
 
     const query = searchParams.toString();
     return apiFetch<PaginatedResponse<Merchant>>(

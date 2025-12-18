@@ -59,11 +59,13 @@ export function MerchantsListPage() {
       },
     },
     {
-      title: t('merchants.shortName'),
-      dataIndex: 'shortName',
-      width: 120,
-      search: false,
-      render: (_, record) => record.shortName || '-',
+      title: t('merchants.email'),
+      dataIndex: 'email',
+      ellipsis: true,
+      width: 180,
+      fieldProps: {
+        placeholder: t('common.search') + '...',
+      },
     },
     {
       title: t('merchants.contactName'),
@@ -192,6 +194,7 @@ export function MerchantsListPage() {
               limit: params.pageSize,
               status: params.status,
               name: params.name,
+              email: params.email,
             });
             return {
               data: result.data,
