@@ -16,6 +16,7 @@ use Symfony\Component\Uid\Ulid;
 #[ORM\Index(name: 'idx_product_brand', columns: ['brand_id'])]
 #[ORM\Index(name: 'idx_product_category', columns: ['category_id'])]
 #[ORM\Index(name: 'idx_product_active', columns: ['is_active'])]
+#[ORM\Index(name: 'idx_product_status', columns: ['status'])]
 #[ORM\HasLifecycleCallbacks]
 class Product
 {
@@ -48,6 +49,9 @@ class Product
 
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $description = null;
+
+    #[ORM\Column(length: 20, options: ['default' => 'draft'])]
+    private string $status = 'draft';  // draft, active, inactive, discontinued
 
     #[ORM\Column(name: 'is_active', type: 'boolean', options: ['default' => true])]
     private bool $isActive = true;
@@ -182,6 +186,38 @@ class Product
     {
         $this->isActive = $isActive;
         return $this;
+    }
+
+    public function getStatus(): string
+    {
+        return $this->status;
+    }
+
+    public function setStatus(string $status): static
+    {
+        $this->status = $status;
+        return $this;
+    }
+
+    // Status helper methods
+    public function isDraft(): bool
+    {
+        return $this->status === 'draft';
+    }
+
+    public function isActiveStatus(): bool
+    {
+        return $this->status === 'active';
+    }
+
+    public function isInactive(): bool
+    {
+        return $this->status === 'inactive';
+    }
+
+    public function isDiscontinued(): bool
+    {
+        return $this->status === 'discontinued';
     }
 
     /**

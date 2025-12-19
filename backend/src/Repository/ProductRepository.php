@@ -82,6 +82,11 @@ class ProductRepository extends ServiceEntityRepository
                 ->setParameter('isActive', $filters['isActive']);
         }
 
+        if (!empty($filters['status'])) {
+            $qb->andWhere('p.status = :status')
+                ->setParameter('status', $filters['status']);
+        }
+
         if (!empty($filters['tagIds'])) {
             $qb->innerJoin('p.tags', 't')
                 ->andWhere('t.id IN (:tagIds)')

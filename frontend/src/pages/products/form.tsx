@@ -1,86 +1,165 @@
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import {
   ProForm,
   ProFormText,
   ProFormSelect,
-  ProFormDigit,
   ProFormTextArea,
   ProFormGroup,
 } from '@ant-design/pro-components';
-import { Card, App } from 'antd';
+import { Card, App, Button, Spin } from 'antd';
 import { ArrowLeftOutlined } from '@ant-design/icons';
+import {
+  productApi,
+  type ProductDetail,
+  type ProductStatus,
+  type CreateProductParams,
+  type UpdateProductParams,
+} from '@/lib/product-api';
+import { brandApi } from '@/lib/brand-api';
+import { categoryApi } from '@/lib/category-api';
 
 interface ProductFormData {
   name: string;
-  sku: string;
-  category: string;
-  brand: string;
-  price: number;
-  originalPrice: number;
-  stock: number;
-  weight: number;
-  dimensions: string;
-  description: string;
-  status: string;
+  styleNumber: string;
+  season: string;
+  color?: string;
+  brandId?: string;
+  categoryId?: string;
+  description?: string;
+  status: ProductStatus;
 }
 
-// Mock data for editing
-const mockProduct: ProductFormData = {
-  name: 'Premium Sneakers',
-  sku: 'SKU-001',
-  category: 'Footwear',
-  brand: 'Nike',
-  price: 299,
-  originalPrice: 399,
-  stock: 150,
-  weight: 0.8,
-  dimensions: '30 x 20 x 12',
-  description: 'High-quality premium sneakers with exceptional comfort and style.',
-  status: 'on_sale',
-};
-
 export function ProductFormPage() {
-  const { id } = useParams();
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { t } = useTranslation();
   const { message } = App.useApp();
   const isEdit = Boolean(id);
 
+  const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(isEdit);
+  const [initialValues, setInitialValues] = useState<ProductFormData | undefined>(undefined);
+
+  // Options for selects
+  const [brands, setBrands] = useState<Array<{ value: string; label: string }>>([]);
+  const [categories, setCategories] = useState<Array<{ value: string; label: string }>>([]);
+
+  // Load options
+  useEffect(() => {
+    brandApi.getBrands({ limit: 100 }).then((r) =>
+      setBrands(r.data.map((b) => ({ value: b.id, label: b.name })))
+    );
+    categoryApi.getCategories({ limit: 100 }).then((r) =>
+      setCategories(r.data.map((c) => ({ value: c.id, label: c.name })))
+    );
+  }, []);
+
+  // Load product for edit
+  useEffect(() => {
+    if (isEdit && id) {
+      setInitialLoading(true);
+      productApi
+        .getProduct(id)
+        .then((product: ProductDetail) => {
+          setInitialValues({
+            name: product.name,
+            styleNumber: product.styleNumber,
+            season: product.season,
+            color: product.color || undefined,
+            brandId: product.brandId || undefined,
+            categoryId: product.categoryId || undefined,
+            description: product.description || undefined,
+            status: product.status,
+          });
+        })
+        .catch(() => {
+          message.error(t('common.error'));
+          navigate('/products');
+        })
+        .finally(() => {
+          setInitialLoading(false);
+        });
+    }
+  }, [isEdit, id, navigate, message, t]);
+
   const handleSubmit = async (values: ProductFormData) => {
-    console.log('Form values:', values);
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    message.success(t('common.success'));
-    navigate('/products');
-    return true;
+    setLoading(true);
+    try {
+      if (isEdit && id) {
+        const updateData: UpdateProductParams = {
+          name: values.name,
+          styleNumber: values.styleNumber,
+          season: values.season,
+          color: values.color,
+          brandId: values.brandId,
+          categoryId: values.categoryId,
+          description: values.description,
+          status: values.status,
+        };
+        await productApi.updateProduct(id, updateData);
+        message.success(t('products.updated'));
+      } else {
+        const createData: CreateProductParams = {
+          name: values.name,
+          styleNumber: values.styleNumber,
+          season: values.season,
+          color: values.color,
+          brandId: values.brandId,
+          categoryId: values.categoryId,
+          description: values.description,
+          status: values.status,
+        };
+        await productApi.createProduct(createData);
+        message.success(t('products.created'));
+      }
+      navigate('/products');
+      return true;
+    } catch (error) {
+      const err = error as { error?: string };
+      message.error(err.error || t('common.error'));
+      return false;
+    } finally {
+      setLoading(false);
+    }
   };
+
+  if (initialLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Spin size="large" />
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-3xl">
       {/* Header */}
       <div className="mb-6">
-        <a
+        <Button
+          type="text"
+          icon={<ArrowLeftOutlined />}
           onClick={() => navigate('/products')}
-          className="flex items-center gap-1 text-gray-500 hover:text-gray-700 cursor-pointer mb-2"
+          className="mb-2 -ml-2"
         >
-          <ArrowLeftOutlined />
-          <span>{t('common.back')}</span>
-        </a>
+          {t('common.back')}
+        </Button>
         <h1 className="text-xl font-semibold">
-          {isEdit ? t('common.edit') + ' ' + t('nav.products') : t('products.addProduct')}
+          {isEdit ? `${t('common.edit')} ${t('nav.products')}` : t('products.addProduct')}
         </h1>
       </div>
 
       <ProForm<ProductFormData>
         layout="vertical"
         onFinish={handleSubmit}
-        initialValues={isEdit ? mockProduct : { status: 'off_sale' }}
+        initialValues={initialValues || { status: 'draft' }}
         submitter={{
           searchConfig: {
             submitText: t('common.save'),
             resetText: t('common.cancel'),
           },
+          submitButtonProps: { loading },
           onReset: () => navigate('/products'),
         }}
       >
@@ -91,36 +170,58 @@ export function ProductFormPage() {
               name="name"
               label={t('products.productName')}
               placeholder={t('products.productName')}
-              rules={[{ required: true, message: t('validation.required', { field: t('products.productName') }) }]}
+              rules={[
+                { required: true, message: t('validation.required', { field: t('products.productName') }) },
+              ]}
               width="md"
             />
             <ProFormText
-              name="sku"
-              label={t('products.sku')}
-              placeholder={t('products.sku')}
-              rules={[{ required: true, message: t('validation.required', { field: t('products.sku') }) }]}
+              name="styleNumber"
+              label={t('products.styleNumber')}
+              placeholder="DR-2024SS-001"
+              rules={[
+                { required: true, message: t('validation.required', { field: t('products.styleNumber') }) },
+              ]}
               width="md"
             />
           </ProFormGroup>
 
           <ProFormGroup>
-            <ProFormSelect
-              name="category"
-              label={t('products.category')}
-              placeholder={t('common.all')}
-              rules={[{ required: true, message: t('validation.required', { field: t('products.category') }) }]}
-              options={[
-                { label: 'Footwear', value: 'Footwear' },
-                { label: 'Apparel', value: 'Apparel' },
-                { label: 'Accessories', value: 'Accessories' },
+            <ProFormText
+              name="season"
+              label={t('products.season')}
+              placeholder="2024SS"
+              rules={[
+                { required: true, message: t('validation.required', { field: t('products.season') }) },
               ]}
-              width="md"
+              width="sm"
             />
             <ProFormText
-              name="brand"
-              label={t('detail.brand')}
-              placeholder={t('detail.brand')}
+              name="color"
+              label={t('products.color')}
+              placeholder={t('products.color')}
+              width="sm"
+            />
+          </ProFormGroup>
+
+          <ProFormGroup>
+            <ProFormSelect
+              name="brandId"
+              label={t('products.brand')}
+              placeholder={t('products.selectBrand')}
+              options={brands}
               width="md"
+              showSearch
+              allowClear
+            />
+            <ProFormSelect
+              name="categoryId"
+              label={t('products.category')}
+              placeholder={t('products.selectCategory')}
+              options={categories}
+              width="md"
+              showSearch
+              allowClear
             />
           </ProFormGroup>
 
@@ -132,65 +233,16 @@ export function ProductFormPage() {
           />
         </Card>
 
-        {/* Pricing */}
-        <Card title={t('nav.pricing')} className="mb-4">
-          <ProFormGroup>
-            <ProFormDigit
-              name="price"
-              label={t('products.price')}
-              placeholder="0.00"
-              rules={[{ required: true, message: t('validation.required', { field: t('products.price') }) }]}
-              min={0}
-              fieldProps={{ precision: 2, prefix: '$' }}
-              width="sm"
-            />
-            <ProFormDigit
-              name="originalPrice"
-              label={t('form.originalPrice')}
-              placeholder="0.00"
-              min={0}
-              fieldProps={{ precision: 2, prefix: '$' }}
-              width="sm"
-            />
-          </ProFormGroup>
-        </Card>
-
-        {/* Inventory */}
-        <Card title={t('nav.inventory')} className="mb-4">
-          <ProFormGroup>
-            <ProFormDigit
-              name="stock"
-              label={t('products.stock')}
-              placeholder="0"
-              min={0}
-              fieldProps={{ precision: 0 }}
-              width="sm"
-            />
-            <ProFormDigit
-              name="weight"
-              label={t('detail.weight') + ' (kg)'}
-              placeholder="0.0"
-              min={0}
-              fieldProps={{ precision: 1 }}
-              width="sm"
-            />
-          </ProFormGroup>
-          <ProFormText
-            name="dimensions"
-            label={t('detail.dimensions') + ' (cm)'}
-            placeholder="L x W x H"
-            width="md"
-          />
-        </Card>
-
         {/* Status */}
         <Card title={t('products.status')} className="mb-4">
           <ProFormSelect
             name="status"
             label={t('products.status')}
             options={[
-              { label: t('products.onSale'), value: 'on_sale' },
-              { label: t('products.offSale'), value: 'off_sale' },
+              { label: t('products.statusDraft'), value: 'draft' },
+              { label: t('products.statusActive'), value: 'active' },
+              { label: t('products.statusInactive'), value: 'inactive' },
+              { label: t('products.statusDiscontinued'), value: 'discontinued' },
             ]}
             width="sm"
           />

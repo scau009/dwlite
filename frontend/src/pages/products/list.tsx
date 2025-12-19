@@ -1,236 +1,338 @@
-import { useRef, useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { ProTable, type ActionType, type ProColumns } from '@ant-design/pro-components';
-import { Button, Tag, Space, App } from 'antd';
-import { PlusOutlined, UpOutlined, DownOutlined, ExportOutlined } from '@ant-design/icons';
+import {
+  Card,
+  Row,
+  Col,
+  Input,
+  Select,
+  Button,
+  Tag,
+  Pagination,
+  Space,
+  Dropdown,
+  App,
+  Empty,
+  Spin,
+  Image,
+} from 'antd';
+import {
+  PlusOutlined,
+  FilterOutlined,
+  EllipsisOutlined,
+  EditOutlined,
+  EyeOutlined,
+  DeleteOutlined,
+  ShoppingOutlined,
+} from '@ant-design/icons';
+import {
+  productApi,
+  type Product,
+  type ProductListParams,
+  type ProductStatus,
+} from '@/lib/product-api';
+import { brandApi } from '@/lib/brand-api';
+import { categoryApi } from '@/lib/category-api';
 
-// Product type
-interface Product {
-  id: string;
-  name: string;
-  sku: string;
-  category: string;
-  price: number;
-  stock: number;
-  status: 'on_sale' | 'off_sale';
-  updatedAt: string;
+// Status color mapping
+const statusColors: Record<ProductStatus, string> = {
+  draft: 'default',
+  active: 'success',
+  inactive: 'warning',
+  discontinued: 'error',
+};
+
+// Product Card Component
+interface ProductCardProps {
+  product: Product;
+  onDelete: (product: Product) => void;
 }
 
-// Mock data
-const mockProducts: Product[] = [
-  { id: '1', name: 'Premium Sneakers', sku: 'SKU-001', category: 'Footwear', price: 299, stock: 150, status: 'on_sale', updatedAt: '2024-01-15 10:30' },
-  { id: '2', name: 'Designer Jacket', sku: 'SKU-002', category: 'Apparel', price: 450, stock: 80, status: 'on_sale', updatedAt: '2024-01-14 14:20' },
-  { id: '3', name: 'Limited Edition Watch', sku: 'SKU-003', category: 'Accessories', price: 1299, stock: 25, status: 'on_sale', updatedAt: '2024-01-13 09:15' },
-  { id: '4', name: 'Vintage Bag', sku: 'SKU-004', category: 'Accessories', price: 189, stock: 200, status: 'on_sale', updatedAt: '2024-01-12 16:45' },
-  { id: '5', name: 'Street Style Hoodie', sku: 'SKU-005', category: 'Apparel', price: 129, stock: 0, status: 'off_sale', updatedAt: '2024-01-11 11:00' },
-  { id: '6', name: 'Classic Sunglasses', sku: 'SKU-006', category: 'Accessories', price: 79, stock: 300, status: 'on_sale', updatedAt: '2024-01-10 08:30' },
-  { id: '7', name: 'Running Shoes', sku: 'SKU-007', category: 'Footwear', price: 199, stock: 120, status: 'on_sale', updatedAt: '2024-01-09 13:20' },
-  { id: '8', name: 'Casual T-Shirt', sku: 'SKU-008', category: 'Apparel', price: 39, stock: 500, status: 'on_sale', updatedAt: '2024-01-08 15:10' },
-  { id: '9', name: 'Leather Wallet', sku: 'SKU-009', category: 'Accessories', price: 89, stock: 180, status: 'on_sale', updatedAt: '2024-01-07 10:00' },
-  { id: '10', name: 'Winter Coat', sku: 'SKU-010', category: 'Apparel', price: 599, stock: 45, status: 'off_sale', updatedAt: '2024-01-06 09:45' },
-];
+function ProductCard({ product, onDelete }: ProductCardProps) {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
 
+  const priceDisplay = () => {
+    const { min, max } = product.priceRange;
+    if (min === null) return t('products.noPrice');
+    if (min === max) return `¥${min.toFixed(2)}`;
+    return `¥${min.toFixed(2)} - ¥${max.toFixed(2)}`;
+  };
+
+  const statusLabel = () => {
+    const statusMap: Record<ProductStatus, string> = {
+      draft: t('products.statusDraft'),
+      active: t('products.statusActive'),
+      inactive: t('products.statusInactive'),
+      discontinued: t('products.statusDiscontinued'),
+    };
+    return statusMap[product.status];
+  };
+
+  const menuItems = [
+    { key: 'view', icon: <EyeOutlined />, label: t('common.view') },
+    { key: 'edit', icon: <EditOutlined />, label: t('common.edit') },
+    { type: 'divider' as const },
+    { key: 'delete', icon: <DeleteOutlined />, label: t('common.delete'), danger: true },
+  ];
+
+  const handleMenuClick = ({ key }: { key: string }) => {
+    switch (key) {
+      case 'view':
+        navigate(`/products/${product.id}`);
+        break;
+      case 'edit':
+        navigate(`/products/${product.id}/edit`);
+        break;
+      case 'delete':
+        onDelete(product);
+        break;
+    }
+  };
+
+  return (
+    <Card
+      hoverable
+      cover={
+        <div
+          className="aspect-square bg-gray-100 flex items-center justify-center overflow-hidden cursor-pointer"
+          onClick={() => navigate(`/products/${product.id}`)}
+        >
+          {product.primaryImageUrl ? (
+            <Image
+              src={product.primaryImageUrl}
+              alt={product.name}
+              preview={false}
+              className="object-cover w-full h-full"
+            />
+          ) : (
+            <div className="text-gray-300 text-5xl">
+              <ShoppingOutlined />
+            </div>
+          )}
+        </div>
+      }
+      actions={[
+        <EyeOutlined key="view" onClick={() => navigate(`/products/${product.id}`)} />,
+        <EditOutlined key="edit" onClick={() => navigate(`/products/${product.id}/edit`)} />,
+        <Dropdown
+          key="more"
+          menu={{ items: menuItems, onClick: handleMenuClick }}
+          trigger={['click']}
+        >
+          <EllipsisOutlined />
+        </Dropdown>,
+      ]}
+    >
+      <Card.Meta
+        title={
+          <div className="flex items-start justify-between gap-2">
+            <span className="truncate flex-1" title={product.name}>
+              {product.name}
+            </span>
+            <Tag color={statusColors[product.status]} className="shrink-0">
+              {statusLabel()}
+            </Tag>
+          </div>
+        }
+        description={
+          <div className="space-y-1">
+            <div className="text-xs text-gray-500">{product.styleNumber}</div>
+            <div className="font-semibold text-base text-gray-900">{priceDisplay()}</div>
+            <div className="flex items-center justify-between text-xs text-gray-500">
+              <span>{product.brandName || '-'}</span>
+              <span>
+                {product.skuCount} {t('products.sku')}
+              </span>
+            </div>
+          </div>
+        }
+      />
+    </Card>
+  );
+}
+
+// Main List Page
 export function ProductsListPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const actionRef = useRef<ActionType>(null);
   const { message, modal } = App.useApp();
-  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
 
-  const columns: ProColumns<Product>[] = [
-    {
-      title: t('products.productName'),
-      dataIndex: 'name',
-      ellipsis: true,
-      formItemProps: {
-        label: t('products.productName') + ' / ' + t('products.sku'),
-      },
-      fieldProps: {
-        placeholder: t('common.search') + '...',
-      },
-    },
-    {
-      title: t('products.sku'),
-      dataIndex: 'sku',
-      width: 120,
-      search: false,
-    },
-    {
-      title: t('products.category'),
-      dataIndex: 'category',
-      width: 120,
-      valueType: 'select',
-      valueEnum: {
-        Footwear: { text: 'Footwear' },
-        Apparel: { text: 'Apparel' },
-        Accessories: { text: 'Accessories' },
-      },
-    },
-    {
-      title: t('products.price'),
-      dataIndex: 'price',
-      width: 100,
-      search: false,
-      sorter: true,
-      render: (_, record) => `$${record.price.toFixed(2)}`,
-    },
-    {
-      title: t('products.stock'),
-      dataIndex: 'stock',
-      width: 100,
-      search: false,
-      sorter: true,
-      render: (_, record) => (
-        <span style={{ color: record.stock === 0 ? '#ff4d4f' : undefined }}>
-          {record.stock}
-        </span>
-      ),
-    },
-    {
-      title: t('products.status'),
-      dataIndex: 'status',
-      width: 100,
-      valueType: 'select',
-      valueEnum: {
-        on_sale: { text: t('products.onSale'), status: 'Success' },
-        off_sale: { text: t('products.offSale'), status: 'Default' },
-      },
-      render: (_, record) => (
-        <Tag color={record.status === 'on_sale' ? 'success' : 'default'}>
-          {record.status === 'on_sale' ? t('products.onSale') : t('products.offSale')}
-        </Tag>
-      ),
-    },
-    {
-      title: t('common.updatedAt'),
-      dataIndex: 'updatedAt',
-      width: 160,
-      search: false,
-      sorter: true,
-    },
-    {
-      title: t('common.actions'),
-      valueType: 'option',
-      width: 120,
-      render: (_, record) => [
-        <a key="view" onClick={() => navigate(`/products/${record.id}`)}>
-          {t('common.view')}
-        </a>,
-        <a key="edit" onClick={() => navigate(`/products/${record.id}/edit`)}>
-          {t('common.edit')}
-        </a>,
-      ],
-    },
-  ];
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [total, setTotal] = useState(0);
+  const [params, setParams] = useState<ProductListParams>({ page: 1, limit: 12 });
 
-  const handleBatchAction = (action: 'on_sale' | 'off_sale' | 'delete') => {
+  // Filter options
+  const [brands, setBrands] = useState<Array<{ id: string; name: string }>>([]);
+  const [categories, setCategories] = useState<Array<{ id: string; name: string }>>([]);
+
+  // Search state
+  const [searchValue, setSearchValue] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
+
+  const loadProducts = useCallback(async () => {
+    setLoading(true);
+    try {
+      const result = await productApi.getProducts(params);
+      setProducts(result.data);
+      setTotal(result.total);
+    } catch {
+      message.error(t('common.error'));
+    } finally {
+      setLoading(false);
+    }
+  }, [params, message, t]);
+
+  useEffect(() => {
+    loadProducts();
+  }, [loadProducts]);
+
+  // Load filter options
+  useEffect(() => {
+    brandApi.getBrands({ limit: 100 }).then((r) => setBrands(r.data));
+    categoryApi.getCategories({ limit: 100 }).then((r) => setCategories(r.data));
+  }, []);
+
+  const handleSearch = () => {
+    setParams((p) => ({ ...p, page: 1, search: searchValue || undefined }));
+  };
+
+  const handleDelete = (product: Product) => {
     modal.confirm({
-      title: t('confirm.batchTitle'),
-      content: t('confirm.batchMessage', { count: selectedRowKeys.length }),
-      okButtonProps: { danger: action === 'delete' },
-      onOk: () => {
-        console.log(`Batch ${action}:`, selectedRowKeys);
-        message.success(t('common.success'));
-        setSelectedRowKeys([]);
-        actionRef.current?.reload();
+      title: t('products.confirmDelete'),
+      content: t('products.confirmDeleteDesc', { name: product.name }),
+      okButtonProps: { danger: true },
+      onOk: async () => {
+        try {
+          await productApi.deleteProduct(product.id);
+          message.success(t('products.deleted'));
+          loadProducts();
+        } catch {
+          message.error(t('common.error'));
+        }
       },
     });
   };
 
+  const handleFilterChange = (key: string, value: string | undefined) => {
+    setParams((p) => ({ ...p, page: 1, [key]: value }));
+  };
+
   return (
     <div className="space-y-4">
-      <div className="mb-4">
-        <h1 className="text-xl font-semibold">{t('products.title')}</h1>
-        <p className="text-gray-500">{t('products.description')}</p>
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-xl font-semibold">{t('products.title')}</h1>
+          <p className="text-gray-500">{t('products.description')}</p>
+        </div>
+        <Button type="primary" icon={<PlusOutlined />} onClick={() => navigate('/products/new')}>
+          {t('products.addProduct')}
+        </Button>
       </div>
 
-      <ProTable<Product>
-        actionRef={actionRef}
-        columns={columns}
-        rowKey="id"
-        rowSelection={{
-          selectedRowKeys,
-          onChange: setSelectedRowKeys,
-        }}
-        request={async (params, sort) => {
-          console.log('Query params:', params, sort);
-          // Simulate API delay
-          await new Promise((resolve) => setTimeout(resolve, 300));
-
-          let data = [...mockProducts];
-
-          // Filter
-          if (params.name) {
-            data = data.filter(
-              (item) =>
-                item.name.toLowerCase().includes(params.name.toLowerCase()) ||
-                item.sku.toLowerCase().includes(params.name.toLowerCase())
-            );
-          }
-          if (params.category) {
-            data = data.filter((item) => item.category === params.category);
-          }
-          if (params.status) {
-            data = data.filter((item) => item.status === params.status);
-          }
-
-          return {
-            data,
-            success: true,
-            total: data.length,
-          };
-        }}
-        search={{
-          labelWidth: 'auto',
-          defaultCollapsed: false,
-        }}
-        options={{
-          density: true,
-          fullScreen: true,
-          reload: true,
-        }}
-        pagination={{
-          defaultPageSize: 10,
-          showSizeChanger: true,
-        }}
-        toolBarRender={() => [
+      {/* Search & Filters */}
+      <Card>
+        <div className="flex items-center gap-4">
+          <Input.Search
+            placeholder={t('products.searchPlaceholder')}
+            value={searchValue}
+            onChange={(e) => setSearchValue(e.target.value)}
+            onSearch={handleSearch}
+            style={{ width: 300 }}
+            allowClear
+            onClear={() => setParams((p) => ({ ...p, page: 1, search: undefined }))}
+          />
           <Button
-            key="add"
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={() => navigate('/products/new')}
+            icon={<FilterOutlined />}
+            onClick={() => setShowFilters(!showFilters)}
+            type={showFilters ? 'primary' : 'default'}
           >
-            {t('products.addProduct')}
-          </Button>,
-          <Button key="export" icon={<ExportOutlined />}>
-            {t('common.export')}
-          </Button>,
-        ]}
-        tableAlertRender={({ selectedRowKeys }) => (
-          <Space>
-            {t('common.selected', { count: selectedRowKeys.length })}
-          </Space>
+            {t('common.moreFilters')}
+          </Button>
+          <div className="flex-1" />
+          <span className="text-gray-500">
+            {t('common.showing', {
+              from: (params.page! - 1) * params.limit! + 1,
+              to: Math.min(params.page! * params.limit!, total),
+              total,
+            })}
+          </span>
+        </div>
+
+        {showFilters && (
+          <div className="mt-4 grid grid-cols-4 gap-4">
+            <Select
+              placeholder={t('products.selectBrand')}
+              allowClear
+              options={brands.map((b) => ({ label: b.name, value: b.id }))}
+              onChange={(v) => handleFilterChange('brandId', v)}
+              value={params.brandId}
+            />
+            <Select
+              placeholder={t('products.selectCategory')}
+              allowClear
+              options={categories.map((c) => ({ label: c.name, value: c.id }))}
+              onChange={(v) => handleFilterChange('categoryId', v)}
+              value={params.categoryId}
+            />
+            <Select
+              placeholder={t('products.selectStatus')}
+              allowClear
+              options={[
+                { label: t('products.statusDraft'), value: 'draft' },
+                { label: t('products.statusActive'), value: 'active' },
+                { label: t('products.statusInactive'), value: 'inactive' },
+                { label: t('products.statusDiscontinued'), value: 'discontinued' },
+              ]}
+              onChange={(v) => handleFilterChange('status', v)}
+              value={params.status}
+            />
+            <Input
+              placeholder={t('products.season')}
+              onChange={(e) => handleFilterChange('season', e.target.value || undefined)}
+              value={params.season}
+              allowClear
+            />
+          </div>
         )}
-        tableAlertOptionRender={() => (
-          <Space>
-            <Button
-              size="small"
-              icon={<UpOutlined />}
-              onClick={() => handleBatchAction('on_sale')}
-            >
-              {t('products.batchOnSale')}
-            </Button>
-            <Button
-              size="small"
-              icon={<DownOutlined />}
-              onClick={() => handleBatchAction('off_sale')}
-            >
-              {t('products.batchOffSale')}
-            </Button>
-          </Space>
+      </Card>
+
+      {/* Product Grid */}
+      <Spin spinning={loading}>
+        {products.length > 0 ? (
+          <>
+            <Row gutter={[16, 16]}>
+              {products.map((product) => (
+                <Col key={product.id} xs={24} sm={12} md={8} lg={6} xl={4}>
+                  <ProductCard product={product} onDelete={handleDelete} />
+                </Col>
+              ))}
+            </Row>
+            <div className="flex justify-center mt-6">
+              <Pagination
+                current={params.page}
+                pageSize={params.limit}
+                total={total}
+                showSizeChanger
+                pageSizeOptions={[12, 24, 48, 96]}
+                showTotal={(total) => `${total} ${t('products.title').toLowerCase()}`}
+                onChange={(page, pageSize) => setParams((p) => ({ ...p, page, limit: pageSize }))}
+              />
+            </div>
+          </>
+        ) : (
+          <Card>
+            <Empty description={t('common.noData')}>
+              <Button type="primary" onClick={() => navigate('/products/new')}>
+                {t('products.addProduct')}
+              </Button>
+            </Empty>
+          </Card>
         )}
-      />
+      </Spin>
     </div>
   );
 }
