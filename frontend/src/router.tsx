@@ -25,6 +25,7 @@ import { ProductsListPage, ProductDetailPage, ProductFormPage } from '@/pages/pr
 import { MerchantsListPage } from '@/pages/merchants';
 import { BrandsListPage } from '@/pages/brands';
 import { CategoriesListPage } from '@/pages/categories';
+import { TagsListPage } from '@/pages/tags';
 
 // Placeholder component for pages not yet implemented
 function PlaceholderPage({ title }: { title: string }) {
@@ -118,6 +119,7 @@ export const router = createBrowserRouter([
               { path: '/products/:id/edit', element: <ProductFormPage /> },
               { path: '/products/categories', element: <CategoriesListPage /> },
               { path: '/products/brands', element: <BrandsListPage /> },
+              { path: '/products/tags', element: <TagsListPage /> },
               { path: '/products/attributes', element: <PlaceholderPage title="Product Attributes" /> },
 
               // Inventory

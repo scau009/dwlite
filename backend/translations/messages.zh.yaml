@@ -41,6 +41,17 @@ admin:
     deactivated: '品牌已禁用'
     has_products: '无法删除已关联商品的品牌'
 
+  # Tag management messages
+  tag:
+    not_found: '标签不存在'
+    slug_exists: '别名已存在'
+    created: '标签创建成功'
+    updated: '标签更新成功'
+    deleted: '标签删除成功'
+    activated: '标签已启用'
+    deactivated: '标签已禁用'
+    has_products: '无法删除已关联商品的标签'
+
   # Category management messages
   category:
     not_found: '分类不存在'
@@ -120,3 +131,6 @@ validation:
   # Status
   is_active_required: '启用状态不能为空'
   enabled_required: '启用状态不能为空'
+
+  # Color
+  color_format: '颜色必须是有效的HEX格式（如 #FF5733）'

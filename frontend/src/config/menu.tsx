@@ -34,6 +34,7 @@ export function getMenuData(t: TFunction): AccessMenuDataItem[] {
         { path: '/products', name: t('menu.productList') },
         { path: '/products/categories', name: t('menu.productCategories'), access: 'admin' },
         { path: '/products/brands', name: t('menu.productBrands'), access: 'admin' },
+        { path: '/products/tags', name: t('menu.productTags'), access: 'admin' },
         { path: '/products/attributes', name: t('menu.productAttributes'), access: 'admin' },
       ],
     },

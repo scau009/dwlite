@@ -1,0 +1,1 @@
+export { TagsListPage } from './list';
