@@ -126,30 +126,6 @@ class MerchantController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}/wallets/init', name: 'admin_merchant_init_wallets', methods: ['POST'])]
-    public function initWallets(string $id): JsonResponse
-    {
-        $merchant = $this->merchantRepository->find($id);
-        if (!$merchant) {
-            return $this->json(['error' => $this->translator->trans('admin.merchant.not_found')], Response::HTTP_NOT_FOUND);
-        }
-
-        try {
-            $wallets = $this->walletService->initWallets($merchant);
-            return $this->json([
-                'message' => $this->translator->trans('wallet.init_success'),
-                'wallets' => array_map(fn($w) => [
-                    'id' => $w->getId(),
-                    'type' => $w->getType(),
-                    'balance' => $w->getBalance(),
-                    'status' => $w->getStatus(),
-                ], $wallets),
-            ]);
-        } catch (\InvalidArgumentException $e) {
-            return $this->json(['error' => $e->getMessage()], Response::HTTP_BAD_REQUEST);
-        }
-    }
-
     #[Route('/{id}/wallets/deposit/charge', name: 'admin_merchant_charge_deposit', methods: ['POST'])]
     public function chargeDeposit(
         string $id,

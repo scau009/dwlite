@@ -228,8 +228,6 @@ export default {
     rejectReason: '拒绝原因',
     enterRejectReason: '请输入拒绝原因（拒绝时必填）',
     rejectReasonRequired: '拒绝时必须填写原因',
-    initWallets: '初始化钱包',
-    walletsInitialized: '钱包初始化成功',
     charge: '充值',
     transactions: '明细',
     chargeDeposit: '保证金充值',

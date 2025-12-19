@@ -228,8 +228,6 @@ export default {
     rejectReason: 'Rejection Reason',
     enterRejectReason: 'Enter rejection reason (required when rejecting)',
     rejectReasonRequired: 'Rejection reason is required',
-    initWallets: 'Init Wallets',
-    walletsInitialized: 'Wallets initialized successfully',
     charge: 'Charge',
     transactions: 'Transactions',
     chargeDeposit: 'Charge Deposit',

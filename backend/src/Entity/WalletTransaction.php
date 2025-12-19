@@ -10,6 +10,7 @@ use Symfony\Component\Uid\Ulid;
 #[ORM\Table(name: 'wallet_transactions')]
 #[ORM\Index(name: 'idx_wallet_created', columns: ['wallet_id', 'created_at'])]
 #[ORM\Index(name: 'idx_biz', columns: ['biz_type', 'biz_id'])]
+#[ORM\Index(name: 'idx_transaction_no', columns: ['transaction_no'])]
 #[ORM\HasLifecycleCallbacks]
 class WalletTransaction
 {
@@ -32,6 +33,9 @@ class WalletTransaction
     #[ORM\Id]
     #[ORM\Column(type: 'string', length: 26)]
     private string $id;
+
+    #[ORM\Column(type: 'string', length: 20, unique: true)]
+    private string $transactionNo;
 
     #[ORM\ManyToOne(targetEntity: Wallet::class, inversedBy: 'transactions')]
     #[ORM\JoinColumn(name: 'wallet_id', referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]
@@ -73,6 +77,17 @@ class WalletTransaction
     public function getId(): string
     {
         return $this->id;
+    }
+
+    public function getTransactionNo(): string
+    {
+        return $this->transactionNo;
+    }
+
+    public function setTransactionNo(string $transactionNo): static
+    {
+        $this->transactionNo = $transactionNo;
+        return $this;
     }
 
     public function getWallet(): Wallet

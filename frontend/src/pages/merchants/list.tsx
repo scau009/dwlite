@@ -2,7 +2,7 @@ import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ProTable, type ActionType, type ProColumns } from '@ant-design/pro-components';
 import { Button, Tag, Space, Switch, App, Popconfirm } from 'antd';
-import { WalletOutlined, HistoryOutlined, PlusCircleOutlined, AuditOutlined } from '@ant-design/icons';
+import { WalletOutlined, HistoryOutlined, AuditOutlined } from '@ant-design/icons';
 
 import { merchantApi, type Merchant } from '@/lib/merchant-api';
 import { ChargeModal } from './components/charge-modal';
@@ -31,17 +31,6 @@ export function MerchantsListPage() {
       message.error(err.error || t('common.error'));
     } finally {
       setStatusLoading(null);
-    }
-  };
-
-  const handleInitWallets = async (merchant: Merchant) => {
-    try {
-      await merchantApi.initMerchantWallets(merchant.id);
-      message.success(t('merchants.walletsInitialized'));
-      actionRef.current?.reload();
-    } catch (error) {
-      const err = error as { error?: string };
-      message.error(err.error || t('common.error'));
     }
   };
 
@@ -178,17 +167,7 @@ export function MerchantsListPage() {
               {t('merchants.review')}
             </Button>
           )}
-          {record.status !== 'pending' && !record.hasWallets && (
-            <Button
-              type="link"
-              size="small"
-              icon={<PlusCircleOutlined />}
-              onClick={() => handleInitWallets(record)}
-            >
-              {t('merchants.initWallets')}
-            </Button>
-          )}
-          {record.status !== 'pending' && record.hasWallets && (
+          {record.status !== 'pending' && (
             <>
               <Button
                 type="link"

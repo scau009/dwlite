@@ -106,17 +106,6 @@ export const merchantApi = {
   },
 
   /**
-   * 初始化商户钱包
-   */
-  initMerchantWallets: async (
-    id: string
-  ): Promise<{ message: string; wallets: WalletInfo[] }> => {
-    return apiFetch(`/api/admin/merchants/${id}/wallets/init`, {
-      method: 'POST',
-    });
-  },
-
-  /**
    * 保证金充值
    */
   chargeDeposit: async (
