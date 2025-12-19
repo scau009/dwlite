@@ -56,7 +56,11 @@ export async function apiFetch<T>(
   const { skipAuth = false, ...fetchOptions } = options;
 
   const headers = new Headers(fetchOptions.headers);
-  headers.set('Content-Type', 'application/json');
+
+  // Only set Content-Type for non-FormData bodies (let browser set multipart boundary)
+  if (!(fetchOptions.body instanceof FormData)) {
+    headers.set('Content-Type', 'application/json');
+  }
 
   if (!skipAuth) {
     const token = tokenStorage.getAccessToken();

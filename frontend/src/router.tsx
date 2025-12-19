@@ -120,7 +120,6 @@ export const router = createBrowserRouter([
               { path: '/products/categories', element: <CategoriesListPage /> },
               { path: '/products/brands', element: <BrandsListPage /> },
               { path: '/products/tags', element: <TagsListPage /> },
-              { path: '/products/attributes', element: <PlaceholderPage title="Product Attributes" /> },
 
               // Inventory
               { path: '/inventory', element: <PlaceholderPage title="Inventory List" /> },

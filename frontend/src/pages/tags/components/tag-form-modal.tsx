@@ -28,6 +28,7 @@ export function TagFormModal({ open, tag, onClose, onSuccess }: TagFormModalProp
   const [detailLoading, setDetailLoading] = useState(false);
 
   const isEdit = !!tag;
+  const colorValue = Form.useWatch('color', form);
 
   useEffect(() => {
     if (open) {
@@ -139,14 +140,14 @@ export function TagFormModal({ open, tag, onClose, onSuccess }: TagFormModalProp
         >
           <div className="flex items-center gap-2">
             <ColorPicker
-              value={form.getFieldValue('color')}
+              value={colorValue}
               onChange={handleColorChange}
               showText
               format="hex"
             />
             <Input
               placeholder="#FF5733"
-              value={form.getFieldValue('color')}
+              value={colorValue}
               onChange={(e) => form.setFieldsValue({ color: e.target.value })}
               style={{ width: 120 }}
             />

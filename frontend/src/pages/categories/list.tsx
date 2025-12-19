@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Table, Button, Tag, Switch, App, Popconfirm, Space } from 'antd';
+import {Table, Button, Tag, Switch, App, Popconfirm, Space, Card} from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 
@@ -208,18 +208,20 @@ export function CategoriesListPage() {
         </Button>
       </div>
 
-      <Table<CategoryTreeNode>
-        columns={columns}
-        dataSource={treeData}
-        rowKey="id"
-        loading={loading}
-        pagination={false}
-        expandable={{
-          defaultExpandAllRows: true,
-          childrenColumnName: 'children',
-        }}
-        size="middle"
-      />
+      <Card>
+        <Table<CategoryTreeNode>
+            columns={columns}
+            dataSource={treeData}
+            rowKey="id"
+            loading={loading}
+            pagination={false}
+            expandable={{
+              defaultExpandAllRows: true,
+              childrenColumnName: 'children',
+            }}
+            size="middle"
+        />
+      </Card>
 
       <CategoryFormModal
         open={formModalOpen}

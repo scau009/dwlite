@@ -17,25 +17,25 @@ class ProductImage
     private string $id;
 
     #[ORM\ManyToOne(targetEntity: Product::class, inversedBy: 'images')]
-    #[ORM\JoinColumn(name: 'product_id', referencedColumnName: 'id', onDelete: 'CASCADE', nullable: false)]
+    #[ORM\JoinColumn(name: 'product_id', referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]
     private Product $product;
 
-    #[ORM\Column(length: 255, name: 'cos_key')]
+    #[ORM\Column(name: 'cos_key', length: 255)]
     private string $cosKey;  // COS 对象键，如：products/2024/01/abc123.jpg
 
     #[ORM\Column(length: 500)]
     private string $url;  // 完整 CDN URL
 
-    #[ORM\Column(length: 500, nullable: true, name: 'thumbnail_url')]
+    #[ORM\Column(name: 'thumbnail_url', length: 500, nullable: true)]
     private ?string $thumbnailUrl = null;  // 缩略图 URL（COS 图片处理）
 
-    #[ORM\Column(type: 'integer', options: ['default' => 0], name: 'sort_order')]
+    #[ORM\Column(name: 'sort_order', type: 'integer', options: ['default' => 0])]
     private int $sortOrder = 0;
 
-    #[ORM\Column(type: 'boolean', options: ['default' => false], name: 'is_primary')]
+    #[ORM\Column(name: 'is_primary', type: 'boolean', options: ['default' => false])]
     private bool $isPrimary = false;
 
-    #[ORM\Column(type: 'integer', nullable: true, name: 'file_size')]
+    #[ORM\Column(name: 'file_size', type: 'integer', nullable: true)]
     private ?int $fileSize = null;  // 文件大小（字节）
 
     #[ORM\Column(type: 'integer', nullable: true)]

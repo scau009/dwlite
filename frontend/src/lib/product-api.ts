@@ -51,8 +51,15 @@ export interface ProductImage {
   id: string;
   url: string;
   thumbnailUrl: string | null;
+  cosKey: string;
   isPrimary: boolean;
   sortOrder: number;
+  fileSize: number | null;
+  width: number | null;
+  height: number | null;
+  dimensions: string | null;
+  humanFileSize: string | null;
+  createdAt: string;
 }
 
 export interface PaginatedResponse<T> {
@@ -251,6 +258,59 @@ export const productApi = {
     return apiFetch(`/api/admin/products/${productId}/skus/${skuId}/status`, {
       method: 'PUT',
       body: JSON.stringify({ isActive }),
+    });
+  },
+
+  // Image operations
+
+  /**
+   * 上传商品图片
+   */
+  uploadImage: async (
+    productId: string,
+    file: File
+  ): Promise<{ message: string; image: ProductImage }> => {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    return apiFetch(`/api/admin/products/${productId}/images`, {
+      method: 'POST',
+      body: formData,
+      headers: {}, // Let browser set Content-Type for multipart
+    });
+  },
+
+  /**
+   * 删除商品图片
+   */
+  deleteImage: async (productId: string, imageId: string): Promise<{ message: string }> => {
+    return apiFetch(`/api/admin/products/${productId}/images/${imageId}`, {
+      method: 'DELETE',
+    });
+  },
+
+  /**
+   * 设置主图
+   */
+  setImagePrimary: async (
+    productId: string,
+    imageId: string
+  ): Promise<{ message: string; image: ProductImage }> => {
+    return apiFetch(`/api/admin/products/${productId}/images/${imageId}/primary`, {
+      method: 'PUT',
+    });
+  },
+
+  /**
+   * 排序图片
+   */
+  sortImages: async (
+    productId: string,
+    imageIds: string[]
+  ): Promise<{ message: string }> => {
+    return apiFetch(`/api/admin/products/${productId}/images/sort`, {
+      method: 'PUT',
+      body: JSON.stringify({ imageIds }),
     });
   },
 };

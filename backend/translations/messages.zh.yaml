@@ -52,6 +52,35 @@ admin:
     deactivated: '标签已禁用'
     has_products: '无法删除已关联商品的标签'
 
+  # Product management messages
+  product:
+    not_found: '商品不存在'
+    slug_exists: '别名已存在'
+    style_number_exists: '款号已存在'
+    created: '商品创建成功'
+    updated: '商品更新成功'
+    deleted: '商品删除成功'
+    status_updated: '商品状态已更新'
+    # SKU
+    sku_code_exists: 'SKU编码已存在'
+    sku_not_found: 'SKU不存在'
+    sku_created: 'SKU创建成功'
+    sku_updated: 'SKU更新成功'
+    sku_deleted: 'SKU删除成功'
+    sku_activated: 'SKU已启用'
+    sku_deactivated: 'SKU已禁用'
+    # Image
+    image_required: '请上传图片'
+    invalid_image_type: '图片格式不正确，支持 JPG/PNG/GIF/WebP'
+    image_too_large: '图片大小不能超过5MB'
+    image_uploaded: '图片上传成功'
+    image_deleted: '图片删除成功'
+    image_not_found: '图片不存在'
+    image_primary_set: '已设为主图'
+    image_ids_required: '图片ID列表不能为空'
+    images_sorted: '图片排序已更新'
+    upload_failed: '图片上传失败'
+
   # Category management messages
   category:
     not_found: '分类不存在'

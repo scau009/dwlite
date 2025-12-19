@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ProTable, type ActionType, type ProColumns } from '@ant-design/pro-components';
-import { Button, Tag, Switch, App, Popconfirm, Space } from 'antd';
+import { Button, Tag, Switch, App, Popconfirm, Space, Tooltip } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 
 import { tagApi, type Tag as TagType } from '@/lib/tag-api';
@@ -68,6 +68,7 @@ export function TagsListPage() {
     {
       title: t('tags.name'),
       dataIndex: 'name',
+      width: 150,
       ellipsis: true,
       fieldProps: {
         placeholder: t('common.search') + '...',
@@ -160,26 +161,27 @@ export function TagsListPage() {
     {
       title: t('common.actions'),
       valueType: 'option',
-      width: 120,
+      width: 80,
+      fixed: 'right',
       render: (_, record) => (
         <Space size="small">
-          <Button
-            type="link"
-            size="small"
-            icon={<EditOutlined />}
-            onClick={() => handleEdit(record)}
-          >
-            {t('common.edit')}
-          </Button>
-          <Button
-            type="link"
-            size="small"
-            danger
-            icon={<DeleteOutlined />}
-            onClick={() => handleDelete(record)}
-          >
-            {t('common.delete')}
-          </Button>
+          <Tooltip title={t('common.edit')}>
+            <Button
+              type="text"
+              size="small"
+              icon={<EditOutlined />}
+              onClick={() => handleEdit(record)}
+            />
+          </Tooltip>
+          <Tooltip title={t('common.delete')}>
+            <Button
+              type="text"
+              size="small"
+              danger
+              icon={<DeleteOutlined />}
+              onClick={() => handleDelete(record)}
+            />
+          </Tooltip>
         </Space>
       ),
     },

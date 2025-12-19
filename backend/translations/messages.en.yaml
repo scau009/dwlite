@@ -52,6 +52,35 @@ admin:
     deactivated: 'Tag deactivated'
     has_products: 'Cannot delete tag with associated products'
 
+  # Product management messages
+  product:
+    not_found: 'Product not found'
+    slug_exists: 'Slug already exists'
+    style_number_exists: 'Style number already exists'
+    created: 'Product created successfully'
+    updated: 'Product updated successfully'
+    deleted: 'Product deleted successfully'
+    status_updated: 'Product status updated'
+    # SKU
+    sku_code_exists: 'SKU code already exists'
+    sku_not_found: 'SKU not found'
+    sku_created: 'SKU created successfully'
+    sku_updated: 'SKU updated successfully'
+    sku_deleted: 'SKU deleted successfully'
+    sku_activated: 'SKU activated'
+    sku_deactivated: 'SKU deactivated'
+    # Image
+    image_required: 'Image file is required'
+    invalid_image_type: 'Invalid image type. Supported: JPG/PNG/GIF/WebP'
+    image_too_large: 'Image size cannot exceed 5MB'
+    image_uploaded: 'Image uploaded successfully'
+    image_deleted: 'Image deleted successfully'
+    image_not_found: 'Image not found'
+    image_primary_set: 'Image set as primary'
+    image_ids_required: 'Image IDs are required'
+    images_sorted: 'Images order updated'
+    upload_failed: 'Image upload failed'
+
   # Category management messages
   category:
     not_found: 'Category not found'

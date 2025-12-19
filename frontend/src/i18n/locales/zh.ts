@@ -54,7 +54,6 @@ export default {
     productCategories: '商品分类',
     productBrands: '品牌管理',
     productTags: '标签管理',
-    productAttributes: '商品属性',
     // Inventory
     inventoryList: '库存列表',
     inventoryAlerts: '库存预警',
@@ -187,6 +186,26 @@ export default {
     skuStatusUpdated: 'SKU状态已更新',
     created: '商品创建成功',
     updated: '商品更新成功',
+    // 图片管理
+    uploadImage: '上传图片',
+    invalidImageType: '图片格式不正确，支持 JPG/PNG/GIF/WebP',
+    imageTooLarge: '图片大小不能超过5MB',
+    imageUploaded: '图片上传成功',
+    imageDeleted: '图片删除成功',
+    imagePrimarySet: '已设为主图',
+    setAsPrimary: '设为主图',
+    confirmDeleteImage: '确定要删除此图片吗？',
+    noImages: '暂无图片',
+    maxImagesReached: '最多只能上传{{max}}张图片',
+    saveFirstToUploadImages: '请先保存商品后再上传图片',
+    // SKU 管理
+    skuManagement: 'SKU管理',
+    noSkus: '暂无SKU',
+    saveFirstToManageSkus: '请先保存商品后再管理SKU',
+    confirmDeleteSkuDesc: '确定要删除SKU「{{code}}」吗？此操作不可撤销。',
+    skuActivated: 'SKU已启用',
+    skuDeactivated: 'SKU已停用',
+    saveAndContinue: '保存并完善',
   },
 
   // Orders

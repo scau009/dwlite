@@ -40,3 +40,11 @@ services:
     Predis\Client:
         arguments:
             - '%env(REDIS_URL)%'
+
+    App\Service\CosService:
+        arguments:
+            $secretId: '%env(COS_SECRET_ID)%'
+            $secretKey: '%env(COS_SECRET_KEY)%'
+            $region: '%env(COS_REGION)%'
+            $bucket: '%env(COS_BUCKET)%'
+            $cdnDomain: '%env(COS_CDN_DOMAIN)%'

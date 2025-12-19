@@ -11,14 +11,19 @@ use App\Dto\Admin\UpdateProductSkuRequest;
 use App\Dto\Admin\UpdateProductStatusRequest;
 use App\Dto\Admin\UpdateStatusRequest;
 use App\Entity\Product;
+use App\Entity\ProductImage;
 use App\Entity\ProductSku;
 use App\Repository\BrandRepository;
 use App\Repository\CategoryRepository;
+use App\Repository\ProductImageRepository;
 use App\Repository\ProductRepository;
 use App\Repository\ProductSkuRepository;
 use App\Repository\TagRepository;
+use App\Service\CosService;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\MapQueryString;
 use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
@@ -31,12 +36,14 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 class ProductController extends AbstractController
 {
     public function __construct(
-        private ProductRepository $productRepository,
-        private ProductSkuRepository $skuRepository,
-        private BrandRepository $brandRepository,
-        private CategoryRepository $categoryRepository,
-        private TagRepository $tagRepository,
-        private TranslatorInterface $translator,
+        private ProductRepository      $productRepository,
+        private ProductSkuRepository   $skuRepository,
+        private ProductImageRepository $imageRepository,
+        private BrandRepository        $brandRepository,
+        private CategoryRepository     $categoryRepository,
+        private TagRepository          $tagRepository,
+        private CosService             $cosService,
+        private TranslatorInterface    $translator, private readonly LoggerInterface $logger,
     ) {
     }
 
@@ -362,10 +369,178 @@ class ProductController extends AbstractController
         ]);
     }
 
+    // Image endpoints
+
+    #[Route('/{id}/images', name: 'admin_product_image_upload', methods: ['POST'])]
+    public function uploadImage(string $id, Request $request): JsonResponse
+    {
+        $product = $this->productRepository->find($id);
+        if (!$product) {
+            return $this->json(['error' => $this->translator->trans('admin.product.not_found')], Response::HTTP_NOT_FOUND);
+        }
+
+        $file = $request->files->get('file');
+        if (!$file) {
+            return $this->json(['error' => $this->translator->trans('admin.product.image_required')], Response::HTTP_BAD_REQUEST);
+        }
+
+        // Validate file type
+        $allowedMimes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+        if (!in_array($file->getMimeType(), $allowedMimes)) {
+            return $this->json(['error' => $this->translator->trans('admin.product.invalid_image_type')], Response::HTTP_BAD_REQUEST);
+        }
+
+        // Validate file size (max 5MB)
+        if ($file->getSize() > 5 * 1024 * 1024) {
+            return $this->json(['error' => $this->translator->trans('admin.product.image_too_large')], Response::HTTP_BAD_REQUEST);
+        }
+
+        try {
+            // Upload to COS
+            $uploadResult = $this->cosService->uploadFile($file, 'products/' . $product->getId());
+
+            // Check if this is the first image (make it primary)
+            $isPrimary = $product->getImages()->isEmpty();
+
+            // Create image entity
+            $image = new ProductImage();
+            $image->setProduct($product);
+            $image->setCosKey($uploadResult['cosKey']);
+            $image->setUrl($uploadResult['url']);
+            $image->setThumbnailUrl($uploadResult['thumbnailUrl']);
+            $image->setFileSize($uploadResult['fileSize']);
+            $image->setWidth($uploadResult['width']);
+            $image->setHeight($uploadResult['height']);
+            $image->setIsPrimary($isPrimary);
+            $image->setSortOrder($product->getImages()->count());
+
+            $this->imageRepository->save($image, true);
+
+            return $this->json([
+                'message' => $this->translator->trans('admin.product.image_uploaded'),
+                'image' => $this->serializeImage($image),
+            ], Response::HTTP_CREATED);
+        } catch (\Exception $e) {
+            $this->logger->error($e->getMessage());
+            return $this->json(['error' => $this->translator->trans('admin.product.upload_failed')], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    #[Route('/{id}/images/{imageId}', name: 'admin_product_image_delete', methods: ['DELETE'])]
+    public function deleteImage(string $id, string $imageId): JsonResponse
+    {
+        $product = $this->productRepository->find($id);
+        if (!$product) {
+            return $this->json(['error' => $this->translator->trans('admin.product.not_found')], Response::HTTP_NOT_FOUND);
+        }
+
+        $image = $this->imageRepository->find($imageId);
+        if (!$image || $image->getProduct()->getId() !== $product->getId()) {
+            return $this->json(['error' => $this->translator->trans('admin.product.image_not_found')], Response::HTTP_NOT_FOUND);
+        }
+
+        // Delete from COS
+        $this->cosService->deleteFile($image->getCosKey());
+
+        // If this was primary, set another image as primary
+        $wasPrimary = $image->isPrimary();
+        $this->imageRepository->remove($image, true);
+
+        if ($wasPrimary) {
+            $remainingImages = $this->imageRepository->findByProduct($product);
+            if (!empty($remainingImages)) {
+                $remainingImages[0]->setIsPrimary(true);
+                $this->imageRepository->save($remainingImages[0], true);
+            }
+        }
+
+        return $this->json(['message' => $this->translator->trans('admin.product.image_deleted')]);
+    }
+
+    #[Route('/{id}/images/{imageId}/primary', name: 'admin_product_image_set_primary', methods: ['PUT'])]
+    public function setImagePrimary(string $id, string $imageId): JsonResponse
+    {
+        $product = $this->productRepository->find($id);
+        if (!$product) {
+            return $this->json(['error' => $this->translator->trans('admin.product.not_found')], Response::HTTP_NOT_FOUND);
+        }
+
+        $image = $this->imageRepository->find($imageId);
+        if (!$image || $image->getProduct()->getId() !== $product->getId()) {
+            return $this->json(['error' => $this->translator->trans('admin.product.image_not_found')], Response::HTTP_NOT_FOUND);
+        }
+
+        // Clear primary flag from all images
+        $this->imageRepository->clearPrimaryForProduct($product->getId());
+
+        // Set new primary
+        $image->setIsPrimary(true);
+        $this->imageRepository->save($image, true);
+
+        return $this->json([
+            'message' => $this->translator->trans('admin.product.image_primary_set'),
+            'image' => $this->serializeImage($image),
+        ]);
+    }
+
+    #[Route('/{id}/images/sort', name: 'admin_product_image_sort', methods: ['PUT'])]
+    public function sortImages(string $id, Request $request): JsonResponse
+    {
+        $product = $this->productRepository->find($id);
+        if (!$product) {
+            return $this->json(['error' => $this->translator->trans('admin.product.not_found')], Response::HTTP_NOT_FOUND);
+        }
+
+        $data = json_decode($request->getContent(), true);
+        $imageIds = $data['imageIds'] ?? [];
+
+        if (empty($imageIds)) {
+            return $this->json(['error' => $this->translator->trans('admin.product.image_ids_required')], Response::HTTP_BAD_REQUEST);
+        }
+
+        foreach ($imageIds as $index => $imageId) {
+            $image = $this->imageRepository->find($imageId);
+            if ($image && $image->getProduct()->getId() === $product->getId()) {
+                $image->setSortOrder($index);
+                $this->imageRepository->save($image);
+            }
+        }
+        $this->imageRepository->save($product->getImages()->first(), true); // Flush
+
+        return $this->json(['message' => $this->translator->trans('admin.product.images_sorted')]);
+    }
+
+    private function serializeImage(ProductImage $image): array
+    {
+        $cosKey = $image->getCosKey();
+
+        return [
+            'id' => $image->getId(),
+            'url' => $this->cosService->getSignedUrl($cosKey),
+            'thumbnailUrl' => $this->cosService->getSignedUrl($cosKey, 3600, 'imageMogr2/thumbnail/300x300>'),
+            'cosKey' => $cosKey,
+            'isPrimary' => $image->isPrimary(),
+            'sortOrder' => $image->getSortOrder(),
+            'fileSize' => $image->getFileSize(),
+            'width' => $image->getWidth(),
+            'height' => $image->getHeight(),
+            'dimensions' => $image->getDimensions(),
+            'humanFileSize' => $image->getHumanFileSize(),
+            'createdAt' => $image->getCreatedAt()->format('c'),
+        ];
+    }
+
     private function serializeProduct(Product $product, bool $detail = false): array
     {
         $priceRange = $product->getPriceRange();
         $primaryImage = $product->getPrimaryImage();
+
+        // Generate signed URL for primary image
+        $primaryImageUrl = null;
+        if ($primaryImage) {
+            $cosKey = $primaryImage->getCosKey();
+            $primaryImageUrl = $this->cosService->getSignedUrl($cosKey, 3600, 'imageMogr2/thumbnail/300x300>');
+        }
 
         $data = [
             'id' => $product->getId(),
@@ -382,7 +557,7 @@ class ProductController extends AbstractController
             'categoryName' => $product->getCategory()?->getName(),
             'skuCount' => $product->getSkuCount(),
             'priceRange' => $priceRange,
-            'primaryImageUrl' => $primaryImage?->getThumbnailUrl() ?? $primaryImage?->getUrl(),
+            'primaryImageUrl' => $primaryImageUrl,
             'createdAt' => $product->getCreatedAt()->format('c'),
             'updatedAt' => $product->getUpdatedAt()->format('c'),
         ];
@@ -400,8 +575,8 @@ class ProductController extends AbstractController
             $data['images'] = array_map(
                 fn($i) => [
                     'id' => $i->getId(),
-                    'url' => $i->getUrl(),
-                    'thumbnailUrl' => $i->getThumbnailUrl(),
+                    'url' => $this->cosService->getSignedUrl($i->getCosKey()),
+                    'thumbnailUrl' => $this->cosService->getSignedUrl($i->getCosKey(), 3600, 'imageMogr2/thumbnail/300x300>'),
                     'isPrimary' => $i->isPrimary(),
                     'sortOrder' => $i->getSortOrder(),
                 ],

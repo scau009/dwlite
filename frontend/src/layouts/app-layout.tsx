@@ -7,6 +7,7 @@ import { ShopOutlined } from '@ant-design/icons';
 import { getMenuData } from '@/config/menu';
 import { HeaderRight } from '@/components/layout/header-right';
 import { useAuth } from '@/contexts/auth-context';
+import { useTheme } from '@/contexts/theme-context';
 import { filterMenuByAccess } from '@/lib/menu-access';
 
 export function AppLayout() {
@@ -15,6 +16,7 @@ export function AppLayout() {
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
   const { user } = useAuth();
+  const { isDark } = useTheme();
 
   const menuData = useMemo(() => {
     const allMenus = getMenuData(t);
@@ -48,9 +50,11 @@ export function AppLayout() {
       token={{
         header: {
           heightLayoutHeader: 56,
+          colorBgHeader: isDark ? '#141414' : '#ffffff',
+          colorBgRightActionsItemHover: 'transparent',
         },
         sider: {
-          colorMenuBackground: 'transparent',
+          colorMenuBackground: isDark ? '#141414' : '#ffffff',
         },
       }}
     >

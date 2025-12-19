@@ -54,7 +54,6 @@ export default {
     productCategories: 'Categories',
     productBrands: 'Brands',
     productTags: 'Tags',
-    productAttributes: 'Attributes',
     // Inventory
     inventoryList: 'Inventory List',
     inventoryAlerts: 'Stock Alerts',
@@ -187,6 +186,26 @@ export default {
     skuStatusUpdated: 'SKU status updated',
     created: 'Product created successfully',
     updated: 'Product updated successfully',
+    // Image management
+    uploadImage: 'Upload Image',
+    invalidImageType: 'Invalid image type. Supported: JPG/PNG/GIF/WebP',
+    imageTooLarge: 'Image size cannot exceed 5MB',
+    imageUploaded: 'Image uploaded successfully',
+    imageDeleted: 'Image deleted successfully',
+    imagePrimarySet: 'Image set as primary',
+    setAsPrimary: 'Set as primary',
+    confirmDeleteImage: 'Are you sure you want to delete this image?',
+    noImages: 'No images',
+    maxImagesReached: 'Maximum {{max}} images allowed',
+    saveFirstToUploadImages: 'Please save the product first to upload images',
+    // SKU management
+    skuManagement: 'SKU Management',
+    noSkus: 'No SKUs',
+    saveFirstToManageSkus: 'Please save the product first to manage SKUs',
+    confirmDeleteSkuDesc: 'Are you sure you want to delete SKU "{{code}}"? This action cannot be undone.',
+    skuActivated: 'SKU activated',
+    skuDeactivated: 'SKU deactivated',
+    saveAndContinue: 'Save & Continue',
   },
 
   // Orders
