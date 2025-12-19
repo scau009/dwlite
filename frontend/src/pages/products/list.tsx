@@ -10,7 +10,6 @@ import {
   Button,
   Tag,
   Pagination,
-  Space,
   Dropdown,
   App,
   Empty,
@@ -55,7 +54,7 @@ function ProductCard({ product, onDelete }: ProductCardProps) {
 
   const priceDisplay = () => {
     const { min, max } = product.priceRange;
-    if (min === null) return t('products.noPrice');
+    if (min === null || max === null) return t('products.noPrice');
     if (min === max) return `¥${min.toFixed(2)}`;
     return `¥${min.toFixed(2)} - ¥${max.toFixed(2)}`;
   };
@@ -301,38 +300,38 @@ export function ProductsListPage() {
       </Card>
 
       {/* Product Grid */}
-      <Spin spinning={loading}>
-        {products.length > 0 ? (
-          <>
-            <Row gutter={[16, 16]}>
-              {products.map((product) => (
-                <Col key={product.id} xs={24} sm={12} md={8} lg={6} xl={4}>
-                  <ProductCard product={product} onDelete={handleDelete} />
-                </Col>
-              ))}
-            </Row>
-            <div className="flex justify-center mt-6">
-              <Pagination
-                current={params.page}
-                pageSize={params.limit}
-                total={total}
-                showSizeChanger
-                pageSizeOptions={[12, 24, 48, 96]}
-                showTotal={(total) => `${total} ${t('products.title').toLowerCase()}`}
-                onChange={(page, pageSize) => setParams((p) => ({ ...p, page, limit: pageSize }))}
-              />
-            </div>
-          </>
-        ) : (
-          <Card>
+      <Card>
+        <Spin spinning={loading}>
+          {products.length > 0 ? (
+            <>
+              <Row gutter={[16, 16]}>
+                {products.map((product) => (
+                  <Col key={product.id} xs={24} sm={12} md={8} lg={6} xl={4}>
+                    <ProductCard product={product} onDelete={handleDelete} />
+                  </Col>
+                ))}
+              </Row>
+              <div className="flex justify-center mt-6">
+                <Pagination
+                  current={params.page}
+                  pageSize={params.limit}
+                  total={total}
+                  showSizeChanger
+                  pageSizeOptions={[12, 24, 48, 96]}
+                  showTotal={(total) => `${total} ${t('products.title').toLowerCase()}`}
+                  onChange={(page, pageSize) => setParams((p) => ({ ...p, page, limit: pageSize }))}
+                />
+              </div>
+            </>
+          ) : (
             <Empty description={t('common.noData')}>
               <Button type="primary" onClick={() => navigate('/products/new')}>
                 {t('products.addProduct')}
               </Button>
             </Empty>
-          </Card>
-        )}
-      </Spin>
+          )}
+        </Spin>
+      </Card>
     </div>
   );
 }
