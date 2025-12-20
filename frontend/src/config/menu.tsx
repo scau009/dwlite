@@ -38,16 +38,6 @@ export function getMenuData(t: TFunction): AccessMenuDataItem[] {
       ],
     },
     {
-      path: '/inventory',
-      name: t('nav.inventory'),
-      icon: <InboxOutlined />,
-      children: [
-        { path: '/inventory', name: t('menu.inventoryList') },
-        { path: '/inventory/alerts', name: t('menu.inventoryAlerts') },
-        { path: '/inventory/logs', name: t('menu.inventoryLogs') },
-      ],
-    },
-    {
       path: '/pricing',
       name: t('nav.pricing'),
       icon: <DollarOutlined />,

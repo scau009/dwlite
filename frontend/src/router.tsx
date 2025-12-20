@@ -119,11 +119,6 @@ export const router = createBrowserRouter([
               { path: '/products/brands', element: <BrandsListPage /> },
               { path: '/products/tags', element: <TagsListPage /> },
 
-              // Inventory
-              { path: '/inventory', element: <PlaceholderPage title="Inventory List" /> },
-              { path: '/inventory/alerts', element: <PlaceholderPage title="Stock Alerts" /> },
-              { path: '/inventory/logs', element: <PlaceholderPage title="Stock Logs" /> },
-
               // Pricing
               { path: '/pricing', element: <PlaceholderPage title="Price List" /> },
               { path: '/pricing/rules', element: <PlaceholderPage title="Price Rules" /> },
