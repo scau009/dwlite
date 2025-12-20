@@ -2,18 +2,12 @@
 
 namespace App\Dto\Admin;
 
+use App\Enum\SizeUnit;
 use Symfony\Component\Validator\Constraints as Assert;
 
 class CreateProductSkuRequest
 {
-    #[Assert\NotBlank(message: 'validation.sku_code_required')]
-    #[Assert\Length(max: 50, maxMessage: 'validation.sku_code_max_length')]
-    public string $skuCode = '';
-
-    #[Assert\Length(max: 20, maxMessage: 'validation.color_code_max_length')]
-    public ?string $colorCode = null;
-
-    #[Assert\Length(max: 20, maxMessage: 'validation.size_unit_max_length')]
+    #[Assert\Choice(callback: [SizeUnit::class, 'values'], message: 'validation.invalid_size_unit')]
     public ?string $sizeUnit = null;
 
     #[Assert\Length(max: 20, maxMessage: 'validation.size_value_max_length')]
@@ -28,9 +22,6 @@ class CreateProductSkuRequest
 
     #[Assert\PositiveOrZero(message: 'validation.price_positive_or_zero')]
     public ?string $originalPrice = null;
-
-    #[Assert\PositiveOrZero(message: 'validation.price_positive_or_zero')]
-    public ?string $costPrice = null;
 
     public bool $isActive = true;
 

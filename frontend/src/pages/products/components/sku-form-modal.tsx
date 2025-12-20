@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Modal, Form, Input, InputNumber, Switch, App } from 'antd';
-import { productApi, type ProductSku } from '@/lib/product-api';
+import { Modal, Form, Input, InputNumber, Select, App } from 'antd';
+import { productApi, SIZE_UNITS, type ProductSku, type SizeUnit } from '@/lib/product-api';
 
 interface SkuFormModalProps {
   open: boolean;
@@ -12,15 +12,10 @@ interface SkuFormModalProps {
 }
 
 interface FormValues {
-  skuCode: string;
-  colorCode?: string;
-  sizeUnit?: string;
+  sizeUnit?: SizeUnit;
   sizeValue?: string;
-  price: number;
-  originalPrice?: number;
-  costPrice?: number;
-  isActive: boolean;
-  sortOrder: number;
+  price: number;  // 参考价
+  originalPrice?: number;  // 发售价
 }
 
 export function SkuFormModal({ open, productId, sku, onClose, onSuccess }: SkuFormModalProps) {
@@ -35,19 +30,13 @@ export function SkuFormModal({ open, productId, sku, onClose, onSuccess }: SkuFo
     if (open) {
       if (sku) {
         form.setFieldsValue({
-          skuCode: sku.skuCode,
-          colorCode: sku.colorCode || undefined,
           sizeUnit: sku.sizeUnit || undefined,
           sizeValue: sku.sizeValue || undefined,
           price: parseFloat(sku.price),
           originalPrice: sku.originalPrice ? parseFloat(sku.originalPrice) : undefined,
-          costPrice: sku.costPrice ? parseFloat(sku.costPrice) : undefined,
-          isActive: sku.isActive,
-          sortOrder: sku.sortOrder,
         });
       } else {
         form.resetFields();
-        form.setFieldsValue({ isActive: true, sortOrder: 0 });
       }
     }
   }, [open, sku, form]);
@@ -61,7 +50,6 @@ export function SkuFormModal({ open, productId, sku, onClose, onSuccess }: SkuFo
         ...values,
         price: String(values.price),
         originalPrice: values.originalPrice ? String(values.originalPrice) : undefined,
-        costPrice: values.costPrice ? String(values.costPrice) : undefined,
       };
 
       if (isEdit) {
@@ -95,27 +83,20 @@ export function SkuFormModal({ open, productId, sku, onClose, onSuccess }: SkuFo
       width={600}
     >
       <Form form={form} layout="vertical" className="mt-4">
-        <Form.Item
-          name="skuCode"
-          label={t('products.skuCode')}
-          rules={[{ required: true, message: t('products.skuCodeRequired') }]}
-        >
-          <Input placeholder="DR-2024SS-001-S-RED" disabled={isEdit} />
-        </Form.Item>
-
-        <div className="grid grid-cols-3 gap-4">
-          <Form.Item name="colorCode" label={t('products.colorCode')}>
-            <Input placeholder="RED" />
-          </Form.Item>
+        <div className="grid grid-cols-2 gap-4">
           <Form.Item name="sizeUnit" label={t('products.sizeUnit')}>
-            <Input placeholder="EU" />
+            <Select
+              placeholder={t('products.selectSizeUnit')}
+              options={SIZE_UNITS.map((u) => ({ label: u.label, value: u.value }))}
+              allowClear
+            />
           </Form.Item>
           <Form.Item name="sizeValue" label={t('products.sizeValue')}>
-            <Input placeholder="38" />
+            <Input placeholder="38, 39, 40, S, M, L..." />
           </Form.Item>
         </div>
 
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 gap-4">
           <Form.Item
             name="price"
             label={t('products.price')}
@@ -125,21 +106,6 @@ export function SkuFormModal({ open, productId, sku, onClose, onSuccess }: SkuFo
           </Form.Item>
           <Form.Item name="originalPrice" label={t('products.originalPrice')}>
             <InputNumber min={0} precision={2} prefix="¥" style={{ width: '100%' }} />
-          </Form.Item>
-          <Form.Item name="costPrice" label={t('products.costPrice')}>
-            <InputNumber min={0} precision={2} prefix="¥" style={{ width: '100%' }} />
-          </Form.Item>
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <Form.Item name="sortOrder" label={t('products.sortOrder')}>
-            <InputNumber min={0} style={{ width: '100%' }} />
-          </Form.Item>
-          <Form.Item name="isActive" label={t('products.status')} valuePropName="checked">
-            <Switch
-              checkedChildren={t('products.active')}
-              unCheckedChildren={t('products.inactive')}
-            />
           </Form.Item>
         </div>
       </Form>

@@ -69,6 +69,10 @@ admin:
     sku_deleted: 'SKU删除成功'
     sku_activated: 'SKU已启用'
     sku_deactivated: 'SKU已禁用'
+    sku_size_exists: '尺码 %size% 已存在'
+    skus_batch_created: '成功批量创建 %count% 个SKU'
+    size_unit_mismatch: '该商品已有 %existing% 尺码，无法添加 %requested% 尺码'
+    all_sizes_exist: '所有热门尺码都已存在'
     # Image
     image_required: '请上传图片'
     invalid_image_type: '图片格式不正确，支持 JPG/PNG/GIF/WebP'

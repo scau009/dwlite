@@ -69,6 +69,10 @@ admin:
     sku_deleted: 'SKU deleted successfully'
     sku_activated: 'SKU activated'
     sku_deactivated: 'SKU deactivated'
+    sku_size_exists: 'Size %size% already exists'
+    skus_batch_created: 'Successfully created %count% SKUs'
+    size_unit_mismatch: 'This product already has %existing% sizes, cannot add %requested% sizes'
+    all_sizes_exist: 'All popular sizes already exist'
     # Image
     image_required: 'Image file is required'
     invalid_image_type: 'Invalid image type. Supported: JPG/PNG/GIF/WebP'

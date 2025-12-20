@@ -35,11 +35,6 @@ class ProductSkuRepository extends ServiceEntityRepository
         }
     }
 
-    public function findBySkuCode(string $skuCode): ?ProductSku
-    {
-        return $this->findOneBy(['skuCode' => $skuCode]);
-    }
-
     public function findByProduct(Product $product): array
     {
         return $this->createQueryBuilder('s')
@@ -62,16 +57,16 @@ class ProductSkuRepository extends ServiceEntityRepository
             ->getResult();
     }
 
-    public function findBySkuCodes(array $skuCodes): array
+    public function findByProductAndSize(Product $product, \App\Enum\SizeUnit $sizeUnit, string $sizeValue): ?ProductSku
     {
-        if (empty($skuCodes)) {
-            return [];
-        }
-
         return $this->createQueryBuilder('s')
-            ->where('s.skuCode IN (:skuCodes)')
-            ->setParameter('skuCodes', $skuCodes)
+            ->where('s.product = :product')
+            ->andWhere('s.sizeUnit = :sizeUnit')
+            ->andWhere('s.sizeValue = :sizeValue')
+            ->setParameter('product', $product)
+            ->setParameter('sizeUnit', $sizeUnit)
+            ->setParameter('sizeValue', $sizeValue)
             ->getQuery()
-            ->getResult();
+            ->getOneOrNullResult();
     }
 }

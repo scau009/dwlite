@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Enum\SizeUnit;
 use App\Repository\ProductSkuRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Uid\Ulid;
@@ -9,7 +10,6 @@ use Symfony\Component\Uid\Ulid;
 #[ORM\Entity(repositoryClass: ProductSkuRepository::class)]
 #[ORM\Table(name: 'product_skus')]
 #[ORM\Index(name: 'idx_sku_product', columns: ['product_id'])]
-#[ORM\Index(name: 'idx_sku_code', columns: ['sku_code'])]
 #[ORM\Index(name: 'idx_sku_active', columns: ['is_active'])]
 #[ORM\HasLifecycleCallbacks]
 class ProductSku
@@ -19,17 +19,11 @@ class ProductSku
     private string $id;
 
     #[ORM\ManyToOne(targetEntity: Product::class, inversedBy: 'skus')]
-    #[ORM\JoinColumn(name: 'product_id', referencedColumnName: 'id', onDelete: 'CASCADE', nullable: false)]
+    #[ORM\JoinColumn(name: 'product_id', referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]
     private Product $product;
 
-    #[ORM\Column(name: 'sku_code', length: 50, unique: true)]
-    private string $skuCode;  // SKU 编码，如：DR-2024SS-001-S-RED
-
-    #[ORM\Column(name: 'color_code', length: 20, nullable: true)]
-    private ?string $colorCode = null;  // 颜色代码，如：RED、BLU、BLK
-
-    #[ORM\Column(name: 'size_unit', length: 20, nullable: true)]
-    private ?string $sizeUnit = null;  // 尺码单位，如：EU、US、CM
+    #[ORM\Column(name: 'size_unit', type: 'string', length: 20, nullable: true, enumType: SizeUnit::class)]
+    private ?SizeUnit $sizeUnit = null;  // 尺码单位：EU、US、UK、CM
 
     #[ORM\Column(name: 'size_value', length: 20, nullable: true)]
     private ?string $sizeValue = null;  // 尺码值，如：S、M、L、38、39、40
@@ -38,13 +32,10 @@ class ProductSku
     private ?array $specInfo = null;  // 规格摘要，如：{"颜色": "红色", "尺码": "S"}
 
     #[ORM\Column(type: 'decimal', precision: 10, scale: 2)]
-    private string $price;  // 参考价格
+    private string $price;  // 参考价
 
     #[ORM\Column(name: 'original_price', type: 'decimal', precision: 10, scale: 2, nullable: true)]
-    private ?string $originalPrice = null;  // 原价/吊牌价
-
-    #[ORM\Column(name: 'cost_price', type: 'decimal', precision: 10, scale: 2, nullable: true)]
-    private ?string $costPrice = null;  // 成本价（可选）
+    private ?string $originalPrice = null;  // 发售价
 
     #[ORM\Column(name: 'is_active', type: 'boolean', options: ['default' => true])]
     private bool $isActive = true;
@@ -81,34 +72,12 @@ class ProductSku
         return $this;
     }
 
-    public function getSkuCode(): string
-    {
-        return $this->skuCode;
-    }
-
-    public function setSkuCode(string $skuCode): static
-    {
-        $this->skuCode = $skuCode;
-        return $this;
-    }
-
-    public function getColorCode(): ?string
-    {
-        return $this->colorCode;
-    }
-
-    public function setColorCode(?string $colorCode): static
-    {
-        $this->colorCode = $colorCode;
-        return $this;
-    }
-
-    public function getSizeUnit(): ?string
+    public function getSizeUnit(): ?SizeUnit
     {
         return $this->sizeUnit;
     }
 
-    public function setSizeUnit(?string $sizeUnit): static
+    public function setSizeUnit(?SizeUnit $sizeUnit): static
     {
         $this->sizeUnit = $sizeUnit;
         return $this;
@@ -158,17 +127,6 @@ class ProductSku
         return $this;
     }
 
-    public function getCostPrice(): ?string
-    {
-        return $this->costPrice;
-    }
-
-    public function setCostPrice(?string $costPrice): static
-    {
-        $this->costPrice = $costPrice;
-        return $this;
-    }
-
     public function isActive(): bool
     {
         return $this->isActive;
@@ -213,12 +171,12 @@ class ProductSku
     public function getSpecDescription(): string
     {
         $parts = [];
-        if ($this->colorCode) {
-            $parts[] = $this->colorCode;
+        if ($this->sizeUnit) {
+            $parts[] = $this->sizeUnit->value;
         }
         if ($this->sizeValue) {
             $parts[] = $this->sizeValue;
         }
-        return implode(' / ', $parts);
+        return implode(' ', $parts);
     }
 }

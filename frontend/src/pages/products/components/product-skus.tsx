@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, forwardRef, useImperativeHandle } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Table, Button, Tag, Switch, App, Popconfirm, Space, Tooltip, Empty } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { Table, Button, Tag, Switch, App, Space, Tooltip, Empty } from 'antd';
+import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import { productApi, type ProductSku } from '@/lib/product-api';
 import { SkuFormModal } from './sku-form-modal';
+import { QuickAddSizeModal } from './quick-add-size-modal';
 
 interface ProductSkusProps {
   productId: string;
@@ -13,10 +14,19 @@ interface ProductSkusProps {
   disabled?: boolean;
 }
 
-export function ProductSkus({ productId, skus, onUpdate, disabled }: ProductSkusProps) {
+export interface ProductSkusRef {
+  openAddModal: () => void;
+  openQuickAddModal: () => void;
+}
+
+export const ProductSkus = forwardRef<ProductSkusRef, ProductSkusProps>(function ProductSkus(
+  { productId, skus, onUpdate, disabled },
+  ref
+) {
   const { t } = useTranslation();
   const { message, modal } = App.useApp();
   const [formModalOpen, setFormModalOpen] = useState(false);
+  const [quickAddModalOpen, setQuickAddModalOpen] = useState(false);
   const [editingSku, setEditingSku] = useState<ProductSku | null>(null);
   const [statusLoading, setStatusLoading] = useState<string | null>(null);
 
@@ -24,6 +34,15 @@ export function ProductSkus({ productId, skus, onUpdate, disabled }: ProductSkus
     setEditingSku(null);
     setFormModalOpen(true);
   };
+
+  const handleQuickAdd = () => {
+    setQuickAddModalOpen(true);
+  };
+
+  useImperativeHandle(ref, () => ({
+    openAddModal: handleAdd,
+    openQuickAddModal: handleQuickAdd,
+  }));
 
   const handleEdit = (sku: ProductSku) => {
     setEditingSku(sku);
@@ -33,7 +52,7 @@ export function ProductSkus({ productId, skus, onUpdate, disabled }: ProductSkus
   const handleDelete = async (sku: ProductSku) => {
     modal.confirm({
       title: t('products.confirmDeleteSku'),
-      content: t('products.confirmDeleteSkuDesc', { code: sku.skuCode }),
+      content: t('products.confirmDeleteSkuDesc', { code: sku.specDescription || sku.id }),
       okText: t('common.confirm'),
       cancelText: t('common.cancel'),
       okButtonProps: { danger: true },
@@ -66,21 +85,18 @@ export function ProductSkus({ productId, skus, onUpdate, disabled }: ProductSkus
 
   const columns: ColumnsType<ProductSku> = [
     {
-      title: t('products.skuCode'),
-      dataIndex: 'skuCode',
-      key: 'skuCode',
-      width: 180,
-      render: (code: string) => (
-        <code className="text-xs bg-gray-100 px-2 py-1 rounded">{code}</code>
-      ),
+      title: t('products.sizeUnit'),
+      dataIndex: 'sizeUnit',
+      key: 'sizeUnit',
+      width: 100,
+      render: (unit: string | null) => unit || '-',
     },
     {
-      title: t('products.spec'),
-      key: 'spec',
-      width: 120,
-      render: (_, record) => (
-        record.specDescription || '-'
-      ),
+      title: t('products.sizeValue'),
+      dataIndex: 'sizeValue',
+      key: 'sizeValue',
+      width: 100,
+      render: (value: string | null) => value || '-',
     },
     {
       title: t('products.price'),
@@ -148,18 +164,6 @@ export function ProductSkus({ productId, skus, onUpdate, disabled }: ProductSkus
 
   return (
     <div>
-      {!disabled && (
-        <div className="mb-4">
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={handleAdd}
-          >
-            {t('products.addSku')}
-          </Button>
-        </div>
-      )}
-
       {skus.length > 0 ? (
         <Table
           columns={columns}
@@ -186,6 +190,16 @@ export function ProductSkus({ productId, skus, onUpdate, disabled }: ProductSkus
           onUpdate();
         }}
       />
+
+      <QuickAddSizeModal
+        open={quickAddModalOpen}
+        productId={productId}
+        onClose={() => setQuickAddModalOpen(false)}
+        onSuccess={() => {
+          setQuickAddModalOpen(false);
+          onUpdate();
+        }}
+      />
     </div>
   );
-}
+});

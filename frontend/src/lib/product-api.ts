@@ -1,7 +1,15 @@
 import { apiFetch } from './api-client';
 
 // Types
-export type ProductStatus = 'draft' | 'active' | 'inactive' | 'discontinued';
+export type ProductStatus = 'draft' | 'active' | 'inactive';
+export type SizeUnit = 'EU' | 'US' | 'UK' | 'CM';
+
+export const SIZE_UNITS: { value: SizeUnit; label: string }[] = [
+  { value: 'EU', label: 'EU (欧码)' },
+  { value: 'US', label: 'US (美码)' },
+  { value: 'UK', label: 'UK (英码)' },
+  { value: 'CM', label: 'CM (厘米)' },
+];
 
 export interface Product {
   id: string;
@@ -19,6 +27,7 @@ export interface Product {
   skuCount: number;
   priceRange: { min: number | null; max: number | null };
   primaryImageUrl: string | null;
+  tags: Array<{ id: string; name: string }>;
   createdAt: string;
   updatedAt: string;
 }
@@ -32,15 +41,12 @@ export interface ProductDetail extends Product {
 
 export interface ProductSku {
   id: string;
-  skuCode: string;
-  colorCode: string | null;
-  sizeUnit: string | null;
+  sizeUnit: SizeUnit | null;
   sizeValue: string | null;
   specInfo: Record<string, string> | null;
   specDescription: string;
-  price: string;
-  originalPrice: string | null;
-  costPrice: string | null;
+  price: string;  // 参考价
+  originalPrice: string | null;  // 发售价
   isActive: boolean;
   sortOrder: number;
   createdAt: string;
@@ -110,28 +116,37 @@ export interface UpdateProductParams {
 }
 
 export interface CreateSkuParams {
-  skuCode: string;
-  colorCode?: string;
-  sizeUnit?: string;
+  sizeUnit?: SizeUnit;
   sizeValue?: string;
   specInfo?: Record<string, string>;
-  price: string;
-  originalPrice?: string;
-  costPrice?: string;
+  price: string;  // 参考价
+  originalPrice?: string;  // 发售价
   isActive?: boolean;
   sortOrder?: number;
 }
 
 export interface UpdateSkuParams {
-  colorCode?: string;
-  sizeUnit?: string;
+  sizeUnit?: SizeUnit;
   sizeValue?: string;
   specInfo?: Record<string, string>;
-  price?: string;
-  originalPrice?: string;
-  costPrice?: string;
+  price?: string;  // 参考价
+  originalPrice?: string;  // 发售价
   isActive?: boolean;
   sortOrder?: number;
+}
+
+export interface BatchCreateSkuParams {
+  sizeUnit: 'US' | 'EU' | 'UK';  // CM is not allowed for quick add
+  price: string;  // 参考价
+  originalPrice?: string;  // 发售价
+}
+
+export interface BatchCreateSkuResult {
+  message: string;
+  createdCount: number;
+  skippedCount: number;
+  skippedSizes: string[];
+  skus: ProductSku[];
 }
 
 export const productApi = {
@@ -219,6 +234,19 @@ export const productApi = {
     data: CreateSkuParams
   ): Promise<{ message: string; sku: ProductSku }> => {
     return apiFetch(`/api/admin/products/${productId}/skus`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  /**
+   * 批量创建 SKU (快捷添加尺码)
+   */
+  batchCreateSkus: async (
+    productId: string,
+    data: BatchCreateSkuParams
+  ): Promise<BatchCreateSkuResult> => {
+    return apiFetch(`/api/admin/products/${productId}/skus/batch`, {
       method: 'POST',
       body: JSON.stringify(data),
     });

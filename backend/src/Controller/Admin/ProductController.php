@@ -13,6 +13,7 @@ use App\Dto\Admin\UpdateStatusRequest;
 use App\Entity\Product;
 use App\Entity\ProductImage;
 use App\Entity\ProductSku;
+use App\Enum\SizeUnit;
 use App\Repository\BrandRepository;
 use App\Repository\CategoryRepository;
 use App\Repository\ProductImageRepository;
@@ -239,26 +240,34 @@ class ProductController extends AbstractController
             return $this->json(['error' => $this->translator->trans('admin.product.not_found')], Response::HTTP_NOT_FOUND);
         }
 
-        // 检查 SKU 编码是否已存在
-        if ($this->skuRepository->findBySkuCode($dto->skuCode)) {
-            return $this->json(['error' => $this->translator->trans('admin.product.sku_code_exists')], Response::HTTP_CONFLICT);
+        // Check for duplicate size
+        if ($dto->sizeUnit !== null && $dto->sizeValue !== null) {
+            $trimmedSizeValue = trim($dto->sizeValue);
+            $existingSku = $this->skuRepository->findByProductAndSize(
+                $product,
+                SizeUnit::from($dto->sizeUnit),
+                $trimmedSizeValue
+            );
+            if ($existingSku) {
+                return $this->json([
+                    'error' => $this->translator->trans('admin.product.sku_size_exists', [
+                        '%size%' => $dto->sizeUnit . ' ' . $trimmedSizeValue,
+                    ])
+                ], Response::HTTP_CONFLICT);
+            }
         }
 
         $sku = new ProductSku();
         $sku->setProduct($product);
-        $sku->setSkuCode($dto->skuCode);
         $sku->setPrice($dto->price);
         $sku->setIsActive($dto->isActive);
         $sku->setSortOrder($dto->sortOrder);
 
-        if ($dto->colorCode !== null) {
-            $sku->setColorCode($dto->colorCode);
-        }
         if ($dto->sizeUnit !== null) {
-            $sku->setSizeUnit($dto->sizeUnit);
+            $sku->setSizeUnit(SizeUnit::from($dto->sizeUnit));
         }
         if ($dto->sizeValue !== null) {
-            $sku->setSizeValue($dto->sizeValue);
+            $sku->setSizeValue(trim($dto->sizeValue));
         }
         if ($dto->specInfo !== null) {
             $sku->setSpecInfo($dto->specInfo);
@@ -266,15 +275,124 @@ class ProductController extends AbstractController
         if ($dto->originalPrice !== null) {
             $sku->setOriginalPrice($dto->originalPrice);
         }
-        if ($dto->costPrice !== null) {
-            $sku->setCostPrice($dto->costPrice);
-        }
 
         $this->skuRepository->save($sku, true);
+
+        // Reorder all SKUs by size value
+        $this->reorderSkusBySizeValue($product);
 
         return $this->json([
             'message' => $this->translator->trans('admin.product.sku_created'),
             'sku' => $this->serializeSku($sku),
+        ], Response::HTTP_CREATED);
+    }
+
+    #[Route('/{id}/skus/batch', name: 'admin_product_sku_batch_create', methods: ['POST'])]
+    public function batchCreateSkus(string $id, #[MapRequestPayload] \App\Dto\Admin\BatchCreateSkuRequest $dto): JsonResponse
+    {
+        $product = $this->productRepository->find($id);
+        if (!$product) {
+            return $this->json(['error' => $this->translator->trans('admin.product.not_found')], Response::HTTP_NOT_FOUND);
+        }
+
+        $requestedUnit = SizeUnit::from($dto->sizeUnit);
+
+        // Define popular size ranges for each unit (fixed arrays, not generated)
+        $sizeRanges = [
+            'US' => ['5.5', '6', '6.5', '7', '7.5', '8', '8.5', '9', '9.5', '10', '10.5', '11', '11.5', '12'],
+            'EU' => ['38', '38.5', '39', '40', '40.5', '41', '42', '42.5', '43', '44', '44.5', '45', '45.5', '46'],
+            'UK' => ['5', '5.5', '6', '6.5', '7', '7.5', '8', '8.5', '9', '9.5', '10', '10.5', '11'],
+        ];
+
+        $sizesToAdd = $sizeRanges[$dto->sizeUnit];
+
+        // Get existing SKUs for this product
+        $existingSkus = $product->getSkus();
+        $existingSizeUnits = [];
+        $existingSizeValues = [];
+
+        foreach ($existingSkus as $sku) {
+            if ($sku->getSizeUnit() !== null) {
+                $existingSizeUnits[$sku->getSizeUnit()->value] = true;
+            }
+            if ($sku->getSizeUnit() === $requestedUnit && $sku->getSizeValue() !== null) {
+                $existingSizeValues[$sku->getSizeValue()] = true;
+            }
+        }
+
+        // Validation 1: Check if existing SKUs have a different size unit
+        if (!empty($existingSizeUnits) && !isset($existingSizeUnits[$dto->sizeUnit])) {
+            $existingUnitKeys = array_keys($existingSizeUnits);
+            return $this->json([
+                'error' => $this->translator->trans('admin.product.size_unit_mismatch', [
+                    '%existing%' => implode(', ', $existingUnitKeys),
+                    '%requested%' => $dto->sizeUnit,
+                ])
+            ], Response::HTTP_CONFLICT);
+        }
+
+        // Filter out sizes that already exist
+        $skippedSizes = [];
+        $sizesToCreate = [];
+
+        foreach ($sizesToAdd as $sizeValue) {
+            if (isset($existingSizeValues[$sizeValue])) {
+                $skippedSizes[] = $sizeValue;
+            } else {
+                $sizesToCreate[] = $sizeValue;
+            }
+        }
+
+        // If all sizes already exist
+        if (empty($sizesToCreate)) {
+            return $this->json([
+                'error' => $this->translator->trans('admin.product.all_sizes_exist'),
+                'skippedSizes' => $skippedSizes,
+            ], Response::HTTP_CONFLICT);
+        }
+
+        // Create SKUs
+        $createdSkus = [];
+        $maxSortOrder = 0;
+        foreach ($existingSkus as $sku) {
+            if ($sku->getSortOrder() > $maxSortOrder) {
+                $maxSortOrder = $sku->getSortOrder();
+            }
+        }
+
+        foreach ($sizesToCreate as $index => $sizeValue) {
+            $sku = new ProductSku();
+            $sku->setProduct($product);
+            $sku->setSizeUnit($requestedUnit);
+            $sku->setSizeValue($sizeValue);
+            $sku->setPrice($dto->price);
+            $sku->setIsActive(true);
+            $sku->setSortOrder($maxSortOrder + $index + 1);
+
+            if ($dto->originalPrice !== null) {
+                $sku->setOriginalPrice($dto->originalPrice);
+            }
+
+            $this->skuRepository->save($sku);
+            $createdSkus[] = $sku;
+        }
+
+        $this->skuRepository->save($createdSkus[0], true); // Flush all
+
+        // Reorder all SKUs by size value
+        $this->reorderSkusBySizeValue($product);
+
+        // Reload SKUs to get updated sort order
+        $allSkus = $this->skuRepository->findByProduct($product);
+
+        return $this->json([
+            'message' => $this->translator->trans('admin.product.skus_batch_created', [
+                '%count%' => count($createdSkus),
+            ]),
+            'createdCount' => count($createdSkus),
+            'skippedCount' => count($skippedSizes),
+            'skippedSizes' => $skippedSizes,
+            'skus' => array_map(fn($s) => $this->serializeSku($s), $allSkus),
         ], Response::HTTP_CREATED);
     }
 
@@ -291,11 +409,8 @@ class ProductController extends AbstractController
             return $this->json(['error' => $this->translator->trans('admin.product.sku_not_found')], Response::HTTP_NOT_FOUND);
         }
 
-        if ($dto->colorCode !== null) {
-            $sku->setColorCode($dto->colorCode);
-        }
         if ($dto->sizeUnit !== null) {
-            $sku->setSizeUnit($dto->sizeUnit);
+            $sku->setSizeUnit(SizeUnit::from($dto->sizeUnit));
         }
         if ($dto->sizeValue !== null) {
             $sku->setSizeValue($dto->sizeValue);
@@ -308,9 +423,6 @@ class ProductController extends AbstractController
         }
         if ($dto->originalPrice !== null) {
             $sku->setOriginalPrice($dto->originalPrice);
-        }
-        if ($dto->costPrice !== null) {
-            $sku->setCostPrice($dto->costPrice);
         }
         if ($dto->isActive !== null) {
             $sku->setIsActive($dto->isActive);
@@ -558,20 +670,29 @@ class ProductController extends AbstractController
             'skuCount' => $product->getSkuCount(),
             'priceRange' => $priceRange,
             'primaryImageUrl' => $primaryImageUrl,
+            'tags' => array_map(
+                fn($t) => ['id' => $t->getId(), 'name' => $t->getName()],
+                $product->getTags()->toArray()
+            ),
             'createdAt' => $product->getCreatedAt()->format('c'),
             'updatedAt' => $product->getUpdatedAt()->format('c'),
         ];
 
         if ($detail) {
             $data['description'] = $product->getDescription();
-            $data['tags'] = array_map(
-                fn($t) => ['id' => $t->getId(), 'name' => $t->getName()],
-                $product->getTags()->toArray()
-            );
             $data['skus'] = array_map(
                 fn($s) => $this->serializeSku($s),
                 $product->getSkus()->toArray()
             );
+
+            // Sort images: primary first, then by sortOrder
+            $images = $product->getImages()->toArray();
+            usort($images, function ($a, $b) {
+                if ($a->isPrimary() && !$b->isPrimary()) return -1;
+                if (!$a->isPrimary() && $b->isPrimary()) return 1;
+                return $a->getSortOrder() <=> $b->getSortOrder();
+            });
+
             $data['images'] = array_map(
                 fn($i) => [
                     'id' => $i->getId(),
@@ -580,7 +701,7 @@ class ProductController extends AbstractController
                     'isPrimary' => $i->isPrimary(),
                     'sortOrder' => $i->getSortOrder(),
                 ],
-                $product->getImages()->toArray()
+                $images
             );
         }
 
@@ -591,15 +712,12 @@ class ProductController extends AbstractController
     {
         return [
             'id' => $sku->getId(),
-            'skuCode' => $sku->getSkuCode(),
-            'colorCode' => $sku->getColorCode(),
-            'sizeUnit' => $sku->getSizeUnit(),
+            'sizeUnit' => $sku->getSizeUnit()?->value,
             'sizeValue' => $sku->getSizeValue(),
             'specInfo' => $sku->getSpecInfo(),
             'specDescription' => $sku->getSpecDescription(),
             'price' => $sku->getPrice(),
             'originalPrice' => $sku->getOriginalPrice(),
-            'costPrice' => $sku->getCostPrice(),
             'isActive' => $sku->isActive(),
             'sortOrder' => $sku->getSortOrder(),
             'createdAt' => $sku->getCreatedAt()->format('c'),
@@ -611,5 +729,44 @@ class ProductController extends AbstractController
     {
         $slugger = new AsciiSlugger();
         return strtolower($slugger->slug($name)->toString());
+    }
+
+    /**
+     * Reorder all SKUs for a product by size value (smallest to largest)
+     */
+    private function reorderSkusBySizeValue(Product $product): void
+    {
+        $skus = $this->skuRepository->findByProduct($product);
+
+        // Sort by sizeValue numerically
+        usort($skus, function (ProductSku $a, ProductSku $b) {
+            $aValue = $a->getSizeValue();
+            $bValue = $b->getSizeValue();
+
+            // Handle null values - put them at the end
+            if ($aValue === null && $bValue === null) {
+                return 0;
+            }
+            if ($aValue === null) {
+                return 1;
+            }
+            if ($bValue === null) {
+                return -1;
+            }
+
+            // Compare as floats for numeric size values
+            return (float)$aValue <=> (float)$bValue;
+        });
+
+        // Update sort order
+        foreach ($skus as $index => $sku) {
+            $sku->setSortOrder($index);
+            $this->skuRepository->save($sku);
+        }
+
+        // Flush all changes
+        if (!empty($skus)) {
+            $this->skuRepository->save($skus[0], true);
+        }
     }
 }
