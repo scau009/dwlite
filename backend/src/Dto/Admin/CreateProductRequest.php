@@ -31,7 +31,7 @@ class CreateProductRequest
 
     public ?string $categoryId = null;
 
-    #[Assert\Choice(choices: ['draft', 'active', 'inactive', 'discontinued'], message: 'validation.invalid_status')]
+    #[Assert\Choice(choices: ['draft', 'active', 'inactive'], message: 'validation.invalid_status')]
     public string $status = 'draft';
 
     /** @var string[]|null */

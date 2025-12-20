@@ -21,7 +21,7 @@ import { VerifyEmailPage } from '@/pages/auth/verify-email';
 // App pages
 import { DashboardPage } from '@/pages/dashboard';
 import { ProfilePage } from '@/pages/profile';
-import { ProductsListPage, ProductDetailPage, ProductFormPage } from '@/pages/products';
+import { ProductsListPage, ProductDetailPage } from '@/pages/products';
 import { MerchantsListPage } from '@/pages/merchants';
 import { BrandsListPage } from '@/pages/brands';
 import { CategoriesListPage } from '@/pages/categories';
@@ -114,9 +114,7 @@ export const router = createBrowserRouter([
 
               // Products
               { path: '/products', element: <ProductsListPage /> },
-              { path: '/products/new', element: <ProductFormPage /> },
               { path: '/products/:id', element: <ProductDetailPage /> },
-              { path: '/products/:id/edit', element: <ProductFormPage /> },
               { path: '/products/categories', element: <CategoriesListPage /> },
               { path: '/products/brands', element: <BrandsListPage /> },
               { path: '/products/tags', element: <TagsListPage /> },

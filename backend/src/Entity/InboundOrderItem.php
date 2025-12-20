@@ -195,7 +195,6 @@ class InboundOrderItem
         $product = $sku->getProduct();
 
         $this->skuCode = $sku->getSkuCode();
-        $this->colorCode = $sku->getColorCode();
         $this->sizeValue = $sku->getSizeValue();
         $this->specInfo = $sku->getSpecInfo();
         $this->productName = $product->getName();

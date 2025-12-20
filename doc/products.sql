@@ -11,7 +11,7 @@ CREATE TABLE `products` (
     `season` VARCHAR(20) NOT NULL COMMENT '季节: 2024SS, 2024AW, 2024FW',
     `color` VARCHAR(50) NULL COMMENT '颜色名',
     `description` TEXT NULL,
-    `status` VARCHAR(20) NOT NULL DEFAULT 'draft' COMMENT 'draft, active, inactive, discontinued',
+    `status` VARCHAR(20) NOT NULL DEFAULT 'draft' COMMENT 'draft, active, inactive',
     `is_active` TINYINT(1) NOT NULL DEFAULT 1,
     `created_at` DATETIME NOT NULL,
     `updated_at` DATETIME NOT NULL,

@@ -10,21 +10,12 @@ import {
   Button,
   Tag,
   Pagination,
-  Dropdown,
   App,
   Empty,
   Spin,
   Image,
 } from 'antd';
-import {
-  PlusOutlined,
-  FilterOutlined,
-  EllipsisOutlined,
-  EditOutlined,
-  EyeOutlined,
-  DeleteOutlined,
-  ShoppingOutlined,
-} from '@ant-design/icons';
+import { PlusOutlined, ShoppingOutlined } from '@ant-design/icons';
 import {
   productApi,
   type Product,
@@ -33,22 +24,21 @@ import {
 } from '@/lib/product-api';
 import { brandApi } from '@/lib/brand-api';
 import { categoryApi } from '@/lib/category-api';
+import { ProductCreateModal } from './components/product-create-modal';
 
 // Status color mapping
 const statusColors: Record<ProductStatus, string> = {
   draft: 'default',
   active: 'success',
   inactive: 'warning',
-  discontinued: 'error',
 };
 
 // Product Card Component
 interface ProductCardProps {
   product: Product;
-  onDelete: (product: Product) => void;
 }
 
-function ProductCard({ product, onDelete }: ProductCardProps) {
+function ProductCard({ product }: ProductCardProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
 
@@ -64,40 +54,16 @@ function ProductCard({ product, onDelete }: ProductCardProps) {
       draft: t('products.statusDraft'),
       active: t('products.statusActive'),
       inactive: t('products.statusInactive'),
-      discontinued: t('products.statusDiscontinued'),
     };
     return statusMap[product.status];
-  };
-
-  const menuItems = [
-    { key: 'view', icon: <EyeOutlined />, label: t('common.view') },
-    { key: 'edit', icon: <EditOutlined />, label: t('common.edit') },
-    { type: 'divider' as const },
-    { key: 'delete', icon: <DeleteOutlined />, label: t('common.delete'), danger: true },
-  ];
-
-  const handleMenuClick = ({ key }: { key: string }) => {
-    switch (key) {
-      case 'view':
-        navigate(`/products/${product.id}`);
-        break;
-      case 'edit':
-        navigate(`/products/${product.id}/edit`);
-        break;
-      case 'delete':
-        onDelete(product);
-        break;
-    }
   };
 
   return (
     <Card
       hoverable
+      onClick={() => navigate(`/products/${product.id}`)}
       cover={
-        <div
-          className="aspect-square bg-gray-100 flex items-center justify-center overflow-hidden cursor-pointer"
-          onClick={() => navigate(`/products/${product.id}`)}
-        >
+        <div className="aspect-square bg-gray-100 flex items-center justify-center overflow-hidden">
           {product.primaryImageUrl ? (
             <Image
               src={product.primaryImageUrl}
@@ -112,17 +78,6 @@ function ProductCard({ product, onDelete }: ProductCardProps) {
           )}
         </div>
       }
-      actions={[
-        <EyeOutlined key="view" onClick={() => navigate(`/products/${product.id}`)} />,
-        <EditOutlined key="edit" onClick={() => navigate(`/products/${product.id}/edit`)} />,
-        <Dropdown
-          key="more"
-          menu={{ items: menuItems, onClick: handleMenuClick }}
-          trigger={['click']}
-        >
-          <EllipsisOutlined />
-        </Dropdown>,
-      ]}
     >
       <Card.Meta
         title={
@@ -136,15 +91,21 @@ function ProductCard({ product, onDelete }: ProductCardProps) {
           </div>
         }
         description={
-          <div className="space-y-1">
-            <div className="text-xs text-gray-500">{product.styleNumber}</div>
+          <div className="space-y-2">
+            <div className="text-xs text-gray-500 font-mono">{product.styleNumber}</div>
             <div className="font-semibold text-base text-gray-900">{priceDisplay()}</div>
-            <div className="flex items-center justify-between text-xs text-gray-500">
-              <span>{product.brandName || '-'}</span>
-              <span>
-                {product.skuCount} {t('products.sku')}
-              </span>
-            </div>
+            {product.tags && product.tags.length > 0 && (
+              <div className="flex flex-wrap gap-1">
+                {product.tags.slice(0, 3).map((tag) => (
+                  <Tag key={tag.id} className="text-xs m-0">
+                    {tag.name}
+                  </Tag>
+                ))}
+                {product.tags.length > 3 && (
+                  <Tag className="text-xs m-0">+{product.tags.length - 3}</Tag>
+                )}
+              </div>
+            )}
           </div>
         }
       />
@@ -155,13 +116,13 @@ function ProductCard({ product, onDelete }: ProductCardProps) {
 // Main List Page
 export function ProductsListPage() {
   const { t } = useTranslation();
-  const navigate = useNavigate();
-  const { message, modal } = App.useApp();
+  const { message } = App.useApp();
 
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
   const [total, setTotal] = useState(0);
   const [params, setParams] = useState<ProductListParams>({ page: 1, limit: 12 });
+  const [createModalOpen, setCreateModalOpen] = useState(false);
 
   // Filter options
   const [brands, setBrands] = useState<Array<{ id: string; name: string }>>([]);
@@ -169,7 +130,6 @@ export function ProductsListPage() {
 
   // Search state
   const [searchValue, setSearchValue] = useState('');
-  const [showFilters, setShowFilters] = useState(false);
 
   const loadProducts = useCallback(async () => {
     setLoading(true);
@@ -198,23 +158,6 @@ export function ProductsListPage() {
     setParams((p) => ({ ...p, page: 1, search: searchValue || undefined }));
   };
 
-  const handleDelete = (product: Product) => {
-    modal.confirm({
-      title: t('products.confirmDelete'),
-      content: t('products.confirmDeleteDesc', { name: product.name }),
-      okButtonProps: { danger: true },
-      onOk: async () => {
-        try {
-          await productApi.deleteProduct(product.id);
-          message.success(t('products.deleted'));
-          loadProducts();
-        } catch {
-          message.error(t('common.error'));
-        }
-      },
-    });
-  };
-
   const handleFilterChange = (key: string, value: string | undefined) => {
     setParams((p) => ({ ...p, page: 1, [key]: value }));
   };
@@ -227,76 +170,59 @@ export function ProductsListPage() {
           <h1 className="text-xl font-semibold">{t('products.title')}</h1>
           <p className="text-gray-500">{t('products.description')}</p>
         </div>
-        <Button type="primary" icon={<PlusOutlined />} onClick={() => navigate('/products/new')}>
+        <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateModalOpen(true)}>
           {t('products.addProduct')}
         </Button>
       </div>
 
       {/* Search & Filters */}
       <Card>
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center gap-4">
           <Input.Search
             placeholder={t('products.searchPlaceholder')}
             value={searchValue}
             onChange={(e) => setSearchValue(e.target.value)}
             onSearch={handleSearch}
-            style={{ width: 300 }}
+            style={{ width: 240 }}
             allowClear
             onClear={() => setParams((p) => ({ ...p, page: 1, search: undefined }))}
           />
-          <Button
-            icon={<FilterOutlined />}
-            onClick={() => setShowFilters(!showFilters)}
-            type={showFilters ? 'primary' : 'default'}
-          >
-            {t('common.moreFilters')}
-          </Button>
-          <div className="flex-1" />
-          <span className="text-gray-500">
-            {t('common.showing', {
-              from: (params.page! - 1) * params.limit! + 1,
-              to: Math.min(params.page! * params.limit!, total),
-              total,
-            })}
-          </span>
+          <Select
+            placeholder={t('products.selectBrand')}
+            allowClear
+            options={brands.map((b) => ({ label: b.name, value: b.id }))}
+            onChange={(v) => handleFilterChange('brandId', v)}
+            value={params.brandId}
+            style={{ width: 160 }}
+          />
+          <Select
+            placeholder={t('products.selectCategory')}
+            allowClear
+            options={categories.map((c) => ({ label: c.name, value: c.id }))}
+            onChange={(v) => handleFilterChange('categoryId', v)}
+            value={params.categoryId}
+            style={{ width: 160 }}
+          />
+          <Select
+            placeholder={t('products.selectStatus')}
+            allowClear
+            options={[
+              { label: t('products.statusDraft'), value: 'draft' },
+              { label: t('products.statusActive'), value: 'active' },
+              { label: t('products.statusInactive'), value: 'inactive' },
+            ]}
+            onChange={(v) => handleFilterChange('status', v)}
+            value={params.status}
+            style={{ width: 140 }}
+          />
+          <Input
+            placeholder={t('products.season')}
+            onChange={(e) => handleFilterChange('season', e.target.value || undefined)}
+            value={params.season}
+            allowClear
+            style={{ width: 120 }}
+          />
         </div>
-
-        {showFilters && (
-          <div className="mt-4 grid grid-cols-4 gap-4">
-            <Select
-              placeholder={t('products.selectBrand')}
-              allowClear
-              options={brands.map((b) => ({ label: b.name, value: b.id }))}
-              onChange={(v) => handleFilterChange('brandId', v)}
-              value={params.brandId}
-            />
-            <Select
-              placeholder={t('products.selectCategory')}
-              allowClear
-              options={categories.map((c) => ({ label: c.name, value: c.id }))}
-              onChange={(v) => handleFilterChange('categoryId', v)}
-              value={params.categoryId}
-            />
-            <Select
-              placeholder={t('products.selectStatus')}
-              allowClear
-              options={[
-                { label: t('products.statusDraft'), value: 'draft' },
-                { label: t('products.statusActive'), value: 'active' },
-                { label: t('products.statusInactive'), value: 'inactive' },
-                { label: t('products.statusDiscontinued'), value: 'discontinued' },
-              ]}
-              onChange={(v) => handleFilterChange('status', v)}
-              value={params.status}
-            />
-            <Input
-              placeholder={t('products.season')}
-              onChange={(e) => handleFilterChange('season', e.target.value || undefined)}
-              value={params.season}
-              allowClear
-            />
-          </div>
-        )}
       </Card>
 
       {/* Product Grid */}
@@ -307,7 +233,7 @@ export function ProductsListPage() {
                 <Row gutter={[16, 16]}>
                   {products.map((product) => (
                     <Col key={product.id} xs={24} sm={12} md={8} lg={6} xl={4}>
-                      <ProductCard product={product} onDelete={handleDelete} />
+                      <ProductCard product={product} />
                     </Col>
                   ))}
                 </Row>
@@ -318,20 +244,26 @@ export function ProductsListPage() {
                     total={total}
                     showSizeChanger
                     pageSizeOptions={[12, 24, 48, 96]}
-                    showTotal={(total) => `${total} ${t('products.title').toLowerCase()}`}
+                    showTotal={(total) => t('products.totalCount', { count: total })}
                     onChange={(page, pageSize) => setParams((p) => ({ ...p, page, limit: pageSize }))}
                   />
                 </div>
               </>
             ) : (
               <Empty description={t('common.noData')}>
-                <Button type="primary" onClick={() => navigate('/products/new')}>
+                <Button type="primary" onClick={() => setCreateModalOpen(true)}>
                   {t('products.addProduct')}
                 </Button>
               </Empty>
             )}
         </Spin>
       </Card>
+
+      {/* Create Product Modal */}
+      <ProductCreateModal
+        open={createModalOpen}
+        onClose={() => setCreateModalOpen(false)}
+      />
     </div>
   );
 }
