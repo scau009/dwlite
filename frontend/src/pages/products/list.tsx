@@ -5,8 +5,6 @@ import {
   Card,
   Row,
   Col,
-  Input,
-  Select,
   Button,
   Tag,
   Pagination,
@@ -15,6 +13,7 @@ import {
   Spin,
   Image,
 } from 'antd';
+import { QueryFilter, ProFormText, ProFormSelect } from '@ant-design/pro-components';
 import { PlusOutlined, ShoppingOutlined } from '@ant-design/icons';
 import {
   productApi,
@@ -25,13 +24,6 @@ import {
 import { brandApi } from '@/lib/brand-api';
 import { categoryApi } from '@/lib/category-api';
 import { ProductCreateModal } from './components/product-create-modal';
-
-// Status color mapping
-const statusColors: Record<ProductStatus, string> = {
-  draft: 'default',
-  active: 'success',
-  inactive: 'warning',
-};
 
 // Product Card Component
 interface ProductCardProps {
@@ -58,12 +50,22 @@ function ProductCard({ product }: ProductCardProps) {
     return statusMap[product.status];
   };
 
+  // Status overlay styles (only for draft and inactive)
+  const statusOverlayColors: Record<string, string> = {
+    draft: 'bg-gray-800/50',
+    inactive: 'bg-amber-600/50',
+  };
+
+  const showStatusOverlay = product.status === 'draft' || product.status === 'inactive';
+
   return (
     <Card
       hoverable
-      onClick={() => navigate(`/products/${product.id}`)}
+      onClick={() => navigate(`/products/detail/${product.id}`)}
+      styles={{ body: { padding: 12 } }}
+      className="h-full flex flex-col [&>.ant-card-cover]:shrink-0 [&>.ant-card-body]:flex-1"
       cover={
-        <div className="aspect-square bg-gray-100 flex items-center justify-center overflow-hidden">
+        <div className="aspect-square bg-gray-100 overflow-hidden relative">
           {product.primaryImageUrl ? (
             <Image
               src={product.primaryImageUrl}
@@ -72,43 +74,44 @@ function ProductCard({ product }: ProductCardProps) {
               className="object-cover w-full h-full"
             />
           ) : (
-            <div className="text-gray-300 text-5xl">
+            <div className="w-full h-full flex items-center justify-center text-gray-300 text-5xl">
               <ShoppingOutlined />
+            </div>
+          )}
+          {/* Status overlay - only show for draft and inactive */}
+          {showStatusOverlay && (
+            <div className={`absolute bottom-0 left-0 right-0 px-2 py-1 text-white text-xs text-center ${statusOverlayColors[product.status]}`}>
+              {statusLabel()}
             </div>
           )}
         </div>
       }
     >
-      <Card.Meta
-        title={
-          <div className="flex items-start justify-between gap-2">
-            <span className="truncate flex-1" title={product.name}>
-              {product.name}
-            </span>
-            <Tag color={statusColors[product.status]} className="shrink-0">
-              {statusLabel()}
-            </Tag>
-          </div>
-        }
-        description={
-          <div className="space-y-2">
-            <div className="text-xs text-gray-500 font-mono">{product.styleNumber}</div>
-            <div className="font-semibold text-base text-gray-900">{priceDisplay()}</div>
-            {product.tags && product.tags.length > 0 && (
-              <div className="flex flex-wrap gap-1">
-                {product.tags.slice(0, 3).map((tag) => (
-                  <Tag key={tag.id} className="text-xs m-0">
-                    {tag.name}
-                  </Tag>
-                ))}
-                {product.tags.length > 3 && (
-                  <Tag className="text-xs m-0">+{product.tags.length - 3}</Tag>
-                )}
-              </div>
-            )}
-          </div>
-        }
-      />
+      <div className="flex flex-col h-full">
+        {/* Title - fixed height for 2 lines */}
+        <div className="font-medium text-sm leading-tight line-clamp-2 h-[2.5rem]" title={product.name}>
+          {product.name}
+        </div>
+        {/* Style number */}
+        <div className="text-xs text-gray-400 font-mono truncate mt-1">{product.styleNumber}</div>
+        {/* Price */}
+        <div className="font-semibold text-sm text-gray-900 mt-1">{priceDisplay()}</div>
+        {/* Tags - push to bottom */}
+        <div className="mt-auto pt-1.5">
+          {product.tags && product.tags.length > 0 && (
+            <div className="flex flex-wrap gap-1">
+              {product.tags.slice(0, 2).map((tag) => (
+                <Tag key={tag.id} className="text-xs leading-none" style={{ margin: 0, padding: '1px 4px' }}>
+                  {tag.name}
+                </Tag>
+              ))}
+              {product.tags.length > 2 && (
+                <Tag className="text-xs leading-none" style={{ margin: 0, padding: '1px 4px' }}>+{product.tags.length - 2}</Tag>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
     </Card>
   );
 }
@@ -127,9 +130,6 @@ export function ProductsListPage() {
   // Filter options
   const [brands, setBrands] = useState<Array<{ id: string; name: string }>>([]);
   const [categories, setCategories] = useState<Array<{ id: string; name: string }>>([]);
-
-  // Search state
-  const [searchValue, setSearchValue] = useState('');
 
   const loadProducts = useCallback(async () => {
     setLoading(true);
@@ -154,12 +154,20 @@ export function ProductsListPage() {
     categoryApi.getCategories({ limit: 100 }).then((r) => setCategories(r.data));
   }, []);
 
-  const handleSearch = () => {
-    setParams((p) => ({ ...p, page: 1, search: searchValue || undefined }));
+  const handleFilter = (values: Record<string, string | undefined>) => {
+    setParams({
+      page: 1,
+      limit: params.limit,
+      search: values.search || undefined,
+      brandId: values.brandId || undefined,
+      categoryId: values.categoryId || undefined,
+      status: values.status as ProductStatus | undefined,
+      season: values.season || undefined,
+    });
   };
 
-  const handleFilterChange = (key: string, value: string | undefined) => {
-    setParams((p) => ({ ...p, page: 1, [key]: value }));
+  const handleReset = () => {
+    setParams({ page: 1, limit: params.limit });
   };
 
   return (
@@ -176,53 +184,52 @@ export function ProductsListPage() {
       </div>
 
       {/* Search & Filters */}
-      <Card>
-        <div className="flex flex-wrap items-center gap-4">
-          <Input.Search
+      <Card >
+        <QueryFilter style={{padding:0}}
+          labelWidth="auto"
+          onFinish={handleFilter}
+          onReset={handleReset}
+          defaultCollapsed={false}
+          split
+        >
+          <ProFormText
+            name="search"
+            label={t('products.productName')}
             placeholder={t('products.searchPlaceholder')}
-            value={searchValue}
-            onChange={(e) => setSearchValue(e.target.value)}
-            onSearch={handleSearch}
-            style={{ width: 240 }}
-            allowClear
-            onClear={() => setParams((p) => ({ ...p, page: 1, search: undefined }))}
           />
-          <Select
+          <ProFormSelect
+            name="brandId"
+            label={t('products.brand')}
             placeholder={t('products.selectBrand')}
-            allowClear
             options={brands.map((b) => ({ label: b.name, value: b.id }))}
-            onChange={(v) => handleFilterChange('brandId', v)}
-            value={params.brandId}
-            style={{ width: 160 }}
+            showSearch
+            allowClear
           />
-          <Select
+          <ProFormSelect
+            name="categoryId"
+            label={t('products.category')}
             placeholder={t('products.selectCategory')}
-            allowClear
             options={categories.map((c) => ({ label: c.name, value: c.id }))}
-            onChange={(v) => handleFilterChange('categoryId', v)}
-            value={params.categoryId}
-            style={{ width: 160 }}
-          />
-          <Select
-            placeholder={t('products.selectStatus')}
+            showSearch
             allowClear
+          />
+          <ProFormSelect
+            name="status"
+            label={t('products.status')}
+            placeholder={t('products.selectStatus')}
             options={[
               { label: t('products.statusDraft'), value: 'draft' },
               { label: t('products.statusActive'), value: 'active' },
               { label: t('products.statusInactive'), value: 'inactive' },
             ]}
-            onChange={(v) => handleFilterChange('status', v)}
-            value={params.status}
-            style={{ width: 140 }}
-          />
-          <Input
-            placeholder={t('products.season')}
-            onChange={(e) => handleFilterChange('season', e.target.value || undefined)}
-            value={params.season}
             allowClear
-            style={{ width: 120 }}
           />
-        </div>
+          <ProFormText
+            name="season"
+            label={t('products.season')}
+            placeholder={t('products.season')}
+          />
+        </QueryFilter>
       </Card>
 
       {/* Product Grid */}

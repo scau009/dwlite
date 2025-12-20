@@ -113,8 +113,8 @@ export const router = createBrowserRouter([
               { path: '/dashboard', element: <DashboardPage /> },
 
               // Products
-              { path: '/products', element: <ProductsListPage /> },
-              { path: '/products/:id', element: <ProductDetailPage /> },
+              { path: '/products/list', element: <ProductsListPage /> },
+              { path: '/products/detail/:id', element: <ProductDetailPage /> },
               { path: '/products/categories', element: <CategoriesListPage /> },
               { path: '/products/brands', element: <BrandsListPage /> },
               { path: '/products/tags', element: <TagsListPage /> },

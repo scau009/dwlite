@@ -72,7 +72,7 @@ export function ProductDetailPage() {
         try {
           await productApi.deleteProduct(id!);
           message.success(t('products.deleted'));
-          navigate('/products');
+          navigate('/products/list');
         } catch {
           message.error(t('common.error'));
         }
@@ -102,7 +102,7 @@ export function ProductDetailPage() {
     return (
       <Card>
         <Empty description={t('common.noData')}>
-          <Button type="primary" onClick={() => navigate('/products')}>
+          <Button type="primary" onClick={() => navigate('/products/list')}>
             {t('common.back')}
           </Button>
         </Empty>
@@ -121,7 +121,7 @@ export function ProductDetailPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button icon={<ArrowLeftOutlined />} onClick={() => navigate('/products')}>
+          <Button icon={<ArrowLeftOutlined />} onClick={() => navigate('/products/list')}>
             {t('common.back')}
           </Button>
           <h1 className="text-xl font-semibold m-0">{product.name}</h1>

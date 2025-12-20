@@ -31,7 +31,7 @@ export function getMenuData(t: TFunction): AccessMenuDataItem[] {
       name: t('nav.products'),
       icon: <ShoppingOutlined />,
       children: [
-        { path: '/products', name: t('menu.productList') },
+        { path: '/products/list', name: t('menu.productList') },
         { path: '/products/categories', name: t('menu.productCategories'), access: 'admin' },
         { path: '/products/brands', name: t('menu.productBrands'), access: 'admin' },
         { path: '/products/tags', name: t('menu.productTags'), access: 'admin' },

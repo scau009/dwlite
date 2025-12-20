@@ -80,7 +80,7 @@ export function ProductCreateModal({ open, onClose }: ProductCreateModalProps) {
       message.success(t('products.created'));
       onClose();
       // Navigate to detail page to continue adding images and SKUs
-      navigate(`/products/${result.product.id}`);
+      navigate(`/products/detail/${result.product.id}`);
     } catch (error) {
       if (error && typeof error === 'object' && 'errorFields' in error) {
         return;
