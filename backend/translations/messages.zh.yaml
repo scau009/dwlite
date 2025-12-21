@@ -1,5 +1,12 @@
 # Chinese translations
 
+# Email subjects
+email:
+  verification:
+    subject: '验证您的邮箱地址'
+  password_reset:
+    subject: '重置您的密码'
+
 # Authentication messages
 auth:
   register:

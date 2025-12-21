@@ -1,5 +1,12 @@
 # English translations
 
+# Email subjects
+email:
+  verification:
+    subject: 'Verify your email address'
+  password_reset:
+    subject: 'Reset your password'
+
 # Authentication messages
 auth:
   register:

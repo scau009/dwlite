@@ -7,8 +7,7 @@ use App\Entity\PasswordResetToken;
 use App\Entity\User;
 use App\Repository\PasswordResetTokenRepository;
 use App\Repository\UserRepository;
-use Symfony\Component\Mailer\MailerInterface;
-use Symfony\Component\Mime\Email;
+use App\Service\Mail\MailServiceInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Environment;
@@ -19,7 +18,7 @@ class PasswordResetService
         private PasswordResetTokenRepository $tokenRepository,
         private UserRepository $userRepository,
         private UserPasswordHasherInterface $passwordHasher,
-        private MailerInterface $mailer,
+        private MailServiceInterface $mailService,
         private Environment $twig,
         private TranslatorInterface $translator,
         private string $appUrl = 'http://localhost:8000',
@@ -43,16 +42,17 @@ class PasswordResetService
         $this->tokenRepository->save($token, true);
 
         // Send email
-        $emailMessage = (new Email())
-            ->to($user->getEmail())
-            ->subject('Reset your password')
-            ->html($this->twig->render('emails/password_reset.html.twig', [
-                'user' => $user,
-                'token' => $token->getToken(),
-                'resetUrl' => $this->appUrl . '/reset-password?token=' . $token->getToken(),
-            ]));
+        $htmlContent = $this->twig->render('emails/password_reset.html.twig', [
+            'user' => $user,
+            'token' => $token->getToken(),
+            'resetUrl' => $this->appUrl . '/reset-password?token=' . $token->getToken(),
+        ]);
 
-        $this->mailer->send($emailMessage);
+        $this->mailService->send(
+            $user->getEmail(),
+            $this->translator->trans('email.password_reset.subject'),
+            $htmlContent
+        );
     }
 
     public function resetPassword(ResetPasswordRequest $request): User

@@ -48,3 +48,14 @@ services:
             $region: '%env(COS_REGION)%'
             $bucket: '%env(COS_BUCKET)%'
             $cdnDomain: '%env(COS_CDN_DOMAIN)%'
+
+    App\Service\Mail\TencentSesMailService:
+        arguments:
+            $secretId: '%env(SES_SECRET_ID)%'
+            $secretKey: '%env(SES_SECRET_KEY)%'
+            $region: '%env(SES_REGION)%'
+            $fromEmail: '%env(SES_FROM_EMAIL)%'
+            $fromName: '%env(SES_FROM_NAME)%'
+
+    App\Service\Mail\MailServiceInterface:
+        alias: App\Service\Mail\TencentSesMailService

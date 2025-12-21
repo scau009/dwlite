@@ -1,0 +1,95 @@
+<?php
+
+namespace App\Service\Mail;
+
+use Psr\Log\LoggerInterface;
+use TencentCloud\Common\Credential;
+use TencentCloud\Common\Exception\TencentCloudSDKException;
+use TencentCloud\Common\Profile\ClientProfile;
+use TencentCloud\Common\Profile\HttpProfile;
+use TencentCloud\Ses\V20201002\Models\SendEmailRequest;
+use TencentCloud\Ses\V20201002\SesClient;
+
+class TencentSesMailService implements MailServiceInterface
+{
+    private SesClient $client;
+
+    public function __construct(
+        private string $secretId,
+        private string $secretKey,
+        private string $region,
+        private string $fromEmail,
+        private string $fromName,
+        private LoggerInterface $logger,
+    ) {
+        $credential = new Credential($secretId, $secretKey);
+
+        $httpProfile = new HttpProfile();
+        $httpProfile->setEndpoint('ses.tencentcloudapi.com');
+
+        $clientProfile = new ClientProfile();
+        $clientProfile->setHttpProfile($httpProfile);
+
+        $this->client = new SesClient($credential, $region, $clientProfile);
+    }
+
+    public function send(
+        string $to,
+        string $subject,
+        string $htmlContent,
+        ?string $textContent = null,
+        ?string $fromEmail = null,
+        ?string $fromName = null,
+    ): void {
+        $senderEmail = $fromEmail ?? $this->fromEmail;
+        $senderName = $fromName ?? $this->fromName;
+
+        $request = new SendEmailRequest();
+
+        $request->setFromEmailAddress($this->formatEmailAddress($senderEmail, $senderName));
+        $request->setDestination([$to]);
+        $request->setSubject($subject);
+
+        $simple = [
+            'Html' => base64_encode($htmlContent),
+        ];
+
+        if ($textContent !== null) {
+            $simple['Text'] = base64_encode($textContent);
+        }
+
+        $request->setSimple($simple);
+
+        try {
+            $response = $this->client->SendEmail($request);
+
+            $this->logger->info('Email sent successfully via Tencent SES', [
+                'to' => $to,
+                'subject' => $subject,
+                'messageId' => $response->getMessageId(),
+            ]);
+        } catch (TencentCloudSDKException $e) {
+            $this->logger->error('Failed to send email via Tencent SES', [
+                'to' => $to,
+                'subject' => $subject,
+                'errorCode' => $e->getErrorCode(),
+                'errorMessage' => $e->getMessage(),
+            ]);
+
+            throw new \RuntimeException(
+                sprintf('Failed to send email: %s', $e->getMessage()),
+                (int) $e->getCode(),
+                $e
+            );
+        }
+    }
+
+    private function formatEmailAddress(string $email, string $name): string
+    {
+        if (empty($name)) {
+            return $email;
+        }
+
+        return sprintf('%s <%s>', $name, $email);
+    }
+}

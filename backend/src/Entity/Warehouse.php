@@ -48,11 +48,9 @@ class Warehouse
     #[ORM\Column(length: 20)]
     private string $type = self::TYPE_THIRD_PARTY;
 
-    // 仓库分类（所有权）
     #[ORM\Column(length: 20, options: ['default' => 'platform'])]
     private string $category = self::CATEGORY_PLATFORM;
 
-    // 关联商家（仅商家自有仓需要）
     #[ORM\ManyToOne(targetEntity: Merchant::class)]
     #[ORM\JoinColumn(name: 'merchant_id', nullable: true, onDelete: 'CASCADE')]
     private ?Merchant $merchant = null;
@@ -60,12 +58,12 @@ class Warehouse
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $description = null;
 
-    // 国家/地区信息（海外仓、保税仓必填）
+    // 国家/地区信息
     #[ORM\Column(length: 2, options: ['default' => 'CN'])]
-    private string $countryCode = 'CN';  // ISO 3166-1 alpha-2 国家代码
+    private string $countryCode = 'CN';
 
     #[ORM\Column(length: 50, nullable: true)]
-    private ?string $timezone = null;  // 仓库时区，如：Asia/Shanghai
+    private ?string $timezone = null;
 
     // 地址信息
     #[ORM\Column(length: 50, nullable: true)]
@@ -83,7 +81,6 @@ class Warehouse
     #[ORM\Column(length: 20, nullable: true)]
     private ?string $postalCode = null;
 
-    // 地理坐标（用于物流计算）
     #[ORM\Column(type: 'decimal', precision: 10, scale: 7, nullable: true)]
     private ?string $longitude = null;
 
@@ -92,94 +89,17 @@ class Warehouse
 
     // 联系方式
     #[ORM\Column(length: 50)]
-    private string $contactName;
+    private string $contactName = '';
 
     #[ORM\Column(length: 20)]
-    private string $contactPhone;
+    private string $contactPhone = '';
 
     #[ORM\Column(length: 100, nullable: true)]
     private ?string $contactEmail = null;
 
-    // 仓储能力
-    #[ORM\Column(type: 'decimal', precision: 12, scale: 2, nullable: true)]
-    private ?string $areaSquareMeters = null;  // 仓库面积（平方米）
-
-    #[ORM\Column(type: 'integer', nullable: true)]
-    private ?int $storageCapacity = null;  // 仓储容量（库位数/托盘位）
-
-    #[ORM\Column(type: 'json', nullable: true)]
-    private ?array $supportedCategories = null;  // 支持的货品类目，如：["electronics", "clothing", "food"]
-
-    #[ORM\Column(type: 'boolean', options: ['default' => false])]
-    private bool $supportsColdChain = false;  // 是否支持冷链
-
-    #[ORM\Column(type: 'boolean', options: ['default' => false])]
-    private bool $supportsDangerousGoods = false;  // 是否支持危险品
-
-    // 运营方信息
-    #[ORM\Column(length: 100, nullable: true)]
-    private ?string $operatorName = null;  // 运营方/合作方公司名称
-
-    #[ORM\Column(length: 100, nullable: true)]
-    private ?string $operatorContact = null;  // 运营方联系人
-
-    #[ORM\Column(length: 20, nullable: true)]
-    private ?string $operatorPhone = null;  // 运营方联系电话
-
-    // 运营时间规则
-    #[ORM\Column(type: 'json', nullable: true)]
-    private ?array $businessHours = null;  // 营业时间，如：{"mon-fri": "09:00-18:00", "sat": "09:00-12:00"}
-
-    #[ORM\Column(length: 10, nullable: true)]
-    private ?string $inboundCutoffTime = null;  // 入库截止时间，如：16:00
-
-    #[ORM\Column(length: 10, nullable: true)]
-    private ?string $outboundCutoffTime = null;  // 当日发货截止时间，如：14:00
-
-    // 物流配送能力
-    #[ORM\Column(type: 'json', nullable: true)]
-    private ?array $coverageAreas = null;  // 覆盖配送区域，如：["华东", "华南"] 或省份列表
-
-    #[ORM\Column(type: 'json', nullable: true)]
-    private ?array $supportedCarriers = null;  // 支持的物流公司，如：["SF", "JD", "ZTO"]
-
-    #[ORM\Column(type: 'integer', nullable: true)]
-    private ?int $defaultLeadTimeDays = null;  // 默认发货时效（天）
-
-    // 费率配置（平台与仓库的结算）
-    #[ORM\Column(type: 'json', nullable: true)]
-    private ?array $feeConfig = null;  // 费率配置，如：{"storage_per_day": 0.5, "inbound_per_piece": 1.0, "outbound_per_piece": 2.0}
-
-    #[ORM\Column(length: 20, nullable: true)]
-    private ?string $settlementCycle = null;  // 结算周期，如：monthly, bi-weekly
-
-    // 服务能力
-    #[ORM\Column(type: 'json', nullable: true)]
-    private ?array $services = null;  // 支持的服务，如：["storage", "packing", "labeling", "returns", "quality_check"]
-
-    // 合作信息
-    #[ORM\Column(type: 'date_immutable', nullable: true)]
-    private ?\DateTimeImmutable $contractStartDate = null;  // 合同开始日期
-
-    #[ORM\Column(type: 'date_immutable', nullable: true)]
-    private ?\DateTimeImmutable $contractEndDate = null;  // 合同结束日期
-
-    // API 对接配置
-    #[ORM\Column(length: 50, nullable: true)]
-    private ?string $apiProvider = null;  // API 提供商/对接类型，如：wms_standard, sf_wms, jd_wms
-
-    #[ORM\Column(type: 'json', nullable: true)]
-    private ?array $apiConfig = null;  // API 对接配置（加密存储）
-
-    #[ORM\Column(type: 'boolean', options: ['default' => false])]
-    private bool $apiEnabled = false;  // 是否启用 API 对接
-
-    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
-    private ?\DateTimeImmutable $lastSyncAt = null;  // 最后同步时间
-
     // 备注
     #[ORM\Column(type: 'text', nullable: true)]
-    private ?string $internalNotes = null;  // 内部备注
+    private ?string $internalNotes = null;
 
     #[ORM\Column(type: 'string', length: 20)]
     private string $status = self::STATUS_ACTIVE;
@@ -414,274 +334,6 @@ class Warehouse
         return $this;
     }
 
-    public function getAreaSquareMeters(): ?string
-    {
-        return $this->areaSquareMeters;
-    }
-
-    public function setAreaSquareMeters(?string $areaSquareMeters): static
-    {
-        $this->areaSquareMeters = $areaSquareMeters;
-        return $this;
-    }
-
-    public function getStorageCapacity(): ?int
-    {
-        return $this->storageCapacity;
-    }
-
-    public function setStorageCapacity(?int $storageCapacity): static
-    {
-        $this->storageCapacity = $storageCapacity;
-        return $this;
-    }
-
-    public function getSupportedCategories(): ?array
-    {
-        return $this->supportedCategories;
-    }
-
-    public function setSupportedCategories(?array $supportedCategories): static
-    {
-        $this->supportedCategories = $supportedCategories;
-        return $this;
-    }
-
-    public function isSupportsColdChain(): bool
-    {
-        return $this->supportsColdChain;
-    }
-
-    public function setSupportsColdChain(bool $supportsColdChain): static
-    {
-        $this->supportsColdChain = $supportsColdChain;
-        return $this;
-    }
-
-    public function isSupportsDangerousGoods(): bool
-    {
-        return $this->supportsDangerousGoods;
-    }
-
-    public function setSupportsDangerousGoods(bool $supportsDangerousGoods): static
-    {
-        $this->supportsDangerousGoods = $supportsDangerousGoods;
-        return $this;
-    }
-
-    public function getOperatorName(): ?string
-    {
-        return $this->operatorName;
-    }
-
-    public function setOperatorName(?string $operatorName): static
-    {
-        $this->operatorName = $operatorName;
-        return $this;
-    }
-
-    public function getOperatorContact(): ?string
-    {
-        return $this->operatorContact;
-    }
-
-    public function setOperatorContact(?string $operatorContact): static
-    {
-        $this->operatorContact = $operatorContact;
-        return $this;
-    }
-
-    public function getOperatorPhone(): ?string
-    {
-        return $this->operatorPhone;
-    }
-
-    public function setOperatorPhone(?string $operatorPhone): static
-    {
-        $this->operatorPhone = $operatorPhone;
-        return $this;
-    }
-
-    public function getBusinessHours(): ?array
-    {
-        return $this->businessHours;
-    }
-
-    public function setBusinessHours(?array $businessHours): static
-    {
-        $this->businessHours = $businessHours;
-        return $this;
-    }
-
-    public function getInboundCutoffTime(): ?string
-    {
-        return $this->inboundCutoffTime;
-    }
-
-    public function setInboundCutoffTime(?string $inboundCutoffTime): static
-    {
-        $this->inboundCutoffTime = $inboundCutoffTime;
-        return $this;
-    }
-
-    public function getOutboundCutoffTime(): ?string
-    {
-        return $this->outboundCutoffTime;
-    }
-
-    public function setOutboundCutoffTime(?string $outboundCutoffTime): static
-    {
-        $this->outboundCutoffTime = $outboundCutoffTime;
-        return $this;
-    }
-
-    public function getCoverageAreas(): ?array
-    {
-        return $this->coverageAreas;
-    }
-
-    public function setCoverageAreas(?array $coverageAreas): static
-    {
-        $this->coverageAreas = $coverageAreas;
-        return $this;
-    }
-
-    public function getSupportedCarriers(): ?array
-    {
-        return $this->supportedCarriers;
-    }
-
-    public function setSupportedCarriers(?array $supportedCarriers): static
-    {
-        $this->supportedCarriers = $supportedCarriers;
-        return $this;
-    }
-
-    public function getDefaultLeadTimeDays(): ?int
-    {
-        return $this->defaultLeadTimeDays;
-    }
-
-    public function setDefaultLeadTimeDays(?int $defaultLeadTimeDays): static
-    {
-        $this->defaultLeadTimeDays = $defaultLeadTimeDays;
-        return $this;
-    }
-
-    public function getFeeConfig(): ?array
-    {
-        return $this->feeConfig;
-    }
-
-    public function setFeeConfig(?array $feeConfig): static
-    {
-        $this->feeConfig = $feeConfig;
-        return $this;
-    }
-
-    public function getFeeConfigValue(string $key, mixed $default = null): mixed
-    {
-        return $this->feeConfig[$key] ?? $default;
-    }
-
-    public function getSettlementCycle(): ?string
-    {
-        return $this->settlementCycle;
-    }
-
-    public function setSettlementCycle(?string $settlementCycle): static
-    {
-        $this->settlementCycle = $settlementCycle;
-        return $this;
-    }
-
-    public function getServices(): ?array
-    {
-        return $this->services;
-    }
-
-    public function setServices(?array $services): static
-    {
-        $this->services = $services;
-        return $this;
-    }
-
-    public function hasService(string $service): bool
-    {
-        return $this->services && in_array($service, $this->services, true);
-    }
-
-    public function getContractStartDate(): ?\DateTimeImmutable
-    {
-        return $this->contractStartDate;
-    }
-
-    public function setContractStartDate(?\DateTimeImmutable $contractStartDate): static
-    {
-        $this->contractStartDate = $contractStartDate;
-        return $this;
-    }
-
-    public function getContractEndDate(): ?\DateTimeImmutable
-    {
-        return $this->contractEndDate;
-    }
-
-    public function setContractEndDate(?\DateTimeImmutable $contractEndDate): static
-    {
-        $this->contractEndDate = $contractEndDate;
-        return $this;
-    }
-
-    public function getApiProvider(): ?string
-    {
-        return $this->apiProvider;
-    }
-
-    public function setApiProvider(?string $apiProvider): static
-    {
-        $this->apiProvider = $apiProvider;
-        return $this;
-    }
-
-    public function getApiConfig(): ?array
-    {
-        return $this->apiConfig;
-    }
-
-    public function setApiConfig(?array $apiConfig): static
-    {
-        $this->apiConfig = $apiConfig;
-        return $this;
-    }
-
-    public function getApiConfigValue(string $key, mixed $default = null): mixed
-    {
-        return $this->apiConfig[$key] ?? $default;
-    }
-
-    public function isApiEnabled(): bool
-    {
-        return $this->apiEnabled;
-    }
-
-    public function setApiEnabled(bool $apiEnabled): static
-    {
-        $this->apiEnabled = $apiEnabled;
-        return $this;
-    }
-
-    public function getLastSyncAt(): ?\DateTimeImmutable
-    {
-        return $this->lastSyncAt;
-    }
-
-    public function setLastSyncAt(?\DateTimeImmutable $lastSyncAt): static
-    {
-        $this->lastSyncAt = $lastSyncAt;
-        return $this;
-    }
-
     public function getInternalNotes(): ?string
     {
         return $this->internalNotes;
@@ -748,11 +400,6 @@ class Warehouse
         return $this->status === self::STATUS_DISABLED;
     }
 
-    public function isAvailable(): bool
-    {
-        return $this->status === self::STATUS_ACTIVE;
-    }
-
     public function getFullAddress(): string
     {
         return ($this->province ?? '') . ($this->city ?? '') . ($this->district ?? '') . ($this->address ?? '');
@@ -778,50 +425,21 @@ class Warehouse
         return $this->type === self::TYPE_OVERSEAS;
     }
 
-    public function isContractValid(): bool
-    {
-        $now = new \DateTimeImmutable();
-
-        if ($this->contractStartDate && $this->contractStartDate > $now) {
-            return false;
-        }
-
-        if ($this->contractEndDate && $this->contractEndDate < $now) {
-            return false;
-        }
-
-        return true;
-    }
-
     public function isDomestic(): bool
     {
         return $this->countryCode === 'CN';
     }
 
-    public function supportsCarrier(string $carrier): bool
-    {
-        return $this->supportedCarriers && in_array($carrier, $this->supportedCarriers, true);
-    }
-
-    /**
-     * 是否为平台仓库（送仓模式）
-     */
     public function isPlatformWarehouse(): bool
     {
         return $this->category === self::CATEGORY_PLATFORM;
     }
 
-    /**
-     * 是否为商家自有仓库（不送仓模式）
-     */
     public function isMerchantWarehouse(): bool
     {
         return $this->category === self::CATEGORY_MERCHANT;
     }
 
-    /**
-     * 创建商家自有仓库的工厂方法
-     */
     public static function createMerchantWarehouse(Merchant $merchant, string $code, string $name): static
     {
         $warehouse = new static();
@@ -829,7 +447,7 @@ class Warehouse
         $warehouse->setMerchant($merchant);
         $warehouse->setCode($code);
         $warehouse->setName($name);
-        $warehouse->setType(self::TYPE_SELF);  // 商家自有仓默认为自营类型
+        $warehouse->setType(self::TYPE_SELF);
         return $warehouse;
     }
 }

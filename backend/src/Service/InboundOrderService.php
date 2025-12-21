@@ -10,6 +10,7 @@ use App\Dto\Inbound\ResolveInboundExceptionRequest;
 use App\Dto\Inbound\ShipInboundOrderRequest;
 use App\Dto\Inbound\UpdateInboundOrderItemRequest;
 use App\Entity\InboundException;
+use App\Entity\InboundExceptionItem;
 use App\Entity\InboundOrder;
 use App\Entity\InboundOrderItem;
 use App\Entity\InboundShipment;
@@ -324,9 +325,8 @@ class InboundOrderService
         InboundOrder $order,
         CreateInboundExceptionRequest $dto
     ): InboundException {
-        $exception = InboundException::createFromInboundItems(
+        $exception = InboundException::createForInboundOrder(
             $order,
-            $dto->items,
             $dto->type,
             $dto->description
         );
@@ -339,6 +339,38 @@ class InboundOrderService
             $exception->setReportedBy($dto->reportedBy);
         }
 
+        // 创建异常明细项
+        foreach ($dto->items as $itemData) {
+            $exceptionItem = new InboundExceptionItem();
+
+            // 尝试通过入库单明细 ID 查找
+            $orderItem = null;
+            if (!empty($itemData['order_item_id'])) {
+                $orderItem = $this->itemRepository->find($itemData['order_item_id']);
+                if ($orderItem !== null && $orderItem->getInboundOrder()->getId() === $order->getId()) {
+                    $exceptionItem->snapshotFromInboundOrderItem($orderItem);
+                } else {
+                    $orderItem = null;
+                }
+            }
+
+            // 如果没有通过入库单明细关联，使用传入的数据
+            if ($orderItem === null) {
+                $exceptionItem->setSkuName($itemData['sku_name'] ?? null);
+                $exceptionItem->setColorName($itemData['color_name'] ?? null);
+                $exceptionItem->setProductName($itemData['product_name'] ?? null);
+                $exceptionItem->setProductImage($itemData['product_image'] ?? null);
+            }
+
+            // 设置数量信息
+            $exceptionItem->setQuantity($itemData['quantity'] ?? 0);
+
+            $exception->addItem($exceptionItem);
+        }
+
+        // 重新计算汇总
+        $exception->recalculateTotals();
+
         $this->entityManager->persist($exception);
         $this->entityManager->flush();
 
@@ -347,6 +379,7 @@ class InboundOrderService
             'exception_no' => $exception->getExceptionNo(),
             'order_id' => $order->getId(),
             'type' => $dto->type,
+            'items_count' => count($dto->items),
         ]);
 
         return $exception;

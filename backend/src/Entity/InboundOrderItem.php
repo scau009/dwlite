@@ -37,22 +37,16 @@ class InboundOrderItem
     private ?ProductSku $productSku = null;
 
     // SKU 快照字段（保留送仓时的商品信息）
-    #[ORM\Column(length: 50, nullable: true, name: 'sku_code')]
-    private ?string $skuCode = null;
+    #[ORM\Column(name: 'sku_name', length: 255, nullable: true)]
+    private ?string $skuName = null;
 
-    #[ORM\Column(length: 20, nullable: true, name: 'color_code')]
-    private ?string $colorCode = null;
+    #[ORM\Column(name: 'color_name', length: 255, nullable: true)]
+    private ?string $colorName = null;
 
-    #[ORM\Column(length: 20, nullable: true, name: 'size_value')]
-    private ?string $sizeValue = null;
-
-    #[ORM\Column(type: 'json', nullable: true, name: 'spec_info')]
-    private ?array $specInfo = null;
-
-    #[ORM\Column(length: 255, nullable: true, name: 'product_name')]
+    #[ORM\Column(name: 'product_name', length: 255, nullable: true)]
     private ?string $productName = null;
 
-    #[ORM\Column(length: 500, nullable: true, name: 'product_image')]
+    #[ORM\Column(name: 'product_image', length: 500, nullable: true)]
     private ?string $productImage = null;
 
     // 数量信息
@@ -121,47 +115,25 @@ class InboundOrderItem
 
     // SKU 快照字段 getter/setter
 
-    public function getSkuCode(): ?string
+    public function getSkuName(): ?string
     {
-        return $this->skuCode;
+        return $this->skuName;
     }
 
-    public function setSkuCode(?string $skuCode): static
+    public function setSkuName(?string $skuName): static
     {
-        $this->skuCode = $skuCode;
+        $this->skuName = $skuName;
         return $this;
     }
 
-    public function getColorCode(): ?string
+    public function getColorName(): ?string
     {
-        return $this->colorCode;
+        return $this->colorName;
     }
 
-    public function setColorCode(?string $colorCode): static
+    public function setColorName(?string $colorName): static
     {
-        $this->colorCode = $colorCode;
-        return $this;
-    }
-
-    public function getSizeValue(): ?string
-    {
-        return $this->sizeValue;
-    }
-
-    public function setSizeValue(?string $sizeValue): static
-    {
-        $this->sizeValue = $sizeValue;
-        return $this;
-    }
-
-    public function getSpecInfo(): ?array
-    {
-        return $this->specInfo;
-    }
-
-    public function setSpecInfo(?array $specInfo): static
-    {
-        $this->specInfo = $specInfo;
+        $this->colorName = $colorName;
         return $this;
     }
 
@@ -194,9 +166,8 @@ class InboundOrderItem
     {
         $product = $sku->getProduct();
 
-        $this->skuCode = $sku->getSkuCode();
-        $this->sizeValue = $sku->getSizeValue();
-        $this->specInfo = $sku->getSpecInfo();
+        $this->skuName = $sku->getSkuName();
+        $this->colorName = $product->getColor();
         $this->productName = $product->getName();
 
         $primaryImage = $product->getPrimaryImage();

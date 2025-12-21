@@ -11,7 +11,9 @@ use App\Dto\Inbound\ResolveInboundExceptionRequest;
 use App\Dto\Inbound\ShipInboundOrderRequest;
 use App\Dto\Inbound\UpdateInboundOrderItemRequest;
 use App\Entity\User;
+use App\Entity\Warehouse;
 use App\Repository\MerchantRepository;
+use App\Repository\WarehouseRepository;
 use App\Service\InboundOrderService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -31,6 +33,7 @@ class InboundOrderController extends AbstractController
     public function __construct(
         private InboundOrderService $inboundOrderService,
         private MerchantRepository $merchantRepository,
+        private WarehouseRepository $warehouseRepository,
         private TranslatorInterface $translator,
     ) {
     }
@@ -45,6 +48,28 @@ class InboundOrderController extends AbstractController
             throw $this->createAccessDeniedException('Merchant not found');
         }
         return $merchant;
+    }
+
+    /**
+     * 获取可用仓库列表（平台仓库）
+     */
+    #[Route('/warehouses', name: 'inbound_list_warehouses', methods: ['GET'])]
+    public function listWarehouses(): JsonResponse
+    {
+        $warehouses = $this->warehouseRepository->findActivePlatformWarehouses();
+
+        return $this->json([
+            'data' => array_map(fn(Warehouse $w) => [
+                'id' => $w->getId(),
+                'code' => $w->getCode(),
+                'name' => $w->getName(),
+                'shortName' => $w->getShortName(),
+                'type' => $w->getType(),
+                'fullAddress' => $w->getFullAddress(),
+                'city' => $w->getCity(),
+                'province' => $w->getProvince(),
+            ], $warehouses),
+        ]);
     }
 
     /**
@@ -432,8 +457,8 @@ class InboundOrderController extends AbstractController
             'id' => $item->getId(),
             'productSku' => [
                 'id' => $item->getProductSku()?->getId(),
-                'skuCode' => $item->getSkuCode(),
-                'sizeValue' => $item->getSizeValue(),
+                'skuName' => $item->getSkuName(),
+                'colorName' => $item->getColorName(),
             ],
             'productName' => $item->getProductName(),
             'productImage' => $item->getProductImage(),
@@ -480,16 +505,29 @@ class InboundOrderController extends AbstractController
             'type' => $exception->getType(),
             'typeLabel' => $exception->getTypeLabel(),
             'status' => $exception->getStatus(),
-            'items' => $exception->getItems(),
-            'totalExpectedQuantity' => $exception->getTotalExpectedQuantity(),
-            'totalActualQuantity' => $exception->getTotalActualQuantity(),
-            'differenceQuantity' => $exception->getDifferenceQuantity(),
+            'items' => array_map([$this, 'serializeExceptionItem'], $exception->getItems()->toArray()),
+            'totalQuantity' => $exception->getTotalQuantity(),
             'description' => $exception->getDescription(),
             'evidenceImages' => $exception->getEvidenceImages(),
             'resolution' => $exception->getResolution(),
             'resolutionNotes' => $exception->getResolutionNotes(),
             'resolvedAt' => $exception->getResolvedAt()?->format('Y-m-d H:i:s'),
             'createdAt' => $exception->getCreatedAt()->format('Y-m-d H:i:s'),
+        ];
+    }
+
+    /**
+     * 序列化异常单明细
+     */
+    private function serializeExceptionItem($item): array
+    {
+        return [
+            'id' => $item->getId(),
+            'skuName' => $item->getSkuName(),
+            'colorName' => $item->getColorName(),
+            'productName' => $item->getProductName(),
+            'productImage' => $item->getProductImage(),
+            'quantity' => $item->getQuantity(),
         ];
     }
 }

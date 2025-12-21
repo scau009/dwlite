@@ -26,6 +26,15 @@ import { MerchantsListPage } from '@/pages/merchants';
 import { BrandsListPage } from '@/pages/brands';
 import { CategoriesListPage } from '@/pages/categories';
 import { TagsListPage } from '@/pages/tags';
+import {
+  InboundOrdersListPage,
+  InboundOrderDetailPage,
+  InboundShipmentsListPage,
+  InboundShipmentDetailPage,
+  InboundExceptionsListPage,
+  InboundExceptionDetailPage,
+} from '@/pages/inventory';
+import { WarehousesListPage } from '@/pages/warehouses';
 
 // Placeholder component for pages not yet implemented
 function PlaceholderPage({ title }: { title: string }) {
@@ -136,8 +145,19 @@ export const router = createBrowserRouter([
               { path: '/fulfillment/shipped', element: <PlaceholderPage title="Shipped" /> },
               { path: '/fulfillment/exceptions', element: <PlaceholderPage title="Fulfillment Exceptions" /> },
 
+              // Inventory
+              { path: '/inventory/inbound', element: <InboundOrdersListPage /> },
+              { path: '/inventory/inbound/detail/:id', element: <InboundOrderDetailPage /> },
+              { path: '/inventory/shipments', element: <InboundShipmentsListPage /> },
+              { path: '/inventory/shipments/detail/:id', element: <InboundShipmentDetailPage /> },
+              { path: '/inventory/exceptions', element: <InboundExceptionsListPage /> },
+              { path: '/inventory/exceptions/detail/:id', element: <InboundExceptionDetailPage /> },
+
               // Merchants
               { path: '/merchants', element: <MerchantsListPage /> },
+
+              // Warehouses
+              { path: '/warehouses', element: <WarehousesListPage /> },
 
               // Data Center
               { path: '/data', element: <PlaceholderPage title="Data Overview" /> },

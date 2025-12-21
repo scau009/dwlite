@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "7bcda683955935c24325d1b0811680f4",
+    "content-hash": "87f701741d34012bb3325376fa43b909",
     "packages": [
         {
             "name": "doctrine/collections",
@@ -8022,6 +8022,93 @@
             "time": "2025-12-02T11:50:18+00:00"
         },
         {
+            "name": "tencentcloud/common",
+            "version": "3.0.1419",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/tencentcloud-sdk-php/common.git",
+                "reference": "91721c51d8cca761a307c8a4061b329dbd98309e"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/tencentcloud-sdk-php/common/zipball/91721c51d8cca761a307c8a4061b329dbd98309e",
+                "reference": "91721c51d8cca761a307c8a4061b329dbd98309e",
+                "shasum": ""
+            },
+            "require": {
+                "guzzlehttp/guzzle": "^6.3||^7.0",
+                "php": ">=5.6.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "TencentCloud\\": "./src/TencentCloud"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "Apache-2.0"
+            ],
+            "authors": [
+                {
+                    "name": "tencentcloudapi",
+                    "email": "tencentcloudapi@tencent.com",
+                    "homepage": "https://cloud.tencent.com/document/sdk/PHP",
+                    "role": "Developer"
+                }
+            ],
+            "description": "TencentCloudApi php sdk",
+            "homepage": "https://github.com/tencentcloud-sdk-php/common",
+            "support": {
+                "issues": "https://github.com/tencentcloud-sdk-php/common/issues",
+                "source": "https://github.com/tencentcloud-sdk-php/common/tree/3.0.1419"
+            },
+            "time": "2025-07-11T04:11:21+00:00"
+        },
+        {
+            "name": "tencentcloud/ses",
+            "version": "3.0.1419",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/tencentcloud-sdk-php/ses.git",
+                "reference": "15f5ae653a933b109a68479121997709fbb4d8bf"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/tencentcloud-sdk-php/ses/zipball/15f5ae653a933b109a68479121997709fbb4d8bf",
+                "reference": "15f5ae653a933b109a68479121997709fbb4d8bf",
+                "shasum": ""
+            },
+            "require": {
+                "tencentcloud/common": "3.0.1419"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "TencentCloud\\": "./src/TencentCloud"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "Apache-2.0"
+            ],
+            "authors": [
+                {
+                    "name": "tencentcloudapi",
+                    "email": "tencentcloudapi@tencent.com",
+                    "homepage": "https://github.com/tencentcloud-sdk-php/ses",
+                    "role": "Developer"
+                }
+            ],
+            "description": "TencentCloudApi php sdk ses",
+            "homepage": "https://github.com/tencentcloud-sdk-php/ses",
+            "support": {
+                "issues": "https://github.com/tencentcloud-sdk-php/ses/issues",
+                "source": "https://github.com/tencentcloud-sdk-php/ses/tree/3.0.1419"
+            },
+            "time": "2025-07-11T04:13:27+00:00"
+        },
+        {
             "name": "twig/twig",
             "version": "v3.22.1",
             "source": {
@@ -8384,7 +8471,7 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": [],
+    "stability-flags": {},
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
@@ -8393,6 +8480,6 @@
         "ext-ctype": "*",
         "ext-iconv": "*"
     },
-    "platform-dev": [],
+    "platform-dev": {},
     "plugin-api-version": "2.9.0"
 }

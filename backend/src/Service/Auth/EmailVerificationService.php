@@ -6,8 +6,7 @@ use App\Entity\EmailVerificationToken;
 use App\Entity\User;
 use App\Repository\EmailVerificationTokenRepository;
 use App\Repository\UserRepository;
-use Symfony\Component\Mailer\MailerInterface;
-use Symfony\Component\Mime\Email;
+use App\Service\Mail\MailServiceInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Environment;
 
@@ -16,7 +15,7 @@ class EmailVerificationService
     public function __construct(
         private EmailVerificationTokenRepository $tokenRepository,
         private UserRepository $userRepository,
-        private MailerInterface $mailer,
+        private MailServiceInterface $mailService,
         private Environment $twig,
         private TranslatorInterface $translator,
         private string $frontendUrl = 'http://localhost:5173',
@@ -33,16 +32,17 @@ class EmailVerificationService
         $this->tokenRepository->save($token, true);
 
         // Send email
-        $email = (new Email())
-            ->to($user->getEmail())
-            ->subject('Verify your email address')
-            ->html($this->twig->render('emails/verification.html.twig', [
-                'user' => $user,
-                'token' => $token->getToken(),
-                'verifyUrl' => $this->frontendUrl . '/verify-email?token=' . $token->getToken(),
-            ]));
+        $htmlContent = $this->twig->render('emails/verification.html.twig', [
+            'user' => $user,
+            'token' => $token->getToken(),
+            'verifyUrl' => $this->frontendUrl . '/verify-email?token=' . $token->getToken(),
+        ]);
 
-        $this->mailer->send($email);
+        $this->mailService->send(
+            $user->getEmail(),
+            $this->translator->trans('email.verification.subject'),
+            $htmlContent
+        );
     }
 
     public function verifyEmail(string $token): User

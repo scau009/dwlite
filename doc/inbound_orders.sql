@@ -3,29 +3,41 @@
 
 CREATE TABLE `inbound_orders` (
     `id` VARCHAR(26) NOT NULL PRIMARY KEY COMMENT 'ULID',
-    `orderNo` VARCHAR(32) NOT NULL UNIQUE COMMENT 'Inbound order number (IB...)',
+    `order_no` VARCHAR(32) NOT NULL UNIQUE COMMENT 'Inbound order number (IB...)',
     `merchant_id` VARCHAR(26) NOT NULL,
     `warehouse_id` VARCHAR(26) NOT NULL,
     `status` VARCHAR(20) NOT NULL DEFAULT 'draft' COMMENT 'draft, pending, shipped, arrived, receiving, completed, partial_completed, cancelled',
-    `totalSkuCount` INT NOT NULL DEFAULT 0,
-    `totalQuantity` INT NOT NULL DEFAULT 0 COMMENT 'Expected total',
-    `receivedQuantity` INT NOT NULL DEFAULT 0 COMMENT 'Received total',
-    `expectedArrivalDate` DATE NULL,
-    `submittedAt` DATETIME NULL,
-    `shippedAt` DATETIME NULL,
-    `arrivedAt` DATETIME NULL,
-    `completedAt` DATETIME NULL,
-    `cancelledAt` DATETIME NULL,
-    `merchantNotes` TEXT NULL,
-    `warehouseNotes` TEXT NULL,
-    `cancelReason` VARCHAR(100) NULL,
-    `createdAt` DATETIME NOT NULL,
-    `updatedAt` DATETIME NOT NULL,
-    INDEX `idx_inbound_order_no` (`orderNo`),
+
+    -- Quantity stats
+    `total_sku_count` INT NOT NULL DEFAULT 0 COMMENT 'Number of SKU types',
+    `total_quantity` INT NOT NULL DEFAULT 0 COMMENT 'Expected total quantity',
+    `received_quantity` INT NOT NULL DEFAULT 0 COMMENT 'Received total quantity',
+
+    -- Time milestones
+    `expected_arrival_date` DATE NULL COMMENT 'Expected arrival date',
+    `submitted_at` DATETIME NULL COMMENT 'Submitted time (draft -> pending)',
+    `shipped_at` DATETIME NULL COMMENT 'Shipped time',
+    `arrived_at` DATETIME NULL COMMENT 'Arrived at warehouse time',
+    `completed_at` DATETIME NULL COMMENT 'Completed time',
+    `cancelled_at` DATETIME NULL COMMENT 'Cancelled time',
+
+    -- Notes
+    `merchant_notes` TEXT NULL COMMENT 'Merchant notes',
+    `warehouse_notes` TEXT NULL COMMENT 'Warehouse notes',
+    `cancel_reason` VARCHAR(100) NULL COMMENT 'Cancel reason',
+
+    -- Timestamps
+    `created_at` DATETIME NOT NULL,
+    `updated_at` DATETIME NOT NULL,
+
+    -- Indexes
+    INDEX `idx_inbound_order_no` (`order_no`),
     INDEX `idx_inbound_merchant` (`merchant_id`),
     INDEX `idx_inbound_warehouse` (`warehouse_id`),
     INDEX `idx_inbound_status` (`status`),
-    INDEX `idx_inbound_created` (`createdAt`),
+    INDEX `idx_inbound_created` (`created_at`),
+
+    -- Foreign Keys
     CONSTRAINT `fk_inbound_merchant` FOREIGN KEY (`merchant_id`) REFERENCES `merchants` (`id`),
     CONSTRAINT `fk_inbound_warehouse` FOREIGN KEY (`warehouse_id`) REFERENCES `warehouses` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Inbound orders';

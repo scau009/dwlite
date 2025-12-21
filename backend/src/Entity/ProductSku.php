@@ -28,9 +28,6 @@ class ProductSku
     #[ORM\Column(name: 'size_value', length: 20, nullable: true)]
     private ?string $sizeValue = null;  // 尺码值，如：S、M、L、38、39、40
 
-    #[ORM\Column(name: 'spec_info', type: 'json', nullable: true)]
-    private ?array $specInfo = null;  // 规格摘要，如：{"颜色": "红色", "尺码": "S"}
-
     #[ORM\Column(type: 'decimal', precision: 10, scale: 2)]
     private string $price;  // 参考价
 
@@ -91,17 +88,6 @@ class ProductSku
     public function setSizeValue(?string $sizeValue): static
     {
         $this->sizeValue = $sizeValue;
-        return $this;
-    }
-
-    public function getSpecInfo(): ?array
-    {
-        return $this->specInfo;
-    }
-
-    public function setSpecInfo(?array $specInfo): static
-    {
-        $this->specInfo = $specInfo;
         return $this;
     }
 
@@ -168,7 +154,7 @@ class ProductSku
     /**
      * 获取规格描述
      */
-    public function getSpecDescription(): string
+    public function getSkuName(): string
     {
         $parts = [];
         if ($this->sizeUnit) {

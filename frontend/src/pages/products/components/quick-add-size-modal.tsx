@@ -40,7 +40,7 @@ export function QuickAddSizeModal({
       setLoading(true);
 
       const result = await productApi.batchCreateSkus(productId, {
-        sizeUnit: values.sizeUnit,
+        sizeUnit: values.sizeUnit as 'EU' | 'US' | 'UK',
         price: String(values.price),
         originalPrice: values.originalPrice ? String(values.originalPrice) : undefined,
       });
