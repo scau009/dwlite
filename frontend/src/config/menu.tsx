@@ -9,6 +9,7 @@ import {
   BarChartOutlined,
   SettingOutlined,
   TeamOutlined,
+  HomeOutlined,
 } from '@ant-design/icons';
 import type { TFunction } from 'i18next';
 import type { AccountType } from '@/types/auth';
@@ -30,6 +31,7 @@ export function getMenuData(t: TFunction): AccessMenuDataItem[] {
       path: '/products',
       name: t('nav.products'),
       icon: <ShoppingOutlined />,
+      access: 'admin',
       children: [
         { path: '/products/list', name: t('menu.productList') },
         { path: '/products/categories', name: t('menu.productCategories'), access: 'admin' },
@@ -70,12 +72,32 @@ export function getMenuData(t: TFunction): AccessMenuDataItem[] {
       ],
     },
     {
+      path: '/inventory',
+      name: t('nav.inventory'),
+      icon: <InboxOutlined />,
+      access: 'merchant',
+      children: [
+        { path: '/inventory/inbound', name: t('menu.inboundOrders'), access: 'merchant' },
+        { path: '/inventory/shipments', name: t('menu.inboundShipments'), access: 'merchant' },
+        { path: '/inventory/exceptions', name: t('menu.inboundExceptions'), access: 'merchant' },
+      ],
+    },
+    {
       path: '/merchants',
       name: t('nav.merchants'),
       icon: <TeamOutlined />,
       access: 'admin',
       children: [
         { path: '/merchants', name: t('menu.merchantList') },
+      ],
+    },
+    {
+      path: '/warehouses',
+      name: t('nav.warehouses'),
+      icon: <HomeOutlined />,
+      access: 'admin',
+      children: [
+        { path: '/warehouses', name: t('menu.warehouseList') },
       ],
     },
     {
