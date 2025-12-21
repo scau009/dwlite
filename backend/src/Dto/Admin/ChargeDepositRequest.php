@@ -6,12 +6,9 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 class ChargeDepositRequest
 {
-    #[Assert\NotBlank(message: 'validation.amount_required')]
-    #[Assert\Regex(
-        pattern: '/^-?\d+(\.\d{1,2})?$/',
-        message: 'validation.amount_format'
-    )]
-    public string $amount = '';
+    #[Assert\NotNull(message: 'validation.amount_required')]
+    #[Assert\Positive(message: 'validation.amount_positive')]
+    public float $amount = 0.00;
 
     public ?string $remark = null;
 }

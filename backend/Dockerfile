@@ -12,9 +12,12 @@ COPY . .
 RUN composer dump-autoload --optimize
 
 COPY Caddyfile /etc/caddy/Caddyfile
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 
-RUN chown -R www-data:www-data /app/var
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh && \
+    chown -R www-data:www-data /app/var
 
 EXPOSE 8000
 
+ENTRYPOINT ["docker-entrypoint.sh"]
 CMD ["frankenphp", "run", "--config", "/etc/caddy/Caddyfile"]

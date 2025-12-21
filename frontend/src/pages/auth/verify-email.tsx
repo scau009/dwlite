@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { Card, Result, Spin } from 'antd';
@@ -15,6 +15,7 @@ export function VerifyEmailPage() {
 
   const [status, setStatus] = useState<VerifyStatus>('loading');
   const [message, setMessage] = useState('');
+  const verifyAttempted = useRef(false);
 
   useEffect(() => {
     if (!token) {
@@ -22,6 +23,12 @@ export function VerifyEmailPage() {
       setMessage('Invalid verification link. No token provided.');
       return;
     }
+
+    // Prevent duplicate requests in React 18 StrictMode
+    if (verifyAttempted.current) {
+      return;
+    }
+    verifyAttempted.current = true;
 
     const verifyEmail = async () => {
       try {

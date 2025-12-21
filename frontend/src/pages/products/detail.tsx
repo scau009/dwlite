@@ -1,254 +1,248 @@
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { ProDescriptions } from '@ant-design/pro-components';
-import { Card, Button, Tabs, Tag, Space, Table, Statistic, Row, Col, App } from 'antd';
-import { ArrowLeftOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import {
+  Card,
+  Button,
+  Tag,
+  Space,
+  App,
+  Select,
+  Spin,
+  Empty,
+  Descriptions,
+} from 'antd';
+import {
+  ArrowLeftOutlined,
+  EditOutlined,
+  DeleteOutlined,
+  PlusOutlined,
+  ThunderboltOutlined,
+} from '@ant-design/icons';
+import {
+  productApi,
+  type ProductDetail,
+  type ProductStatus,
+} from '@/lib/product-api';
+import { ProductImages } from './components/product-images';
+import { ProductSkus, type ProductSkusRef } from './components/product-skus';
+import { ProductBasicInfoModal } from './components/product-basic-info-modal';
 
-// Mock product data
-const mockProduct = {
-  id: '1',
-  name: 'Premium Sneakers',
-  sku: 'SKU-001',
-  category: 'Footwear',
-  price: 299,
-  originalPrice: 399,
-  stock: 150,
-  status: 'on_sale' as const,
-  description: 'High-quality premium sneakers with exceptional comfort and style.',
-  brand: 'Nike',
-  weight: '0.8kg',
-  dimensions: '30 x 20 x 12 cm',
-  createdAt: '2024-01-01 10:00:00',
-  updatedAt: '2024-01-15 10:30:00',
+// Status color mapping
+const statusColors: Record<ProductStatus, string> = {
+  draft: 'default',
+  active: 'success',
+  inactive: 'warning',
 };
 
-// Mock inventory logs
-const inventoryLogs = [
-  { id: '1', type: 'in', quantity: 100, operator: 'Admin', time: '2024-01-15 09:00', remark: 'Initial stock' },
-  { id: '2', type: 'out', quantity: 20, operator: 'System', time: '2024-01-14 15:30', remark: 'Order fulfillment' },
-  { id: '3', type: 'in', quantity: 50, operator: 'Admin', time: '2024-01-13 10:00', remark: 'Restocking' },
-  { id: '4', type: 'out', quantity: 30, operator: 'System', time: '2024-01-12 14:20', remark: 'Order fulfillment' },
-];
-
-// Mock price history
-const priceHistory = [
-  { id: '1', oldPrice: 399, newPrice: 299, operator: 'Admin', time: '2024-01-10 10:00', remark: 'Promotion' },
-  { id: '2', oldPrice: 349, newPrice: 399, operator: 'Admin', time: '2024-01-01 09:00', remark: 'New season pricing' },
-];
-
-// Mock operation logs
-const operationLogs = [
-  { id: '1', action: 'Update', field: 'stock', oldValue: '100', newValue: '150', operator: 'Admin', time: '2024-01-15 10:30' },
-  { id: '2', action: 'Update', field: 'price', oldValue: '399', newValue: '299', operator: 'Admin', time: '2024-01-10 10:00' },
-  { id: '3', action: 'Update', field: 'status', oldValue: 'off_sale', newValue: 'on_sale', operator: 'Admin', time: '2024-01-05 14:00' },
-];
-
 export function ProductDetailPage() {
-  const { id } = useParams();
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { t } = useTranslation();
   const { modal, message } = App.useApp();
-  const product = mockProduct;
+
+  const [product, setProduct] = useState<ProductDetail | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const skusRef = useRef<ProductSkusRef>(null);
+
+  const loadProduct = async () => {
+    if (!id) return;
+    setLoading(true);
+    try {
+      const data = await productApi.getProduct(id);
+      setProduct(data);
+    } catch {
+      message.error(t('common.error'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadProduct();
+  }, [id]);
 
   const handleDelete = () => {
     modal.confirm({
-      title: t('confirm.deleteTitle'),
-      content: t('confirm.deleteMessage'),
+      title: t('products.confirmDelete'),
+      content: t('products.confirmDeleteDesc', { name: product?.name }),
       okButtonProps: { danger: true },
-      onOk: () => {
-        console.log('Delete product:', id);
-        message.success(t('common.success'));
-        navigate('/products');
+      onOk: async () => {
+        try {
+          await productApi.deleteProduct(id!);
+          message.success(t('products.deleted'));
+          navigate('/products/list');
+        } catch {
+          message.error(t('common.error'));
+        }
       },
     });
   };
 
-  const tabItems = [
-    {
-      key: 'basic',
-      label: t('detail.basicInfo'),
-      children: (
-        <ProDescriptions
-          column={2}
-          dataSource={product}
-          columns={[
-            { title: t('products.productName'), dataIndex: 'name' },
-            { title: t('products.sku'), dataIndex: 'sku' },
-            { title: t('products.category'), dataIndex: 'category' },
-            { title: t('detail.brand'), dataIndex: 'brand' },
-            { title: t('detail.weight'), dataIndex: 'weight' },
-            { title: t('detail.dimensions'), dataIndex: 'dimensions' },
-            { title: t('detail.description'), dataIndex: 'description', span: 2 },
-            { title: t('common.createdAt'), dataIndex: 'createdAt' },
-            { title: t('common.updatedAt'), dataIndex: 'updatedAt' },
-          ]}
-        />
-      ),
-    },
-    {
-      key: 'inventory',
-      label: t('nav.inventory'),
-      children: (
-        <div className="space-y-4">
-          <Card>
-            <Statistic title={t('detail.currentStock')} value={product.stock} />
-          </Card>
-          <Card title={t('detail.stockLogs')}>
-            <Table
-              dataSource={inventoryLogs}
-              rowKey="id"
-              pagination={false}
-              columns={[
-                {
-                  title: t('common.operation'),
-                  dataIndex: 'type',
-                  render: (type: string, record: typeof inventoryLogs[0]) => (
-                    <Tag color={type === 'in' ? 'success' : 'warning'}>
-                      {type === 'in' ? '+' : '-'}{record.quantity}
-                    </Tag>
-                  ),
-                },
-                { title: 'Remark', dataIndex: 'remark' },
-                { title: 'Operator', dataIndex: 'operator' },
-                { title: 'Time', dataIndex: 'time' },
-              ]}
-            />
-          </Card>
-        </div>
-      ),
-    },
-    {
-      key: 'pricing',
-      label: t('nav.pricing'),
-      children: (
-        <div className="space-y-4">
-          <Card>
-            <Row gutter={24}>
-              <Col span={12}>
-                <Statistic
-                  title={t('detail.currentPrice')}
-                  value={product.price}
-                  prefix="$"
-                />
-              </Col>
-              <Col span={12}>
-                <Statistic
-                  title={t('form.originalPrice')}
-                  value={product.originalPrice}
-                  prefix="$"
-                  valueStyle={{ textDecoration: 'line-through', color: '#999' }}
-                />
-              </Col>
-            </Row>
-          </Card>
-          <Card title={t('menu.priceHistory')}>
-            <Table
-              dataSource={priceHistory}
-              rowKey="id"
-              pagination={false}
-              columns={[
-                {
-                  title: 'Price Change',
-                  render: (_, record: typeof priceHistory[0]) => (
-                    <span>${record.oldPrice} → ${record.newPrice}</span>
-                  ),
-                },
-                { title: 'Remark', dataIndex: 'remark' },
-                { title: 'Operator', dataIndex: 'operator' },
-                { title: 'Time', dataIndex: 'time' },
-              ]}
-            />
-          </Card>
-        </div>
-      ),
-    },
-    {
-      key: 'logs',
-      label: t('menu.operationLogs'),
-      children: (
-        <Card>
-          <Table
-            dataSource={operationLogs}
-            rowKey="id"
-            pagination={false}
-            columns={[
-              {
-                title: 'Action',
-                dataIndex: 'action',
-                render: (action: string) => <Tag color="blue">{action}</Tag>,
-              },
-              { title: 'Field', dataIndex: 'field' },
-              {
-                title: 'Change',
-                render: (_, record: typeof operationLogs[0]) => (
-                  <span>{record.oldValue} → {record.newValue}</span>
-                ),
-              },
-              { title: 'Operator', dataIndex: 'operator' },
-              { title: 'Time', dataIndex: 'time' },
-            ]}
-          />
-        </Card>
-      ),
-    },
-  ];
+  const handleStatusChange = async (status: ProductStatus) => {
+    try {
+      await productApi.updateProductStatus(id!, status);
+      message.success(t('products.statusUpdated'));
+      loadProduct();
+    } catch {
+      message.error(t('common.error'));
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Spin size="large" />
+      </div>
+    );
+  }
+
+  if (!product) {
+    return (
+      <Card>
+        <Empty description={t('common.noData')}>
+          <Button type="primary" onClick={() => navigate('/products/list')}>
+            {t('common.back')}
+          </Button>
+        </Empty>
+      </Card>
+    );
+  }
+
+  const statusLabel = {
+    draft: t('products.statusDraft'),
+    active: t('products.statusActive'),
+    inactive: t('products.statusInactive'),
+  }[product.status];
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col gap-4">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <a
-          onClick={() => navigate('/products')}
-          className="flex items-center gap-1 text-gray-500 hover:text-gray-700 cursor-pointer"
-        >
-          <ArrowLeftOutlined />
-          <span>{t('common.back')}</span>
-        </a>
-        <Space>
-          <Button
-            icon={<EditOutlined />}
-            onClick={() => navigate(`/products/${id}/edit`)}
-          >
-            {t('common.edit')}
+        <div className="flex items-center gap-4">
+          <Button icon={<ArrowLeftOutlined />} onClick={() => navigate('/products/list')}>
+            {t('common.back')}
           </Button>
-          <Button
-            danger
-            icon={<DeleteOutlined />}
-            onClick={handleDelete}
-          >
+          <h1 className="text-xl font-semibold m-0">{product.name}</h1>
+          <Tag color={statusColors[product.status]}>{statusLabel}</Tag>
+        </div>
+        <Space>
+          <Select
+            value={product.status}
+            onChange={handleStatusChange}
+            style={{ width: 120 }}
+            options={[
+              { label: t('products.statusDraft'), value: 'draft' },
+              { label: t('products.statusActive'), value: 'active' },
+              { label: t('products.statusInactive'), value: 'inactive' },
+            ]}
+          />
+          <Button danger icon={<DeleteOutlined />} onClick={handleDelete}>
             {t('common.delete')}
           </Button>
         </Space>
       </div>
 
-      {/* Core Info Card */}
-      <Card>
-        <div className="flex items-start justify-between mb-4">
-          <div>
-            <h1 className="text-2xl font-bold">{product.name}</h1>
-            <p className="text-gray-500">{product.sku}</p>
-          </div>
-          <Tag color={product.status === 'on_sale' ? 'success' : 'default'}>
-            {product.status === 'on_sale' ? t('products.onSale') : t('products.offSale')}
-          </Tag>
-        </div>
-        <Row gutter={24}>
-          <Col span={8}>
-            <Statistic title={t('products.price')} value={product.price} prefix="$" />
-          </Col>
-          <Col span={8}>
-            <Statistic title={t('products.stock')} value={product.stock} />
-          </Col>
-          <Col span={8}>
-            <Statistic title={t('products.category')} value={product.category} />
-          </Col>
-        </Row>
+      {/* Images Section - Editable */}
+      <Card title={`${t('products.images')} (${product.images.length})`}>
+        <ProductImages
+          productId={id!}
+          images={product.images}
+          onUpdate={loadProduct}
+        />
       </Card>
 
-      {/* Tabs for detailed info */}
-      <Card>
-        <Tabs items={tabItems} />
+      {/* Basic Info - View with Edit Button */}
+      <Card
+        title={t('detail.basicInfo')}
+        extra={
+          <Button icon={<EditOutlined />} onClick={() => setEditModalOpen(true)}>
+            {t('common.edit')}
+          </Button>
+        }
+      >
+        <Descriptions column={{ xs: 1, sm: 2, md: 3, lg: 4 }} size="small">
+          <Descriptions.Item label={t('products.styleNumber')}>
+            <span className="font-mono">{product.styleNumber}</span>
+          </Descriptions.Item>
+          <Descriptions.Item label={t('products.season')}>{product.season}</Descriptions.Item>
+          <Descriptions.Item label={t('products.color')}>{product.color || '-'}</Descriptions.Item>
+          <Descriptions.Item label={t('products.brand')}>
+            {product.brandName || '-'}
+          </Descriptions.Item>
+          <Descriptions.Item label={t('products.category')}>
+            {product.categoryName || '-'}
+          </Descriptions.Item>
+          <Descriptions.Item label={t('products.skuCount')}>{product.skuCount}</Descriptions.Item>
+          <Descriptions.Item label={t('products.priceRange')}>
+            {product.priceRange.min !== null
+              ? product.priceRange.min === product.priceRange.max
+                ? `¥${product.priceRange.min}`
+                : `¥${product.priceRange.min} - ¥${product.priceRange.max}`
+              : t('products.noPrice')}
+          </Descriptions.Item>
+          <Descriptions.Item label={t('common.createdAt')}>
+            {new Date(product.createdAt).toLocaleDateString()}
+          </Descriptions.Item>
+        </Descriptions>
+        {product.tags.length > 0 && (
+          <div className="mt-3 pt-3 border-t">
+            <span className="text-gray-500 mr-2">{t('products.tags')}:</span>
+            <Space wrap size="small">
+              {product.tags.map((tag) => (
+                <Tag key={tag.id}>{tag.name}</Tag>
+              ))}
+            </Space>
+          </div>
+        )}
+        {product.description && (
+          <div className="mt-3 pt-3 border-t">
+            <span className="text-gray-500 mr-2">{t('detail.description')}:</span>
+            <span>{product.description}</span>
+          </div>
+        )}
       </Card>
+
+      {/* SKU Management - Editable */}
+      <Card
+        title={`${t('products.skuManagement')} (${product.skus.length})`}
+        extra={
+          <Space>
+            <Button
+              icon={<ThunderboltOutlined />}
+              onClick={() => skusRef.current?.openQuickAddModal()}
+            >
+              {t('products.quickAddSize')}
+            </Button>
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={() => skusRef.current?.openAddModal()}
+            >
+              {t('products.addSku')}
+            </Button>
+          </Space>
+        }
+      >
+        <ProductSkus
+          ref={skusRef}
+          productId={id!}
+          skus={product.skus}
+          onUpdate={loadProduct}
+        />
+      </Card>
+
+      {/* Edit Basic Info Modal */}
+      <ProductBasicInfoModal
+        open={editModalOpen}
+        product={product}
+        onClose={() => setEditModalOpen(false)}
+        onSuccess={() => {
+          setEditModalOpen(false);
+          loadProduct();
+        }}
+      />
     </div>
   );
 }

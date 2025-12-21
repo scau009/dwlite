@@ -12,11 +12,12 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 class AuthService
 {
     public function __construct(
-        private UserRepository $userRepository,
+        private UserRepository              $userRepository,
         private UserPasswordHasherInterface $passwordHasher,
-        private EmailVerificationService $emailVerificationService,
-        private TranslatorInterface $translator,
-    ) {
+        private EmailVerificationService    $emailVerificationService,
+        private TranslatorInterface         $translator,
+    )
+    {
     }
 
     public function register(RegisterRequest $request): User
@@ -30,7 +31,8 @@ class AuthService
         $user = new User();
         $user->setEmail($request->email);
         $user->setPassword($this->passwordHasher->hashPassword($user, $request->password));
-        $user->setRoles(['ROLE_USER']);
+        $user->setRoles(['ROLE_USER'])
+            ->setAccountType(User::ACCOUNT_TYPE_MERCHANT);
 
         $this->userRepository->save($user, true);
 

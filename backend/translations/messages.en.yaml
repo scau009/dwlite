@@ -1,5 +1,12 @@
 # English translations
 
+# Email subjects
+email:
+  verification:
+    subject: 'Verify your email address'
+  password_reset:
+    subject: 'Reset your password'
+
 # Authentication messages
 auth:
   register:
@@ -41,6 +48,50 @@ admin:
     deactivated: 'Brand deactivated'
     has_products: 'Cannot delete brand with associated products'
 
+  # Tag management messages
+  tag:
+    not_found: 'Tag not found'
+    slug_exists: 'slug already exists'
+    created: 'Tag created successfully'
+    updated: 'Tag updated successfully'
+    deleted: 'Tag deleted successfully'
+    activated: 'Tag activated'
+    deactivated: 'Tag deactivated'
+    has_products: 'Cannot delete tag with associated products'
+
+  # Product management messages
+  product:
+    not_found: 'Product not found'
+    slug_exists: 'Slug already exists'
+    style_number_exists: 'Style number already exists'
+    created: 'Product created successfully'
+    updated: 'Product updated successfully'
+    deleted: 'Product deleted successfully'
+    status_updated: 'Product status updated'
+    # SKU
+    sku_code_exists: 'SKU code already exists'
+    sku_not_found: 'SKU not found'
+    sku_created: 'SKU created successfully'
+    sku_updated: 'SKU updated successfully'
+    sku_deleted: 'SKU deleted successfully'
+    sku_activated: 'SKU activated'
+    sku_deactivated: 'SKU deactivated'
+    sku_size_exists: 'Size %size% already exists'
+    skus_batch_created: 'Successfully created %count% SKUs'
+    size_unit_mismatch: 'This product already has %existing% sizes, cannot add %requested% sizes'
+    all_sizes_exist: 'All popular sizes already exist'
+    # Image
+    image_required: 'Image file is required'
+    invalid_image_type: 'Invalid image type. Supported: JPG/PNG/GIF/WebP'
+    image_too_large: 'Image size cannot exceed 5MB'
+    image_uploaded: 'Image uploaded successfully'
+    image_deleted: 'Image deleted successfully'
+    image_not_found: 'Image not found'
+    image_primary_set: 'Image set as primary'
+    image_ids_required: 'Image IDs are required'
+    images_sorted: 'Images order updated'
+    upload_failed: 'Image upload failed'
+
   # Category management messages
   category:
     not_found: 'Category not found'
@@ -63,12 +114,18 @@ admin:
     enabled: 'Merchant enabled'
     disabled: 'Merchant disabled'
 
+# Merchant self-service messages
+merchant:
+  not_found: 'Merchant not found'
+  profile_updated: 'Profile updated successfully'
+
 # Wallet messages
 wallet:
   init_success: 'Wallets initialized successfully'
   already_initialized: 'Merchant wallets already initialized'
   deposit_not_found: 'Deposit wallet not found. Please initialize wallets first.'
   deposit_wallet_not_found: 'Deposit wallet not found'
+  balance_wallet_not_found: 'Balance wallet not found'
   amount_positive: 'Amount must be greater than 0'
   deposit_charged: 'Deposit charged successfully'
 
@@ -120,3 +177,6 @@ validation:
   # Status
   is_active_required: 'isActive field is required'
   enabled_required: 'enabled field is required'
+
+  # Color
+  color_format: 'Color must be a valid HEX format (e.g. #FF5733)'

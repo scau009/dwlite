@@ -1,0 +1,1 @@
+export { CategoriesListPage } from './list';

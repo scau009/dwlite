@@ -44,6 +44,8 @@ services:
     depends_on:
       - backend
     restart: unless-stopped
+    healthcheck:
+      test: ["NONE"]
     labels:
       - "logging=promtail"
     logging:
@@ -69,6 +71,8 @@ services:
     depends_on:
       - backend
     restart: unless-stopped
+    healthcheck:
+      test: ["NONE"]
     labels:
       - "logging=promtail"
     logging:

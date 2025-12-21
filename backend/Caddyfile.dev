@@ -1,0 +1,19 @@
+{
+    frankenphp
+    order php_server before file_server
+}
+
+localhost:8000, :8000 {
+    root * /app/public
+
+    php_server {
+        resolve_root_symlink
+    }
+
+    encode zstd gzip
+
+    log {
+        output stdout
+        format console
+    }
+}

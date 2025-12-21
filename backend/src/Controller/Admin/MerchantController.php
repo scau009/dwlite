@@ -6,6 +6,7 @@ use App\Attribute\AdminOnly;
 use App\Dto\Admin\ChargeDepositRequest;
 use App\Dto\Admin\Query\MerchantListQuery;
 use App\Dto\Admin\Query\PaginationQuery;
+use App\Dto\Admin\RejectMerchantRequest;
 use App\Dto\Admin\UpdateMerchantStatusRequest;
 use App\Entity\Merchant;
 use App\Entity\User;
@@ -83,28 +84,46 @@ class MerchantController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}/wallets/init', name: 'admin_merchant_init_wallets', methods: ['POST'])]
-    public function initWallets(string $id): JsonResponse
+    #[Route('/{id}/approve', name: 'admin_merchant_approve', methods: ['POST'])]
+    public function approve(string $id): JsonResponse
     {
         $merchant = $this->merchantRepository->find($id);
         if (!$merchant) {
             return $this->json(['error' => $this->translator->trans('admin.merchant.not_found')], Response::HTTP_NOT_FOUND);
         }
 
-        try {
-            $wallets = $this->walletService->initWallets($merchant);
-            return $this->json([
-                'message' => $this->translator->trans('wallet.init_success'),
-                'wallets' => array_map(fn($w) => [
-                    'id' => $w->getId(),
-                    'type' => $w->getType(),
-                    'balance' => $w->getBalance(),
-                    'status' => $w->getStatus(),
-                ], $wallets),
-            ]);
-        } catch (\InvalidArgumentException $e) {
-            return $this->json(['error' => $e->getMessage()], Response::HTTP_BAD_REQUEST);
+        if (!$merchant->isPending()) {
+            return $this->json(['error' => $this->translator->trans('admin.merchant.not_pending')], Response::HTTP_BAD_REQUEST);
         }
+
+        $merchant->approve();
+        $this->merchantRepository->save($merchant, true);
+
+        return $this->json([
+            'message' => $this->translator->trans('admin.merchant.approved'),
+            'merchant' => $this->serializeMerchant($merchant),
+        ]);
+    }
+
+    #[Route('/{id}/reject', name: 'admin_merchant_reject', methods: ['POST'])]
+    public function reject(string $id, #[MapRequestPayload] RejectMerchantRequest $dto): JsonResponse
+    {
+        $merchant = $this->merchantRepository->find($id);
+        if (!$merchant) {
+            return $this->json(['error' => $this->translator->trans('admin.merchant.not_found')], Response::HTTP_NOT_FOUND);
+        }
+
+        if (!$merchant->isPending()) {
+            return $this->json(['error' => $this->translator->trans('admin.merchant.not_pending')], Response::HTTP_BAD_REQUEST);
+        }
+
+        $merchant->reject($dto->reason);
+        $this->merchantRepository->save($merchant, true);
+
+        return $this->json([
+            'message' => $this->translator->trans('admin.merchant.rejected'),
+            'merchant' => $this->serializeMerchant($merchant),
+        ]);
     }
 
     #[Route('/{id}/wallets/deposit/charge', name: 'admin_merchant_charge_deposit', methods: ['POST'])]
@@ -194,10 +213,12 @@ class MerchantController extends AbstractController
 
     private function serializeMerchant(Merchant $merchant, bool $detail = false): array
     {
+        $user = $merchant->getUser();
+
         $data = [
             'id' => $merchant->getId(),
             'name' => $merchant->getName(),
-            'shortName' => $merchant->getShortName(),
+            'email' => $user->getEmail(),
             'status' => $merchant->getStatus(),
             'contactName' => $merchant->getContactName(),
             'contactPhone' => $merchant->getContactPhone(),
@@ -225,8 +246,9 @@ class MerchantController extends AbstractController
             $data['approvedAt'] = $merchant->getApprovedAt()?->format('c');
             $data['rejectedReason'] = $merchant->getRejectedReason();
             $data['user'] = [
-                'id' => $merchant->getUser()->getId(),
-                'email' => $merchant->getUser()->getEmail(),
+                'id' => $user->getId(),
+                'email' => $user->getEmail(),
+                'isVerified' => $user->isVerified(),
             ];
         }
 

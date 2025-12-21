@@ -1,12 +1,13 @@
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ProTable, type ActionType, type ProColumns } from '@ant-design/pro-components';
-import { Button, Tag, Space, Switch, App } from 'antd';
-import { WalletOutlined, HistoryOutlined, PlusCircleOutlined } from '@ant-design/icons';
+import { Button, Tag, Space, Switch, App, Popconfirm } from 'antd';
+import { WalletOutlined, HistoryOutlined, AuditOutlined } from '@ant-design/icons';
 
 import { merchantApi, type Merchant } from '@/lib/merchant-api';
 import { ChargeModal } from './components/charge-modal';
 import { TransactionsModal } from './components/transactions-modal';
+import { ReviewModal } from './components/review-modal';
 
 export function MerchantsListPage() {
   const { t } = useTranslation();
@@ -15,9 +16,12 @@ export function MerchantsListPage() {
 
   const [chargeModalOpen, setChargeModalOpen] = useState(false);
   const [transactionsModalOpen, setTransactionsModalOpen] = useState(false);
+  const [reviewModalOpen, setReviewModalOpen] = useState(false);
   const [selectedMerchant, setSelectedMerchant] = useState<Merchant | null>(null);
+  const [statusLoading, setStatusLoading] = useState<string | null>(null);
 
   const handleStatusChange = async (merchant: Merchant, enabled: boolean) => {
+    setStatusLoading(merchant.id);
     try {
       await merchantApi.updateMerchantStatus(merchant.id, enabled);
       message.success(enabled ? t('merchants.enabled') : t('merchants.disabled'));
@@ -25,17 +29,8 @@ export function MerchantsListPage() {
     } catch (error) {
       const err = error as { error?: string };
       message.error(err.error || t('common.error'));
-    }
-  };
-
-  const handleInitWallets = async (merchant: Merchant) => {
-    try {
-      await merchantApi.initMerchantWallets(merchant.id);
-      message.success(t('merchants.walletsInitialized'));
-      actionRef.current?.reload();
-    } catch (error) {
-      const err = error as { error?: string };
-      message.error(err.error || t('common.error'));
+    } finally {
+      setStatusLoading(null);
     }
   };
 
@@ -49,6 +44,11 @@ export function MerchantsListPage() {
     setTransactionsModalOpen(true);
   };
 
+  const handleOpenReview = (merchant: Merchant) => {
+    setSelectedMerchant(merchant);
+    setReviewModalOpen(true);
+  };
+
   const columns: ProColumns<Merchant>[] = [
     {
       title: t('merchants.name'),
@@ -59,11 +59,13 @@ export function MerchantsListPage() {
       },
     },
     {
-      title: t('merchants.shortName'),
-      dataIndex: 'shortName',
-      width: 120,
-      search: false,
-      render: (_, record) => record.shortName || '-',
+      title: t('merchants.email'),
+      dataIndex: 'email',
+      ellipsis: true,
+      width: 180,
+      fieldProps: {
+        placeholder: t('common.search') + '...',
+      },
     },
     {
       title: t('merchants.contactName'),
@@ -116,16 +118,31 @@ export function MerchantsListPage() {
     {
       title: t('merchants.enableSwitch'),
       dataIndex: 'enabled',
-      width: 80,
+      width: 100,
       search: false,
-      render: (_, record) => (
-        <Switch
-          checked={record.status === 'approved'}
-          disabled={record.status === 'pending' || record.status === 'rejected'}
-          onChange={(checked) => handleStatusChange(record, checked)}
-          size="small"
-        />
-      ),
+      render: (_, record) => {
+        const isEnabled = record.status === 'approved';
+        const isDisabled = record.status === 'pending' || record.status === 'rejected';
+        const isLoading = statusLoading === record.id;
+
+        return (
+          <Popconfirm
+            title={isEnabled ? t('merchants.confirmDisable') : t('merchants.confirmEnable')}
+            description={isEnabled ? t('merchants.confirmDisableDesc') : t('merchants.confirmEnableDesc')}
+            onConfirm={() => handleStatusChange(record, !isEnabled)}
+            okText={t('common.confirm')}
+            cancelText={t('common.cancel')}
+            disabled={isDisabled || isLoading}
+          >
+            <Switch
+              checked={isEnabled}
+              disabled={isDisabled}
+              loading={isLoading}
+              size="small"
+            />
+          </Popconfirm>
+        );
+      },
     },
     {
       title: t('common.createdAt'),
@@ -137,19 +154,20 @@ export function MerchantsListPage() {
     {
       title: t('common.actions'),
       valueType: 'option',
-      width: 200,
+      width: 220,
       render: (_, record) => (
         <Space size="small">
-          {!record.hasWallets ? (
+          {record.status === 'pending' && (
             <Button
-              type="link"
+              type="primary"
               size="small"
-              icon={<PlusCircleOutlined />}
-              onClick={() => handleInitWallets(record)}
+              icon={<AuditOutlined />}
+              onClick={() => handleOpenReview(record)}
             >
-              {t('merchants.initWallets')}
+              {t('merchants.review')}
             </Button>
-          ) : (
+          )}
+          {record.status !== 'pending' && (
             <>
               <Button
                 type="link"
@@ -192,6 +210,7 @@ export function MerchantsListPage() {
               limit: params.pageSize,
               status: params.status,
               name: params.name,
+              email: params.email,
             });
             return {
               data: result.data,
@@ -242,6 +261,20 @@ export function MerchantsListPage() {
         onClose={() => {
           setTransactionsModalOpen(false);
           setSelectedMerchant(null);
+        }}
+      />
+
+      <ReviewModal
+        open={reviewModalOpen}
+        merchant={selectedMerchant}
+        onClose={() => {
+          setReviewModalOpen(false);
+          setSelectedMerchant(null);
+        }}
+        onSuccess={() => {
+          setReviewModalOpen(false);
+          setSelectedMerchant(null);
+          actionRef.current?.reload();
         }}
       />
     </div>

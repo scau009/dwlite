@@ -13,7 +13,7 @@ class UpdateCategoryRequest
     #[Assert\Regex(pattern: '/^[a-z0-9-]*$/', message: 'validation.slug_format')]
     public ?string $slug = null;
 
-    #[Assert\Uuid(message: 'validation.uuid_invalid')]
+    #[Assert\Ulid(message: 'validation.ulid_invalid')]
     public ?string $parentId = null;
 
     #[Assert\Length(max: 500, maxMessage: 'validation.description_max_length')]

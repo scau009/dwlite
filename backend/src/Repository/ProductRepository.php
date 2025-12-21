@@ -54,7 +54,7 @@ class ProductRepository extends ServiceEntityRepository
 
         if (!empty($filters['search'])) {
             $qb->andWhere('p.name LIKE :search OR p.styleNumber LIKE :search')
-                ->setParameter('search', '%' . $filters['search'] . '%');
+                ->setParameter('search', $filters['search'] . '%');
         }
 
         if (!empty($filters['brandId'])) {
@@ -80,6 +80,11 @@ class ProductRepository extends ServiceEntityRepository
         if (isset($filters['isActive'])) {
             $qb->andWhere('p.isActive = :isActive')
                 ->setParameter('isActive', $filters['isActive']);
+        }
+
+        if (!empty($filters['status'])) {
+            $qb->andWhere('p.status = :status')
+                ->setParameter('status', $filters['status']);
         }
 
         if (!empty($filters['tagIds'])) {

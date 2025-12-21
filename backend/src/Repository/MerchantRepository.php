@@ -60,12 +60,14 @@ class MerchantRepository extends ServiceEntityRepository
      *
      * @param int $page 页码（从1开始）
      * @param int $limit 每页数量
-     * @param array $filters 筛选条件 ['status' => string, 'name' => string]
+     * @param array $filters 筛选条件 ['status' => string, 'name' => string, 'email' => string]
      * @return array ['data' => Merchant[], 'total' => int]
      */
     public function findPaginated(int $page = 1, int $limit = 20, array $filters = []): array
     {
         $qb = $this->createQueryBuilder('m')
+            ->leftJoin('m.user', 'u')
+            ->addSelect('u')
             ->orderBy('m.createdAt', 'DESC');
 
         // 状态筛选
@@ -76,8 +78,14 @@ class MerchantRepository extends ServiceEntityRepository
 
         // 名称筛选（模糊匹配）
         if (!empty($filters['name'])) {
-            $qb->andWhere('m.name LIKE :name OR m.shortName LIKE :name')
+            $qb->andWhere('m.name LIKE :name')
                 ->setParameter('name', '%' . $filters['name'] . '%');
+        }
+
+        // 邮箱筛选（模糊匹配）
+        if (!empty($filters['email'])) {
+            $qb->andWhere('u.email LIKE :email')
+                ->setParameter('email', '%' . $filters['email'] . '%');
         }
 
         // 获取总数

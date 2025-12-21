@@ -207,7 +207,7 @@ export function DashboardPage() {
         <Col xs={24} lg={8}>
           <Card
             title={t('dashboard.topProducts')}
-            extra={<a onClick={() => navigate('/products')}>{t('common.view')}</a>}
+            extra={<a onClick={() => navigate('/products/list')}>{t('common.view')}</a>}
           >
             <Table
               dataSource={topProducts}
@@ -216,7 +216,7 @@ export function DashboardPage() {
               pagination={false}
               size="small"
               onRow={(record) => ({
-                onClick: () => navigate(`/products/${record.id}`),
+                onClick: () => navigate(`/products/detail/${record.id}`),
                 style: { cursor: 'pointer' },
               })}
             />

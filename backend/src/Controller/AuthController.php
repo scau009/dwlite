@@ -7,13 +7,13 @@ use App\Dto\Auth\ForgotPasswordRequest;
 use App\Dto\Auth\RefreshTokenRequest;
 use App\Dto\Auth\RegisterRequest;
 use App\Dto\Auth\ResetPasswordRequest;
-use App\Dto\Auth\VerifyEmailRequest;
 use App\Entity\User;
 use App\Service\Auth\AuthService;
 use App\Service\Auth\EmailVerificationService;
 use App\Service\Auth\PasswordResetService;
 use App\Service\Auth\RefreshTokenService;
 use App\Service\Auth\TokenBlacklistService;
+use App\Service\MerchantService;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -33,6 +33,7 @@ class AuthController extends AbstractController
         private PasswordResetService $passwordResetService,
         private RefreshTokenService $refreshTokenService,
         private TokenBlacklistService $tokenBlacklistService,
+        private MerchantService $merchantService,
         private JWTTokenManagerInterface $jwtManager,
         private TranslatorInterface $translator,
     ) {
@@ -74,12 +75,23 @@ class AuthController extends AbstractController
 
         try {
             $user = $this->emailVerificationService->verifyEmail($token);
+
+            // 为商户类型用户创建商户信息和钱包
+            $merchant = null;
+            if ($user->isMerchant()) {
+                $merchant = $this->merchantService->createMerchantForUser($user);
+            }
+
             return $this->json([
                 'message' => $this->translator->trans('auth.verify_email.success'),
                 'user' => [
                     'id' => $user->getId(),
                     'email' => $user->getEmail(),
                 ],
+                'merchant' => $merchant ? [
+                    'id' => $merchant->getId(),
+                    'name' => $merchant->getName(),
+                ] : null,
             ]);
         } catch (\InvalidArgumentException $e) {
             return $this->json(['error' => $e->getMessage()], Response::HTTP_BAD_REQUEST);

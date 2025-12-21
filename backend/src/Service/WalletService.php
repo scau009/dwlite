@@ -17,6 +17,7 @@ class WalletService
         private WalletTransactionRepository $transactionRepository,
         private EntityManagerInterface $entityManager,
         private TranslatorInterface $translator,
+        private BusinessNoGenerator $businessNoGenerator,
     ) {
     }
 
@@ -64,7 +65,8 @@ class WalletService
 
         // 创建交易记录
         $transaction = new WalletTransaction();
-        $transaction->setWallet($wallet)
+        $transaction->setTransactionNo($this->businessNoGenerator->generateWalletTransactionNo())
+            ->setWallet($wallet)
             ->setType(WalletTransaction::TYPE_CREDIT)
             ->setAmount($amount)
             ->setBalanceBefore($balanceBefore)

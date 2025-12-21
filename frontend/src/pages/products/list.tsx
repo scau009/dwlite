@@ -1,235 +1,275 @@
-import { useRef, useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { ProTable, type ActionType, type ProColumns } from '@ant-design/pro-components';
-import { Button, Tag, Space, App } from 'antd';
-import { PlusOutlined, UpOutlined, DownOutlined, ExportOutlined } from '@ant-design/icons';
+import {
+  Card,
+  Row,
+  Col,
+  Button,
+  Tag,
+  Pagination,
+  App,
+  Empty,
+  Spin,
+  Image,
+} from 'antd';
+import { QueryFilter, ProFormText, ProFormSelect } from '@ant-design/pro-components';
+import { PlusOutlined, ShoppingOutlined } from '@ant-design/icons';
+import {
+  productApi,
+  type Product,
+  type ProductListParams,
+  type ProductStatus,
+} from '@/lib/product-api';
+import { brandApi } from '@/lib/brand-api';
+import { categoryApi } from '@/lib/category-api';
+import { ProductCreateModal } from './components/product-create-modal';
 
-// Product type
-interface Product {
-  id: string;
-  name: string;
-  sku: string;
-  category: string;
-  price: number;
-  stock: number;
-  status: 'on_sale' | 'off_sale';
-  updatedAt: string;
+// Product Card Component
+interface ProductCardProps {
+  product: Product;
 }
 
-// Mock data
-const mockProducts: Product[] = [
-  { id: '1', name: 'Premium Sneakers', sku: 'SKU-001', category: 'Footwear', price: 299, stock: 150, status: 'on_sale', updatedAt: '2024-01-15 10:30' },
-  { id: '2', name: 'Designer Jacket', sku: 'SKU-002', category: 'Apparel', price: 450, stock: 80, status: 'on_sale', updatedAt: '2024-01-14 14:20' },
-  { id: '3', name: 'Limited Edition Watch', sku: 'SKU-003', category: 'Accessories', price: 1299, stock: 25, status: 'on_sale', updatedAt: '2024-01-13 09:15' },
-  { id: '4', name: 'Vintage Bag', sku: 'SKU-004', category: 'Accessories', price: 189, stock: 200, status: 'on_sale', updatedAt: '2024-01-12 16:45' },
-  { id: '5', name: 'Street Style Hoodie', sku: 'SKU-005', category: 'Apparel', price: 129, stock: 0, status: 'off_sale', updatedAt: '2024-01-11 11:00' },
-  { id: '6', name: 'Classic Sunglasses', sku: 'SKU-006', category: 'Accessories', price: 79, stock: 300, status: 'on_sale', updatedAt: '2024-01-10 08:30' },
-  { id: '7', name: 'Running Shoes', sku: 'SKU-007', category: 'Footwear', price: 199, stock: 120, status: 'on_sale', updatedAt: '2024-01-09 13:20' },
-  { id: '8', name: 'Casual T-Shirt', sku: 'SKU-008', category: 'Apparel', price: 39, stock: 500, status: 'on_sale', updatedAt: '2024-01-08 15:10' },
-  { id: '9', name: 'Leather Wallet', sku: 'SKU-009', category: 'Accessories', price: 89, stock: 180, status: 'on_sale', updatedAt: '2024-01-07 10:00' },
-  { id: '10', name: 'Winter Coat', sku: 'SKU-010', category: 'Apparel', price: 599, stock: 45, status: 'off_sale', updatedAt: '2024-01-06 09:45' },
-];
-
-export function ProductsListPage() {
+function ProductCard({ product }: ProductCardProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const actionRef = useRef<ActionType>(null);
-  const { message, modal } = App.useApp();
-  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
 
-  const columns: ProColumns<Product>[] = [
-    {
-      title: t('products.productName'),
-      dataIndex: 'name',
-      ellipsis: true,
-      formItemProps: {
-        label: t('products.productName') + ' / ' + t('products.sku'),
-      },
-      fieldProps: {
-        placeholder: t('common.search') + '...',
-      },
-    },
-    {
-      title: t('products.sku'),
-      dataIndex: 'sku',
-      width: 120,
-      search: false,
-    },
-    {
-      title: t('products.category'),
-      dataIndex: 'category',
-      width: 120,
-      valueType: 'select',
-      valueEnum: {
-        Footwear: { text: 'Footwear' },
-        Apparel: { text: 'Apparel' },
-        Accessories: { text: 'Accessories' },
-      },
-    },
-    {
-      title: t('products.price'),
-      dataIndex: 'price',
-      width: 100,
-      search: false,
-      sorter: true,
-      render: (_, record) => `$${record.price.toFixed(2)}`,
-    },
-    {
-      title: t('products.stock'),
-      dataIndex: 'stock',
-      width: 100,
-      search: false,
-      sorter: true,
-      render: (_, record) => (
-        <span style={{ color: record.stock === 0 ? '#ff4d4f' : undefined }}>
-          {record.stock}
-        </span>
-      ),
-    },
-    {
-      title: t('products.status'),
-      dataIndex: 'status',
-      width: 100,
-      valueType: 'select',
-      valueEnum: {
-        on_sale: { text: t('products.onSale'), status: 'Success' },
-        off_sale: { text: t('products.offSale'), status: 'Default' },
-      },
-      render: (_, record) => (
-        <Tag color={record.status === 'on_sale' ? 'success' : 'default'}>
-          {record.status === 'on_sale' ? t('products.onSale') : t('products.offSale')}
-        </Tag>
-      ),
-    },
-    {
-      title: t('common.updatedAt'),
-      dataIndex: 'updatedAt',
-      width: 160,
-      search: false,
-      sorter: true,
-    },
-    {
-      title: t('common.actions'),
-      valueType: 'option',
-      width: 120,
-      render: (_, record) => [
-        <a key="view" onClick={() => navigate(`/products/${record.id}`)}>
-          {t('common.view')}
-        </a>,
-        <a key="edit" onClick={() => navigate(`/products/${record.id}/edit`)}>
-          {t('common.edit')}
-        </a>,
-      ],
-    },
-  ];
+  const priceDisplay = () => {
+    const { min, max } = product.priceRange;
+    if (min === null || max === null) return t('products.noPrice');
+    if (min === max) return `¥${min.toFixed(2)}`;
+    return `¥${min.toFixed(2)} - ¥${max.toFixed(2)}`;
+  };
 
-  const handleBatchAction = (action: 'on_sale' | 'off_sale' | 'delete') => {
-    modal.confirm({
-      title: t('confirm.batchTitle'),
-      content: t('confirm.batchMessage', { count: selectedRowKeys.length }),
-      okButtonProps: { danger: action === 'delete' },
-      onOk: () => {
-        console.log(`Batch ${action}:`, selectedRowKeys);
-        message.success(t('common.success'));
-        setSelectedRowKeys([]);
-        actionRef.current?.reload();
-      },
+  const statusLabel = () => {
+    const statusMap: Record<ProductStatus, string> = {
+      draft: t('products.statusDraft'),
+      active: t('products.statusActive'),
+      inactive: t('products.statusInactive'),
+    };
+    return statusMap[product.status];
+  };
+
+  // Status overlay styles (only for draft and inactive)
+  const statusOverlayColors: Record<string, string> = {
+    draft: 'bg-gray-800/50',
+    inactive: 'bg-amber-600/50',
+  };
+
+  const showStatusOverlay = product.status === 'draft' || product.status === 'inactive';
+
+  return (
+    <Card
+      hoverable
+      onClick={() => navigate(`/products/detail/${product.id}`)}
+      styles={{ body: { padding: 12 } }}
+      className="h-full flex flex-col [&>.ant-card-cover]:shrink-0 [&>.ant-card-body]:flex-1"
+      cover={
+        <div className="aspect-square bg-gray-100 overflow-hidden relative">
+          {product.primaryImageUrl ? (
+            <Image
+              src={product.primaryImageUrl}
+              alt={product.name}
+              preview={false}
+              className="object-cover w-full h-full"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-gray-300 text-5xl">
+              <ShoppingOutlined />
+            </div>
+          )}
+          {/* Status overlay - only show for draft and inactive */}
+          {showStatusOverlay && (
+            <div className={`absolute bottom-0 left-0 right-0 px-2 py-1 text-white text-xs text-center ${statusOverlayColors[product.status]}`}>
+              {statusLabel()}
+            </div>
+          )}
+        </div>
+      }
+    >
+      <div className="flex flex-col h-full">
+        {/* Title - fixed height for 2 lines */}
+        <div className="font-medium text-sm leading-tight line-clamp-2 h-[2.5rem]" title={product.name}>
+          {product.name}
+        </div>
+        {/* Style number */}
+        <div className="text-xs text-gray-400 font-mono truncate mt-1">{product.styleNumber}</div>
+        {/* Price */}
+        <div className="font-semibold text-sm text-gray-900 mt-1">{priceDisplay()}</div>
+        {/* Tags - push to bottom */}
+        <div className="mt-auto pt-1.5">
+          {product.tags && product.tags.length > 0 && (
+            <div className="flex flex-wrap gap-1">
+              {product.tags.slice(0, 2).map((tag) => (
+                <Tag key={tag.id} className="text-xs leading-none" style={{ margin: 0, padding: '1px 4px' }}>
+                  {tag.name}
+                </Tag>
+              ))}
+              {product.tags.length > 2 && (
+                <Tag className="text-xs leading-none" style={{ margin: 0, padding: '1px 4px' }}>+{product.tags.length - 2}</Tag>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    </Card>
+  );
+}
+
+// Main List Page
+export function ProductsListPage() {
+  const { t } = useTranslation();
+  const { message } = App.useApp();
+
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [total, setTotal] = useState(0);
+  const [params, setParams] = useState<ProductListParams>({ page: 1, limit: 12 });
+  const [createModalOpen, setCreateModalOpen] = useState(false);
+
+  // Filter options
+  const [brands, setBrands] = useState<Array<{ id: string; name: string }>>([]);
+  const [categories, setCategories] = useState<Array<{ id: string; name: string }>>([]);
+
+  const loadProducts = useCallback(async () => {
+    setLoading(true);
+    try {
+      const result = await productApi.getProducts(params);
+      setProducts(result.data);
+      setTotal(result.total);
+    } catch {
+      message.error(t('common.error'));
+    } finally {
+      setLoading(false);
+    }
+  }, [params, message, t]);
+
+  useEffect(() => {
+    loadProducts();
+  }, [loadProducts]);
+
+  // Load filter options
+  useEffect(() => {
+    brandApi.getBrands({ limit: 100 }).then((r) => setBrands(r.data));
+    categoryApi.getCategories({ limit: 100 }).then((r) => setCategories(r.data));
+  }, []);
+
+  const handleFilter = (values: Record<string, string | undefined>) => {
+    setParams({
+      page: 1,
+      limit: params.limit,
+      search: values.search || undefined,
+      brandId: values.brandId || undefined,
+      categoryId: values.categoryId || undefined,
+      status: values.status as ProductStatus | undefined,
+      season: values.season || undefined,
     });
   };
 
+  const handleReset = () => {
+    setParams({ page: 1, limit: params.limit });
+  };
+
   return (
-    <div className="space-y-4">
-      <div className="mb-4">
-        <h1 className="text-xl font-semibold">{t('products.title')}</h1>
-        <p className="text-gray-500">{t('products.description')}</p>
+    <div className="flex flex-col gap-4">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-xl font-semibold">{t('products.title')}</h1>
+          <p className="text-gray-500">{t('products.description')}</p>
+        </div>
+        <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateModalOpen(true)}>
+          {t('products.addProduct')}
+        </Button>
       </div>
 
-      <ProTable<Product>
-        actionRef={actionRef}
-        columns={columns}
-        rowKey="id"
-        rowSelection={{
-          selectedRowKeys,
-          onChange: setSelectedRowKeys,
-        }}
-        request={async (params, sort) => {
-          console.log('Query params:', params, sort);
-          // Simulate API delay
-          await new Promise((resolve) => setTimeout(resolve, 300));
+      {/* Search & Filters */}
+      <Card >
+        <QueryFilter style={{padding:0}}
+          labelWidth="auto"
+          onFinish={handleFilter}
+          onReset={handleReset}
+          defaultCollapsed={false}
+          split
+        >
+          <ProFormText
+            name="search"
+            label={t('products.productName')}
+            placeholder={t('products.searchPlaceholder')}
+          />
+          <ProFormSelect
+            name="brandId"
+            label={t('products.brand')}
+            placeholder={t('products.selectBrand')}
+            options={brands.map((b) => ({ label: b.name, value: b.id }))}
+            showSearch
+            allowClear
+          />
+          <ProFormSelect
+            name="categoryId"
+            label={t('products.category')}
+            placeholder={t('products.selectCategory')}
+            options={categories.map((c) => ({ label: c.name, value: c.id }))}
+            showSearch
+            allowClear
+          />
+          <ProFormSelect
+            name="status"
+            label={t('products.status')}
+            placeholder={t('products.selectStatus')}
+            options={[
+              { label: t('products.statusDraft'), value: 'draft' },
+              { label: t('products.statusActive'), value: 'active' },
+              { label: t('products.statusInactive'), value: 'inactive' },
+            ]}
+            allowClear
+          />
+          <ProFormText
+            name="season"
+            label={t('products.season')}
+            placeholder={t('products.season')}
+          />
+        </QueryFilter>
+      </Card>
 
-          let data = [...mockProducts];
+      {/* Product Grid */}
+      <Card>
+          <Spin spinning={loading}>
+            {products.length > 0 ? (
+              <>
+                <Row gutter={[16, 16]}>
+                  {products.map((product) => (
+                    <Col key={product.id} xs={24} sm={12} md={8} lg={6} xl={4}>
+                      <ProductCard product={product} />
+                    </Col>
+                  ))}
+                </Row>
+                <div className="flex justify-center mt-6">
+                  <Pagination
+                    current={params.page}
+                    pageSize={params.limit}
+                    total={total}
+                    showSizeChanger
+                    pageSizeOptions={[12, 24, 48, 96]}
+                    showTotal={(total) => t('products.totalCount', { count: total })}
+                    onChange={(page, pageSize) => setParams((p) => ({ ...p, page, limit: pageSize }))}
+                  />
+                </div>
+              </>
+            ) : (
+              <Empty description={t('common.noData')}>
+                <Button type="primary" onClick={() => setCreateModalOpen(true)}>
+                  {t('products.addProduct')}
+                </Button>
+              </Empty>
+            )}
+        </Spin>
+      </Card>
 
-          // Filter
-          if (params.name) {
-            data = data.filter(
-              (item) =>
-                item.name.toLowerCase().includes(params.name.toLowerCase()) ||
-                item.sku.toLowerCase().includes(params.name.toLowerCase())
-            );
-          }
-          if (params.category) {
-            data = data.filter((item) => item.category === params.category);
-          }
-          if (params.status) {
-            data = data.filter((item) => item.status === params.status);
-          }
-
-          return {
-            data,
-            success: true,
-            total: data.length,
-          };
-        }}
-        search={{
-          labelWidth: 'auto',
-          defaultCollapsed: false,
-        }}
-        options={{
-          density: true,
-          fullScreen: true,
-          reload: true,
-        }}
-        pagination={{
-          defaultPageSize: 10,
-          showSizeChanger: true,
-        }}
-        toolBarRender={() => [
-          <Button
-            key="add"
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={() => navigate('/products/new')}
-          >
-            {t('products.addProduct')}
-          </Button>,
-          <Button key="export" icon={<ExportOutlined />}>
-            {t('common.export')}
-          </Button>,
-        ]}
-        tableAlertRender={({ selectedRowKeys }) => (
-          <Space>
-            {t('common.selected', { count: selectedRowKeys.length })}
-          </Space>
-        )}
-        tableAlertOptionRender={() => (
-          <Space>
-            <Button
-              size="small"
-              icon={<UpOutlined />}
-              onClick={() => handleBatchAction('on_sale')}
-            >
-              {t('products.batchOnSale')}
-            </Button>
-            <Button
-              size="small"
-              icon={<DownOutlined />}
-              onClick={() => handleBatchAction('off_sale')}
-            >
-              {t('products.batchOffSale')}
-            </Button>
-          </Space>
-        )}
+      {/* Create Product Modal */}
+      <ProductCreateModal
+        open={createModalOpen}
+        onClose={() => setCreateModalOpen(false)}
       />
     </div>
   );

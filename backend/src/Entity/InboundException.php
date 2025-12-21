@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\InboundExceptionRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Uid\Ulid;
 
@@ -11,11 +13,11 @@ use Symfony\Component\Uid\Ulid;
  */
 #[ORM\Entity(repositoryClass: InboundExceptionRepository::class)]
 #[ORM\Table(name: 'inbound_exceptions')]
-#[ORM\Index(name: 'idx_inbound_exc_no', columns: ['exceptionNo'])]
+#[ORM\Index(name: 'idx_inbound_exc_no', columns: ['exception_no'])]
 #[ORM\Index(name: 'idx_inbound_exc_order', columns: ['inbound_order_id'])]
 #[ORM\Index(name: 'idx_inbound_exc_merchant', columns: ['merchant_id'])]
 #[ORM\Index(name: 'idx_inbound_exc_status', columns: ['status'])]
-#[ORM\Index(name: 'idx_inbound_exc_created', columns: ['createdAt'])]
+#[ORM\Index(name: 'idx_inbound_exc_created', columns: ['created_at'])]
 #[ORM\HasLifecycleCallbacks]
 class InboundException
 {
@@ -67,19 +69,14 @@ class InboundException
     #[ORM\Column(length: 20)]
     private string $status = self::STATUS_PENDING;
 
-    // 异常明细（JSON 存储）
-    #[ORM\Column(type: 'json')]
-    private array $items = [];  // 异常明细，如：[{"sku_id": "xxx", "expected": 100, "actual": 90, "issue": "短少10件"}]
+    // 异常明细（关联实体）
+    /** @var Collection<int, InboundExceptionItem> */
+    #[ORM\OneToMany(targetEntity: InboundExceptionItem::class, mappedBy: 'inboundException', cascade: ['persist', 'remove'], orphanRemoval: true)]
+    private Collection $items;
 
     // 数量汇总
-    #[ORM\Column(type: 'integer', options: ['default' => 0])]
-    private int $totalExpectedQuantity = 0;  // 预报总数
-
-    #[ORM\Column(type: 'integer', options: ['default' => 0])]
-    private int $totalActualQuantity = 0;  // 实际总数
-
-    #[ORM\Column(type: 'integer', options: ['default' => 0])]
-    private int $differenceQuantity = 0;  // 差异数量（绝对值）
+    #[ORM\Column(name: 'total_quantity', type: 'integer', options: ['default' => 0])]
+    private int $totalQuantity = 0;  // 异常商品总数量
 
     // 描述和证据
     #[ORM\Column(type: 'text')]
@@ -121,6 +118,7 @@ class InboundException
     public function __construct()
     {
         $this->id = (string) new Ulid();
+        $this->items = new ArrayCollection();
         $this->createdAt = new \DateTimeImmutable();
         $this->updatedAt = new \DateTimeImmutable();
     }
@@ -196,47 +194,42 @@ class InboundException
         return $this;
     }
 
-    public function getItems(): array
+    /**
+     * @return Collection<int, InboundExceptionItem>
+     */
+    public function getItems(): Collection
     {
         return $this->items;
     }
 
-    public function setItems(array $items): static
+    public function addItem(InboundExceptionItem $item): static
     {
-        $this->items = $items;
+        if (!$this->items->contains($item)) {
+            $this->items->add($item);
+            $item->setInboundException($this);
+        }
         return $this;
     }
 
-    public function getTotalExpectedQuantity(): int
+    public function removeItem(InboundExceptionItem $item): static
     {
-        return $this->totalExpectedQuantity;
-    }
-
-    public function setTotalExpectedQuantity(int $totalExpectedQuantity): static
-    {
-        $this->totalExpectedQuantity = $totalExpectedQuantity;
+        if ($this->items->removeElement($item)) {
+            // set the owning side to null (unless already changed)
+            if ($item->getInboundException() === $this) {
+                $item->setInboundException($this);
+            }
+        }
         return $this;
     }
 
-    public function getTotalActualQuantity(): int
+    public function getTotalQuantity(): int
     {
-        return $this->totalActualQuantity;
+        return $this->totalQuantity;
     }
 
-    public function setTotalActualQuantity(int $totalActualQuantity): static
+    public function setTotalQuantity(int $totalQuantity): static
     {
-        $this->totalActualQuantity = $totalActualQuantity;
-        return $this;
-    }
-
-    public function getDifferenceQuantity(): int
-    {
-        return $this->differenceQuantity;
-    }
-
-    public function setDifferenceQuantity(int $differenceQuantity): static
-    {
-        $this->differenceQuantity = $differenceQuantity;
+        $this->totalQuantity = $totalQuantity;
         return $this;
     }
 
@@ -425,11 +418,10 @@ class InboundException
     }
 
     /**
-     * 从入库单明细生成异常项
+     * 从入库单创建异常单
      */
-    public static function createFromInboundItems(
+    public static function createForInboundOrder(
         InboundOrder $order,
-        array $discrepancyItems,
         string $type,
         string $description
     ): self {
@@ -440,19 +432,21 @@ class InboundException
         $exception->warehouse = $order->getWarehouse();
         $exception->type = $type;
         $exception->description = $description;
-        $exception->items = $discrepancyItems;
-
-        // 计算数量汇总
-        $totalExpected = 0;
-        $totalActual = 0;
-        foreach ($discrepancyItems as $item) {
-            $totalExpected += $item['expected'] ?? 0;
-            $totalActual += $item['actual'] ?? 0;
-        }
-        $exception->totalExpectedQuantity = $totalExpected;
-        $exception->totalActualQuantity = $totalActual;
-        $exception->differenceQuantity = abs($totalExpected - $totalActual);
 
         return $exception;
+    }
+
+    /**
+     * 重新计算数量汇总
+     */
+    public function recalculateTotals(): void
+    {
+        $total = 0;
+
+        foreach ($this->items as $item) {
+            $total += $item->getQuantity();
+        }
+
+        $this->totalQuantity = $total;
     }
 }

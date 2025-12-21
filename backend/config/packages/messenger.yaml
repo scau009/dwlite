@@ -20,7 +20,11 @@ framework:
                     multiplier: 2
 
             scheduler_default:
-                dsn: 'sync://'
+                dsn: '%env(REDIS_URL)%'
+                options:
+                    stream: dwlite_scheduler
+                    group: scheduler_consumer
+                    consumer: scheduler
 
             failed:
                 dsn: '%env(REDIS_URL)%'

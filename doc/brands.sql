@@ -4,16 +4,12 @@
 CREATE TABLE `brands` (
     `id` VARCHAR(26) NOT NULL PRIMARY KEY COMMENT 'ULID',
     `name` VARCHAR(100) NOT NULL,
-    `name_en` VARCHAR(100) NULL COMMENT 'English name',
-    `logo` VARCHAR(500) NULL COMMENT 'Logo URL',
+    `slug` VARCHAR(120) NOT NULL UNIQUE COMMENT 'URL-friendly identifier',
+    `logo_url` VARCHAR(500) NULL COMMENT 'Logo URL',
     `description` TEXT NULL,
-    `website` VARCHAR(255) NULL,
-    `country` VARCHAR(50) NULL COMMENT 'Country of origin',
-    `display_order` INT NOT NULL DEFAULT 0,
+    `sort_order` INT NOT NULL DEFAULT 0 COMMENT 'Display order, lower first',
     `is_active` BOOLEAN NOT NULL DEFAULT TRUE,
     `created_at` DATETIME NOT NULL,
     `updated_at` DATETIME NOT NULL,
-    UNIQUE INDEX `uniq_brand_name` (`name`),
-    INDEX `idx_brand_active` (`is_active`),
-    INDEX `idx_brand_order` (`display_order`)
+    INDEX `idx_brand_slug` (`slug`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Brands';

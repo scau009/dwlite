@@ -21,8 +21,21 @@ import { VerifyEmailPage } from '@/pages/auth/verify-email';
 // App pages
 import { DashboardPage } from '@/pages/dashboard';
 import { ProfilePage } from '@/pages/profile';
-import { ProductsListPage, ProductDetailPage, ProductFormPage } from '@/pages/products';
+import { ProductsListPage, ProductDetailPage } from '@/pages/products';
 import { MerchantsListPage } from '@/pages/merchants';
+import { BrandsListPage } from '@/pages/brands';
+import { CategoriesListPage } from '@/pages/categories';
+import { TagsListPage } from '@/pages/tags';
+import {
+  InboundOrdersListPage,
+  InboundOrderDetailPage,
+  InboundShipmentsListPage,
+  InboundShipmentDetailPage,
+  InboundExceptionsListPage,
+  InboundExceptionDetailPage,
+} from '@/pages/inventory';
+import { WarehousesListPage } from '@/pages/warehouses';
+import { MerchantProfilePage, MerchantWalletPage } from '@/pages/settings';
 
 // Placeholder component for pages not yet implemented
 function PlaceholderPage({ title }: { title: string }) {
@@ -110,17 +123,11 @@ export const router = createBrowserRouter([
               { path: '/dashboard', element: <DashboardPage /> },
 
               // Products
-              { path: '/products', element: <ProductsListPage /> },
-              { path: '/products/new', element: <ProductFormPage /> },
-              { path: '/products/:id', element: <ProductDetailPage /> },
-              { path: '/products/:id/edit', element: <ProductFormPage /> },
-              { path: '/products/categories', element: <PlaceholderPage title="Product Categories" /> },
-              { path: '/products/attributes', element: <PlaceholderPage title="Product Attributes" /> },
-
-              // Inventory
-              { path: '/inventory', element: <PlaceholderPage title="Inventory List" /> },
-              { path: '/inventory/alerts', element: <PlaceholderPage title="Stock Alerts" /> },
-              { path: '/inventory/logs', element: <PlaceholderPage title="Stock Logs" /> },
+              { path: '/products/list', element: <ProductsListPage /> },
+              { path: '/products/detail/:id', element: <ProductDetailPage /> },
+              { path: '/products/categories', element: <CategoriesListPage /> },
+              { path: '/products/brands', element: <BrandsListPage /> },
+              { path: '/products/tags', element: <TagsListPage /> },
 
               // Pricing
               { path: '/pricing', element: <PlaceholderPage title="Price List" /> },
@@ -139,8 +146,19 @@ export const router = createBrowserRouter([
               { path: '/fulfillment/shipped', element: <PlaceholderPage title="Shipped" /> },
               { path: '/fulfillment/exceptions', element: <PlaceholderPage title="Fulfillment Exceptions" /> },
 
+              // Inventory
+              { path: '/inventory/inbound', element: <InboundOrdersListPage /> },
+              { path: '/inventory/inbound/detail/:id', element: <InboundOrderDetailPage /> },
+              { path: '/inventory/shipments', element: <InboundShipmentsListPage /> },
+              { path: '/inventory/shipments/detail/:id', element: <InboundShipmentDetailPage /> },
+              { path: '/inventory/exceptions', element: <InboundExceptionsListPage /> },
+              { path: '/inventory/exceptions/detail/:id', element: <InboundExceptionDetailPage /> },
+
               // Merchants
               { path: '/merchants', element: <MerchantsListPage /> },
+
+              // Warehouses
+              { path: '/warehouses', element: <WarehousesListPage /> },
 
               // Data Center
               { path: '/data', element: <PlaceholderPage title="Data Overview" /> },
@@ -149,7 +167,8 @@ export const router = createBrowserRouter([
               { path: '/data/reports', element: <PlaceholderPage title="Reports" /> },
 
               // Settings
-              { path: '/settings', element: <PlaceholderPage title="General Settings" /> },
+              { path: '/settings/info', element: <MerchantProfilePage /> },
+              { path: '/settings/wallet', element: <MerchantWalletPage /> },
               { path: '/settings/users', element: <PlaceholderPage title="User Management" /> },
               { path: '/settings/roles', element: <PlaceholderPage title="Role Management" /> },
               { path: '/settings/logs', element: <PlaceholderPage title="Operation Logs" /> },

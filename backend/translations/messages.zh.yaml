@@ -1,5 +1,12 @@
 # Chinese translations
 
+# Email subjects
+email:
+  verification:
+    subject: '验证您的邮箱地址'
+  password_reset:
+    subject: '重置您的密码'
+
 # Authentication messages
 auth:
   register:
@@ -41,6 +48,50 @@ admin:
     deactivated: '品牌已禁用'
     has_products: '无法删除已关联商品的品牌'
 
+  # Tag management messages
+  tag:
+    not_found: '标签不存在'
+    slug_exists: '别名已存在'
+    created: '标签创建成功'
+    updated: '标签更新成功'
+    deleted: '标签删除成功'
+    activated: '标签已启用'
+    deactivated: '标签已禁用'
+    has_products: '无法删除已关联商品的标签'
+
+  # Product management messages
+  product:
+    not_found: '商品不存在'
+    slug_exists: '别名已存在'
+    style_number_exists: '款号已存在'
+    created: '商品创建成功'
+    updated: '商品更新成功'
+    deleted: '商品删除成功'
+    status_updated: '商品状态已更新'
+    # SKU
+    sku_code_exists: 'SKU编码已存在'
+    sku_not_found: 'SKU不存在'
+    sku_created: 'SKU创建成功'
+    sku_updated: 'SKU更新成功'
+    sku_deleted: 'SKU删除成功'
+    sku_activated: 'SKU已启用'
+    sku_deactivated: 'SKU已禁用'
+    sku_size_exists: '尺码 %size% 已存在'
+    skus_batch_created: '成功批量创建 %count% 个SKU'
+    size_unit_mismatch: '该商品已有 %existing% 尺码，无法添加 %requested% 尺码'
+    all_sizes_exist: '所有热门尺码都已存在'
+    # Image
+    image_required: '请上传图片'
+    invalid_image_type: '图片格式不正确，支持 JPG/PNG/GIF/WebP'
+    image_too_large: '图片大小不能超过5MB'
+    image_uploaded: '图片上传成功'
+    image_deleted: '图片删除成功'
+    image_not_found: '图片不存在'
+    image_primary_set: '已设为主图'
+    image_ids_required: '图片ID列表不能为空'
+    images_sorted: '图片排序已更新'
+    upload_failed: '图片上传失败'
+
   # Category management messages
   category:
     not_found: '分类不存在'
@@ -63,12 +114,18 @@ admin:
     enabled: '商户已启用'
     disabled: '商户已禁用'
 
+# Merchant self-service messages
+merchant:
+  not_found: '未找到商户信息'
+  profile_updated: '商户信息更新成功'
+
 # Wallet messages
 wallet:
   init_success: '钱包初始化成功'
   already_initialized: '商户钱包已初始化'
   deposit_not_found: '保证金钱包不存在，请先初始化钱包。'
   deposit_wallet_not_found: '保证金钱包不存在'
+  balance_wallet_not_found: '余额钱包不存在'
   amount_positive: '金额必须大于0'
   deposit_charged: '保证金充值成功'
 
@@ -120,3 +177,6 @@ validation:
   # Status
   is_active_required: '启用状态不能为空'
   enabled_required: '启用状态不能为空'
+
+  # Color
+  color_format: '颜色必须是有效的HEX格式（如 #FF5733）'
