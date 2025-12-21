@@ -40,6 +40,17 @@ export function getMenuData(t: TFunction): AccessMenuDataItem[] {
       ],
     },
     {
+      path: '/inventory',
+      name: t('nav.inventory'),
+      icon: <InboxOutlined />,
+      access: 'merchant',
+      children: [
+        { path: '/inventory/inbound', name: t('menu.inboundOrders'), access: 'merchant' },
+        { path: '/inventory/shipments', name: t('menu.inboundShipments'), access: 'merchant' },
+        { path: '/inventory/exceptions', name: t('menu.inboundExceptions'), access: 'merchant' },
+      ],
+    },
+    {
       path: '/pricing',
       name: t('nav.pricing'),
       icon: <DollarOutlined />,
@@ -71,17 +82,7 @@ export function getMenuData(t: TFunction): AccessMenuDataItem[] {
         { path: '/fulfillment/exceptions', name: t('menu.fulfillmentExceptions') },
       ],
     },
-    {
-      path: '/inventory',
-      name: t('nav.inventory'),
-      icon: <InboxOutlined />,
-      access: 'merchant',
-      children: [
-        { path: '/inventory/inbound', name: t('menu.inboundOrders'), access: 'merchant' },
-        { path: '/inventory/shipments', name: t('menu.inboundShipments'), access: 'merchant' },
-        { path: '/inventory/exceptions', name: t('menu.inboundExceptions'), access: 'merchant' },
-      ],
-    },
+
     {
       path: '/merchants',
       name: t('nav.merchants'),
