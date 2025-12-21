@@ -94,7 +94,7 @@ class InventoryService
                 $item->getUnitCost(),
                 $operatorId,
                 $operatorName,
-                sprintf('入库单 %s 发货，SKU: %s', $order->getOrderNo(), $item->getSkuCode())
+                sprintf('入库单 %s 发货，SKU: %s', $order->getOrderNo(), $item->getStyleNumber() . '-' . $item->getSkuName())
             );
 
             $this->entityManager->flush();

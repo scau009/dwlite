@@ -114,12 +114,18 @@ admin:
     enabled: '商户已启用'
     disabled: '商户已禁用'
 
+# Merchant self-service messages
+merchant:
+  not_found: '未找到商户信息'
+  profile_updated: '商户信息更新成功'
+
 # Wallet messages
 wallet:
   init_success: '钱包初始化成功'
   already_initialized: '商户钱包已初始化'
   deposit_not_found: '保证金钱包不存在，请先初始化钱包。'
   deposit_wallet_not_found: '保证金钱包不存在'
+  balance_wallet_not_found: '余额钱包不存在'
   amount_positive: '金额必须大于0'
   deposit_charged: '保证金充值成功'
 

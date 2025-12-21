@@ -38,7 +38,9 @@ import {
 import { InboundOrderFormModal } from './components/inbound-order-form-modal';
 import { CancelOrderModal } from './components/cancel-order-modal';
 import { InboundOrderItemModal } from './components/inbound-order-item-modal';
+import { ProductSelectorModal } from './components/product-selector-modal';
 import { ShipOrderModal } from './components/ship-order-modal';
+import { BatchUpdateQuantityModal } from './components/batch-update-quantity-modal';
 
 const { Text } = Typography;
 
@@ -69,7 +71,12 @@ export function InboundOrderDetailPage() {
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
   const [itemModalOpen, setItemModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<InboundOrderItem | null>(null);
+  const [productSelectorOpen, setProductSelectorOpen] = useState(false);
   const [shipModalOpen, setShipModalOpen] = useState(false);
+  const [batchQuantityModalOpen, setBatchQuantityModalOpen] = useState(false);
+
+  // Batch selection state
+  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
 
   const loadOrder = async () => {
     if (!id) return;
@@ -162,6 +169,8 @@ export function InboundOrderDetailPage() {
         try {
           await inboundApi.deleteInboundOrderItem(item.id);
           message.success(t('inventory.itemDeleted'));
+          // Remove deleted item from selection
+          setSelectedRowKeys(prev => prev.filter(key => key !== item.id));
           loadOrder();
         } catch (error) {
           const err = error as { error?: string };
@@ -170,6 +179,35 @@ export function InboundOrderDetailPage() {
       },
     });
   };
+
+  // Handle batch delete items
+  const handleBatchDelete = () => {
+    if (selectedRowKeys.length === 0) return;
+
+    modal.confirm({
+      title: t('inventory.confirmBatchDelete'),
+      content: t('inventory.confirmBatchDeleteDesc', { count: selectedRowKeys.length }),
+      okText: t('common.confirm'),
+      cancelText: t('common.cancel'),
+      okButtonProps: { danger: true },
+      onOk: async () => {
+        try {
+          await Promise.all(
+            selectedRowKeys.map(id => inboundApi.deleteInboundOrderItem(id as string))
+          );
+          message.success(t('inventory.batchDeleteSuccess', { count: selectedRowKeys.length }));
+          setSelectedRowKeys([]);
+          loadOrder();
+        } catch (error) {
+          const err = error as { error?: string };
+          message.error(err.error || t('common.error'));
+        }
+      },
+    });
+  };
+
+  // Get selected items for batch operations
+  const selectedItems = order?.items.filter(item => selectedRowKeys.includes(item.id)) || [];
 
   // Item table columns
   const itemColumns: ColumnsType<InboundOrderItem> = [
@@ -189,24 +227,26 @@ export function InboundOrderDetailPage() {
     {
       title: t('inventory.productName'),
       dataIndex: 'productName',
-      width: 200,
+      width: 180,
       render: (name: string | null) => name || '-',
     },
     {
-      title: t('inventory.itemSkuCode'),
-      dataIndex: ['productSku', 'skuCode'],
-      width: 140,
-      render: (code: string | null) => (
-        <Text code copyable={{ text: code || '' }}>
-          {code || '-'}
-        </Text>
-      ),
+      title: t('inventory.styleNumber'),
+      dataIndex: 'styleNumber',
+      width: 120,
+      render: (styleNumber: string | null) => styleNumber || '-',
     },
     {
-      title: t('inventory.itemSizeValue'),
-      dataIndex: ['productSku', 'sizeValue'],
+      title: t('inventory.skuName'),
+      dataIndex: ['productSku', 'skuName'],
       width: 80,
-      render: (size: string | null) => size || '-',
+      render: (skuName: string | null) => skuName || '-',
+    },
+    {
+      title: t('inventory.colorName'),
+      dataIndex: ['productSku', 'colorName'],
+      width: 80,
+      render: (color: string | null) => color || '-',
     },
     {
       title: t('inventory.expectedQuantity'),
@@ -233,12 +273,6 @@ export function InboundOrderDetailPage() {
       render: (qty: number) => (
         <span className={qty > 0 ? 'text-red-500' : ''}>{qty}</span>
       ),
-    },
-    {
-      title: t('inventory.unitCost'),
-      dataIndex: 'unitCost',
-      width: 100,
-      render: (cost: string | null) => (cost ? `¥${cost}` : '-'),
     },
   ];
 
@@ -469,16 +503,33 @@ export function InboundOrderDetailPage() {
             <Button
               type="primary"
               icon={<PlusOutlined />}
-              onClick={() => {
-                setEditingItem(null);
-                setItemModalOpen(true);
-              }}
+              onClick={() => setProductSelectorOpen(true)}
             >
               {t('inventory.addItem')}
             </Button>
           )
         }
       >
+        {/* Batch operation toolbar */}
+        {isDraft && selectedRowKeys.length > 0 && (
+          <div className="mb-3 p-3 bg-blue-50 rounded flex items-center justify-between">
+            <span className="text-blue-600">
+              {t('common.selected', { count: selectedRowKeys.length })}
+            </span>
+            <Space>
+              <Button onClick={() => setBatchQuantityModalOpen(true)}>
+                {t('inventory.batchUpdateQuantity')}
+              </Button>
+              <Button
+                danger
+                icon={<DeleteOutlined />}
+                onClick={handleBatchDelete}
+              >
+                {t('inventory.batchDelete')}
+              </Button>
+            </Space>
+          </div>
+        )}
         <Table
           columns={itemColumns}
           dataSource={order.items}
@@ -486,6 +537,14 @@ export function InboundOrderDetailPage() {
           pagination={false}
           scroll={{ x: 1000 }}
           size="small"
+          rowSelection={
+            isDraft
+              ? {
+                  selectedRowKeys,
+                  onChange: setSelectedRowKeys,
+                }
+              : undefined
+          }
         />
       </Card>
 
@@ -683,12 +742,33 @@ export function InboundOrderDetailPage() {
         }}
       />
 
+      <ProductSelectorModal
+        open={productSelectorOpen}
+        orderId={id!}
+        onClose={() => setProductSelectorOpen(false)}
+        onSuccess={() => {
+          setProductSelectorOpen(false);
+          loadOrder();
+        }}
+      />
+
       <ShipOrderModal
         open={shipModalOpen}
         orderId={id!}
         onClose={() => setShipModalOpen(false)}
         onSuccess={() => {
           setShipModalOpen(false);
+          loadOrder();
+        }}
+      />
+
+      <BatchUpdateQuantityModal
+        open={batchQuantityModalOpen}
+        items={selectedItems}
+        onClose={() => setBatchQuantityModalOpen(false)}
+        onSuccess={() => {
+          setBatchQuantityModalOpen(false);
+          setSelectedRowKeys([]);
           loadOrder();
         }}
       />

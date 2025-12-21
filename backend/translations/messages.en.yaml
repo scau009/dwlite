@@ -114,12 +114,18 @@ admin:
     enabled: 'Merchant enabled'
     disabled: 'Merchant disabled'
 
+# Merchant self-service messages
+merchant:
+  not_found: 'Merchant not found'
+  profile_updated: 'Profile updated successfully'
+
 # Wallet messages
 wallet:
   init_success: 'Wallets initialized successfully'
   already_initialized: 'Merchant wallets already initialized'
   deposit_not_found: 'Deposit wallet not found. Please initialize wallets first.'
   deposit_wallet_not_found: 'Deposit wallet not found'
+  balance_wallet_not_found: 'Balance wallet not found'
   amount_positive: 'Amount must be greater than 0'
   deposit_charged: 'Deposit charged successfully'
 

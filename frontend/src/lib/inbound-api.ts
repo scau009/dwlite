@@ -69,6 +69,7 @@ export interface InboundOrderItem {
     skuName: string | null;
     colorName: string | null;
   };
+  styleNumber: string | null;
   productName: string | null;
   productImage: string | null;
   expectedQuantity: number;
@@ -190,6 +191,25 @@ export interface AvailableWarehouse {
   province: string | null;
 }
 
+export interface InboundProductSku {
+  id: string;
+  skuName: string | null;
+  sizeUnit: string | null;
+  sizeValue: string | null;
+  price: string;
+  isActive: boolean;
+}
+
+export interface InboundProduct {
+  id: string;
+  name: string;
+  styleNumber: string;
+  color: string | null;
+  primaryImageUrl: string | null;
+  brandName: string | null;
+  skus: InboundProductSku[];
+}
+
 // ========== API Methods ==========
 
 export const inboundApi = {
@@ -200,6 +220,23 @@ export const inboundApi = {
    */
   getAvailableWarehouses: async (): Promise<AvailableWarehouse[]> => {
     const response = await apiFetch<{ data: AvailableWarehouse[] }>('/api/inbound/warehouses');
+    return response.data || [];
+  },
+
+  // ========== Products ==========
+
+  /**
+   * Search products for adding to inbound order
+   */
+  searchProducts: async (search: string, limit = 10): Promise<InboundProduct[]> => {
+    const queryParams = new URLSearchParams();
+    if (search) queryParams.append('search', search);
+    queryParams.append('limit', limit.toString());
+
+    const query = queryParams.toString();
+    const response = await apiFetch<{ data: InboundProduct[]; total: number }>(
+      `/api/inbound/products${query ? `?${query}` : ''}`
+    );
     return response.data || [];
   },
 

@@ -117,7 +117,8 @@ export function getMenuData(t: TFunction): AccessMenuDataItem[] {
       name: t('nav.settings'),
       icon: <SettingOutlined />,
       children: [
-        { path: '/settings', name: t('menu.generalSettings') },
+        { path: '/settings/info', name: t('menu.generalSettings'), access: 'merchant' },
+        { path: '/settings/wallet', name: t('menu.walletManagement'), access: 'merchant' },
         { path: '/settings/users', name: t('menu.userManagement'), access: 'admin' },
         { path: '/settings/roles', name: t('menu.roleManagement'), access: 'admin' },
         { path: '/settings/logs', name: t('menu.operationLogs'), access: 'admin' },

@@ -52,6 +52,64 @@ export interface WalletInfo {
   status?: string;
 }
 
+// Merchant self-service types
+export interface MerchantProfile {
+  id: string;
+  name: string;
+  email: string;
+  status: 'pending' | 'approved' | 'rejected' | 'disabled';
+  description: string | null;
+  contactName: string;
+  contactPhone: string;
+  province: string | null;
+  city: string | null;
+  district: string | null;
+  address: string | null;
+  fullAddress: string;
+  businessLicense: string | null;
+  approvedAt: string | null;
+  rejectedReason: string | null;
+  createdAt: string;
+  updatedAt: string;
+  depositBalance: string;
+  depositFrozen: string;
+  balanceAmount: string;
+  balanceFrozen: string;
+}
+
+export interface UpdateMerchantProfileRequest {
+  name: string;
+  description?: string | null;
+  contactName: string;
+  contactPhone: string;
+  province?: string | null;
+  city?: string | null;
+  district?: string | null;
+  address?: string | null;
+}
+
+export interface Wallet {
+  id: string;
+  type: 'deposit' | 'balance';
+  balance: string;
+  frozenAmount: string;
+  availableBalance: string;
+  status: 'active' | 'frozen';
+}
+
+export interface WalletsResponse {
+  deposit: Wallet | null;
+  balance: Wallet | null;
+}
+
+export interface TransactionsResponse {
+  data: WalletTransaction[];
+  total: number;
+  page: number;
+  limit: number;
+  wallet: Wallet;
+}
+
 export interface PaginatedResponse<T> {
   data: T[];
   total: number;
@@ -160,5 +218,65 @@ export const merchantApi = {
       method: 'POST',
       body: JSON.stringify({ reason }),
     });
+  },
+
+  // ============ Merchant Self-Service APIs ============
+
+  /**
+   * 获取当前商户信息
+   */
+  getMyProfile: async (): Promise<MerchantProfile> => {
+    return apiFetch<MerchantProfile>('/api/merchant/profile');
+  },
+
+  /**
+   * 更新当前商户信息
+   */
+  updateMyProfile: async (
+    data: UpdateMerchantProfileRequest
+  ): Promise<{ message: string; merchant: MerchantProfile }> => {
+    return apiFetch('/api/merchant/profile', {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  },
+
+  /**
+   * 获取当前商户钱包列表
+   */
+  getMyWallets: async (): Promise<WalletsResponse> => {
+    return apiFetch<WalletsResponse>('/api/merchant/wallets');
+  },
+
+  /**
+   * 获取当前商户保证金钱包交易明细
+   */
+  getMyDepositTransactions: async (
+    params: { page?: number; limit?: number } = {}
+  ): Promise<TransactionsResponse> => {
+    const searchParams = new URLSearchParams();
+    if (params.page) searchParams.set('page', String(params.page));
+    if (params.limit) searchParams.set('limit', String(params.limit));
+
+    const query = searchParams.toString();
+    return apiFetch(
+      `/api/merchant/wallets/deposit/transactions${query ? `?${query}` : ''}`
+    );
+  },
+
+  /**
+   * 获取当前商户余额钱包交易明细
+   */
+  getMyBalanceTransactions: async (
+    params: { page?: number; limit?: number } = {}
+  ): Promise<TransactionsResponse> => {
+    const searchParams = new URLSearchParams();
+    if (params.page) searchParams.set('page', String(params.page));
+    if (params.limit) searchParams.set('limit', String(params.limit));
+
+    const query = searchParams.toString();
+    return apiFetch(
+      `/api/merchant/wallets/balance/transactions${query ? `?${query}` : ''}`
+    );
   },
 };

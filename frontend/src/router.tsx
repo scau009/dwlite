@@ -35,6 +35,7 @@ import {
   InboundExceptionDetailPage,
 } from '@/pages/inventory';
 import { WarehousesListPage } from '@/pages/warehouses';
+import { MerchantProfilePage, MerchantWalletPage } from '@/pages/settings';
 
 // Placeholder component for pages not yet implemented
 function PlaceholderPage({ title }: { title: string }) {
@@ -166,7 +167,8 @@ export const router = createBrowserRouter([
               { path: '/data/reports', element: <PlaceholderPage title="Reports" /> },
 
               // Settings
-              { path: '/settings', element: <PlaceholderPage title="General Settings" /> },
+              { path: '/settings/info', element: <MerchantProfilePage /> },
+              { path: '/settings/wallet', element: <MerchantWalletPage /> },
               { path: '/settings/users', element: <PlaceholderPage title="User Management" /> },
               { path: '/settings/roles', element: <PlaceholderPage title="Role Management" /> },
               { path: '/settings/logs', element: <PlaceholderPage title="Operation Logs" /> },

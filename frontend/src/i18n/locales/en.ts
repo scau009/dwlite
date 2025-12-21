@@ -32,6 +32,7 @@ export default {
     error: 'Operation Failed',
     required: 'Required',
     all: 'All',
+    selectAll: 'Select All',
   },
 
   // Navigation
@@ -84,6 +85,7 @@ export default {
     warehouseList: 'Warehouse List',
     // Settings
     generalSettings: 'General',
+    walletManagement: 'Wallet',
     userManagement: 'Users',
     roleManagement: 'Roles',
     operationLogs: 'Logs',
@@ -682,6 +684,33 @@ export default {
     selectSku: 'Select SKU',
     searchSku: 'Search SKU',
     searchSkuHint: 'Enter product name or SKU code to search',
+    // Product Selector
+    selectProduct: 'Select Product',
+    searchByStyleNumber: 'Search by style number',
+    searchProductHint: 'Enter at least 2 characters to search',
+    styleNumber: 'Style Number',
+    color: 'Color',
+    referencePrice: 'Reference Price',
+    skuCount: 'SKUs',
+    selectSize: 'Select Size',
+    // Size Selector
+    size: 'Size',
+    sizeUnit: 'Size Unit',
+    price: 'Price',
+    batchFill: 'Batch Fill',
+    quickFill: 'Quick fill quantity',
+    addToOrder: 'Add to Order',
+    pleaseSelectSku: 'Please select at least one SKU',
+    selectedCount: '{{count}} selected',
+    itemsAdded: 'Items added successfully',
+    // Batch operations
+    batchDelete: 'Batch Delete',
+    batchUpdateQuantity: 'Batch Update Quantity',
+    batchUpdateQuantityDesc: 'Set the same expected quantity for {{count}} selected items',
+    batchUpdateSuccess: 'Successfully updated {{count}} items',
+    batchDeleteSuccess: 'Successfully deleted {{count}} items',
+    confirmBatchDelete: 'Confirm Batch Delete',
+    confirmBatchDeleteDesc: 'Are you sure you want to delete {{count}} selected items? This action cannot be undone.',
     // Ship Modal
     logisticsInfo: 'Logistics Info',
     selectCarrier: 'Select carrier',
@@ -721,5 +750,37 @@ export default {
     resolutionRequired: 'Please select a resolution',
     selectResolution: 'Select resolution',
     enterResolutionNotes: 'Enter resolution notes (optional)',
+  },
+
+  // Settings
+  settings: {
+    // Merchant Profile
+    merchantProfile: 'Merchant Profile',
+    merchantProfileDesc: 'Manage your merchant profile, contact info and address',
+    merchantNotFound: 'Merchant not found',
+    profileUpdated: 'Profile updated successfully',
+    accountStatus: 'Account Status',
+    approvedAt: 'Approved At',
+    rejectedReason: 'Rejection Reason',
+    basicInfo: 'Basic Information',
+    contactInfo: 'Contact Information',
+    addressInfo: 'Address Information',
+    description: 'Description',
+    enterMerchantName: 'Enter merchant name',
+    enterDescription: 'Enter description',
+    enterContactName: 'Enter contact name',
+    enterContactPhone: 'Enter contact phone',
+    walletSummary: 'Wallet Summary',
+    depositBalance: 'Deposit Balance',
+    balanceAmount: 'Available Balance',
+    viewWalletDetails: 'View wallet details',
+    // Wallet
+    walletManagement: 'Wallet',
+    walletManagementDesc: 'View your wallet balance and transaction history',
+    depositWallet: 'Deposit Wallet',
+    balanceWallet: 'Balance Wallet',
+    depositTransactions: 'Deposit Transactions',
+    balanceTransactions: 'Balance Transactions',
+    walletNotInitialized: 'Wallet not initialized',
   },
 }

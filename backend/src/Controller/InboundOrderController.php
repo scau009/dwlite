@@ -10,10 +10,13 @@ use App\Dto\Inbound\Query\InboundOrderListQuery;
 use App\Dto\Inbound\ResolveInboundExceptionRequest;
 use App\Dto\Inbound\ShipInboundOrderRequest;
 use App\Dto\Inbound\UpdateInboundOrderItemRequest;
+use App\Entity\Product;
 use App\Entity\User;
 use App\Entity\Warehouse;
 use App\Repository\MerchantRepository;
+use App\Repository\ProductRepository;
 use App\Repository\WarehouseRepository;
+use App\Service\CosService;
 use App\Service\InboundOrderService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -34,6 +37,8 @@ class InboundOrderController extends AbstractController
         private InboundOrderService $inboundOrderService,
         private MerchantRepository $merchantRepository,
         private WarehouseRepository $warehouseRepository,
+        private ProductRepository $productRepository,
+        private CosService $cosService,
         private TranslatorInterface $translator,
     ) {
     }
@@ -70,6 +75,65 @@ class InboundOrderController extends AbstractController
                 'province' => $w->getProvince(),
             ], $warehouses),
         ]);
+    }
+
+    /**
+     * 搜索商品（供入库单添加明细使用）
+     */
+    #[Route('/products', name: 'inbound_search_products', methods: ['GET'])]
+    public function searchProducts(Request $request): JsonResponse
+    {
+        $search = $request->query->get('search', '');
+        $limit = min((int) $request->query->get('limit', 10), 50);
+
+        $filters = [
+            'status' => 'active',  // 只查询已上架的商品
+            'isActive' => true,
+        ];
+
+        if ($search) {
+            $filters['search'] = $search;
+        }
+
+        $result = $this->productRepository->findWithFilters($filters, 1, $limit);
+
+        return $this->json([
+            'data' => array_map(fn(Product $p) => $this->serializeProductForInbound($p), $result['data']),
+            'total' => $result['meta']['total'],
+        ]);
+    }
+
+    /**
+     * 序列化商品（入库单用，包含 SKU 列表）
+     */
+    private function serializeProductForInbound(Product $product): array
+    {
+        $primaryImage = $product->getPrimaryImage();
+        $primaryImageUrl = null;
+        if ($primaryImage) {
+            $primaryImageUrl = $this->cosService->getSignedUrl(
+                $primaryImage->getCosKey(),
+                3600,
+                'imageMogr2/thumbnail/300x300>'
+            );
+        }
+
+        return [
+            'id' => $product->getId(),
+            'name' => $product->getName(),
+            'styleNumber' => $product->getStyleNumber(),
+            'color' => $product->getColor(),
+            'primaryImageUrl' => $primaryImageUrl,
+            'brandName' => $product->getBrand()?->getName(),
+            'skus' => array_map(fn($sku) => [
+                'id' => $sku->getId(),
+                'skuName' => $sku->getSkuName(),
+                'sizeUnit' => $sku->getSizeUnit()?->value,
+                'sizeValue' => $sku->getSizeValue(),
+                'price' => $sku->getPrice(),
+                'isActive' => $sku->isActive(),
+            ], $product->getSkus()->filter(fn($s) => $s->isActive())->toArray()),
+        ];
     }
 
     /**
@@ -453,6 +517,20 @@ class InboundOrderController extends AbstractController
      */
     private function serializeItem($item): array
     {
+        $productImageUrl = null;
+        $productImage = $item->getProductImage();
+        if ($productImage) {
+            // 如果是完整 URL，提取 COS key
+            $cosKey = $this->extractCosKey($productImage);
+            if ($cosKey) {
+                $productImageUrl = $this->cosService->getSignedUrl(
+                    $cosKey,
+                    3600,
+                    'imageMogr2/thumbnail/120x120>'
+                );
+            }
+        }
+
         return [
             'id' => $item->getId(),
             'productSku' => [
@@ -460,8 +538,9 @@ class InboundOrderController extends AbstractController
                 'skuName' => $item->getSkuName(),
                 'colorName' => $item->getColorName(),
             ],
+            'styleNumber' => $item->getStyleNumber(),
             'productName' => $item->getProductName(),
-            'productImage' => $item->getProductImage(),
+            'productImage' => $productImageUrl,
             'expectedQuantity' => $item->getExpectedQuantity(),
             'receivedQuantity' => $item->getReceivedQuantity(),
             'damagedQuantity' => $item->getDamagedQuantity(),
@@ -529,5 +608,26 @@ class InboundOrderController extends AbstractController
             'productImage' => $item->getProductImage(),
             'quantity' => $item->getQuantity(),
         ];
+    }
+
+    /**
+     * 从完整 URL 或 COS key 中提取 COS key
+     */
+    private function extractCosKey(string $imagePathOrUrl): ?string
+    {
+        // 如果已经是相对路径（COS key），直接返回
+        if (!str_starts_with($imagePathOrUrl, 'http')) {
+            return $imagePathOrUrl;
+        }
+
+        // 从完整 URL 中提取 COS key
+        // URL 格式: https://bucket.cos.region.myqcloud.com/dwlite/...
+        $parsed = parse_url($imagePathOrUrl);
+        if ($parsed && isset($parsed['path'])) {
+            // 去掉开头的斜杠
+            return ltrim($parsed['path'], '/');
+        }
+
+        return null;
     }
 }

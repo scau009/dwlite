@@ -32,6 +32,7 @@ export default {
     error: '操作失败',
     required: '必填',
     all: '全部',
+    selectAll: '全选',
   },
 
   // Navigation
@@ -84,6 +85,7 @@ export default {
     warehouseList: '仓库列表',
     // Settings
     generalSettings: '基本设置',
+    walletManagement: '电子钱包',
     userManagement: '用户管理',
     roleManagement: '角色权限',
     operationLogs: '操作日志',
@@ -685,6 +687,33 @@ export default {
     selectSku: '选择SKU',
     searchSku: '搜索SKU',
     searchSkuHint: '请输入商品名称或SKU编码搜索',
+    // 商品选择器
+    selectProduct: '选择商品',
+    searchByStyleNumber: '输入款号搜索商品',
+    searchProductHint: '请输入至少2个字符开始搜索',
+    styleNumber: '款号',
+    color: '颜色',
+    referencePrice: '参考价格',
+    skuCount: 'SKU数',
+    selectSize: '选择尺码',
+    // 尺码选择器
+    size: '尺码',
+    sizeUnit: '尺码单位',
+    price: '价格',
+    batchFill: '批量填充',
+    quickFill: '快速填充数量',
+    addToOrder: '添加到入库单',
+    pleaseSelectSku: '请选择至少一个SKU',
+    selectedCount: '已选 {{count}} 项',
+    itemsAdded: '商品添加成功',
+    // 批量操作
+    batchDelete: '批量删除',
+    batchUpdateQuantity: '批量修改数量',
+    batchUpdateQuantityDesc: '将为选中的 {{count}} 个商品设置相同的预报数量',
+    batchUpdateSuccess: '成功更新 {{count}} 个商品',
+    batchDeleteSuccess: '成功删除 {{count}} 个商品',
+    confirmBatchDelete: '确认批量删除',
+    confirmBatchDeleteDesc: '确定要删除选中的 {{count}} 个商品吗？此操作不可撤销。',
     // 发货模态框
     logisticsInfo: '物流信息',
     selectCarrier: '选择物流公司',
@@ -722,5 +751,37 @@ export default {
     resolutionRequired: '请选择处理方式',
     selectResolution: '选择处理方式',
     enterResolutionNotes: '请输入处理说明（选填）',
+  },
+
+  // Settings
+  settings: {
+    // Merchant Profile
+    merchantProfile: '商户信息',
+    merchantProfileDesc: '管理您的商户基本信息、联系方式和地址',
+    merchantNotFound: '未找到商户信息',
+    profileUpdated: '商户信息更新成功',
+    accountStatus: '账户状态',
+    approvedAt: '审核通过时间',
+    rejectedReason: '拒绝原因',
+    basicInfo: '基本信息',
+    contactInfo: '联系信息',
+    addressInfo: '地址信息',
+    description: '商户简介',
+    enterMerchantName: '请输入商户名称',
+    enterDescription: '请输入商户简介',
+    enterContactName: '请输入联系人姓名',
+    enterContactPhone: '请输入联系电话',
+    walletSummary: '钱包概览',
+    depositBalance: '保证金余额',
+    balanceAmount: '可用余额',
+    viewWalletDetails: '查看钱包明细',
+    // Wallet
+    walletManagement: '电子钱包',
+    walletManagementDesc: '查看您的钱包余额和交易明细',
+    depositWallet: '保证金钱包',
+    balanceWallet: '余额钱包',
+    depositTransactions: '保证金交易明细',
+    balanceTransactions: '余额交易明细',
+    walletNotInitialized: '钱包尚未初始化',
   },
 }

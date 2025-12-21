@@ -40,6 +40,9 @@ class InboundOrderItem
     #[ORM\Column(name: 'sku_name', length: 255, nullable: true)]
     private ?string $skuName = null;
 
+    #[ORM\Column(name: 'style_number', length: 255, nullable: true)]
+    private ?string $styleNumber = null;
+
     #[ORM\Column(name: 'color_name', length: 255, nullable: true)]
     private ?string $colorName = null;
 
@@ -126,6 +129,17 @@ class InboundOrderItem
         return $this;
     }
 
+    public function getStyleNumber(): ?string
+    {
+        return $this->styleNumber;
+    }
+
+    public function setStyleNumber(?string $styleNumber): static
+    {
+        $this->styleNumber = $styleNumber;
+        return $this;
+    }
+
     public function getColorName(): ?string
     {
         return $this->colorName;
@@ -166,13 +180,14 @@ class InboundOrderItem
     {
         $product = $sku->getProduct();
 
-        $this->skuName = $sku->getSkuName();
-        $this->colorName = $product->getColor();
-        $this->productName = $product->getName();
+        $this->setSkuName($sku->getSkuName());
+        $this->setStyleNumber($product->getStyleNumber());
+        $this->setColorName($product->getColor());
+        $this->setProductName($product->getName());
 
         $primaryImage = $product->getPrimaryImage();
         if ($primaryImage !== null) {
-            $this->productImage = $primaryImage->getUrl();
+            $this->setProductImage($primaryImage->getUrl());
         }
     }
 

@@ -8,6 +8,7 @@ CREATE TABLE `inbound_order_items` (
 
     -- SKU snapshot fields
     `sku_name` VARCHAR(255) NULL COMMENT 'SKU name (size unit + size value)',
+    `style_number` VARCHAR(255) NULL COMMENT 'Style number from product',
     `color_name` VARCHAR(255) NULL COMMENT 'Color name from product',
     `product_name` VARCHAR(255) NULL COMMENT 'Product name snapshot',
     `product_image` VARCHAR(500) NULL COMMENT 'Product image URL snapshot',
