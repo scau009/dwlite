@@ -32,6 +32,7 @@ services:
     App\Service\Auth\EmailVerificationService:
         arguments:
             $frontendUrl: '%env(FRONTEND_URL)%'
+            $verificationTemplateId: '%env(int:SES_VERIFICATION_TEMPLATE_ID)%'
 
     App\Service\Auth\PasswordResetService:
         arguments:

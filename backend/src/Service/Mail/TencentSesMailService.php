@@ -84,6 +84,50 @@ class TencentSesMailService implements MailServiceInterface
         }
     }
 
+    public function sendWithTemplate(
+        string $to,
+        int $templateId,
+        array $templateData = [],
+        ?string $fromEmail = null,
+        ?string $fromName = null,
+    ): void {
+        $senderEmail = $fromEmail ?? $this->fromEmail;
+        $senderName = $fromName ?? $this->fromName;
+
+        $request = new SendEmailRequest();
+
+        $request->setFromEmailAddress($this->formatEmailAddress($senderEmail, $senderName));
+        $request->setDestination([$to]);
+
+        $request->setTemplate([
+            'TemplateID' => $templateId,
+            'TemplateData' => json_encode($templateData, JSON_UNESCAPED_UNICODE),
+        ]);
+
+        try {
+            $response = $this->client->SendEmail($request);
+
+            $this->logger->info('Template email sent successfully via Tencent SES', [
+                'to' => $to,
+                'templateId' => $templateId,
+                'messageId' => $response->getMessageId(),
+            ]);
+        } catch (TencentCloudSDKException $e) {
+            $this->logger->error('Failed to send template email via Tencent SES', [
+                'to' => $to,
+                'templateId' => $templateId,
+                'errorCode' => $e->getErrorCode(),
+                'errorMessage' => $e->getMessage(),
+            ]);
+
+            throw new \RuntimeException(
+                sprintf('Failed to send template email: %s', $e->getMessage()),
+                (int) $e->getCode(),
+                $e
+            );
+        }
+    }
+
     private function formatEmailAddress(string $email, string $name): string
     {
         if (empty($name)) {

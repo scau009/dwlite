@@ -19,6 +19,7 @@ class EmailVerificationService
         private Environment $twig,
         private TranslatorInterface $translator,
         private string $frontendUrl = 'http://localhost:5173',
+        private int $verificationTemplateId = 0,
     ) {
     }
 
@@ -31,18 +32,26 @@ class EmailVerificationService
         $token = new EmailVerificationToken($user);
         $this->tokenRepository->save($token, true);
 
-        // Send email
-        $htmlContent = $this->twig->render('emails/verification.html.twig', [
-            'user' => $user,
-            'token' => $token->getToken(),
-            'verifyUrl' => $this->frontendUrl . '/verify-email?token=' . $token->getToken(),
-        ]);
+        // Send email using template if configured, otherwise fallback to HTML
+        if ($this->verificationTemplateId > 0) {
+            $this->mailService->sendWithTemplate(
+                $user->getEmail(),
+                $this->verificationTemplateId,
+                ['token' => $token->getToken()]
+            );
+        } else {
+            $htmlContent = $this->twig->render('emails/verification.html.twig', [
+                'user' => $user,
+                'token' => $token->getToken(),
+                'verifyUrl' => $this->frontendUrl . '/verify-email?token=' . $token->getToken(),
+            ]);
 
-        $this->mailService->send(
-            $user->getEmail(),
-            $this->translator->trans('email.verification.subject'),
-            $htmlContent
-        );
+            $this->mailService->send(
+                $user->getEmail(),
+                $this->translator->trans('email.verification.subject'),
+                $htmlContent
+            );
+        }
     }
 
     public function verifyEmail(string $token): User
