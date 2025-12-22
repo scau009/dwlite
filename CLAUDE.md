@@ -57,12 +57,23 @@ dwlite/
 ```
 frontend/src/
 ├── components/      # Shared UI components
-├── config/          # App configuration (menus, etc.)
+├── config/          # App configuration (menus, role-based access)
 ├── contexts/        # React contexts (auth, theme)
+├── i18n/            # Internationalization (en, zh locales)
 ├── layouts/         # Page layouts (AppLayout, AuthLayout)
+├── lib/             # API clients and utilities
 ├── pages/           # Route pages
 │   ├── auth/        # Authentication pages
-│   └── products/    # Product CRUD pages
+│   ├── products/    # Product management
+│   ├── brands/      # Brand management
+│   ├── categories/  # Category management
+│   ├── tags/        # Tag management
+│   ├── merchants/   # Merchant management (admin)
+│   ├── warehouses/  # Warehouse management
+│   ├── inventory/   # Inventory (inbound orders, shipments, exceptions)
+│   └── settings/    # Merchant self-service settings
+├── theme/           # Ant Design theme configuration
+├── types/           # TypeScript type definitions
 ├── router.tsx       # Route definitions
 └── main.tsx         # App entry point
 ```
@@ -94,6 +105,7 @@ php bin/console debug:router      # List all routes
 php bin/console make:migration    # Generate migration from entity changes
 php bin/console doctrine:migrations:migrate  # Run pending migrations
 php bin/console lexik:jwt:generate-keypair   # Generate JWT keys (first-time setup)
+php bin/console app:create-admin admin@example.com password  # Create admin user
 ```
 
 ### Frontend (from /frontend)
@@ -284,3 +296,38 @@ curl -X POST http://localhost:8000/api/auth/refresh \
 - 至少包含一个大写字母
 - 至少包含一个小写字母
 - 至少包含一个数字
+
+## Role-Based Access Control
+
+系统有两种账户类型：
+
+- **admin**: 平台管理员，可访问所有管理功能
+- **merchant**: 商户账号，只能访问自己的数据
+
+### Admin-Only 端点
+
+使用 `#[AdminOnly]` 属性标记仅限管理员访问的控制器或方法：
+
+```php
+// 整个控制器仅限管理员
+#[AdminOnly]
+class BrandController extends AbstractController { }
+
+// 单个方法仅限管理员
+#[AdminOnly]
+public function delete(int $id): JsonResponse { }
+```
+
+Admin 控制器位于 `src/Controller/Admin/`，处理：
+- 品牌管理 (BrandController)
+- 分类管理 (CategoryController)
+- 标签管理 (TagController)
+- 商品管理 (ProductController)
+- 仓库管理 (WarehouseController)
+- 商户管理 (MerchantController)
+
+### 商户自助服务
+
+商户可通过以下端点管理自己的数据：
+- `MerchantProfileController`: 商户资料和钱包
+- `InboundOrderController`: 入库单管理
