@@ -1,5 +1,5 @@
 // Account types
-export type AccountType = 'admin' | 'merchant';
+export type AccountType = 'admin' | 'merchant' | 'warehouse';
 
 // User type matching backend User entity
 export interface User {
@@ -9,6 +9,8 @@ export interface User {
   isVerified: boolean;
   accountType: AccountType;
   createdAt: string;
+  warehouseId?: string;
+  warehouseName?: string;
 }
 
 // API Request types

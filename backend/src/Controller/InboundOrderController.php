@@ -171,6 +171,7 @@ class InboundOrderController extends AbstractController
         $orders = $this->inboundOrderService->getMerchantOrders(
             $merchant,
             $query->status,
+            $query->trackingNumber,
             $query->limit
         );
 

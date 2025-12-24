@@ -23,8 +23,12 @@ class InboundOrderRepository extends ServiceEntityRepository
      *
      * @return InboundOrder[]
      */
-    public function findByMerchant(Merchant $merchant, ?string $status = null, int $limit = 50): array
-    {
+    public function findByMerchant(
+        Merchant $merchant,
+        ?string $status = null,
+        ?string $trackingNumber = null,
+        int $limit = 50
+    ): array {
         $qb = $this->createQueryBuilder('io')
             ->andWhere('io.merchant = :merchant')
             ->setParameter('merchant', $merchant)
@@ -34,6 +38,12 @@ class InboundOrderRepository extends ServiceEntityRepository
         if ($status !== null) {
             $qb->andWhere('io.status = :status')
                 ->setParameter('status', $status);
+        }
+
+        if ($trackingNumber !== null) {
+            $qb->leftJoin('io.shipment', 's')
+                ->andWhere('s.trackingNumber LIKE :trackingNumber')
+                ->setParameter('trackingNumber', '%' . $trackingNumber . '%');
         }
 
         return $qb->getQuery()->getResult();
@@ -94,6 +104,76 @@ class InboundOrderRepository extends ServiceEntityRepository
             ->select('io.status, COUNT(io.id) as count')
             ->andWhere('io.merchant = :merchant')
             ->setParameter('merchant', $merchant)
+            ->groupBy('io.status')
+            ->getQuery()
+            ->getResult();
+
+        $counts = [];
+        foreach ($results as $row) {
+            $counts[$row['status']] = (int) $row['count'];
+        }
+        return $counts;
+    }
+
+    /**
+     * 按仓库分页查询入库单
+     *
+     * @return array{data: InboundOrder[], meta: array{total: int, page: int, limit: int, pages: int}}
+     */
+    public function findByWarehousePaginated(
+        Warehouse $warehouse,
+        int $page = 1,
+        int $limit = 20,
+        array $filters = []
+    ): array {
+        $qb = $this->createQueryBuilder('io')
+            ->andWhere('io.warehouse = :warehouse')
+            ->setParameter('warehouse', $warehouse)
+            ->orderBy('io.createdAt', 'DESC');
+
+        // 应用筛选条件
+        if (!empty($filters['status'])) {
+            $qb->andWhere('io.status = :status')
+                ->setParameter('status', $filters['status']);
+        }
+
+        if (!empty($filters['orderNo'])) {
+            $qb->andWhere('io.orderNo LIKE :orderNo')
+                ->setParameter('orderNo', '%' . $filters['orderNo'] . '%');
+        }
+
+        // 计算总数
+        $countQb = clone $qb;
+        $total = (int) $countQb->select('COUNT(io.id)')
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        // 分页
+        $qb->setFirstResult(($page - 1) * $limit)
+            ->setMaxResults($limit);
+
+        $data = $qb->getQuery()->getResult();
+
+        return [
+            'data' => $data,
+            'meta' => [
+                'total' => $total,
+                'page' => $page,
+                'limit' => $limit,
+                'pages' => (int) ceil($total / $limit),
+            ],
+        ];
+    }
+
+    /**
+     * 统计仓库各状态的入库单数量
+     */
+    public function countByWarehouseGroupByStatus(Warehouse $warehouse): array
+    {
+        $results = $this->createQueryBuilder('io')
+            ->select('io.status, COUNT(io.id) as count')
+            ->andWhere('io.warehouse = :warehouse')
+            ->setParameter('warehouse', $warehouse)
             ->groupBy('io.status')
             ->getQuery()
             ->getResult();

@@ -85,6 +85,49 @@ export interface WarehouseListResponse {
   limit: number;
 }
 
+// Warehouse User types
+export interface WarehouseUser {
+  id: string;
+  email: string;
+  accountType: 'warehouse';
+  isVerified: boolean;
+  warehouse: {
+    id: string;
+    code: string;
+    name: string;
+  } | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface WarehouseUserListParams {
+  page?: number;
+  limit?: number;
+  warehouseId?: string;
+}
+
+export interface WarehouseUserListResponse {
+  data: WarehouseUser[];
+  meta: {
+    total: number;
+    page: number;
+    limit: number;
+    pages: number;
+  };
+}
+
+export interface CreateWarehouseUserRequest {
+  email: string;
+  password: string;
+  warehouseId: string;
+}
+
+export interface UpdateWarehouseUserRequest {
+  email?: string;
+  password?: string;
+  warehouseId?: string;
+}
+
 export const warehouseApi = {
   // Get warehouse list
   async getWarehouses(params: WarehouseListParams = {}): Promise<WarehouseListResponse> {
@@ -126,6 +169,47 @@ export const warehouseApi = {
   // Delete warehouse
   async deleteWarehouse(id: string): Promise<{ message: string }> {
     return apiFetch<{ message: string }>(`/api/admin/warehouses/${id}`, {
+      method: 'DELETE',
+    });
+  },
+
+  // === Warehouse Users API ===
+
+  // Get warehouse users list
+  async getWarehouseUsers(params: WarehouseUserListParams = {}): Promise<WarehouseUserListResponse> {
+    const searchParams = new URLSearchParams();
+    if (params.page) searchParams.set('page', String(params.page));
+    if (params.limit) searchParams.set('limit', String(params.limit));
+    if (params.warehouseId) searchParams.set('warehouseId', params.warehouseId);
+
+    const queryString = searchParams.toString();
+    return apiFetch<WarehouseUserListResponse>(`/api/admin/warehouse-users${queryString ? `?${queryString}` : ''}`);
+  },
+
+  // Get warehouse user detail
+  async getWarehouseUser(id: string): Promise<{ data: WarehouseUser }> {
+    return apiFetch<{ data: WarehouseUser }>(`/api/admin/warehouse-users/${id}`);
+  },
+
+  // Create warehouse user
+  async createWarehouseUser(data: CreateWarehouseUserRequest): Promise<{ message: string; data: WarehouseUser }> {
+    return apiFetch<{ message: string; data: WarehouseUser }>('/api/admin/warehouse-users', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  // Update warehouse user
+  async updateWarehouseUser(id: string, data: UpdateWarehouseUserRequest): Promise<{ message: string; data: WarehouseUser }> {
+    return apiFetch<{ message: string; data: WarehouseUser }>(`/api/admin/warehouse-users/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  },
+
+  // Delete warehouse user
+  async deleteWarehouseUser(id: string): Promise<{ message: string }> {
+    return apiFetch<{ message: string }>(`/api/admin/warehouse-users/${id}`, {
       method: 'DELETE',
     });
   },

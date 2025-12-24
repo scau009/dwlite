@@ -203,6 +203,17 @@ export function InboundOrdersListPage() {
       ),
     },
     {
+      title: t('inventory.trackingNumber'),
+      dataIndex: 'trackingNumber',
+      width: 160,
+      ellipsis: true,
+      copyable: true,
+      fieldProps: {
+        placeholder: t('inventory.searchByTrackingNumber'),
+      },
+      hideInTable: true,
+    },
+    {
       title: t('inventory.warehouse'),
       dataIndex: ['warehouse', 'name'],
       width: 120,
@@ -329,6 +340,7 @@ export function InboundOrdersListPage() {
               limit: params.pageSize,
               status: params.status as InboundOrderStatus,
               search: params.orderNo,
+              trackingNumber: params.trackingNumber,
             });
             return {
               data: result.data,

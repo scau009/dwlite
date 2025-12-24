@@ -128,4 +128,174 @@ class MerchantInventoryRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    /**
+     * 按仓库分页查询库存
+     *
+     * @return array{data: MerchantInventory[], meta: array{total: int, page: int, limit: int, pages: int}}
+     */
+    public function findByWarehousePaginated(
+        Warehouse $warehouse,
+        int $page = 1,
+        int $limit = 20,
+        array $filters = []
+    ): array {
+        $qb = $this->createQueryBuilder('i')
+            ->leftJoin('i.productSku', 'sku')
+            ->leftJoin('sku.product', 'p')
+            ->andWhere('i.warehouse = :warehouse')
+            ->setParameter('warehouse', $warehouse)
+            ->orderBy('i.updatedAt', 'DESC');
+
+        // 搜索商品名或 SKU 名
+        if (!empty($filters['search'])) {
+            $qb->andWhere('sku.skuName LIKE :search OR p.name LIKE :search OR p.styleNumber LIKE :search')
+                ->setParameter('search', '%' . $filters['search'] . '%');
+        }
+
+        // 只显示有库存的
+        if (!empty($filters['hasStock'])) {
+            $qb->andWhere('i.quantityInTransit > 0 OR i.quantityAvailable > 0 OR i.quantityReserved > 0');
+        }
+
+        // 计算总数
+        $countQb = clone $qb;
+        $total = (int) $countQb->select('COUNT(i.id)')
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        // 分页
+        $qb->setFirstResult(($page - 1) * $limit)
+            ->setMaxResults($limit);
+
+        $data = $qb->getQuery()->getResult();
+
+        return [
+            'data' => $data,
+            'meta' => [
+                'total' => $total,
+                'page' => $page,
+                'limit' => $limit,
+                'pages' => (int) ceil($total / $limit),
+            ],
+        ];
+    }
+
+    /**
+     * 获取仓库库存汇总
+     */
+    public function getWarehouseSummary(Warehouse $warehouse): array
+    {
+        return $this->createQueryBuilder('i')
+            ->select('SUM(i.quantityInTransit) as totalInTransit')
+            ->addSelect('SUM(i.quantityAvailable) as totalAvailable')
+            ->addSelect('SUM(i.quantityReserved) as totalReserved')
+            ->addSelect('SUM(i.quantityDamaged) as totalDamaged')
+            ->addSelect('COUNT(DISTINCT i.productSku) as totalSkuCount')
+            ->andWhere('i.warehouse = :warehouse')
+            ->setParameter('warehouse', $warehouse)
+            ->getQuery()
+            ->getSingleResult();
+    }
+
+    /**
+     * 按商户分页查询库存
+     *
+     * @return array{data: MerchantInventory[], meta: array{total: int, page: int, limit: int, pages: int}}
+     */
+    public function findByMerchantPaginated(
+        Merchant $merchant,
+        int $page = 1,
+        int $limit = 20,
+        array $filters = []
+    ): array {
+        $qb = $this->createQueryBuilder('i')
+            ->leftJoin('i.productSku', 'sku')
+            ->leftJoin('sku.product', 'p')
+            ->leftJoin('i.warehouse', 'w')
+            ->andWhere('i.merchant = :merchant')
+            ->setParameter('merchant', $merchant)
+            ->orderBy('i.updatedAt', 'DESC');
+
+        // 搜索商品名或 SKU 名
+        if (!empty($filters['search'])) {
+            $qb->andWhere('sku.skuName LIKE :search OR p.name LIKE :search OR p.styleNumber LIKE :search')
+                ->setParameter('search', '%' . $filters['search'] . '%');
+        }
+
+        // 按仓库筛选
+        if (!empty($filters['warehouseId'])) {
+            $qb->andWhere('i.warehouse = :warehouseId')
+                ->setParameter('warehouseId', $filters['warehouseId']);
+        }
+
+        // 库存状态筛选
+        if (!empty($filters['stockStatus'])) {
+            switch ($filters['stockStatus']) {
+                case 'in_transit':
+                    $qb->andWhere('i.quantityInTransit > 0');
+                    break;
+                case 'available':
+                    $qb->andWhere('i.quantityAvailable > 0');
+                    break;
+                case 'reserved':
+                    $qb->andWhere('i.quantityReserved > 0');
+                    break;
+                case 'damaged':
+                    $qb->andWhere('i.quantityDamaged > 0');
+                    break;
+                case 'has_stock':
+                    $qb->andWhere('i.quantityInTransit > 0 OR i.quantityAvailable > 0 OR i.quantityReserved > 0');
+                    break;
+                case 'low_stock':
+                    $qb->andWhere('i.safetyStock IS NOT NULL AND i.quantityAvailable < i.safetyStock');
+                    break;
+            }
+        }
+
+        // 只显示有库存的
+        if (!empty($filters['hasStock'])) {
+            $qb->andWhere('i.quantityInTransit > 0 OR i.quantityAvailable > 0 OR i.quantityReserved > 0');
+        }
+
+        // 计算总数
+        $countQb = clone $qb;
+        $total = (int) $countQb->select('COUNT(i.id)')
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        // 分页
+        $qb->setFirstResult(($page - 1) * $limit)
+            ->setMaxResults($limit);
+
+        $data = $qb->getQuery()->getResult();
+
+        return [
+            'data' => $data,
+            'meta' => [
+                'total' => $total,
+                'page' => $page,
+                'limit' => $limit,
+                'pages' => (int) ceil($total / $limit),
+            ],
+        ];
+    }
+
+    /**
+     * 获取商户库存汇总
+     */
+    public function getMerchantSummary(Merchant $merchant): array
+    {
+        return $this->createQueryBuilder('i')
+            ->select('SUM(i.quantityInTransit) as totalInTransit')
+            ->addSelect('SUM(i.quantityAvailable) as totalAvailable')
+            ->addSelect('SUM(i.quantityReserved) as totalReserved')
+            ->addSelect('SUM(i.quantityDamaged) as totalDamaged')
+            ->addSelect('COUNT(DISTINCT i.productSku) as totalSkuCount')
+            ->addSelect('COUNT(DISTINCT i.warehouse) as warehouseCount')
+            ->andWhere('i.merchant = :merchant')
+            ->setParameter('merchant', $merchant)
+            ->getQuery()
+            ->getSingleResult();
+    }
 }

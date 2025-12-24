@@ -114,6 +114,12 @@ admin:
     enabled: 'Merchant enabled'
     disabled: 'Merchant disabled'
 
+  # Warehouse user management messages
+  warehouseUser:
+    created: 'Warehouse user created successfully'
+    updated: 'Warehouse user updated successfully'
+    deleted: 'Warehouse user deleted successfully'
+
 # Merchant self-service messages
 merchant:
   not_found: 'Merchant not found'
@@ -180,3 +186,11 @@ validation:
 
   # Color
   color_format: 'Color must be a valid HEX format (e.g. #FF5733)'
+
+# Outbound order messages
+outbound:
+  order:
+    picking_started: 'Picking started'
+    packing_started: 'Packing started'
+    ready_to_ship: 'Packing completed, ready to ship'
+    shipped: 'Order shipped'

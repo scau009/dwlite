@@ -29,12 +29,18 @@ import { TagsListPage } from '@/pages/tags';
 import {
   InboundOrdersListPage,
   InboundOrderDetailPage,
-  InboundShipmentsListPage,
-  InboundShipmentDetailPage,
   InboundExceptionsListPage,
   InboundExceptionDetailPage,
+  MerchantStockListPage,
 } from '@/pages/inventory';
-import { WarehousesListPage } from '@/pages/warehouses';
+import { WarehousesListPage, WarehouseUsersListPage } from '@/pages/warehouses';
+import {
+  WarehouseInboundListPage,
+  WarehouseInboundDetailPage,
+  WarehouseOutboundListPage,
+  WarehouseOutboundDetailPage,
+  WarehouseInventoryListPage,
+} from '@/pages/warehouse-ops';
 import { MerchantProfilePage, MerchantWalletPage } from '@/pages/settings';
 
 // Placeholder component for pages not yet implemented
@@ -147,18 +153,25 @@ export const router = createBrowserRouter([
               { path: '/fulfillment/exceptions', element: <PlaceholderPage title="Fulfillment Exceptions" /> },
 
               // Inventory
+              { path: '/inventory/stock', element: <MerchantStockListPage /> },
               { path: '/inventory/inbound', element: <InboundOrdersListPage /> },
               { path: '/inventory/inbound/detail/:id', element: <InboundOrderDetailPage /> },
-              { path: '/inventory/shipments', element: <InboundShipmentsListPage /> },
-              { path: '/inventory/shipments/detail/:id', element: <InboundShipmentDetailPage /> },
               { path: '/inventory/exceptions', element: <InboundExceptionsListPage /> },
               { path: '/inventory/exceptions/detail/:id', element: <InboundExceptionDetailPage /> },
 
               // Merchants
               { path: '/merchants', element: <MerchantsListPage /> },
 
-              // Warehouses
+              // Warehouses (Admin)
               { path: '/warehouses', element: <WarehousesListPage /> },
+              { path: '/warehouses/users', element: <WarehouseUsersListPage /> },
+
+              // Warehouse Operations (Warehouse users)
+              { path: '/warehouse/inbound', element: <WarehouseInboundListPage /> },
+              { path: '/warehouse/inbound/:id', element: <WarehouseInboundDetailPage /> },
+              { path: '/warehouse/outbound', element: <WarehouseOutboundListPage /> },
+              { path: '/warehouse/outbound/:id', element: <WarehouseOutboundDetailPage /> },
+              { path: '/warehouse/inventory', element: <WarehouseInventoryListPage /> },
 
               // Data Center
               { path: '/data', element: <PlaceholderPage title="Data Overview" /> },

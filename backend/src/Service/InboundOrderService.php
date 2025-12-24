@@ -445,9 +445,10 @@ class InboundOrderService
     public function getMerchantOrders(
         Merchant $merchant,
         ?string $status = null,
+        ?string $trackingNumber = null,
         int $limit = 50
     ): array {
-        return $this->inboundOrderRepository->findByMerchant($merchant, $status, $limit);
+        return $this->inboundOrderRepository->findByMerchant($merchant, $status, $trackingNumber, $limit);
     }
 
     /**
@@ -472,5 +473,21 @@ class InboundOrderService
     public function getExceptionById(string $id): ?InboundException
     {
         return $this->exceptionRepository->find($id);
+    }
+
+    /**
+     * 更新仓库备注
+     */
+    public function updateWarehouseNotes(InboundOrder $order, string $notes): InboundOrder
+    {
+        $order->setWarehouseNotes($notes);
+        $this->entityManager->flush();
+
+        $this->logger->info('Updated warehouse notes for inbound order', [
+            'order_id' => $order->getId(),
+            'order_no' => $order->getOrderNo(),
+        ]);
+
+        return $order;
     }
 }

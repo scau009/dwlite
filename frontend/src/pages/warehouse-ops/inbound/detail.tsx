@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import {
@@ -16,38 +16,32 @@ import {
   Divider,
   Timeline,
   Input,
+  InputNumber,
 } from 'antd';
-import { useMemo } from 'react';
 import {
   ArrowLeftOutlined,
-  EditOutlined,
-  DeleteOutlined,
-  PlusOutlined,
-  SendOutlined,
-  CloseCircleOutlined,
-  TruckOutlined,
+  CheckCircleOutlined,
   ExclamationCircleOutlined,
+  TruckOutlined,
+  EditOutlined,
+  SaveOutlined,
 } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 
 import {
-  inboundApi,
-  type InboundOrderDetail,
-  type InboundOrderStatus,
-  type InboundOrderItem,
-  type InboundException,
-} from '@/lib/inbound-api';
-import { InboundOrderFormModal } from './components/inbound-order-form-modal';
-import { CancelOrderModal } from './components/cancel-order-modal';
-import { InboundOrderItemModal } from './components/inbound-order-item-modal';
-import { ProductSelectorModal } from './components/product-selector-modal';
-import { ShipOrderModal } from './components/ship-order-modal';
-import { BatchUpdateQuantityModal } from './components/batch-update-quantity-modal';
+  warehouseOpsApi,
+  type WarehouseInboundOrderDetail,
+  type WarehouseInboundStatus,
+  type WarehouseInboundItem,
+  type WarehouseInboundException,
+  type CompleteReceivingItem,
+} from '@/lib/warehouse-operations-api';
 
 const { Text } = Typography;
+const { TextArea } = Input;
 
 // Status color mapping
-const statusColors: Record<InboundOrderStatus, string> = {
+const statusColors: Record<WarehouseInboundStatus, string> = {
   draft: 'default',
   pending: 'processing',
   shipped: 'cyan',
@@ -58,27 +52,24 @@ const statusColors: Record<InboundOrderStatus, string> = {
   cancelled: 'error',
 };
 
-export function InboundOrderDetailPage() {
+export function WarehouseInboundDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { t } = useTranslation();
   const { modal, message } = App.useApp();
 
-  const [order, setOrder] = useState<InboundOrderDetail | null>(null);
+  const [order, setOrder] = useState<WarehouseInboundOrderDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
 
-  // Modal states
-  const [editModalOpen, setEditModalOpen] = useState(false);
-  const [cancelModalOpen, setCancelModalOpen] = useState(false);
-  const [itemModalOpen, setItemModalOpen] = useState(false);
-  const [editingItem, setEditingItem] = useState<InboundOrderItem | null>(null);
-  const [productSelectorOpen, setProductSelectorOpen] = useState(false);
-  const [shipModalOpen, setShipModalOpen] = useState(false);
-  const [batchQuantityModalOpen, setBatchQuantityModalOpen] = useState(false);
+  // Receiving state
+  const [isReceivingMode, setIsReceivingMode] = useState(false);
+  const [receivingData, setReceivingData] = useState<Record<string, CompleteReceivingItem>>({});
+  const [receivingNotes, setReceivingNotes] = useState('');
 
-  // Batch selection state
-  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+  // Notes editing state
+  const [editingNotes, setEditingNotes] = useState(false);
+  const [notesValue, setNotesValue] = useState('');
 
   // Search and pagination state for items
   const [itemSearchKeyword, setItemSearchKeyword] = useState('');
@@ -89,8 +80,9 @@ export function InboundOrderDetailPage() {
     if (!id) return;
     setLoading(true);
     try {
-      const data = await inboundApi.getInboundOrder(id);
-      setOrder(data);
+      const response = await warehouseOpsApi.getInboundOrder(id);
+      setOrder(response.data);
+      setNotesValue(response.data.warehouseNotes || '');
     } catch {
       message.error(t('common.error'));
     } finally {
@@ -102,9 +94,25 @@ export function InboundOrderDetailPage() {
     loadOrder();
   }, [id]);
 
+  // Initialize receiving data when entering receiving mode
+  useEffect(() => {
+    if (isReceivingMode && order) {
+      const initialData: Record<string, CompleteReceivingItem> = {};
+      order.items.forEach(item => {
+        initialData[item.id] = {
+          itemId: item.id,
+          receivedQuantity: item.expectedQuantity,
+          damagedQuantity: 0,
+          warehouseRemark: '',
+        };
+      });
+      setReceivingData(initialData);
+    }
+  }, [isReceivingMode, order]);
+
   // Get status label
-  const getStatusLabel = (status: InboundOrderStatus) => {
-    const labels: Record<InboundOrderStatus, string> = {
+  const getStatusLabel = (status: WarehouseInboundStatus) => {
+    const labels: Record<WarehouseInboundStatus, string> = {
       draft: t('inventory.statusDraft'),
       pending: t('inventory.statusPending'),
       shipped: t('inventory.statusShipped'),
@@ -117,18 +125,25 @@ export function InboundOrderDetailPage() {
     return labels[status] || status;
   };
 
-  // Handle submit order
-  const handleSubmit = () => {
+  // Handle complete receiving
+  const handleCompleteReceiving = () => {
     modal.confirm({
-      title: t('inventory.confirmSubmit'),
-      content: t('inventory.confirmSubmitDesc'),
+      title: t('warehouseOps.confirmReceiving'),
+      content: t('warehouseOps.confirmReceivingDesc'),
       okText: t('common.confirm'),
       cancelText: t('common.cancel'),
       onOk: async () => {
         setActionLoading(true);
         try {
-          await inboundApi.submitInboundOrder(id!);
-          message.success(t('inventory.orderSubmitted'));
+          const items = Object.values(receivingData);
+          await warehouseOpsApi.completeReceiving(id!, {
+            items,
+            notes: receivingNotes || undefined,
+          });
+          message.success(t('warehouseOps.receivingCompleted'));
+          setIsReceivingMode(false);
+          setReceivingData({});
+          setReceivingNotes('');
           loadOrder();
         } catch (error) {
           const err = error as { error?: string };
@@ -140,81 +155,36 @@ export function InboundOrderDetailPage() {
     });
   };
 
-  // Handle delete order
-  const handleDelete = () => {
-    modal.confirm({
-      title: t('inventory.confirmDelete'),
-      content: t('inventory.confirmDeleteDesc'),
-      okText: t('common.confirm'),
-      cancelText: t('common.cancel'),
-      okButtonProps: { danger: true },
-      onOk: async () => {
-        setActionLoading(true);
-        try {
-          await inboundApi.deleteInboundOrder(id!);
-          message.success(t('inventory.orderDeleted'));
-          navigate('/inventory/inbound');
-        } catch (error) {
-          const err = error as { error?: string };
-          message.error(err.error || t('common.error'));
-        } finally {
-          setActionLoading(false);
-        }
-      },
-    });
+  // Handle save notes
+  const handleSaveNotes = async () => {
+    setActionLoading(true);
+    try {
+      await warehouseOpsApi.updateWarehouseNotes(id!, notesValue);
+      message.success(t('common.success'));
+      setEditingNotes(false);
+      loadOrder();
+    } catch (error) {
+      const err = error as { error?: string };
+      message.error(err.error || t('common.error'));
+    } finally {
+      setActionLoading(false);
+    }
   };
 
-  // Handle delete item
-  const handleDeleteItem = (item: InboundOrderItem) => {
-    modal.confirm({
-      title: t('inventory.confirmDeleteItem'),
-      content: t('inventory.confirmDeleteItemDesc'),
-      okText: t('common.confirm'),
-      cancelText: t('common.cancel'),
-      okButtonProps: { danger: true },
-      onOk: async () => {
-        try {
-          await inboundApi.deleteInboundOrderItem(item.id);
-          message.success(t('inventory.itemDeleted'));
-          // Remove deleted item from selection
-          setSelectedRowKeys(prev => prev.filter(key => key !== item.id));
-          loadOrder();
-        } catch (error) {
-          const err = error as { error?: string };
-          message.error(err.error || t('common.error'));
-        }
+  // Update receiving item
+  const updateReceivingItem = (
+    itemId: string,
+    field: 'receivedQuantity' | 'damagedQuantity' | 'warehouseRemark',
+    value: number | string
+  ) => {
+    setReceivingData(prev => ({
+      ...prev,
+      [itemId]: {
+        ...prev[itemId],
+        [field]: value,
       },
-    });
+    }));
   };
-
-  // Handle batch delete items
-  const handleBatchDelete = () => {
-    if (selectedRowKeys.length === 0) return;
-
-    modal.confirm({
-      title: t('inventory.confirmBatchDelete'),
-      content: t('inventory.confirmBatchDeleteDesc', { count: selectedRowKeys.length }),
-      okText: t('common.confirm'),
-      cancelText: t('common.cancel'),
-      okButtonProps: { danger: true },
-      onOk: async () => {
-        try {
-          await Promise.all(
-            selectedRowKeys.map(id => inboundApi.deleteInboundOrderItem(id as string))
-          );
-          message.success(t('inventory.batchDeleteSuccess', { count: selectedRowKeys.length }));
-          setSelectedRowKeys([]);
-          loadOrder();
-        } catch (error) {
-          const err = error as { error?: string };
-          message.error(err.error || t('common.error'));
-        }
-      },
-    });
-  };
-
-  // Get selected items for batch operations
-  const selectedItems = order?.items.filter(item => selectedRowKeys.includes(item.id)) || [];
 
   // Filter items based on search keyword
   const filteredItems = useMemo(() => {
@@ -243,7 +213,7 @@ export function InboundOrderDetailPage() {
   }, [itemSearchKeyword]);
 
   // Item table columns
-  const itemColumns: ColumnsType<InboundOrderItem> = [
+  const itemColumns: ColumnsType<WarehouseInboundItem> = [
     {
       title: t('inventory.productImage'),
       dataIndex: 'productImage',
@@ -284,63 +254,93 @@ export function InboundOrderDetailPage() {
     {
       title: t('inventory.expectedQuantity'),
       dataIndex: 'expectedQuantity',
-      width: 100,
+      width: 80,
       align: 'center',
-    },
-    {
-      title: t('inventory.itemReceivedQuantity'),
-      dataIndex: 'receivedQuantity',
-      width: 100,
-      align: 'center',
-      render: (qty: number, record) => (
-        <span className={qty < record.expectedQuantity ? 'text-orange-500' : 'text-green-500'}>
-          {qty}
-        </span>
-      ),
-    },
-    {
-      title: t('inventory.damagedQuantity'),
-      dataIndex: 'damagedQuantity',
-      width: 100,
-      align: 'center',
-      render: (qty: number) => (
-        <span className={qty > 0 ? 'text-red-500' : ''}>{qty}</span>
-      ),
     },
   ];
 
-  // Add action column for draft orders
-  if (order?.status === 'draft') {
-    itemColumns.push({
-      title: t('common.actions'),
-      key: 'actions',
-      width: 120,
-      fixed: 'right',
-      render: (_, record) => (
-        <Space size="small">
-          <Button
-            type="text"
+  // Add receiving columns when in receiving mode
+  if (isReceivingMode) {
+    itemColumns.push(
+      {
+        title: t('warehouseOps.actualReceived'),
+        dataIndex: 'id',
+        width: 100,
+        render: (itemId: string, record) => (
+          <InputNumber
+            min={0}
+            max={record.expectedQuantity}
+            value={receivingData[itemId]?.receivedQuantity}
+            onChange={val => updateReceivingItem(itemId, 'receivedQuantity', val || 0)}
             size="small"
-            icon={<EditOutlined />}
-            onClick={() => {
-              setEditingItem(record);
-              setItemModalOpen(true);
-            }}
+            style={{ width: 80 }}
           />
-          <Button
-            type="text"
+        ),
+      },
+      {
+        title: t('warehouseOps.damagedQuantity'),
+        dataIndex: 'id',
+        width: 100,
+        render: (itemId: string, record) => (
+          <InputNumber
+            min={0}
+            max={record.expectedQuantity}
+            value={receivingData[itemId]?.damagedQuantity}
+            onChange={val => updateReceivingItem(itemId, 'damagedQuantity', val || 0)}
             size="small"
-            danger
-            icon={<DeleteOutlined />}
-            onClick={() => handleDeleteItem(record)}
+            style={{ width: 80 }}
           />
-        </Space>
-      ),
-    });
+        ),
+      },
+      {
+        title: t('warehouseOps.remark'),
+        dataIndex: 'id',
+        width: 150,
+        render: (itemId: string) => (
+          <Input
+            value={receivingData[itemId]?.warehouseRemark}
+            onChange={e => updateReceivingItem(itemId, 'warehouseRemark', e.target.value)}
+            placeholder={t('warehouseOps.remarkPlaceholder')}
+            size="small"
+          />
+        ),
+      }
+    );
+  } else {
+    // Show received quantities in normal mode
+    itemColumns.push(
+      {
+        title: t('inventory.itemReceivedQuantity'),
+        dataIndex: 'receivedQuantity',
+        width: 100,
+        align: 'center',
+        render: (qty: number, record) => (
+          <span className={qty < record.expectedQuantity ? 'text-orange-500' : 'text-green-500'}>
+            {qty}
+          </span>
+        ),
+      },
+      {
+        title: t('inventory.damagedQuantity'),
+        dataIndex: 'damagedQuantity',
+        width: 80,
+        align: 'center',
+        render: (qty: number) => (
+          <span className={qty > 0 ? 'text-red-500' : ''}>{qty}</span>
+        ),
+      },
+      {
+        title: t('warehouseOps.remark'),
+        dataIndex: 'warehouseRemark',
+        width: 150,
+        ellipsis: true,
+        render: (remark: string | null) => remark || '-',
+      }
+    );
   }
 
   // Exception columns
-  const exceptionColumns: ColumnsType<InboundException> = [
+  const exceptionColumns: ColumnsType<WarehouseInboundException> = [
     {
       title: t('inventory.exceptionNo'),
       dataIndex: 'exceptionNo',
@@ -366,13 +366,10 @@ export function InboundOrderDetailPage() {
       },
     },
     {
-      title: t('inventory.differenceQuantity'),
-      dataIndex: 'differenceQuantity',
+      title: t('warehouseOps.exceptionQuantity'),
+      dataIndex: 'totalQuantity',
       width: 100,
       align: 'center',
-      render: (qty: number) => (
-        <span className={qty !== 0 ? 'text-red-500 font-medium' : ''}>{qty}</span>
-      ),
     },
     {
       title: t('inventory.exceptionDescription'),
@@ -399,7 +396,7 @@ export function InboundOrderDetailPage() {
     return (
       <Card>
         <Empty description={t('common.noData')}>
-          <Button type="primary" onClick={() => navigate('/inventory/inbound')}>
+          <Button type="primary" onClick={() => navigate('/warehouse/inbound')}>
             {t('common.back')}
           </Button>
         </Empty>
@@ -407,9 +404,7 @@ export function InboundOrderDetailPage() {
     );
   }
 
-  const isDraft = order.status === 'draft';
-  const isPending = order.status === 'pending';
-  const canCancel = ['draft', 'pending', 'shipped'].includes(order.status);
+  const canReceive = ['shipped', 'arrived', 'receiving'].includes(order.status);
   const showShipment = order.shipment !== null;
   const showExceptions = order.exceptions.length > 0;
 
@@ -418,44 +413,34 @@ export function InboundOrderDetailPage() {
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div className="flex items-center gap-4">
-          <Button icon={<ArrowLeftOutlined />} onClick={() => navigate('/inventory/inbound')}>
+          <Button icon={<ArrowLeftOutlined />} onClick={() => navigate('/warehouse/inbound')}>
             {t('common.back')}
           </Button>
           <h1 className="text-xl font-semibold m-0">{order.orderNo}</h1>
           <Tag color={statusColors[order.status]}>{getStatusLabel(order.status)}</Tag>
         </div>
         <Space wrap>
-          {isDraft && (
-            <>
-              <Button icon={<EditOutlined />} onClick={() => setEditModalOpen(true)}>
-                {t('common.edit')}
-              </Button>
-              <Button
-                type="primary"
-                icon={<SendOutlined />}
-                onClick={handleSubmit}
-                loading={actionLoading}
-              >
-                {t('inventory.submitOrder')}
-              </Button>
-              <Button danger icon={<DeleteOutlined />} onClick={handleDelete}>
-                {t('common.delete')}
-              </Button>
-            </>
-          )}
-          {isPending && (
+          {canReceive && !isReceivingMode && (
             <Button
               type="primary"
-              icon={<TruckOutlined />}
-              onClick={() => setShipModalOpen(true)}
+              icon={<CheckCircleOutlined />}
+              onClick={() => setIsReceivingMode(true)}
             >
-              {t('inventory.shipOrder')}
+              {t('warehouseOps.startReceiving')}
             </Button>
           )}
-          {canCancel && !isDraft && (
-            <Button danger icon={<CloseCircleOutlined />} onClick={() => setCancelModalOpen(true)}>
-              {t('inventory.cancelOrder')}
-            </Button>
+          {isReceivingMode && (
+            <>
+              <Button onClick={() => setIsReceivingMode(false)}>{t('common.cancel')}</Button>
+              <Button
+                type="primary"
+                icon={<CheckCircleOutlined />}
+                onClick={handleCompleteReceiving}
+                loading={actionLoading}
+              >
+                {t('warehouseOps.completeReceiving')}
+              </Button>
+            </>
           )}
         </Space>
       </div>
@@ -468,8 +453,8 @@ export function InboundOrderDetailPage() {
               {order.orderNo}
             </Text>
           </Descriptions.Item>
-          <Descriptions.Item label={t('inventory.warehouse')}>
-            {order.warehouse.name}
+          <Descriptions.Item label={t('warehouseOps.merchant')}>
+            {order.merchant.companyName}
           </Descriptions.Item>
           <Descriptions.Item label={t('common.status')}>
             <Tag color={statusColors[order.status]}>{getStatusLabel(order.status)}</Tag>
@@ -497,11 +482,6 @@ export function InboundOrderDetailPage() {
           <Descriptions.Item label={t('common.createdAt')}>
             {new Date(order.createdAt).toLocaleString()}
           </Descriptions.Item>
-          {order.submittedAt && (
-            <Descriptions.Item label={t('inventory.submittedAt')}>
-              {new Date(order.submittedAt).toLocaleString()}
-            </Descriptions.Item>
-          )}
           {order.completedAt && (
             <Descriptions.Item label={t('inventory.completedAt')}>
               {new Date(order.completedAt).toLocaleString()}
@@ -514,32 +494,68 @@ export function InboundOrderDetailPage() {
             <p className="mt-1">{order.merchantNotes}</p>
           </div>
         )}
-        {order.warehouseNotes && (
-          <div className="mt-3 pt-3 border-t">
+
+        {/* Warehouse Notes */}
+        <div className="mt-3 pt-3 border-t">
+          <div className="flex items-center justify-between mb-2">
             <Text type="secondary">{t('inventory.warehouseNotes')}:</Text>
-            <p className="mt-1">{order.warehouseNotes}</p>
+            {!editingNotes ? (
+              <Button
+                type="text"
+                size="small"
+                icon={<EditOutlined />}
+                onClick={() => setEditingNotes(true)}
+              >
+                {t('common.edit')}
+              </Button>
+            ) : (
+              <Space size="small">
+                <Button size="small" onClick={() => setEditingNotes(false)}>
+                  {t('common.cancel')}
+                </Button>
+                <Button
+                  type="primary"
+                  size="small"
+                  icon={<SaveOutlined />}
+                  onClick={handleSaveNotes}
+                  loading={actionLoading}
+                >
+                  {t('common.save')}
+                </Button>
+              </Space>
+            )}
           </div>
-        )}
-        {order.cancelReason && (
-          <div className="mt-3 pt-3 border-t">
-            <Text type="danger">{t('inventory.cancelReason')}:</Text>
-            <p className="mt-1 text-red-500">{order.cancelReason}</p>
-          </div>
-        )}
+          {editingNotes ? (
+            <TextArea
+              value={notesValue}
+              onChange={e => setNotesValue(e.target.value)}
+              rows={3}
+              placeholder={t('warehouseOps.notesPlaceholder')}
+            />
+          ) : (
+            <p className="mt-1">{order.warehouseNotes || '-'}</p>
+          )}
+        </div>
       </Card>
+
+      {/* Receiving Notes (only in receiving mode) */}
+      {isReceivingMode && (
+        <Card title={t('warehouseOps.receivingNotes')} size="small">
+          <TextArea
+            value={receivingNotes}
+            onChange={e => setReceivingNotes(e.target.value)}
+            rows={2}
+            placeholder={t('warehouseOps.receivingNotesPlaceholder')}
+          />
+        </Card>
+      )}
 
       {/* Items */}
       <Card
         title={`${t('inventory.orderItems')} (${order.items.length})`}
         extra={
-          isDraft && (
-            <Button
-              type="primary"
-              icon={<PlusOutlined />}
-              onClick={() => setProductSelectorOpen(true)}
-            >
-              {t('inventory.addItem')}
-            </Button>
+          isReceivingMode && (
+            <Tag color="purple">{t('warehouseOps.receivingModeActive')}</Tag>
           )
         }
       >
@@ -553,26 +569,6 @@ export function InboundOrderDetailPage() {
             style={{ maxWidth: 320 }}
           />
         </div>
-        {/* Batch operation toolbar */}
-        {isDraft && selectedRowKeys.length > 0 && (
-          <div className="mb-3 p-3 bg-blue-50 rounded flex items-center justify-between">
-            <span className="text-blue-600">
-              {t('common.selected', { count: selectedRowKeys.length })}
-            </span>
-            <Space>
-              <Button onClick={() => setBatchQuantityModalOpen(true)}>
-                {t('inventory.batchUpdateQuantity')}
-              </Button>
-              <Button
-                danger
-                icon={<DeleteOutlined />}
-                onClick={handleBatchDelete}
-              >
-                {t('inventory.batchDelete')}
-              </Button>
-            </Space>
-          </div>
-        )}
         <Table
           columns={itemColumns}
           dataSource={filteredItems}
@@ -583,22 +579,15 @@ export function InboundOrderDetailPage() {
             total: filteredItems.length,
             onChange: setItemCurrentPage,
             showSizeChanger: false,
-            showTotal: total => t('common.showing', {
-              from: Math.min((itemCurrentPage - 1) * itemPageSize + 1, total),
-              to: Math.min(itemCurrentPage * itemPageSize, total),
-              total,
-            }),
+            showTotal: total =>
+              t('common.showing', {
+                from: Math.min((itemCurrentPage - 1) * itemPageSize + 1, total),
+                to: Math.min(itemCurrentPage * itemPageSize, total),
+                total,
+              }),
           }}
-          scroll={{ x: 1000 }}
+          scroll={{ x: isReceivingMode ? 1200 : 1000 }}
           size="small"
-          rowSelection={
-            isDraft
-              ? {
-                  selectedRowKeys,
-                  onChange: setSelectedRowKeys,
-                }
-              : undefined
-          }
         />
       </Card>
 
@@ -630,7 +619,9 @@ export function InboundOrderDetailPage() {
             <Descriptions.Item label={t('inventory.senderPhone')}>
               {order.shipment.senderPhone}
             </Descriptions.Item>
-            <Descriptions.Item label={t('inventory.boxCount')}>{order.shipment.boxCount}</Descriptions.Item>
+            <Descriptions.Item label={t('inventory.boxCount')}>
+              {order.shipment.boxCount}
+            </Descriptions.Item>
             {order.shipment.totalWeight && (
               <Descriptions.Item label={t('inventory.totalWeight')}>
                 {order.shipment.totalWeight} kg
@@ -694,22 +685,6 @@ export function InboundOrderDetailPage() {
                 </div>
               ),
             },
-            ...(order.submittedAt
-              ? [
-                  {
-                    color: 'blue',
-                    children: (
-                      <div>
-                        <Text strong>{t('inventory.orderSubmitted')}</Text>
-                        <br />
-                        <Text type="secondary">
-                          {new Date(order.submittedAt).toLocaleString()}
-                        </Text>
-                      </div>
-                    ),
-                  },
-                ]
-              : []),
             ...(order.shippedAt
               ? [
                   {
@@ -718,7 +693,9 @@ export function InboundOrderDetailPage() {
                       <div>
                         <Text strong>{t('inventory.orderShipped')}</Text>
                         <br />
-                        <Text type="secondary">{new Date(order.shippedAt).toLocaleString()}</Text>
+                        <Text type="secondary">
+                          {new Date(order.shippedAt).toLocaleString()}
+                        </Text>
                       </div>
                     ),
                   },
@@ -747,10 +724,6 @@ export function InboundOrderDetailPage() {
                     children: (
                       <div>
                         <Text strong>{t('inventory.orderCancelled')}</Text>
-                        <br />
-                        {order.cancelReason && (
-                          <Text type="secondary">{order.cancelReason}</Text>
-                        )}
                       </div>
                     ),
                   },
@@ -759,73 +732,6 @@ export function InboundOrderDetailPage() {
           ]}
         />
       </Card>
-
-      {/* Modals */}
-      <InboundOrderFormModal
-        open={editModalOpen}
-        order={order}
-        onClose={() => setEditModalOpen(false)}
-        onSuccess={() => {
-          setEditModalOpen(false);
-          loadOrder();
-        }}
-      />
-
-      <CancelOrderModal
-        open={cancelModalOpen}
-        order={order}
-        onClose={() => setCancelModalOpen(false)}
-        onSuccess={() => {
-          setCancelModalOpen(false);
-          loadOrder();
-        }}
-      />
-
-      <InboundOrderItemModal
-        open={itemModalOpen}
-        orderId={id!}
-        item={editingItem}
-        onClose={() => {
-          setItemModalOpen(false);
-          setEditingItem(null);
-        }}
-        onSuccess={() => {
-          setItemModalOpen(false);
-          setEditingItem(null);
-          loadOrder();
-        }}
-      />
-
-      <ProductSelectorModal
-        open={productSelectorOpen}
-        orderId={id!}
-        onClose={() => setProductSelectorOpen(false)}
-        onSuccess={() => {
-          setProductSelectorOpen(false);
-          loadOrder();
-        }}
-      />
-
-      <ShipOrderModal
-        open={shipModalOpen}
-        orderId={id!}
-        onClose={() => setShipModalOpen(false)}
-        onSuccess={() => {
-          setShipModalOpen(false);
-          loadOrder();
-        }}
-      />
-
-      <BatchUpdateQuantityModal
-        open={batchQuantityModalOpen}
-        items={selectedItems}
-        onClose={() => setBatchQuantityModalOpen(false)}
-        onSuccess={() => {
-          setBatchQuantityModalOpen(false);
-          setSelectedRowKeys([]);
-          loadOrder();
-        }}
-      />
     </div>
   );
 }

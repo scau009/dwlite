@@ -129,6 +129,7 @@ export interface InboundOrderListParams {
   limit?: number;
   page?: number;
   search?: string;
+  trackingNumber?: string;
   warehouseId?: string;
   startDate?: string;
   endDate?: string;
@@ -253,6 +254,7 @@ export const inboundApi = {
     if (params.limit) queryParams.append('limit', params.limit.toString());
     if (params.page) queryParams.append('page', params.page.toString());
     if (params.search) queryParams.append('search', params.search);
+    if (params.trackingNumber) queryParams.append('trackingNumber', params.trackingNumber);
     if (params.warehouseId) queryParams.append('warehouseId', params.warehouseId);
     if (params.startDate) queryParams.append('startDate', params.startDate);
     if (params.endDate) queryParams.append('endDate', params.endDate);
@@ -478,5 +480,120 @@ export const inboundApi = {
         body: JSON.stringify(params),
       }
     );
+  },
+};
+
+// ========== Merchant Inventory Types ==========
+
+export type StockStatus =
+  | 'in_transit'
+  | 'available'
+  | 'reserved'
+  | 'damaged'
+  | 'has_stock'
+  | 'low_stock';
+
+export interface MerchantInventoryItem {
+  id: string;
+  warehouse: {
+    id: string;
+    code: string;
+    name: string;
+  };
+  product: {
+    id: string;
+    name: string;
+    styleNumber: string | null;
+    color: string | null;
+    primaryImage: string | null;
+  } | null;
+  sku: {
+    id: string;
+    skuName: string;
+    sizeUnit: string | null;
+    sizeValue: string | null;
+  };
+  quantityInTransit: number;
+  quantityAvailable: number;
+  quantityReserved: number;
+  quantityDamaged: number;
+  quantityAllocated: number;
+  averageCost: string | null;
+  safetyStock: number | null;
+  isBelowSafetyStock: boolean;
+  lastInboundAt: string | null;
+  lastOutboundAt: string | null;
+  updatedAt: string;
+}
+
+export interface MerchantInventorySummary {
+  totalInTransit: number;
+  totalAvailable: number;
+  totalReserved: number;
+  totalDamaged: number;
+  totalSkuCount: number;
+  warehouseCount: number;
+}
+
+export interface MerchantInventoryListParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  warehouseId?: string;
+  stockStatus?: StockStatus;
+  hasStock?: boolean;
+}
+
+export interface MerchantInventoryListResponse {
+  data: MerchantInventoryItem[];
+  meta: {
+    total: number;
+    page: number;
+    limit: number;
+    pages: number;
+  };
+}
+
+export interface InventoryWarehouse {
+  id: string;
+  code: string;
+  name: string;
+}
+
+// ========== Merchant Inventory API ==========
+
+export const merchantInventoryApi = {
+  /**
+   * Get merchant inventory list
+   */
+  getInventoryList: async (
+    params: MerchantInventoryListParams = {}
+  ): Promise<MerchantInventoryListResponse> => {
+    const queryParams = new URLSearchParams();
+    if (params.page) queryParams.append('page', params.page.toString());
+    if (params.limit) queryParams.append('limit', params.limit.toString());
+    if (params.search) queryParams.append('search', params.search);
+    if (params.warehouseId) queryParams.append('warehouseId', params.warehouseId);
+    if (params.stockStatus) queryParams.append('stockStatus', params.stockStatus);
+    if (params.hasStock) queryParams.append('hasStock', 'true');
+
+    const query = queryParams.toString();
+    return await apiFetch<MerchantInventoryListResponse>(
+      `/api/merchant/inventory${query ? `?${query}` : ''}`
+    );
+  },
+
+  /**
+   * Get merchant inventory summary
+   */
+  getInventorySummary: async (): Promise<{ data: MerchantInventorySummary }> => {
+    return await apiFetch<{ data: MerchantInventorySummary }>('/api/merchant/inventory/summary');
+  },
+
+  /**
+   * Get available warehouses for filtering
+   */
+  getWarehouses: async (): Promise<{ data: InventoryWarehouse[] }> => {
+    return await apiFetch<{ data: InventoryWarehouse[] }>('/api/merchant/inventory/warehouses');
   },
 };

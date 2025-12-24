@@ -176,13 +176,22 @@ class AuthController extends AbstractController
     #[Route('/me', name: 'auth_me', methods: ['GET'])]
     public function me(#[CurrentUser] User $user): JsonResponse
     {
-        return $this->json([
+        $response = [
             'id' => $user->getId(),
             'email' => $user->getEmail(),
             'roles' => $user->getRoles(),
             'isVerified' => $user->isVerified(),
             'accountType' => $user->getAccountType(),
             'createdAt' => $user->getCreatedAt()->format('c'),
-        ]);
+        ];
+
+        // 如果是仓库用户，返回仓库信息
+        if ($user->isWarehouse() && $user->getWarehouse() !== null) {
+            $warehouse = $user->getWarehouse();
+            $response['warehouseId'] = $warehouse->getId();
+            $response['warehouseName'] = $warehouse->getName();
+        }
+
+        return $this->json($response);
     }
 }

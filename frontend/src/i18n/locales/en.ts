@@ -33,6 +33,8 @@ export default {
     required: 'Required',
     all: 'All',
     selectAll: 'Select All',
+    yes: 'Yes',
+    no: 'No',
   },
 
   // Navigation
@@ -45,6 +47,7 @@ export default {
     fulfillment: 'Fulfillment',
     merchants: 'Merchants',
     warehouses: 'Warehouses',
+    warehouseOperations: 'Warehouse Operations',
     dataCenter: 'Data Center',
     settings: 'Settings',
   },
@@ -57,6 +60,7 @@ export default {
     productBrands: 'Brands',
     productTags: 'Tags',
     // Inventory
+    stockQuery: 'Stock Query',
     inboundOrders: 'Inbound Orders',
     inboundShipments: 'Shipments',
     inboundExceptions: 'Exceptions',
@@ -83,6 +87,11 @@ export default {
     merchantList: 'Merchant List',
     // Warehouses
     warehouseList: 'Warehouse List',
+    warehouseUsers: 'Warehouse Users',
+    // Warehouse Operations
+    warehouseInbound: 'Inbound Orders',
+    warehouseOutbound: 'Outbound Orders',
+    warehouseInventory: 'Inventory',
     // Settings
     generalSettings: 'General',
     walletManagement: 'Wallet',
@@ -423,6 +432,29 @@ export default {
     internalNotesPlaceholder: 'Enter internal notes',
   },
 
+  // Warehouse Users
+  warehouseUsers: {
+    title: 'Warehouse User Management',
+    description: 'Manage warehouse operator accounts',
+    email: 'Email',
+    emailPlaceholder: 'Enter email address',
+    password: 'Password',
+    passwordPlaceholder: 'Enter password',
+    passwordHint: 'Leave empty to keep current password',
+    warehouse: 'Warehouse',
+    selectWarehouse: 'Select Warehouse',
+    warehouseRequired: 'Please select a warehouse',
+    verified: 'Verified',
+    noWarehouse: 'Not Assigned',
+    create: 'Create User',
+    edit: 'Edit User',
+    created: 'User created successfully',
+    updated: 'User updated successfully',
+    deleted: 'User deleted',
+    confirmDelete: 'Confirm Delete',
+    confirmDeleteDesc: 'This user will no longer be able to login. Are you sure you want to delete?',
+  },
+
   // Brands
   brands: {
     title: 'Brand Management',
@@ -598,6 +630,7 @@ export default {
     receivedAt: 'Received At',
     // Shipment
     trackingNumber: 'Tracking Number',
+    searchByTrackingNumber: 'Search by tracking number...',
     carrier: 'Carrier',
     carrierCode: 'Carrier Code',
     carrierName: 'Carrier Name',
@@ -719,6 +752,8 @@ export default {
     enterSenderName: 'Enter sender name',
     enterSenderPhone: 'Enter sender phone',
     enterSenderAddress: 'Enter sender address',
+    // Search
+    searchItemsPlaceholder: 'Search product name, style number, size...',
     // Hints
     noItems: 'No items',
     addItemsFirst: 'Please add items first',
@@ -752,6 +787,120 @@ export default {
     enterResolutionNotes: 'Enter resolution notes (optional)',
   },
 
+  // Warehouse Operations
+  warehouseOps: {
+    // Inbound
+    inboundTitle: 'Inbound Management',
+    inboundDescription: 'Manage inbound orders for this warehouse, complete receiving confirmation',
+    merchant: 'Merchant',
+    receivedProgress: 'Received',
+    awaitingArrival: 'Awaiting Arrival',
+    pendingReceiving: 'Pending Receiving',
+    completedToday: 'Completed Today',
+
+    // Inbound Detail
+    startReceiving: 'Start Receiving',
+    completeReceiving: 'Complete Receiving',
+    confirmReceiving: 'Confirm Receiving',
+    confirmReceivingDesc: 'Confirm all items have been received?',
+    receivingCompleted: 'Receiving completed',
+    actualReceived: 'Actual Qty',
+    damagedQuantity: 'Damaged Qty',
+    remark: 'Remark',
+    remarkPlaceholder: 'Enter remark',
+    receivingModeActive: 'Receiving Mode',
+    receivingNotes: 'Receiving Notes',
+    receivingNotesPlaceholder: 'Enter receiving notes (optional)',
+    notesPlaceholder: 'Enter notes',
+    exceptionQuantity: 'Exception Qty',
+
+    // Outbound
+    outboundTitle: 'Outbound Management',
+    outboundDescription: 'Manage outbound orders for this warehouse, complete picking and shipping',
+    outboundNo: 'Outbound No',
+    outboundType: 'Type',
+    outboundTypeSales: 'Sales',
+    outboundTypeTransfer: 'Transfer',
+    outboundTypeReturn: 'Return',
+    receiver: 'Receiver',
+    receiverPhone: 'Phone',
+    receiverAddress: 'Address',
+    totalItems: 'Total Items',
+    carrier: 'Carrier',
+    trackingNumber: 'Tracking No',
+    externalId: 'External ID',
+
+    // Outbound Status
+    outboundStatusPending: 'Pending',
+    outboundStatusPicking: 'Picking',
+    outboundStatusPacking: 'Packing',
+    outboundStatusReady: 'Ready',
+    outboundStatusShipped: 'Shipped',
+    outboundStatusDelivered: 'Delivered',
+    outboundStatusCancelled: 'Cancelled',
+
+    // Outbound Actions
+    startPicking: 'Start Picking',
+    startPacking: 'Start Packing',
+    completePacking: 'Complete Packing',
+    shipOrder: 'Ship Order',
+    confirmStartPicking: 'Confirm Start Picking',
+    confirmStartPickingDesc: 'Confirm to start picking?',
+    confirmStartPacking: 'Confirm Start Packing',
+    confirmStartPackingDesc: 'Confirm to complete picking and start packing?',
+    confirmCompletePacking: 'Confirm Complete Packing',
+    confirmCompletePackingDesc: 'Confirm packing is complete and ready to ship?',
+    pickingStarted: 'Picking started',
+    packingStarted: 'Packing started',
+    packingCompleted: 'Packing completed, ready to ship',
+    orderShipped: 'Order shipped successfully',
+    confirmShip: 'Confirm Ship',
+    carrierRequired: 'Please enter carrier',
+    carrierPlaceholder: 'Enter carrier name',
+    trackingNumberRequired: 'Please enter tracking number',
+    trackingNumberPlaceholder: 'Enter tracking number',
+    pendingPicking: 'Pending Picking',
+    pendingPacking: 'Pending Packing',
+    readyToShip: 'Ready to Ship',
+    shippedToday: 'Shipped Today',
+
+    // Outbound Detail
+    productName: 'Product Name',
+    skuName: 'Size',
+    quantity: 'Quantity',
+    pickedQuantity: 'Picked Qty',
+    orderItems: 'Order Items',
+    orderTimeline: 'Timeline',
+    orderCreated: 'Order Created',
+    timelinePickingStarted: 'Picking Started',
+    timelinePickingCompleted: 'Picking Completed',
+    timelinePackingStarted: 'Packing Started',
+    timelinePackingCompleted: 'Packing Completed',
+    orderCancelled: 'Order Cancelled',
+    shippingInfo: 'Shipping Info',
+    receiverInfo: 'Receiver Info',
+    shippedAt: 'Shipped At',
+    cancelReason: 'Cancel Reason',
+
+    // Inventory
+    inventoryTitle: 'Inventory Query',
+    inventoryDescription: 'View inventory for this warehouse',
+    productImage: 'Image',
+    styleNumber: 'Style No',
+    color: 'Color',
+    inTransit: 'In Transit',
+    available: 'Available',
+    reserved: 'Reserved',
+    damaged: 'Damaged',
+    averageCost: 'Avg Cost',
+    updatedAt: 'Updated At',
+    totalSkuCount: 'Total SKUs',
+    totalInTransit: 'Total In Transit',
+    totalAvailable: 'Total Available',
+    totalDamaged: 'Total Damaged',
+    hasStockOnly: 'Has Stock Only',
+  },
+
   // Settings
   settings: {
     // Merchant Profile
@@ -782,5 +931,40 @@ export default {
     depositTransactions: 'Deposit Transactions',
     balanceTransactions: 'Balance Transactions',
     walletNotInitialized: 'Wallet not initialized',
+  },
+
+  // Merchant Stock Query
+  merchantStock: {
+    title: 'Stock Query',
+    description: 'View your SKU inventory by warehouse and status',
+    productImage: 'Image',
+    productName: 'Product Name',
+    styleNumber: 'Style No',
+    skuName: 'Size',
+    warehouse: 'Warehouse',
+    inTransit: 'In Transit',
+    available: 'Available',
+    reserved: 'Reserved',
+    damaged: 'Damaged',
+    averageCost: 'Avg Cost',
+    safetyStock: 'Safety Stock',
+    lastInbound: 'Last Inbound',
+    selectWarehouse: 'Select Warehouse',
+    selectStatus: 'Select Status',
+    searchPlaceholder: 'Search product name...',
+    totalSkuCount: 'Total SKUs',
+    totalInTransit: 'Total In Transit',
+    totalAvailable: 'Total Available',
+    totalReserved: 'Total Reserved',
+    totalDamaged: 'Total Damaged',
+    warehouseCount: 'Warehouses',
+    belowSafetyStock: 'Below safety stock',
+    // Stock status filters
+    statusHasStock: 'Has Stock',
+    statusInTransit: 'In Transit',
+    statusAvailable: 'Available',
+    statusReserved: 'Reserved',
+    statusDamaged: 'Damaged',
+    statusLowStock: 'Low Stock',
   },
 }

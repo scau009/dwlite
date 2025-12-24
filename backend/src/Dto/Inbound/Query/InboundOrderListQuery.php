@@ -18,6 +18,9 @@ class InboundOrderListQuery
     #[Assert\Type('string')]
     public ?string $orderNo = null;
 
+    #[Assert\Type('string')]
+    public ?string $trackingNumber = null;
+
     #[Assert\Positive(message: 'validation.page_must_positive')]
     public int $page = 1;
 

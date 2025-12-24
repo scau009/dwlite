@@ -33,6 +33,8 @@ export default {
     required: '必填',
     all: '全部',
     selectAll: '全选',
+    yes: '是',
+    no: '否',
   },
 
   // Navigation
@@ -45,6 +47,7 @@ export default {
     fulfillment: '履约管理',
     merchants: '商户管理',
     warehouses: '仓库管理',
+    warehouseOperations: '仓库作业',
     dataCenter: '数据中心',
     settings: '系统设置',
   },
@@ -57,6 +60,7 @@ export default {
     productBrands: '品牌管理',
     productTags: '标签管理',
     // Inventory
+    stockQuery: '库存查询',
     inboundOrders: '入库单',
     inboundShipments: '物流单',
     inboundExceptions: '异常单',
@@ -83,6 +87,11 @@ export default {
     merchantList: '商户列表',
     // Warehouses
     warehouseList: '仓库列表',
+    warehouseUsers: '仓库用户',
+    // Warehouse Operations
+    warehouseInbound: '入库管理',
+    warehouseOutbound: '出库管理',
+    warehouseInventory: '库存查询',
     // Settings
     generalSettings: '基本设置',
     walletManagement: '电子钱包',
@@ -423,6 +432,29 @@ export default {
     internalNotesPlaceholder: '请输入内部备注信息',
   },
 
+  // Warehouse Users
+  warehouseUsers: {
+    title: '仓库用户管理',
+    description: '管理仓库操作员账号',
+    email: '邮箱',
+    emailPlaceholder: '请输入邮箱',
+    password: '密码',
+    passwordPlaceholder: '请输入密码',
+    passwordHint: '留空则不修改密码',
+    warehouse: '关联仓库',
+    selectWarehouse: '选择仓库',
+    warehouseRequired: '请选择关联仓库',
+    verified: '已验证',
+    noWarehouse: '未关联',
+    create: '新增用户',
+    edit: '编辑用户',
+    created: '用户创建成功',
+    updated: '用户更新成功',
+    deleted: '用户已删除',
+    confirmDelete: '确认删除',
+    confirmDeleteDesc: '删除后该用户将无法登录，确定要删除吗？',
+  },
+
   // Brands
   brands: {
     title: '品牌管理',
@@ -601,6 +633,7 @@ export default {
     receivedAt: '收货时间',
     // 物流信息
     trackingNumber: '运单号',
+    searchByTrackingNumber: '按运单号搜索...',
     carrier: '物流公司',
     carrierCode: '物流代码',
     carrierName: '物流公司',
@@ -722,6 +755,8 @@ export default {
     enterSenderName: '请输入发件人姓名',
     enterSenderPhone: '请输入发件人电话',
     enterSenderAddress: '请输入发件人地址',
+    // 搜索
+    searchItemsPlaceholder: '搜索商品名称、款号、尺码...',
     // 提示信息
     noItems: '暂无商品明细',
     addItemsFirst: '请先添加商品明细',
@@ -751,6 +786,160 @@ export default {
     resolutionRequired: '请选择处理方式',
     selectResolution: '选择处理方式',
     enterResolutionNotes: '请输入处理说明（选填）',
+  },
+
+  // Merchant Stock Query
+  merchantStock: {
+    title: '库存查询',
+    description: '查看您在各仓库的SKU库存情况',
+    searchPlaceholder: '搜索商品名称或款号...',
+    selectWarehouse: '选择仓库',
+    selectStatus: '库存状态',
+
+    // Stock Status
+    statusHasStock: '有库存',
+    statusInTransit: '在途',
+    statusAvailable: '可用',
+    statusReserved: '已锁定',
+    statusDamaged: '破损',
+    statusLowStock: '库存预警',
+
+    // Table columns
+    productImage: '商品图片',
+    productName: '商品名称',
+    styleNumber: '款号',
+    skuName: '尺码',
+    warehouse: '仓库',
+    inTransit: '在途',
+    available: '可用',
+    reserved: '锁定',
+    damaged: '破损',
+    averageCost: '平均成本',
+    safetyStock: '安全库存',
+    lastInbound: '最后入库',
+    belowSafetyStock: '低于安全库存',
+
+    // Summary
+    totalSkuCount: 'SKU总数',
+    totalInTransit: '在途总数',
+    totalAvailable: '可用总数',
+    totalReserved: '锁定总数',
+    totalDamaged: '破损总数',
+    warehouseCount: '仓库数',
+  },
+
+  // Warehouse Operations
+  warehouseOps: {
+    // Inbound
+    inboundTitle: '入库管理',
+    inboundDescription: '管理本仓库的入库单，完成收货确认',
+    merchant: '商户',
+    receivedProgress: '收货进度',
+    awaitingArrival: '待到货',
+    pendingReceiving: '待收货',
+    completedToday: '今日完成',
+
+    // Inbound Detail
+    startReceiving: '开始收货',
+    completeReceiving: '完成收货',
+    confirmReceiving: '确认收货',
+    confirmReceivingDesc: '确认已完成所有商品的收货确认？',
+    receivingCompleted: '收货完成',
+    actualReceived: '实收数量',
+    damagedQuantity: '破损数量',
+    remark: '备注',
+    remarkPlaceholder: '请输入备注',
+    receivingModeActive: '收货模式',
+    receivingNotes: '收货备注',
+    receivingNotesPlaceholder: '请输入收货相关备注（可选）',
+    notesPlaceholder: '请输入备注信息',
+    exceptionQuantity: '异常数量',
+
+    // Outbound
+    outboundTitle: '出库管理',
+    outboundDescription: '管理本仓库的出库单，完成拣货和发货',
+    outboundNo: '出库单号',
+    outboundType: '出库类型',
+    outboundTypeSales: '销售出库',
+    outboundTypeTransfer: '调拨出库',
+    outboundTypeReturn: '退货出库',
+    receiver: '收件人',
+    receiverPhone: '收件人电话',
+    receiverAddress: '收件地址',
+    totalItems: '商品数量',
+    carrier: '物流公司',
+    trackingNumber: '运单号',
+    externalId: '外部订单号',
+
+    // Outbound Status
+    outboundStatusPending: '待拣货',
+    outboundStatusPicking: '拣货中',
+    outboundStatusPacking: '打包中',
+    outboundStatusReady: '待发货',
+    outboundStatusShipped: '已发货',
+    outboundStatusDelivered: '已签收',
+    outboundStatusCancelled: '已取消',
+
+    // Outbound Actions
+    startPicking: '开始拣货',
+    startPacking: '开始打包',
+    completePacking: '完成打包',
+    shipOrder: '发货',
+    confirmStartPicking: '确认开始拣货',
+    confirmStartPickingDesc: '确认开始拣货操作？',
+    confirmStartPacking: '确认开始打包',
+    confirmStartPackingDesc: '确认完成拣货并开始打包？',
+    confirmCompletePacking: '确认完成打包',
+    confirmCompletePackingDesc: '确认完成打包，准备发货？',
+    pickingStarted: '已开始拣货',
+    packingStarted: '已开始打包',
+    packingCompleted: '打包完成，待发货',
+    orderShipped: '发货成功',
+    confirmShip: '确认发货',
+    carrierRequired: '请输入物流公司',
+    carrierPlaceholder: '请输入物流公司名称',
+    trackingNumberRequired: '请输入运单号',
+    trackingNumberPlaceholder: '请输入物流运单号',
+    pendingPicking: '待拣货',
+    pendingPacking: '待打包',
+    readyToShip: '待发货',
+    shippedToday: '今日发货',
+
+    // Outbound Detail
+    productName: '商品名称',
+    skuName: '尺码',
+    quantity: '数量',
+    pickedQuantity: '已拣数量',
+    orderItems: '商品明细',
+    orderTimeline: '操作时间线',
+    orderCreated: '创建订单',
+    timelinePickingStarted: '开始拣货',
+    timelinePickingCompleted: '完成拣货',
+    timelinePackingStarted: '开始打包',
+    timelinePackingCompleted: '完成打包',
+    orderCancelled: '订单取消',
+    shippingInfo: '物流信息',
+    receiverInfo: '收件人信息',
+    shippedAt: '发货时间',
+    cancelReason: '取消原因',
+
+    // Inventory
+    inventoryTitle: '库存查询',
+    inventoryDescription: '查询本仓库的库存情况',
+    productImage: '商品图片',
+    styleNumber: '款号',
+    color: '颜色',
+    inTransit: '在途',
+    available: '可用',
+    reserved: '预留',
+    damaged: '破损',
+    averageCost: '平均成本',
+    updatedAt: '更新时间',
+    totalSkuCount: 'SKU总数',
+    totalInTransit: '在途总数',
+    totalAvailable: '可用总数',
+    totalDamaged: '破损总数',
+    hasStockOnly: '仅显示有库存',
   },
 
   // Settings

@@ -14,8 +14,9 @@ use Symfony\Component\Uid\Ulid;
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     // 账户类型常量
-    public const ACCOUNT_TYPE_ADMIN = 'admin';      // 平台管理员
+    public const ACCOUNT_TYPE_ADMIN = 'admin';       // 平台管理员
     public const ACCOUNT_TYPE_MERCHANT = 'merchant'; // 商户账号
+    public const ACCOUNT_TYPE_WAREHOUSE = 'warehouse'; // 仓库操作员
 
     #[ORM\Id]
     #[ORM\Column(type: 'string', length: 26)]
@@ -35,6 +36,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(type: 'string', length: 50)]
     private string $accountType;
+
+    #[ORM\ManyToOne(targetEntity: Warehouse::class)]
+    #[ORM\JoinColumn(name: 'warehouse_id', nullable: true, onDelete: 'SET NULL')]
+    private ?Warehouse $warehouse = null;
 
     #[ORM\Column(type: 'datetime_immutable')]
     private \DateTimeImmutable $createdAt;
@@ -125,6 +130,22 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function isMerchant(): bool
     {
         return $this->accountType === self::ACCOUNT_TYPE_MERCHANT;
+    }
+
+    public function isWarehouse(): bool
+    {
+        return $this->accountType === self::ACCOUNT_TYPE_WAREHOUSE;
+    }
+
+    public function getWarehouse(): ?Warehouse
+    {
+        return $this->warehouse;
+    }
+
+    public function setWarehouse(?Warehouse $warehouse): static
+    {
+        $this->warehouse = $warehouse;
+        return $this;
     }
 
     public function getCreatedAt(): \DateTimeImmutable

@@ -114,6 +114,12 @@ admin:
     enabled: '商户已启用'
     disabled: '商户已禁用'
 
+  # Warehouse user management messages
+  warehouseUser:
+    created: '仓库用户创建成功'
+    updated: '仓库用户更新成功'
+    deleted: '仓库用户删除成功'
+
 # Merchant self-service messages
 merchant:
   not_found: '未找到商户信息'
@@ -180,3 +186,11 @@ validation:
 
   # Color
   color_format: '颜色必须是有效的HEX格式（如 #FF5733）'
+
+# Outbound order messages
+outbound:
+  order:
+    picking_started: '拣货已开始'
+    packing_started: '打包已开始'
+    ready_to_ship: '已完成打包，待发货'
+    shipped: '已发货'

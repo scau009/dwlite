@@ -45,9 +45,20 @@ export function getMenuData(t: TFunction): AccessMenuDataItem[] {
       icon: <InboxOutlined />,
       access: 'merchant',
       children: [
+        { path: '/inventory/stock', name: t('menu.stockQuery'), access: 'merchant' },
         { path: '/inventory/inbound', name: t('menu.inboundOrders'), access: 'merchant' },
-        { path: '/inventory/shipments', name: t('menu.inboundShipments'), access: 'merchant' },
         { path: '/inventory/exceptions', name: t('menu.inboundExceptions'), access: 'merchant' },
+      ],
+    },
+    {
+      path: '/warehouse',
+      name: t('nav.warehouseOperations'),
+      icon: <InboxOutlined />,
+      access: 'warehouse',
+      children: [
+        { path: '/warehouse/inbound', name: t('menu.warehouseInbound'), access: 'warehouse' },
+        { path: '/warehouse/outbound', name: t('menu.warehouseOutbound'), access: 'warehouse' },
+        { path: '/warehouse/inventory', name: t('menu.warehouseInventory'), access: 'warehouse' },
       ],
     },
     {
@@ -99,6 +110,7 @@ export function getMenuData(t: TFunction): AccessMenuDataItem[] {
       access: 'admin',
       children: [
         { path: '/warehouses', name: t('menu.warehouseList') },
+        { path: '/warehouses/users', name: t('menu.warehouseUsers'), access: 'admin' },
       ],
     },
     {
