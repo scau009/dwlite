@@ -14,7 +14,10 @@
       "Bash(git commit:*)",
       "Bash(npm run build)",
       "Bash(npx tsc:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(ls:*)",
+      "Bash(docker run --rm ccr.ccs.tencentyun.com/dwlite/dwlite-frontend:latest grep -r \"localhost:8000\\\\|dwlite.taoism\" /usr/share/nginx/html/*.js)",
+      "Bash(docker run:*)"
     ]
   }
 }

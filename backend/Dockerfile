@@ -15,7 +15,8 @@ COPY Caddyfile /etc/caddy/Caddyfile
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh && \
-    chown -R www-data:www-data /app/var
+    mkdir -p /app/var /app/config/jwt && \
+    chown -R www-data:www-data /app/var /app/config/jwt
 
 EXPOSE 8000
 

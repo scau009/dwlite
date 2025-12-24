@@ -19,13 +19,6 @@ framework:
                     delay: 1000
                     multiplier: 2
 
-            scheduler_default:
-                dsn: '%env(REDIS_URL)%'
-                options:
-                    stream: dwlite_scheduler
-                    group: scheduler_consumer
-                    consumer: scheduler
-
             failed:
                 dsn: '%env(REDIS_URL)%'
                 options:
