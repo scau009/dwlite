@@ -2,13 +2,8 @@ import { useRef } from 'react';
 import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { ProTable, type ActionType, type ProColumns } from '@ant-design/pro-components';
-import { Button, Tag, Space, Tooltip, Statistic, Card, Row, Col } from 'antd';
-import {
-  EyeOutlined,
-  SendOutlined,
-  InboxOutlined,
-  CheckCircleOutlined,
-} from '@ant-design/icons';
+import { Button, Tag, Space, Tooltip } from 'antd';
+import { EyeOutlined } from '@ant-design/icons';
 
 import {
   warehouseOpsApi,
@@ -170,50 +165,6 @@ export function WarehouseOutboundListPage() {
         <h1 className="text-xl font-semibold">{t('warehouseOps.outboundTitle')}</h1>
         <p className="text-gray-500">{t('warehouseOps.outboundDescription')}</p>
       </div>
-
-      {/* Quick Stats */}
-      <Row gutter={16} className="mb-4">
-        <Col xs={12} sm={6}>
-          <Card size="small">
-            <Statistic
-              title={t('warehouseOps.pendingPicking')}
-              value={0}
-              prefix={<InboxOutlined />}
-              valueStyle={{ color: '#1890ff' }}
-            />
-          </Card>
-        </Col>
-        <Col xs={12} sm={6}>
-          <Card size="small">
-            <Statistic
-              title={t('warehouseOps.pendingPacking')}
-              value={0}
-              prefix={<InboxOutlined />}
-              valueStyle={{ color: '#13c2c2' }}
-            />
-          </Card>
-        </Col>
-        <Col xs={12} sm={6}>
-          <Card size="small">
-            <Statistic
-              title={t('warehouseOps.readyToShip')}
-              value={0}
-              prefix={<SendOutlined />}
-              valueStyle={{ color: '#722ed1' }}
-            />
-          </Card>
-        </Col>
-        <Col xs={12} sm={6}>
-          <Card size="small">
-            <Statistic
-              title={t('warehouseOps.shippedToday')}
-              value={0}
-              prefix={<CheckCircleOutlined />}
-              valueStyle={{ color: '#52c41a' }}
-            />
-          </Card>
-        </Col>
-      </Row>
 
       <ProTable<WarehouseOutboundOrder>
         actionRef={actionRef}

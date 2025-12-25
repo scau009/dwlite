@@ -1,3 +1,6 @@
+// Dashboard
+export { default as WarehouseDashboardPage } from './dashboard';
+
 // Inbound
 export { WarehouseInboundListPage } from './inbound/list';
 export { WarehouseInboundDetailPage } from './inbound/detail';

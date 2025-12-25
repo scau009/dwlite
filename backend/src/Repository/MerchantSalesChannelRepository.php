@@ -92,4 +92,48 @@ class MerchantSalesChannelRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    /**
+     * @return array{data: MerchantSalesChannel[], total: int}
+     */
+    public function findPaginated(int $page = 1, int $limit = 20, array $filters = []): array
+    {
+        $qb = $this->createQueryBuilder('mc')
+            ->innerJoin('mc.merchant', 'm')
+            ->innerJoin('mc.salesChannel', 'c')
+            ->orderBy('mc.createdAt', 'DESC');
+
+        if (!empty($filters['merchantId'])) {
+            $qb->andWhere('m.id = :merchantId')
+                ->setParameter('merchantId', $filters['merchantId']);
+        }
+
+        if (!empty($filters['salesChannelId'])) {
+            $qb->andWhere('c.id = :salesChannelId')
+                ->setParameter('salesChannelId', $filters['salesChannelId']);
+        }
+
+        if (!empty($filters['status'])) {
+            $qb->andWhere('mc.status = :status')
+                ->setParameter('status', $filters['status']);
+        }
+
+        $countQb = clone $qb;
+        $total = (int) $countQb->select('COUNT(mc.id)')->getQuery()->getSingleScalarResult();
+
+        $offset = ($page - 1) * $limit;
+        $data = $qb->setFirstResult($offset)->setMaxResults($limit)->getQuery()->getResult();
+
+        return ['data' => $data, 'total' => $total];
+    }
+
+    public function countPendingApproval(): int
+    {
+        return (int) $this->createQueryBuilder('mc')
+            ->select('COUNT(mc.id)')
+            ->where('mc.status = :status')
+            ->setParameter('status', MerchantSalesChannel::STATUS_PENDING)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
 }

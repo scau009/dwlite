@@ -471,7 +471,7 @@ export const inboundApi = {
    */
   resolveInboundException: async (
     id: string,
-    params: { resolution: string; resolutionNotes?: string }
+    params: { resolution: string; resolutionNotes?: string; claimAmount?: string }
   ): Promise<{ message: string; data: InboundException }> => {
     return await apiFetch<{ message: string; data: InboundException }>(
       `/api/inbound/exceptions/${id}/resolve`,

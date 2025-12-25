@@ -19,11 +19,12 @@ import { ResetPasswordPage } from '@/pages/auth/reset-password';
 import { VerifyEmailPage } from '@/pages/auth/verify-email';
 
 // App pages
-import { DashboardPage } from '@/pages/dashboard';
+import { RoleBasedDashboard } from '@/components/role-based-dashboard';
 import { ProfilePage } from '@/pages/profile';
 import { ProductsListPage, ProductDetailPage } from '@/pages/products';
 import { MerchantsListPage } from '@/pages/merchants';
 import { BrandsListPage } from '@/pages/brands';
+import { ChannelsListPage, MerchantChannelsListPage } from '@/pages/channels';
 import { CategoriesListPage } from '@/pages/categories';
 import { TagsListPage } from '@/pages/tags';
 import {
@@ -126,7 +127,7 @@ export const router = createBrowserRouter([
             element: <AccessRoute />,
             children: [
               // Dashboard
-              { path: '/dashboard', element: <DashboardPage /> },
+              { path: '/dashboard', element: <RoleBasedDashboard /> },
 
               // Products
               { path: '/products/list', element: <ProductsListPage /> },
@@ -161,6 +162,10 @@ export const router = createBrowserRouter([
 
               // Merchants
               { path: '/merchants', element: <MerchantsListPage /> },
+
+              // Channels
+              { path: '/channels', element: <ChannelsListPage /> },
+              { path: '/channels/merchants', element: <MerchantChannelsListPage /> },
 
               // Warehouses (Admin)
               { path: '/warehouses', element: <WarehousesListPage /> },

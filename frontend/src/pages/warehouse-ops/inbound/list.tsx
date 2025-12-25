@@ -2,8 +2,8 @@ import { useRef } from 'react';
 import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { ProTable, type ActionType, type ProColumns } from '@ant-design/pro-components';
-import { Button, Tag, Space, Tooltip, Statistic, Card, Row, Col } from 'antd';
-import { EyeOutlined, InboxOutlined, CheckCircleOutlined, ClockCircleOutlined } from '@ant-design/icons';
+import { Button, Tag, Space, Tooltip } from 'antd';
+import { EyeOutlined } from '@ant-design/icons';
 
 import {
   warehouseOpsApi,
@@ -52,7 +52,7 @@ export function WarehouseInboundListPage() {
     {
       title: t('inventory.orderNo'),
       dataIndex: 'orderNo',
-      width: 160,
+      width: 180,
       ellipsis: true,
       copyable: true,
       fieldProps: {
@@ -63,13 +63,6 @@ export function WarehouseInboundListPage() {
           {record.orderNo}
         </a>
       ),
-    },
-    {
-      title: t('warehouseOps.merchant'),
-      dataIndex: ['merchant', 'companyName'],
-      width: 150,
-      ellipsis: true,
-      search: false,
     },
     {
       title: t('common.status'),
@@ -164,40 +157,6 @@ export function WarehouseInboundListPage() {
         <h1 className="text-xl font-semibold">{t('warehouseOps.inboundTitle')}</h1>
         <p className="text-gray-500">{t('warehouseOps.inboundDescription')}</p>
       </div>
-
-      {/* Quick Stats */}
-      <Row gutter={16} className="mb-4">
-        <Col xs={12} sm={6}>
-          <Card size="small">
-            <Statistic
-              title={t('warehouseOps.awaitingArrival')}
-              value={0}
-              prefix={<ClockCircleOutlined />}
-              valueStyle={{ color: '#1890ff' }}
-            />
-          </Card>
-        </Col>
-        <Col xs={12} sm={6}>
-          <Card size="small">
-            <Statistic
-              title={t('warehouseOps.pendingReceiving')}
-              value={0}
-              prefix={<InboxOutlined />}
-              valueStyle={{ color: '#722ed1' }}
-            />
-          </Card>
-        </Col>
-        <Col xs={12} sm={6}>
-          <Card size="small">
-            <Statistic
-              title={t('warehouseOps.completedToday')}
-              value={0}
-              prefix={<CheckCircleOutlined />}
-              valueStyle={{ color: '#52c41a' }}
-            />
-          </Card>
-        </Col>
-      </Row>
 
       <ProTable<WarehouseInboundOrder>
         actionRef={actionRef}

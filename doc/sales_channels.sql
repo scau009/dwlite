@@ -3,20 +3,16 @@
 
 CREATE TABLE `sales_channels` (
     `id` VARCHAR(26) NOT NULL PRIMARY KEY COMMENT 'ULID',
+    `code` VARCHAR(50) NOT NULL UNIQUE COMMENT 'Channel code (taobao, jd, douyin, etc.)',
     `name` VARCHAR(100) NOT NULL,
-    `code` VARCHAR(30) NOT NULL UNIQUE COMMENT 'Channel code (taobao, jd, douyin, etc.)',
-    `type` VARCHAR(30) NOT NULL COMMENT 'marketplace, social, retail, etc.',
-    `platform` VARCHAR(50) NOT NULL COMMENT 'Platform name',
-    `logo` VARCHAR(500) NULL,
+    `logo_url` VARCHAR(500) NULL,
     `description` TEXT NULL,
-    `api_endpoint` VARCHAR(255) NULL COMMENT 'API base URL',
-    `api_config` JSON NULL COMMENT 'API configuration',
-    `webhook_config` JSON NULL COMMENT 'Webhook configuration',
-    `sync_interval` INT NOT NULL DEFAULT 300 COMMENT 'Order sync interval (seconds)',
-    `is_active` BOOLEAN NOT NULL DEFAULT TRUE,
+    `config` JSON NULL COMMENT 'Channel global config',
+    `config_schema` JSON NULL COMMENT 'JSON Schema for merchant config fields',
+    `business_type` VARCHAR(20) NOT NULL DEFAULT 'export' COMMENT 'import, export',
+    `status` VARCHAR(20) NOT NULL DEFAULT 'active' COMMENT 'active, maintenance, disabled',
+    `sort_order` INT NOT NULL DEFAULT 0,
     `created_at` DATETIME NOT NULL,
     `updated_at` DATETIME NOT NULL,
-    INDEX `idx_channel_code` (`code`),
-    INDEX `idx_channel_type` (`type`),
-    INDEX `idx_channel_active` (`is_active`)
+    INDEX `idx_channel_code` (`code`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Sales channels';

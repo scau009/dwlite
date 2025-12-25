@@ -31,6 +31,25 @@ class OutboundController extends AbstractController
     }
 
     /**
+     * 获取出库单统计数据
+     */
+    #[Route('/stats', name: 'warehouse_outbound_stats', methods: ['GET'])]
+    public function getStats(Warehouse $warehouse): JsonResponse
+    {
+        $statusCounts = $this->outboundOrderRepository->countByWarehouseGroupByStatus($warehouse);
+        $shippedToday = $this->outboundOrderRepository->countShippedTodayByWarehouse($warehouse);
+
+        return $this->json([
+            'data' => [
+                'pendingPicking' => $statusCounts['pending'] ?? 0,
+                'pendingPacking' => $statusCounts['picking'] ?? 0,
+                'readyToShip' => ($statusCounts['packing'] ?? 0) + ($statusCounts['ready'] ?? 0),
+                'shippedToday' => $shippedToday,
+            ],
+        ]);
+    }
+
+    /**
      * 获取本仓库出库单列表
      */
     #[Route('/orders', name: 'warehouse_outbound_list', methods: ['GET'])]

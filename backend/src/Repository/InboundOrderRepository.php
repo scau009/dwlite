@@ -184,4 +184,60 @@ class InboundOrderRepository extends ServiceEntityRepository
         }
         return $counts;
     }
+
+    /**
+     * 统计仓库今日完成的入库单数量
+     */
+    public function countCompletedTodayByWarehouse(Warehouse $warehouse): int
+    {
+        $today = new \DateTimeImmutable('today', new \DateTimeZone('Asia/Shanghai'));
+        $tomorrow = $today->modify('+1 day');
+
+        return (int) $this->createQueryBuilder('io')
+            ->select('COUNT(io.id)')
+            ->andWhere('io.warehouse = :warehouse')
+            ->andWhere('io.status IN (:statuses)')
+            ->andWhere('io.completedAt >= :today')
+            ->andWhere('io.completedAt < :tomorrow')
+            ->setParameter('warehouse', $warehouse)
+            ->setParameter('statuses', [InboundOrder::STATUS_COMPLETED, InboundOrder::STATUS_PARTIAL_COMPLETED])
+            ->setParameter('today', $today)
+            ->setParameter('tomorrow', $tomorrow)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    /**
+     * 获取仓库近N天每日完成的入库单数量
+     *
+     * @return array<string, int> 日期 => 数量
+     */
+    public function countCompletedByWarehouseGroupByDate(Warehouse $warehouse, int $days = 7): array
+    {
+        $startDate = new \DateTimeImmutable("-" . ($days - 1) . " days", new \DateTimeZone('Asia/Shanghai'));
+        $startDate = $startDate->setTime(0, 0, 0);
+
+        $conn = $this->getEntityManager()->getConnection();
+        $sql = '
+            SELECT DATE(completed_at) as date, COUNT(id) as count
+            FROM inbound_orders
+            WHERE warehouse_id = :warehouseId
+            AND status IN (:statusCompleted, :statusPartialCompleted)
+            AND completed_at >= :startDate
+            GROUP BY DATE(completed_at)
+        ';
+
+        $results = $conn->executeQuery($sql, [
+            'warehouseId' => $warehouse->getId(),
+            'statusCompleted' => InboundOrder::STATUS_COMPLETED,
+            'statusPartialCompleted' => InboundOrder::STATUS_PARTIAL_COMPLETED,
+            'startDate' => $startDate->format('Y-m-d H:i:s'),
+        ])->fetchAllAssociative();
+
+        $counts = [];
+        foreach ($results as $row) {
+            $counts[$row['date']] = (int) $row['count'];
+        }
+        return $counts;
+    }
 }

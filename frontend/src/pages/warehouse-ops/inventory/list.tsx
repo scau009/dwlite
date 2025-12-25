@@ -1,40 +1,17 @@
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ProTable, type ActionType, type ProColumns } from '@ant-design/pro-components';
-import { Tag, Statistic, Card, Row, Col, Image, Switch, Space } from 'antd';
-import {
-  InboxOutlined,
-  ShoppingOutlined,
-  ExclamationCircleOutlined,
-  TruckOutlined,
-} from '@ant-design/icons';
+import { Image, Switch, Space } from 'antd';
 
 import {
   warehouseOpsApi,
   type WarehouseInventoryItem,
-  type WarehouseInventorySummary,
 } from '@/lib/warehouse-operations-api';
 
 export function WarehouseInventoryListPage() {
   const { t } = useTranslation();
   const actionRef = useRef<ActionType>(null);
-
-  const [summary, setSummary] = useState<WarehouseInventorySummary | null>(null);
   const [hasStockOnly, setHasStockOnly] = useState(false);
-
-  // Load summary
-  const loadSummary = async () => {
-    try {
-      const response = await warehouseOpsApi.getInventorySummary();
-      setSummary(response.data);
-    } catch (error) {
-      console.error('Failed to load inventory summary:', error);
-    }
-  };
-
-  useEffect(() => {
-    loadSummary();
-  }, []);
 
   const columns: ProColumns<WarehouseInventoryItem>[] = [
     {
@@ -64,9 +41,11 @@ export function WarehouseInventoryListPage() {
     },
     {
       title: t('warehouseOps.styleNumber'),
-      dataIndex: ['product', 'styleNumber'],
+      dataIndex: 'styleNumber',
       width: 120,
-      search: false,
+      fieldProps: {
+        placeholder: t('common.search') + '...',
+      },
       render: (_, record) => record.product?.styleNumber || '-',
     },
     {
@@ -82,13 +61,6 @@ export function WarehouseInventoryListPage() {
       width: 80,
       search: false,
       render: (_, record) => record.product?.color || '-',
-    },
-    {
-      title: t('warehouseOps.merchant'),
-      dataIndex: ['merchant', 'companyName'],
-      width: 120,
-      ellipsis: true,
-      search: false,
     },
     {
       title: t('warehouseOps.inTransit'),
@@ -139,17 +111,6 @@ export function WarehouseInventoryListPage() {
       ),
     },
     {
-      title: t('warehouseOps.averageCost'),
-      dataIndex: 'averageCost',
-      width: 100,
-      search: false,
-      align: 'right',
-      render: (_, record) => {
-        const value = parseFloat(record.averageCost);
-        return value > 0 ? `¥${value.toFixed(2)}` : '-';
-      },
-    },
-    {
       title: t('warehouseOps.updatedAt'),
       dataIndex: 'updatedAt',
       width: 160,
@@ -165,59 +126,6 @@ export function WarehouseInventoryListPage() {
         <p className="text-gray-500">{t('warehouseOps.inventoryDescription')}</p>
       </div>
 
-      {/* Summary Cards */}
-      <Row gutter={16} className="mb-4">
-        <Col xs={12} sm={6}>
-          <Card size="small">
-            <Statistic
-              title={t('warehouseOps.totalSkuCount')}
-              value={summary?.totalSkuCount || 0}
-              prefix={<ShoppingOutlined />}
-            />
-          </Card>
-        </Col>
-        <Col xs={12} sm={6}>
-          <Card size="small">
-            <Statistic
-              title={t('warehouseOps.totalInTransit')}
-              value={summary?.totalInTransit || 0}
-              prefix={<TruckOutlined />}
-              valueStyle={{ color: '#1890ff' }}
-            />
-          </Card>
-        </Col>
-        <Col xs={12} sm={6}>
-          <Card size="small">
-            <Statistic
-              title={t('warehouseOps.totalAvailable')}
-              value={summary?.totalAvailable || 0}
-              prefix={<InboxOutlined />}
-              valueStyle={{ color: '#52c41a' }}
-            />
-          </Card>
-        </Col>
-        <Col xs={12} sm={6}>
-          <Card size="small">
-            <Statistic
-              title={t('warehouseOps.totalDamaged')}
-              value={summary?.totalDamaged || 0}
-              prefix={<ExclamationCircleOutlined />}
-              valueStyle={{ color: '#ff4d4f' }}
-            />
-          </Card>
-        </Col>
-      </Row>
-
-      {/* Warehouse Info */}
-      {summary?.warehouse && (
-        <Card size="small" className="mb-4">
-          <div className="flex items-center gap-4">
-            <Tag color="blue">{summary.warehouse.code}</Tag>
-            <span className="font-medium">{summary.warehouse.name}</span>
-          </div>
-        </Card>
-      )}
-
       <ProTable<WarehouseInventoryItem>
         actionRef={actionRef}
         columns={columns}
@@ -229,6 +137,7 @@ export function WarehouseInventoryListPage() {
               page: params.current,
               limit: params.pageSize,
               search: params.name,
+              styleNumber: params.styleNumber,
               hasStock: params.hasStock,
             });
             return {
@@ -270,7 +179,7 @@ export function WarehouseInventoryListPage() {
           defaultPageSize: 20,
           showSizeChanger: true,
         }}
-        scroll={{ x: 1300 }}
+        scroll={{ x: 1000 }}
       />
     </div>
   );

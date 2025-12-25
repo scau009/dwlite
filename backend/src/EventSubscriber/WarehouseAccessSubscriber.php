@@ -51,14 +51,38 @@ class WarehouseAccessSubscriber implements EventSubscriberInterface
         $user = $this->security->getUser();
 
         // 仓库操作员必须有关联的仓库
-        if (!$user instanceof User || !$user->isWarehouse() || $user->getWarehouse() === null) {
+        if (!$user instanceof User) {
             $event->setController(function () {
                 return new JsonResponse(
-                    ['error' => 'Access denied'],
+                    ['error' => 'User not authenticated'],
+                    Response::HTTP_UNAUTHORIZED
+                );
+            });
+            return;
+        }
+
+        if (!$user->isWarehouse()) {
+            $event->setController(function () {
+                return new JsonResponse(
+                    ['error' => 'Warehouse access only'],
                     Response::HTTP_FORBIDDEN
                 );
             });
+            return;
         }
+
+        if ($user->getWarehouse() === null) {
+            $event->setController(function () {
+                return new JsonResponse(
+                    ['error' => 'No warehouse assigned'],
+                    Response::HTTP_FORBIDDEN
+                );
+            });
+            return;
+        }
+
+        // 将仓库设置到请求属性中，供控制器使用
+        $event->getRequest()->attributes->set('warehouse', $user->getWarehouse());
     }
 
     private function hasWarehouseOnlyAttribute(object $controller, string $methodName): bool

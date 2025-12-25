@@ -116,6 +116,25 @@ export interface WarehouseInboundListResponse {
   meta: PaginatedMeta;
 }
 
+export interface WarehouseInboundStats {
+  awaitingArrival: number;
+  pendingReceiving: number;
+  completedToday: number;
+}
+
+export interface WarehouseOutboundStats {
+  pendingPicking: number;
+  pendingPacking: number;
+  readyToShip: number;
+  shippedToday: number;
+}
+
+export interface WarehouseDashboardTrendItem {
+  date: string;
+  inboundCount: number;
+  outboundCount: number;
+}
+
 export interface CompleteReceivingItem {
   itemId: string;
   receivedQuantity: number;
@@ -253,6 +272,7 @@ export interface WarehouseInventoryListParams {
   page?: number;
   limit?: number;
   search?: string;
+  styleNumber?: string;
   hasStock?: boolean;
 }
 
@@ -265,6 +285,11 @@ export interface WarehouseInventoryListResponse {
 
 export const warehouseOpsApi = {
   // ============ Inbound Orders ============
+
+  // Get inbound statistics
+  async getInboundStats(): Promise<{ data: WarehouseInboundStats }> {
+    return apiFetch<{ data: WarehouseInboundStats }>('/api/warehouse/inbound/stats');
+  },
 
   // Get inbound orders list
   async getInboundOrders(params: WarehouseInboundListParams = {}): Promise<WarehouseInboundListResponse> {
@@ -328,6 +353,11 @@ export const warehouseOpsApi = {
   },
 
   // ============ Outbound Orders ============
+
+  // Get outbound statistics
+  async getOutboundStats(): Promise<{ data: WarehouseOutboundStats }> {
+    return apiFetch<{ data: WarehouseOutboundStats }>('/api/warehouse/outbound/stats');
+  },
 
   // Get outbound orders list
   async getOutboundOrders(params: WarehouseOutboundListParams = {}): Promise<WarehouseOutboundListResponse> {
@@ -393,6 +423,7 @@ export const warehouseOpsApi = {
     if (params.page) searchParams.set('page', String(params.page));
     if (params.limit) searchParams.set('limit', String(params.limit));
     if (params.search) searchParams.set('search', params.search);
+    if (params.styleNumber) searchParams.set('styleNumber', params.styleNumber);
     if (params.hasStock !== undefined) searchParams.set('hasStock', String(params.hasStock));
 
     const queryString = searchParams.toString();
@@ -404,5 +435,12 @@ export const warehouseOpsApi = {
   // Get inventory summary
   async getInventorySummary(): Promise<{ data: WarehouseInventorySummary }> {
     return apiFetch<{ data: WarehouseInventorySummary }>('/api/warehouse/inventory/summary');
+  },
+
+  // ============ Dashboard ============
+
+  // Get dashboard trend data (7-day)
+  async getDashboardTrend(): Promise<{ data: WarehouseDashboardTrendItem[] }> {
+    return apiFetch<{ data: WarehouseDashboardTrendItem[] }>('/api/warehouse/dashboard/trend');
   },
 };

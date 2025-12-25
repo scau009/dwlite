@@ -10,6 +10,7 @@ import {
   SettingOutlined,
   TeamOutlined,
   HomeOutlined,
+  ShopOutlined,
 } from '@ant-design/icons';
 import type { TFunction } from 'i18next';
 import type { AccountType } from '@/types/auth';
@@ -65,6 +66,7 @@ export function getMenuData(t: TFunction): AccessMenuDataItem[] {
       path: '/pricing',
       name: t('nav.pricing'),
       icon: <DollarOutlined />,
+      access: ['admin', 'merchant'],
       children: [
         { path: '/pricing', name: t('menu.priceList') },
         { path: '/pricing/rules', name: t('menu.priceRules'), access: 'admin' },
@@ -75,6 +77,7 @@ export function getMenuData(t: TFunction): AccessMenuDataItem[] {
       path: '/orders',
       name: t('nav.orders'),
       icon: <ShoppingCartOutlined />,
+      access: ['admin', 'merchant'],
       children: [
         { path: '/orders', name: t('menu.orderList') },
         { path: '/orders/pending', name: t('menu.orderPending') },
@@ -86,6 +89,7 @@ export function getMenuData(t: TFunction): AccessMenuDataItem[] {
       path: '/fulfillment',
       name: t('nav.fulfillment'),
       icon: <CarOutlined />,
+      access: ['admin', 'merchant'],
       children: [
         { path: '/fulfillment', name: t('menu.fulfillmentList') },
         { path: '/fulfillment/pending', name: t('menu.fulfillmentPending') },
@@ -93,7 +97,6 @@ export function getMenuData(t: TFunction): AccessMenuDataItem[] {
         { path: '/fulfillment/exceptions', name: t('menu.fulfillmentExceptions') },
       ],
     },
-
     {
       path: '/merchants',
       name: t('nav.merchants'),
@@ -101,6 +104,16 @@ export function getMenuData(t: TFunction): AccessMenuDataItem[] {
       access: 'admin',
       children: [
         { path: '/merchants', name: t('menu.merchantList') },
+      ],
+    },
+    {
+      path: '/channels',
+      name: t('nav.channels'),
+      icon: <ShopOutlined />,
+      access: 'admin',
+      children: [
+        { path: '/channels', name: t('menu.channelList') },
+        { path: '/channels/merchants', name: t('menu.merchantChannels') },
       ],
     },
     {
@@ -117,6 +130,7 @@ export function getMenuData(t: TFunction): AccessMenuDataItem[] {
       path: '/data',
       name: t('nav.dataCenter'),
       icon: <BarChartOutlined />,
+      access: ['admin', 'merchant'],
       children: [
         { path: '/data', name: t('menu.dataOverview') },
         { path: '/data/sales', name: t('menu.salesAnalysis') },
@@ -128,6 +142,7 @@ export function getMenuData(t: TFunction): AccessMenuDataItem[] {
       path: '/settings',
       name: t('nav.settings'),
       icon: <SettingOutlined />,
+      access: ['admin', 'merchant'],
       children: [
         { path: '/settings/info', name: t('menu.generalSettings'), access: 'merchant' },
         { path: '/settings/wallet', name: t('menu.walletManagement'), access: 'merchant' },

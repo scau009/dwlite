@@ -35,6 +35,7 @@ export default {
     selectAll: '全选',
     yes: '是',
     no: '否',
+    close: '关闭',
   },
 
   // Navigation
@@ -46,6 +47,7 @@ export default {
     orders: '订单管理',
     fulfillment: '履约管理',
     merchants: '商户管理',
+    channels: '渠道管理',
     warehouses: '仓库管理',
     warehouseOperations: '仓库作业',
     dataCenter: '数据中心',
@@ -85,6 +87,9 @@ export default {
     reports: '报表中心',
     // Merchants
     merchantList: '商户列表',
+    // Channels
+    channelList: '销售渠道',
+    merchantChannels: '商户渠道',
     // Warehouses
     warehouseList: '仓库列表',
     warehouseUsers: '仓库用户',
@@ -495,6 +500,90 @@ export default {
     namePlaceholder: '输入品牌名称',
   },
 
+  // Sales Channels
+  channels: {
+    title: '销售渠道管理',
+    description: '管理平台销售渠道信息',
+    logo: 'Logo',
+    name: '渠道名称',
+    code: '渠道编码',
+    logoUrl: 'Logo URL',
+    descriptionLabel: '渠道描述',
+    businessType: '业务类型',
+    businessTypeImport: '进口',
+    businessTypeExport: '出口',
+    status: '状态',
+    statusActive: '正常',
+    statusMaintenance: '维护中',
+    statusDisabled: '已停用',
+    statusSwitch: '状态切换',
+    sortOrder: '排序',
+    add: '新增渠道',
+    edit: '编辑渠道',
+    created: '渠道创建成功',
+    updated: '渠道更新成功',
+    deleted: '渠道删除成功',
+    statusUpdated: '状态更新成功',
+    confirmDelete: '确认删除',
+    confirmDeleteDesc: '确定要删除渠道「{{name}}」吗？此操作不可撤销。',
+    hasMerchants: '该渠道下有 {{count}} 个商户关联，无法删除',
+    confirmStatusChange: '选择新状态',
+    changeStatus: '切换状态',
+    codeRequired: '请输入渠道编码',
+    codeInvalid: '只能包含大写字母、数字和下划线',
+    codeMaxLength: '渠道编码最多50个字符',
+    codeTooltip: '唯一渠道标识，如：TAOBAO, JD, DOUYIN',
+    codePlaceholder: '如：TAOBAO',
+    nameRequired: '请输入渠道名称',
+    nameMaxLength: '渠道名称最多100个字符',
+    namePlaceholder: '输入渠道名称',
+    businessTypeRequired: '请选择业务类型',
+    logoUrlPlaceholder: '输入 Logo 图片 URL',
+    logoUrlInvalid: '请输入有效的 URL',
+    descriptionPlaceholder: '输入渠道描述（选填）',
+    descriptionMaxLength: '渠道描述最多500个字符',
+    sortOrderTooltip: '数字越小越靠前，默认为0',
+  },
+
+  // Merchant Channels
+  merchantChannels: {
+    title: '商户渠道管理',
+    description: '管理商户与销售渠道的关联关系',
+    merchant: '商户',
+    channel: '销售渠道',
+    status: '状态',
+    statusPending: '待审批',
+    statusActive: '已启用',
+    statusSuspended: '已暂停',
+    statusDisabled: '已禁用',
+    remark: '备注',
+    approvedAt: '审批时间',
+    pendingApprovals: '待审批数量',
+    // Detail Modal
+    detailTitle: '商户渠道详情',
+    contactName: '联系人',
+    contactPhone: '联系电话',
+    config: '配置信息',
+    // Actions
+    approve: '审批通过',
+    suspend: '暂停',
+    enable: '启用',
+    approved: '审批通过成功',
+    suspended: '已暂停',
+    enabled: '已启用',
+    // Approve
+    confirmApprove: '确认审批',
+    confirmApproveDesc: '确定通过商户「{{merchant}}」对渠道「{{channel}}」的接入申请吗？',
+    // Suspend
+    suspendTitle: '暂停商户渠道',
+    suspendReason: '暂停原因',
+    suspendReasonPlaceholder: '请输入暂停原因（选填）',
+    reasonMaxLength: '暂停原因最多500个字符',
+    // Enable
+    confirmEnable: '确认启用',
+    confirmEnableDesc: '确定启用商户「{{merchant}}」的渠道「{{channel}}」吗？',
+  },
+
   // Tags
   tags: {
     title: '标签管理',
@@ -660,6 +749,16 @@ export default {
     evidenceImages: '证据图片',
     exceptionDescription: '异常描述',
     resolvedAt: '处理时间',
+    // 处理方式
+    resolutionAccept: '按实收入库',
+    resolutionReject: '拒收退回',
+    resolutionClaim: '理赔',
+    resolutionRecount: '重新清点',
+    resolutionPartialAccept: '部分接受',
+    claimAmount: '理赔金额',
+    claimAmountRequired: '请输入理赔金额',
+    claimAmountMustBePositive: '理赔金额必须大于等于0',
+    enterClaimAmount: '请输入理赔金额',
     // 异常类型
     typeQuantityShort: '数量短缺',
     typeQuantityOver: '数量超出',
@@ -854,6 +953,22 @@ export default {
     receivingNotesPlaceholder: '请输入收货相关备注（可选）',
     notesPlaceholder: '请输入备注信息',
     exceptionQuantity: '异常数量',
+    receiveItem: '收货',
+    itemReceived: '收货成功',
+    confirmReceiveItemDesc: '确认收货商品：{{productName}}',
+    itemStatusReceived: '已收',
+    itemStatusPending: '待收',
+    damagedQuantityHint: '破损商品将计入已收数量中',
+
+    // Exception Status
+    exceptionStatusPending: '待处理',
+    exceptionStatusProcessing: '处理中',
+    exceptionStatusResolved: '已解决',
+    exceptionStatusClosed: '已关闭',
+    exceptionItems: '异常商品',
+    evidenceImages: '凭证图片',
+    resolution: '处理结果',
+    resolvedAt: '处理时间',
 
     // Outbound
     outboundTitle: '出库管理',
@@ -922,6 +1037,17 @@ export default {
     receiverInfo: '收件人信息',
     shippedAt: '发货时间',
     cancelReason: '取消原因',
+
+    // Dashboard
+    dashboard: {
+      title: '工作台',
+      inboundStats: '入库统计',
+      outboundStats: '出库统计',
+      trendTitle: '近7天入库/出库趋势',
+      inboundCompleted: '入库完成',
+      outboundCompleted: '出库完成',
+      noData: '暂无数据',
+    },
 
     // Inventory
     inventoryTitle: '库存查询',

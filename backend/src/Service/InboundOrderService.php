@@ -263,7 +263,8 @@ class InboundOrderService
     }
 
     /**
-     * 完成收货（已发货 -> 已完成，在途转在仓）
+     * 完成收货（支持单个商品或批量收货）
+     * 已发货 -> 收货中 -> 已完成/部分完成
      */
     public function completeReceiving(
         InboundOrder $order,
@@ -296,19 +297,33 @@ class InboundOrderService
             $order->setWarehouseNotes($dto->warehouseNotes);
         }
 
-        // 确认库存入库（在途转可用）
-        $this->inventoryService->confirmInbound($order, $operatorId, $operatorName);
-
-        // 判断是否有差异
-        if ($order->hasQuantityDifference()) {
-            $order->setStatus(InboundOrder::STATUS_PARTIAL_COMPLETED);
-        } else {
-            $order->setStatus(InboundOrder::STATUS_COMPLETED);
-            $order->setCompletedAt(new \DateTimeImmutable());
+        // 检查是否所有商品都已收货
+        $allItemsReceived = true;
+        foreach ($order->getItems() as $item) {
+            if ($item->getStatus() === InboundOrderItem::STATUS_PENDING) {
+                $allItemsReceived = false;
+                break;
+            }
         }
 
-        // 自动创建异常单（数量差异或损坏）
-        $this->autoCreateExceptions($order, $operatorId);
+        if ($allItemsReceived) {
+            // 所有商品已收货，确认库存入库（在途转可用）
+            $this->inventoryService->confirmInbound($order, $operatorId, $operatorName);
+
+            // 判断是否有差异
+            if ($order->hasQuantityDifference()) {
+                $order->setStatus(InboundOrder::STATUS_PARTIAL_COMPLETED);
+            } else {
+                $order->setStatus(InboundOrder::STATUS_COMPLETED);
+                $order->setCompletedAt(new \DateTimeImmutable());
+            }
+
+            // 自动创建异常单（数量差异或损坏）
+            $this->autoCreateExceptions($order, $operatorId);
+        } else {
+            // 还有未收货商品，设置为收货中状态
+            $order->setStatus(InboundOrder::STATUS_RECEIVING);
+        }
 
         $this->entityManager->flush();
 
@@ -316,6 +331,8 @@ class InboundOrderService
             'order_id' => $order->getId(),
             'order_no' => $order->getOrderNo(),
             'status' => $order->getStatus(),
+            'items_received' => count($dto->items),
+            'all_items_received' => $allItemsReceived,
         ]);
 
         return $order;

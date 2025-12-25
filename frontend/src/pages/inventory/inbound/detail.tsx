@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import {
@@ -17,7 +17,6 @@ import {
   Timeline,
   Input,
 } from 'antd';
-import { useMemo } from 'react';
 import {
   ArrowLeftOutlined,
   EditOutlined,
@@ -43,6 +42,7 @@ import { InboundOrderItemModal } from './components/inbound-order-item-modal';
 import { ProductSelectorModal } from './components/product-selector-modal';
 import { ShipOrderModal } from './components/ship-order-modal';
 import { BatchUpdateQuantityModal } from './components/batch-update-quantity-modal';
+import { ResolveExceptionModal } from './components/resolve-exception-modal';
 
 const { Text } = Typography;
 
@@ -76,6 +76,8 @@ export function InboundOrderDetailPage() {
   const [productSelectorOpen, setProductSelectorOpen] = useState(false);
   const [shipModalOpen, setShipModalOpen] = useState(false);
   const [batchQuantityModalOpen, setBatchQuantityModalOpen] = useState(false);
+  const [resolveExceptionModalOpen, setResolveExceptionModalOpen] = useState(false);
+  const [selectedExceptionForResolve, setSelectedExceptionForResolve] = useState<InboundException | null>(null);
 
   // Batch selection state
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
@@ -339,17 +341,56 @@ export function InboundOrderDetailPage() {
     });
   }
 
+  // Helper to get exception type label
+  const getExceptionTypeLabel = (type: string) => {
+    const labels: Record<string, string> = {
+      quantity_short: t('inventory.typeQuantityShort'),
+      quantity_over: t('inventory.typeQuantityOver'),
+      damaged: t('inventory.typeDamaged'),
+      wrong_item: t('inventory.typeWrongItem'),
+      quality_issue: t('inventory.typeQualityIssue'),
+      packaging: t('inventory.typePackaging'),
+      expired: t('inventory.typeExpired'),
+      other: t('inventory.typeOther'),
+    };
+    return labels[type] || type;
+  };
+
+  // Helper to get exception status label
+  const getExceptionStatusLabel = (status: string) => {
+    const labels: Record<string, string> = {
+      pending: t('inventory.exceptionStatusPending'),
+      processing: t('inventory.exceptionStatusProcessing'),
+      resolved: t('inventory.exceptionStatusResolved'),
+      closed: t('inventory.exceptionStatusClosed'),
+    };
+    return labels[status] || status;
+  };
+
   // Exception columns
   const exceptionColumns: ColumnsType<InboundException> = [
     {
       title: t('inventory.exceptionNo'),
       dataIndex: 'exceptionNo',
-      width: 140,
+      width: 160,
     },
     {
       title: t('inventory.exceptionType'),
-      dataIndex: 'typeLabel',
+      dataIndex: 'type',
       width: 120,
+      render: (type: string) => {
+        const colors: Record<string, string> = {
+          quantity_short: 'orange',
+          quantity_over: 'blue',
+          damaged: 'red',
+          wrong_item: 'purple',
+          quality_issue: 'magenta',
+          packaging: 'gold',
+          expired: 'volcano',
+          other: 'default',
+        };
+        return <Tag color={colors[type] || 'default'}>{getExceptionTypeLabel(type)}</Tag>;
+      },
     },
     {
       title: t('common.status'),
@@ -362,12 +403,12 @@ export function InboundOrderDetailPage() {
           resolved: 'success',
           closed: 'default',
         };
-        return <Tag color={colors[status]}>{status}</Tag>;
+        return <Tag color={colors[status]}>{getExceptionStatusLabel(status)}</Tag>;
       },
     },
     {
       title: t('inventory.differenceQuantity'),
-      dataIndex: 'differenceQuantity',
+      dataIndex: 'totalQuantity',
       width: 100,
       align: 'center',
       render: (qty: number) => (
@@ -384,6 +425,28 @@ export function InboundOrderDetailPage() {
       dataIndex: 'createdAt',
       width: 160,
       render: (date: string) => new Date(date).toLocaleString(),
+    },
+    {
+      title: t('common.actions'),
+      key: 'actions',
+      width: 100,
+      fixed: 'right',
+      render: (_, record) => (
+        record.status === 'pending' || record.status === 'processing' ? (
+          <Button
+            type="link"
+            size="small"
+            onClick={() => {
+              setSelectedExceptionForResolve(record);
+              setResolveExceptionModalOpen(true);
+            }}
+          >
+            {t('inventory.resolveException')}
+          </Button>
+        ) : (
+          <Text type="secondary">{record.resolution ? t(`inventory.resolution${record.resolution.charAt(0).toUpperCase() + record.resolution.slice(1)}`) : '-'}</Text>
+        )
+      ),
     },
   ];
 
@@ -509,24 +572,45 @@ export function InboundOrderDetailPage() {
           )}
         </Descriptions>
         {order.merchantNotes && (
-          <div className="mt-3 pt-3 border-t">
+          <div className="mt-3 pt-3 ">
             <Text type="secondary">{t('inventory.merchantNotes')}:</Text>
             <p className="mt-1">{order.merchantNotes}</p>
           </div>
         )}
         {order.warehouseNotes && (
-          <div className="mt-3 pt-3 border-t">
+          <div className="mt-3 pt-3 ">
             <Text type="secondary">{t('inventory.warehouseNotes')}:</Text>
             <p className="mt-1">{order.warehouseNotes}</p>
           </div>
         )}
         {order.cancelReason && (
-          <div className="mt-3 pt-3 border-t">
+          <div className="mt-3 pt-3 ">
             <Text type="danger">{t('inventory.cancelReason')}:</Text>
             <p className="mt-1 text-red-500">{order.cancelReason}</p>
           </div>
         )}
       </Card>
+
+      {/* Exceptions - placed between Basic Info and Items */}
+      {showExceptions && (
+        <Card
+          title={
+            <Space>
+              <ExclamationCircleOutlined className="text-orange-500" />
+              {t('inventory.exceptions')} ({order.exceptions.length})
+            </Space>
+          }
+        >
+          <Table
+            columns={exceptionColumns}
+            dataSource={order.exceptions}
+            rowKey="id"
+            pagination={false}
+            scroll={{ x: 900 }}
+            size="small"
+          />
+        </Card>
+      )}
 
       {/* Items */}
       <Card
@@ -656,27 +740,6 @@ export function InboundOrderDetailPage() {
               {order.shipment.senderAddress}
             </Descriptions.Item>
           </Descriptions>
-        </Card>
-      )}
-
-      {/* Exceptions */}
-      {showExceptions && (
-        <Card
-          title={
-            <Space>
-              <ExclamationCircleOutlined className="text-orange-500" />
-              {t('inventory.exceptions')} ({order.exceptions.length})
-            </Space>
-          }
-        >
-          <Table
-            columns={exceptionColumns}
-            dataSource={order.exceptions}
-            rowKey="id"
-            pagination={false}
-            scroll={{ x: 800 }}
-            size="small"
-          />
         </Card>
       )}
 
@@ -823,6 +886,20 @@ export function InboundOrderDetailPage() {
         onSuccess={() => {
           setBatchQuantityModalOpen(false);
           setSelectedRowKeys([]);
+          loadOrder();
+        }}
+      />
+
+      <ResolveExceptionModal
+        open={resolveExceptionModalOpen}
+        exception={selectedExceptionForResolve}
+        onClose={() => {
+          setResolveExceptionModalOpen(false);
+          setSelectedExceptionForResolve(null);
+        }}
+        onSuccess={() => {
+          setResolveExceptionModalOpen(false);
+          setSelectedExceptionForResolve(null);
           loadOrder();
         }}
       />

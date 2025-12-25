@@ -35,6 +35,7 @@ export default {
     selectAll: 'Select All',
     yes: 'Yes',
     no: 'No',
+    close: 'Close',
   },
 
   // Navigation
@@ -46,6 +47,7 @@ export default {
     orders: 'Orders',
     fulfillment: 'Fulfillment',
     merchants: 'Merchants',
+    channels: 'Channels',
     warehouses: 'Warehouses',
     warehouseOperations: 'Warehouse Operations',
     dataCenter: 'Data Center',
@@ -85,6 +87,9 @@ export default {
     reports: 'Reports',
     // Merchants
     merchantList: 'Merchant List',
+    // Channels
+    channelList: 'Sales Channels',
+    merchantChannels: 'Merchant Channels',
     // Warehouses
     warehouseList: 'Warehouse List',
     warehouseUsers: 'Warehouse Users',
@@ -495,6 +500,90 @@ export default {
     namePlaceholder: 'Enter brand name',
   },
 
+  // Sales Channels
+  channels: {
+    title: 'Sales Channel Management',
+    description: 'Manage platform sales channels',
+    logo: 'Logo',
+    name: 'Channel Name',
+    code: 'Channel Code',
+    logoUrl: 'Logo URL',
+    descriptionLabel: 'Description',
+    businessType: 'Business Type',
+    businessTypeImport: 'Import',
+    businessTypeExport: 'Export',
+    status: 'Status',
+    statusActive: 'Active',
+    statusMaintenance: 'Maintenance',
+    statusDisabled: 'Disabled',
+    statusSwitch: 'Status',
+    sortOrder: 'Sort Order',
+    add: 'Add Channel',
+    edit: 'Edit Channel',
+    created: 'Channel created successfully',
+    updated: 'Channel updated successfully',
+    deleted: 'Channel deleted successfully',
+    statusUpdated: 'Status updated successfully',
+    confirmDelete: 'Confirm Delete',
+    confirmDeleteDesc: 'Are you sure you want to delete channel "{{name}}"? This action cannot be undone.',
+    hasMerchants: 'This channel has {{count}} merchant associations and cannot be deleted',
+    confirmStatusChange: 'Select new status',
+    changeStatus: 'Change Status',
+    codeRequired: 'Please enter channel code',
+    codeInvalid: 'Only uppercase letters, numbers and underscores allowed',
+    codeMaxLength: 'Channel code cannot exceed 50 characters',
+    codeTooltip: 'Unique channel identifier, e.g.: TAOBAO, JD, DOUYIN',
+    codePlaceholder: 'e.g.: TAOBAO',
+    nameRequired: 'Please enter channel name',
+    nameMaxLength: 'Channel name cannot exceed 100 characters',
+    namePlaceholder: 'Enter channel name',
+    businessTypeRequired: 'Please select business type',
+    logoUrlPlaceholder: 'Enter logo image URL',
+    logoUrlInvalid: 'Please enter a valid URL',
+    descriptionPlaceholder: 'Enter channel description (optional)',
+    descriptionMaxLength: 'Description cannot exceed 500 characters',
+    sortOrderTooltip: 'Lower numbers appear first, default is 0',
+  },
+
+  // Merchant Channels
+  merchantChannels: {
+    title: 'Merchant Channel Management',
+    description: 'Manage merchant and sales channel associations',
+    merchant: 'Merchant',
+    channel: 'Sales Channel',
+    status: 'Status',
+    statusPending: 'Pending',
+    statusActive: 'Active',
+    statusSuspended: 'Suspended',
+    statusDisabled: 'Disabled',
+    remark: 'Remark',
+    approvedAt: 'Approved At',
+    pendingApprovals: 'Pending Approvals',
+    // Detail Modal
+    detailTitle: 'Merchant Channel Details',
+    contactName: 'Contact Name',
+    contactPhone: 'Contact Phone',
+    config: 'Configuration',
+    // Actions
+    approve: 'Approve',
+    suspend: 'Suspend',
+    enable: 'Enable',
+    approved: 'Approved successfully',
+    suspended: 'Suspended successfully',
+    enabled: 'Enabled successfully',
+    // Approve
+    confirmApprove: 'Confirm Approval',
+    confirmApproveDesc: 'Are you sure you want to approve merchant "{{merchant}}" access to channel "{{channel}}"?',
+    // Suspend
+    suspendTitle: 'Suspend Merchant Channel',
+    suspendReason: 'Reason',
+    suspendReasonPlaceholder: 'Enter suspension reason (optional)',
+    reasonMaxLength: 'Reason cannot exceed 500 characters',
+    // Enable
+    confirmEnable: 'Confirm Enable',
+    confirmEnableDesc: 'Are you sure you want to enable merchant "{{merchant}}" access to channel "{{channel}}"?',
+  },
+
   // Tags
   tags: {
     title: 'Tag Management',
@@ -657,6 +746,16 @@ export default {
     evidenceImages: 'Evidence',
     exceptionDescription: 'Description',
     resolvedAt: 'Resolved At',
+    // Resolution Types
+    resolutionAccept: 'Accept as received',
+    resolutionReject: 'Reject and return',
+    resolutionClaim: 'File claim',
+    resolutionRecount: 'Recount',
+    resolutionPartialAccept: 'Partial accept',
+    claimAmount: 'Claim Amount',
+    claimAmountRequired: 'Please enter claim amount',
+    claimAmountMustBePositive: 'Claim amount must be non-negative',
+    enterClaimAmount: 'Enter claim amount',
     // Exception Types
     typeQuantityShort: 'Quantity Short',
     typeQuantityOver: 'Quantity Over',
@@ -813,6 +912,22 @@ export default {
     receivingNotesPlaceholder: 'Enter receiving notes (optional)',
     notesPlaceholder: 'Enter notes',
     exceptionQuantity: 'Exception Qty',
+    receiveItem: 'Receive',
+    itemReceived: 'Item received successfully',
+    confirmReceiveItemDesc: 'Confirm receiving: {{productName}}',
+    itemStatusReceived: 'Received',
+    itemStatusPending: 'Pending',
+    damagedQuantityHint: 'Damaged items are included in received quantity',
+
+    // Exception Status
+    exceptionStatusPending: 'Pending',
+    exceptionStatusProcessing: 'Processing',
+    exceptionStatusResolved: 'Resolved',
+    exceptionStatusClosed: 'Closed',
+    exceptionItems: 'Exception Items',
+    evidenceImages: 'Evidence Images',
+    resolution: 'Resolution',
+    resolvedAt: 'Resolved At',
 
     // Outbound
     outboundTitle: 'Outbound Management',
@@ -881,6 +996,17 @@ export default {
     receiverInfo: 'Receiver Info',
     shippedAt: 'Shipped At',
     cancelReason: 'Cancel Reason',
+
+    // Dashboard
+    dashboard: {
+      title: 'Dashboard',
+      inboundStats: 'Inbound Statistics',
+      outboundStats: 'Outbound Statistics',
+      trendTitle: '7-Day Inbound/Outbound Trend',
+      inboundCompleted: 'Inbound Completed',
+      outboundCompleted: 'Outbound Completed',
+      noData: 'No data available',
+    },
 
     // Inventory
     inventoryTitle: 'Inventory Query',

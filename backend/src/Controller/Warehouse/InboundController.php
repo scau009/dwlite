@@ -37,6 +37,30 @@ class InboundController extends AbstractController
     }
 
     /**
+     * 获取入库单统计数据
+     */
+    #[Route('/stats', name: 'warehouse_inbound_stats', methods: ['GET'])]
+    public function getStats(Warehouse $warehouse): JsonResponse
+    {
+        $statusCounts = $this->inboundOrderRepository->countByWarehouseGroupByStatus($warehouse);
+        $completedToday = $this->inboundOrderRepository->countCompletedTodayByWarehouse($warehouse);
+
+        // 待到货: shipped 状态
+        $awaitingArrival = $statusCounts['shipped'] ?? 0;
+
+        // 待收货: arrived + receiving 状态
+        $pendingReceiving = ($statusCounts['arrived'] ?? 0) + ($statusCounts['receiving'] ?? 0);
+
+        return $this->json([
+            'data' => [
+                'awaitingArrival' => $awaitingArrival,
+                'pendingReceiving' => $pendingReceiving,
+                'completedToday' => $completedToday,
+            ],
+        ]);
+    }
+
+    /**
      * 获取本仓库入库单列表
      */
     #[Route('/orders', name: 'warehouse_inbound_list', methods: ['GET'])]
@@ -190,7 +214,7 @@ class InboundController extends AbstractController
             'status' => $order->getStatus(),
             'merchant' => [
                 'id' => $order->getMerchant()->getId(),
-                'companyName' => $order->getMerchant()->getCompanyName(),
+                'companyName' => $order->getMerchant()->getName(),
             ],
             'totalSkuCount' => $order->getTotalSkuCount(),
             'totalQuantity' => $order->getTotalQuantity(),
@@ -288,6 +312,18 @@ class InboundController extends AbstractController
      */
     private function serializeException($exception): array
     {
+        // 签名证据图片
+        $evidenceImages = [];
+        $rawImages = $exception->getEvidenceImages() ?? [];
+        foreach ($rawImages as $image) {
+            if ($image) {
+                $cosKey = $this->extractCosKey($image);
+                if ($cosKey) {
+                    $evidenceImages[] = $this->cosService->getSignedUrl($cosKey, 3600);
+                }
+            }
+        }
+
         return [
             'id' => $exception->getId(),
             'exceptionNo' => $exception->getExceptionNo(),
@@ -297,7 +333,7 @@ class InboundController extends AbstractController
             'items' => array_map([$this, 'serializeExceptionItem'], $exception->getItems()->toArray()),
             'totalQuantity' => $exception->getTotalQuantity(),
             'description' => $exception->getDescription(),
-            'evidenceImages' => $exception->getEvidenceImages(),
+            'evidenceImages' => $evidenceImages,
             'resolution' => $exception->getResolution(),
             'resolutionNotes' => $exception->getResolutionNotes(),
             'resolvedAt' => $exception->getResolvedAt()?->format('Y-m-d H:i:s'),
@@ -310,12 +346,26 @@ class InboundController extends AbstractController
      */
     private function serializeExceptionItem($item): array
     {
+        // 签名商品图片
+        $productImageUrl = null;
+        $productImage = $item->getProductImage();
+        if ($productImage) {
+            $cosKey = $this->extractCosKey($productImage);
+            if ($cosKey) {
+                $productImageUrl = $this->cosService->getSignedUrl(
+                    $cosKey,
+                    3600,
+                    'imageMogr2/thumbnail/80x80>'
+                );
+            }
+        }
+
         return [
             'id' => $item->getId(),
             'skuName' => $item->getSkuName(),
             'colorName' => $item->getColorName(),
             'productName' => $item->getProductName(),
-            'productImage' => $item->getProductImage(),
+            'productImage' => $productImageUrl,
             'quantity' => $item->getQuantity(),
         ];
     }

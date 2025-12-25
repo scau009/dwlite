@@ -13,16 +13,14 @@ import {
   Table,
   Image,
   Typography,
-  Divider,
-  Timeline,
   Input,
-  InputNumber,
+  Modal,
+  Collapse,
 } from 'antd';
 import {
   ArrowLeftOutlined,
   CheckCircleOutlined,
   ExclamationCircleOutlined,
-  TruckOutlined,
   EditOutlined,
   SaveOutlined,
 } from '@ant-design/icons';
@@ -56,16 +54,16 @@ export function WarehouseInboundDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const { modal, message } = App.useApp();
+  const { message } = App.useApp();
 
   const [order, setOrder] = useState<WarehouseInboundOrderDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
 
-  // Receiving state
-  const [isReceivingMode, setIsReceivingMode] = useState(false);
-  const [receivingData, setReceivingData] = useState<Record<string, CompleteReceivingItem>>({});
-  const [receivingNotes, setReceivingNotes] = useState('');
+  // Single item receiving state
+  const [showItemReceiveModal, setShowItemReceiveModal] = useState(false);
+  const [itemReceivingData, setItemReceivingData] = useState<CompleteReceivingItem | null>(null);
+  const [receivingItem, setReceivingItem] = useState<WarehouseInboundItem | null>(null);
 
   // Notes editing state
   const [editingNotes, setEditingNotes] = useState(false);
@@ -94,22 +92,6 @@ export function WarehouseInboundDetailPage() {
     loadOrder();
   }, [id]);
 
-  // Initialize receiving data when entering receiving mode
-  useEffect(() => {
-    if (isReceivingMode && order) {
-      const initialData: Record<string, CompleteReceivingItem> = {};
-      order.items.forEach(item => {
-        initialData[item.id] = {
-          itemId: item.id,
-          receivedQuantity: item.expectedQuantity,
-          damagedQuantity: 0,
-          warehouseRemark: '',
-        };
-      });
-      setReceivingData(initialData);
-    }
-  }, [isReceivingMode, order]);
-
   // Get status label
   const getStatusLabel = (status: WarehouseInboundStatus) => {
     const labels: Record<WarehouseInboundStatus, string> = {
@@ -125,34 +107,38 @@ export function WarehouseInboundDetailPage() {
     return labels[status] || status;
   };
 
-  // Handle complete receiving
-  const handleCompleteReceiving = () => {
-    modal.confirm({
-      title: t('warehouseOps.confirmReceiving'),
-      content: t('warehouseOps.confirmReceivingDesc'),
-      okText: t('common.confirm'),
-      cancelText: t('common.cancel'),
-      onOk: async () => {
-        setActionLoading(true);
-        try {
-          const items = Object.values(receivingData);
-          await warehouseOpsApi.completeReceiving(id!, {
-            items,
-            notes: receivingNotes || undefined,
-          });
-          message.success(t('warehouseOps.receivingCompleted'));
-          setIsReceivingMode(false);
-          setReceivingData({});
-          setReceivingNotes('');
-          loadOrder();
-        } catch (error) {
-          const err = error as { error?: string };
-          message.error(err.error || t('common.error'));
-        } finally {
-          setActionLoading(false);
-        }
-      },
+  // Handle receive single item - open modal
+  const handleReceiveItem = (item: WarehouseInboundItem) => {
+    setReceivingItem(item);
+    setItemReceivingData({
+      itemId: item.id,
+      receivedQuantity: item.expectedQuantity,
+      damagedQuantity: 0,
+      warehouseRemark: '',
     });
+    setShowItemReceiveModal(true);
+  };
+
+  // Handle confirm single item receiving
+  const handleConfirmReceiveItem = async () => {
+    if (!itemReceivingData) return;
+
+    setActionLoading(true);
+    try {
+      await warehouseOpsApi.completeReceiving(id!, {
+        items: [itemReceivingData],
+      });
+      message.success(t('warehouseOps.itemReceived'));
+      setShowItemReceiveModal(false);
+      setReceivingItem(null);
+      setItemReceivingData(null);
+      loadOrder();
+    } catch (error) {
+      const err = error as { error?: string };
+      message.error(err.error || t('common.error'));
+    } finally {
+      setActionLoading(false);
+    }
   };
 
   // Handle save notes
@@ -169,21 +155,6 @@ export function WarehouseInboundDetailPage() {
     } finally {
       setActionLoading(false);
     }
-  };
-
-  // Update receiving item
-  const updateReceivingItem = (
-    itemId: string,
-    field: 'receivedQuantity' | 'damagedQuantity' | 'warehouseRemark',
-    value: number | string
-  ) => {
-    setReceivingData(prev => ({
-      ...prev,
-      [itemId]: {
-        ...prev[itemId],
-        [field]: value,
-      },
-    }));
   };
 
   // Filter items based on search keyword
@@ -257,132 +228,194 @@ export function WarehouseInboundDetailPage() {
       width: 80,
       align: 'center',
     },
-  ];
-
-  // Add receiving columns when in receiving mode
-  if (isReceivingMode) {
-    itemColumns.push(
-      {
-        title: t('warehouseOps.actualReceived'),
-        dataIndex: 'id',
-        width: 100,
-        render: (itemId: string, record) => (
-          <InputNumber
-            min={0}
-            max={record.expectedQuantity}
-            value={receivingData[itemId]?.receivedQuantity}
-            onChange={val => updateReceivingItem(itemId, 'receivedQuantity', val || 0)}
-            size="small"
-            style={{ width: 80 }}
-          />
-        ),
-      },
-      {
-        title: t('warehouseOps.damagedQuantity'),
-        dataIndex: 'id',
-        width: 100,
-        render: (itemId: string, record) => (
-          <InputNumber
-            min={0}
-            max={record.expectedQuantity}
-            value={receivingData[itemId]?.damagedQuantity}
-            onChange={val => updateReceivingItem(itemId, 'damagedQuantity', val || 0)}
-            size="small"
-            style={{ width: 80 }}
-          />
-        ),
-      },
-      {
-        title: t('warehouseOps.remark'),
-        dataIndex: 'id',
-        width: 150,
-        render: (itemId: string) => (
-          <Input
-            value={receivingData[itemId]?.warehouseRemark}
-            onChange={e => updateReceivingItem(itemId, 'warehouseRemark', e.target.value)}
-            placeholder={t('warehouseOps.remarkPlaceholder')}
-            size="small"
-          />
-        ),
-      }
-    );
-  } else {
-    // Show received quantities in normal mode
-    itemColumns.push(
-      {
-        title: t('inventory.itemReceivedQuantity'),
-        dataIndex: 'receivedQuantity',
-        width: 100,
-        align: 'center',
-        render: (qty: number, record) => (
-          <span className={qty < record.expectedQuantity ? 'text-orange-500' : 'text-green-500'}>
-            {qty}
-          </span>
-        ),
-      },
-      {
-        title: t('inventory.damagedQuantity'),
-        dataIndex: 'damagedQuantity',
-        width: 80,
-        align: 'center',
-        render: (qty: number) => (
-          <span className={qty > 0 ? 'text-red-500' : ''}>{qty}</span>
-        ),
-      },
-      {
-        title: t('warehouseOps.remark'),
-        dataIndex: 'warehouseRemark',
-        width: 150,
-        ellipsis: true,
-        render: (remark: string | null) => remark || '-',
-      }
-    );
-  }
-
-  // Exception columns
-  const exceptionColumns: ColumnsType<WarehouseInboundException> = [
     {
-      title: t('inventory.exceptionNo'),
-      dataIndex: 'exceptionNo',
-      width: 140,
+      title: t('inventory.itemReceivedQuantity'),
+      dataIndex: 'receivedQuantity',
+      width: 100,
+      align: 'center',
+      render: (qty: number, record) => (
+        <span className={qty < record.expectedQuantity ? 'text-orange-500' : 'text-green-500'}>
+          {qty}
+        </span>
+      ),
     },
     {
-      title: t('inventory.exceptionType'),
-      dataIndex: 'typeLabel',
-      width: 120,
+      title: t('inventory.damagedQuantity'),
+      dataIndex: 'damagedQuantity',
+      width: 80,
+      align: 'center',
+      render: (qty: number) => (
+        <span className={qty > 0 ? 'text-red-500' : ''}>{qty}</span>
+      ),
     },
     {
       title: t('common.status'),
       dataIndex: 'status',
-      width: 100,
-      render: (status: string) => {
-        const colors: Record<string, string> = {
-          pending: 'warning',
-          processing: 'processing',
-          resolved: 'success',
-          closed: 'default',
-        };
-        return <Tag color={colors[status]}>{status}</Tag>;
-      },
-    },
-    {
-      title: t('warehouseOps.exceptionQuantity'),
-      dataIndex: 'totalQuantity',
-      width: 100,
+      width: 80,
       align: 'center',
+      render: (status: string) => (
+        <Tag color={status === 'received' ? 'success' : 'default'}>
+          {status === 'received' ? t('warehouseOps.itemStatusReceived') : t('warehouseOps.itemStatusPending')}
+        </Tag>
+      ),
     },
     {
-      title: t('inventory.exceptionDescription'),
-      dataIndex: 'description',
-      ellipsis: true,
-    },
-    {
-      title: t('common.createdAt'),
-      dataIndex: 'createdAt',
-      width: 160,
-      render: (date: string) => new Date(date).toLocaleString(),
+      title: t('common.actions'),
+      dataIndex: 'id',
+      width: 100,
+      fixed: 'right' as const,
+      render: (_: string, record: WarehouseInboundItem) => (
+        record.status !== 'received' && canReceive ? (
+          <Button
+            type="primary"
+            size="small"
+            icon={<CheckCircleOutlined />}
+            onClick={() => handleReceiveItem(record)}
+          >
+            {t('warehouseOps.receiveItem')}
+          </Button>
+        ) : null
+      ),
     },
   ];
+
+  // Exception status helpers
+  const getExceptionStatusLabel = (status: string) => {
+    const labels: Record<string, string> = {
+      pending: t('warehouseOps.exceptionStatusPending'),
+      processing: t('warehouseOps.exceptionStatusProcessing'),
+      resolved: t('warehouseOps.exceptionStatusResolved'),
+      closed: t('warehouseOps.exceptionStatusClosed'),
+    };
+    return labels[status] || status;
+  };
+
+  const getExceptionStatusColor = (status: string) => {
+    const colors: Record<string, string> = {
+      pending: 'warning',
+      processing: 'processing',
+      resolved: 'success',
+      closed: 'default',
+    };
+    return colors[status] || 'default';
+  };
+
+  const isPendingException = (status: string) => ['pending', 'processing'].includes(status);
+
+  // Render exception card content
+  const renderExceptionContent = (exception: WarehouseInboundException) => {
+    const items = exception.items ?? [];
+    const evidenceImages = exception.evidenceImages ?? [];
+
+    return (
+      <div className="space-y-3">
+        {/* Description */}
+        {exception.description && (
+          <div className="text-gray-600 mt-4">{exception.description}</div>
+        )}
+
+        {/* Exception Items */}
+        {items.length > 0 && (
+          <div>
+            <Text type="secondary" className="text-xs block mb-2">{t('warehouseOps.exceptionItems')}</Text>
+            <div className="flex flex-wrap gap-2">
+              {items.map(item => (
+                <div key={item.id} className="flex gap-2 p-2 bg-gray-50 rounded border min-w-[180px]">
+                  {item.productImage ? (
+                    <img
+                      src={item.productImage}
+                      alt={item.productName || ''}
+                      className="w-10 h-10 object-cover rounded"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 bg-gray-200 flex items-center justify-center text-gray-400 text-xs rounded">
+                      N/A
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm truncate">{item.productName || '-'}</div>
+                    <div className="text-xs text-gray-500">
+                      {item.skuName} / {item.colorName}
+                    </div>
+                    <div className="text-xs">
+                      <span className="text-red-500 font-medium">× {item.quantity}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Evidence Images */}
+        {evidenceImages.length > 0 && (
+          <div>
+            <Text type="secondary" className="text-xs block mb-2">{t('warehouseOps.evidenceImages')}</Text>
+            <div className="flex flex-wrap gap-2">
+              {evidenceImages.map((img, idx) => (
+                <a key={idx} href={img} target="_blank" rel="noopener noreferrer">
+                  <img
+                    src={img}
+                    alt={`evidence-${idx}`}
+                    className="w-16 h-16 object-cover rounded border hover:opacity-80"
+                  />
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Resolution Info */}
+        {exception.status === 'resolved' && exception.resolution && (
+          <div className="p-2 bg-green-50 rounded border border-green-200">
+            <Text type="secondary" className="text-xs">{t('warehouseOps.resolution')}: </Text>
+            <span className="text-sm">{exception.resolution}</span>
+            {exception.resolutionNotes && (
+              <span className="text-sm text-gray-600 ml-2">({exception.resolutionNotes})</span>
+            )}
+            {exception.resolvedAt && (
+              <span className="text-xs text-gray-500 ml-2">
+                {new Date(exception.resolvedAt).toLocaleString()}
+              </span>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // Build exception collapse items
+  const exceptionCollapseItems = useMemo(() => {
+    if (!order?.exceptions) return [];
+    return order.exceptions.map(exception => ({
+      key: exception.id,
+      label: (
+        <div className="flex items-center justify-between w-full">
+          <div className="flex items-center gap-3">
+            <Text code copyable={{ text: exception.exceptionNo }}>{exception.exceptionNo}</Text>
+            <Tag color={getExceptionStatusColor(exception.status)}>
+              {getExceptionStatusLabel(exception.status)}
+            </Tag>
+            <span className="text-gray-500 text-sm">{exception.typeLabel}</span>
+            <span className="text-red-500 text-sm">× {exception.totalQuantity}</span>
+          </div>
+          <span className="text-gray-400 text-xs mr-2">
+            {new Date(exception.createdAt).toLocaleString()}
+          </span>
+        </div>
+      ),
+      children: renderExceptionContent(exception),
+      className: isPendingException(exception.status) ? 'exception-pending' : '',
+    }));
+  }, [order?.exceptions, t]);
+
+  // Default active keys: pending/processing exceptions
+  const defaultActiveExceptionKeys = useMemo(() => {
+    if (!order?.exceptions) return [];
+    return order.exceptions
+      .filter(e => isPendingException(e.status))
+      .map(e => e.id);
+  }, [order?.exceptions]);
 
   if (loading) {
     return (
@@ -405,7 +438,6 @@ export function WarehouseInboundDetailPage() {
   }
 
   const canReceive = ['shipped', 'arrived', 'receiving'].includes(order.status);
-  const showShipment = order.shipment !== null;
   const showExceptions = order.exceptions.length > 0;
 
   return (
@@ -419,42 +451,15 @@ export function WarehouseInboundDetailPage() {
           <h1 className="text-xl font-semibold m-0">{order.orderNo}</h1>
           <Tag color={statusColors[order.status]}>{getStatusLabel(order.status)}</Tag>
         </div>
-        <Space wrap>
-          {canReceive && !isReceivingMode && (
-            <Button
-              type="primary"
-              icon={<CheckCircleOutlined />}
-              onClick={() => setIsReceivingMode(true)}
-            >
-              {t('warehouseOps.startReceiving')}
-            </Button>
-          )}
-          {isReceivingMode && (
-            <>
-              <Button onClick={() => setIsReceivingMode(false)}>{t('common.cancel')}</Button>
-              <Button
-                type="primary"
-                icon={<CheckCircleOutlined />}
-                onClick={handleCompleteReceiving}
-                loading={actionLoading}
-              >
-                {t('warehouseOps.completeReceiving')}
-              </Button>
-            </>
-          )}
-        </Space>
       </div>
 
       {/* Basic Info */}
       <Card title={t('detail.basicInfo')}>
-        <Descriptions column={{ xs: 1, sm: 2, md: 3 }} size="small">
+        <Descriptions column={{ xs: 1, sm: 2, md: 3, xxl: 4 }} size="small">
           <Descriptions.Item label={t('inventory.orderNo')}>
             <Text code copyable>
               {order.orderNo}
             </Text>
-          </Descriptions.Item>
-          <Descriptions.Item label={t('warehouseOps.merchant')}>
-            {order.merchant.companyName}
           </Descriptions.Item>
           <Descriptions.Item label={t('common.status')}>
             <Tag color={statusColors[order.status]}>{getStatusLabel(order.status)}</Tag>
@@ -479,6 +484,21 @@ export function WarehouseInboundDetailPage() {
               ? new Date(order.expectedArrivalDate).toLocaleDateString()
               : '-'}
           </Descriptions.Item>
+          {order.shipment && (
+            <>
+              <Descriptions.Item label={t('inventory.carrierName')}>
+                {order.shipment.carrierName || order.shipment.carrierCode || '-'}
+              </Descriptions.Item>
+              <Descriptions.Item label={t('inventory.trackingNumber')}>
+                <Text code copyable>
+                  {order.shipment.trackingNumber}
+                </Text>
+              </Descriptions.Item>
+              <Descriptions.Item label={t('inventory.boxCount')}>
+                {order.shipment.boxCount}
+              </Descriptions.Item>
+            </>
+          )}
           <Descriptions.Item label={t('common.createdAt')}>
             {new Date(order.createdAt).toLocaleString()}
           </Descriptions.Item>
@@ -494,71 +514,47 @@ export function WarehouseInboundDetailPage() {
             <p className="mt-1">{order.merchantNotes}</p>
           </div>
         )}
-
-        {/* Warehouse Notes */}
-        <div className="mt-3 pt-3 border-t">
-          <div className="flex items-center justify-between mb-2">
-            <Text type="secondary">{t('inventory.warehouseNotes')}:</Text>
-            {!editingNotes ? (
-              <Button
-                type="text"
-                size="small"
-                icon={<EditOutlined />}
-                onClick={() => setEditingNotes(true)}
-              >
-                {t('common.edit')}
-              </Button>
-            ) : (
-              <Space size="small">
-                <Button size="small" onClick={() => setEditingNotes(false)}>
-                  {t('common.cancel')}
-                </Button>
-                <Button
-                  type="primary"
-                  size="small"
-                  icon={<SaveOutlined />}
-                  onClick={handleSaveNotes}
-                  loading={actionLoading}
-                >
-                  {t('common.save')}
-                </Button>
-              </Space>
-            )}
-          </div>
-          {editingNotes ? (
-            <TextArea
-              value={notesValue}
-              onChange={e => setNotesValue(e.target.value)}
-              rows={3}
-              placeholder={t('warehouseOps.notesPlaceholder')}
-            />
-          ) : (
-            <p className="mt-1">{order.warehouseNotes || '-'}</p>
-          )}
-        </div>
       </Card>
 
-      {/* Receiving Notes (only in receiving mode) */}
-      {isReceivingMode && (
-        <Card title={t('warehouseOps.receivingNotes')} size="small">
-          <TextArea
-            value={receivingNotes}
-            onChange={e => setReceivingNotes(e.target.value)}
-            rows={2}
-            placeholder={t('warehouseOps.receivingNotesPlaceholder')}
+      {/* Exceptions - between basic info and items */}
+      {showExceptions && (
+        <div className="exception-section">
+          <div className="flex items-center gap-2 mb-3">
+            <ExclamationCircleOutlined className="text-orange-500" />
+            <span className="font-medium">{t('inventory.exceptions')} ({order.exceptions.length})</span>
+          </div>
+          <style>{`
+            .exception-section .ant-collapse-item.exception-pending > .ant-collapse-header {
+              background-color: #fffbe6;
+              border-left: 3px solid #faad14;
+            }
+            .exception-section .ant-collapse-item.exception-pending {
+              border: 1px solid #ffe58f;
+              border-radius: 6px;
+              margin-bottom: 8px;
+            }
+            .exception-section .ant-collapse-item:not(.exception-pending) {
+              margin-bottom: 8px;
+            }
+            .exception-section .ant-collapse {
+              background: transparent;
+            }
+            .exception-section .ant-collapse > .ant-collapse-item {
+              background: #fff;
+              border-radius: 6px;
+            }
+          `}</style>
+          <Collapse
+            items={exceptionCollapseItems}
+            defaultActiveKey={defaultActiveExceptionKeys}
+            expandIconPosition="start"
+            bordered={false}
           />
-        </Card>
+        </div>
       )}
 
       {/* Items */}
-      <Card
-        title={`${t('inventory.orderItems')} (${order.items.length})`}
-        extra={
-          isReceivingMode && (
-            <Tag color="purple">{t('warehouseOps.receivingModeActive')}</Tag>
-          )
-        }
-      >
+      <Card title={`${t('inventory.orderItems')} (${order.items.length})`}>
         {/* Search input */}
         <div className="mb-3">
           <Input.Search
@@ -586,152 +582,162 @@ export function WarehouseInboundDetailPage() {
                 total,
               }),
           }}
-          scroll={{ x: isReceivingMode ? 1200 : 1000 }}
+          scroll={{ x: 1100 }}
           size="small"
         />
       </Card>
 
-      {/* Shipment Info */}
-      {showShipment && order.shipment && (
-        <Card
-          title={
-            <Space>
-              <TruckOutlined />
-              {t('inventory.shipmentInfo')}
+      {/* Warehouse Notes */}
+      <Card
+        title={t('inventory.warehouseNotes')}
+        extra={
+          !editingNotes ? (
+            <Button
+              type="text"
+              size="small"
+              icon={<EditOutlined />}
+              onClick={() => setEditingNotes(true)}
+            >
+              {t('common.edit')}
+            </Button>
+          ) : (
+            <Space size="small">
+              <Button size="small" onClick={() => setEditingNotes(false)}>
+                {t('common.cancel')}
+              </Button>
+              <Button
+                type="primary"
+                size="small"
+                icon={<SaveOutlined />}
+                onClick={handleSaveNotes}
+                loading={actionLoading}
+              >
+                {t('common.save')}
+              </Button>
             </Space>
-          }
-        >
-          <Descriptions column={{ xs: 1, sm: 2, md: 3 }} size="small">
-            <Descriptions.Item label={t('inventory.carrierName')}>
-              {order.shipment.carrierName || order.shipment.carrierCode}
-            </Descriptions.Item>
-            <Descriptions.Item label={t('inventory.trackingNumber')}>
-              <Text code copyable>
-                {order.shipment.trackingNumber}
-              </Text>
-            </Descriptions.Item>
-            <Descriptions.Item label={t('common.status')}>
-              <Tag>{order.shipment.status}</Tag>
-            </Descriptions.Item>
-            <Descriptions.Item label={t('inventory.senderName')}>
-              {order.shipment.senderName}
-            </Descriptions.Item>
-            <Descriptions.Item label={t('inventory.senderPhone')}>
-              {order.shipment.senderPhone}
-            </Descriptions.Item>
-            <Descriptions.Item label={t('inventory.boxCount')}>
-              {order.shipment.boxCount}
-            </Descriptions.Item>
-            {order.shipment.totalWeight && (
-              <Descriptions.Item label={t('inventory.totalWeight')}>
-                {order.shipment.totalWeight} kg
-              </Descriptions.Item>
-            )}
-            <Descriptions.Item label={t('inventory.shippedAt')}>
-              {new Date(order.shipment.shippedAt).toLocaleString()}
-            </Descriptions.Item>
-            {order.shipment.estimatedArrivalDate && (
-              <Descriptions.Item label={t('inventory.estimatedArrivalDate')}>
-                {new Date(order.shipment.estimatedArrivalDate).toLocaleDateString()}
-              </Descriptions.Item>
-            )}
-            {order.shipment.deliveredAt && (
-              <Descriptions.Item label={t('inventory.deliveredAt')}>
-                {new Date(order.shipment.deliveredAt).toLocaleString()}
-              </Descriptions.Item>
-            )}
-          </Descriptions>
-          <Divider />
-          <Descriptions column={1} size="small">
-            <Descriptions.Item label={t('inventory.senderAddress')}>
-              {order.shipment.senderAddress}
-            </Descriptions.Item>
-          </Descriptions>
-        </Card>
-      )}
-
-      {/* Exceptions */}
-      {showExceptions && (
-        <Card
-          title={
-            <Space>
-              <ExclamationCircleOutlined className="text-orange-500" />
-              {t('inventory.exceptions')} ({order.exceptions.length})
-            </Space>
-          }
-        >
-          <Table
-            columns={exceptionColumns}
-            dataSource={order.exceptions}
-            rowKey="id"
-            pagination={false}
-            scroll={{ x: 800 }}
-            size="small"
+          )
+        }
+      >
+        {editingNotes ? (
+          <TextArea
+            value={notesValue}
+            onChange={e => setNotesValue(e.target.value)}
+            rows={3}
+            placeholder={t('warehouseOps.notesPlaceholder')}
           />
-        </Card>
-      )}
-
-      {/* Order Timeline */}
-      <Card title={t('inventory.orderTimeline')}>
-        <Timeline
-          items={[
-            {
-              color: 'green',
-              children: (
-                <div>
-                  <Text strong>{t('inventory.orderCreated')}</Text>
-                  <br />
-                  <Text type="secondary">{new Date(order.createdAt).toLocaleString()}</Text>
-                </div>
-              ),
-            },
-            ...(order.shippedAt
-              ? [
-                  {
-                    color: 'cyan',
-                    children: (
-                      <div>
-                        <Text strong>{t('inventory.orderShipped')}</Text>
-                        <br />
-                        <Text type="secondary">
-                          {new Date(order.shippedAt).toLocaleString()}
-                        </Text>
-                      </div>
-                    ),
-                  },
-                ]
-              : []),
-            ...(order.completedAt
-              ? [
-                  {
-                    color: 'green',
-                    children: (
-                      <div>
-                        <Text strong>{t('inventory.orderCompleted')}</Text>
-                        <br />
-                        <Text type="secondary">
-                          {new Date(order.completedAt).toLocaleString()}
-                        </Text>
-                      </div>
-                    ),
-                  },
-                ]
-              : []),
-            ...(order.status === 'cancelled'
-              ? [
-                  {
-                    color: 'red',
-                    children: (
-                      <div>
-                        <Text strong>{t('inventory.orderCancelled')}</Text>
-                      </div>
-                    ),
-                  },
-                ]
-              : []),
-          ]}
-        />
+        ) : (
+          <p className="m-0">{order.warehouseNotes || '-'}</p>
+        )}
       </Card>
+
+      {/* Single Item Receiving Modal */}
+      <Modal
+        title={t('warehouseOps.receiveItem')}
+        open={showItemReceiveModal}
+        onOk={handleConfirmReceiveItem}
+        onCancel={() => {
+          setShowItemReceiveModal(false);
+          setReceivingItem(null);
+          setItemReceivingData(null);
+        }}
+        okText={t('common.confirm')}
+        cancelText={t('common.cancel')}
+        confirmLoading={actionLoading}
+      >
+        {receivingItem && itemReceivingData && (
+          <div className="space-y-4">
+            {/* Product Info */}
+            <div className="flex gap-3 p-3 bg-gray-50 rounded">
+              {receivingItem.productImage ? (
+                <Image
+                  src={receivingItem.productImage}
+                  width={60}
+                  height={60}
+                  style={{ objectFit: 'cover' }}
+                  preview={false}
+                />
+              ) : (
+                <div className="w-[60px] h-[60px] bg-gray-200 flex items-center justify-center text-gray-400 rounded">
+                  N/A
+                </div>
+              )}
+              <div className="flex-1 min-w-0">
+                <div className="font-medium truncate">
+                  {receivingItem.productName || '-'}
+                </div>
+                <div className="text-gray-500 text-sm">
+                  {receivingItem.styleNumber || '-'} / {receivingItem.productSku?.skuName || '-'}
+                </div>
+                <div className="text-gray-500 text-sm">
+                  {t('inventory.expectedQuantity')}: <span className="font-medium text-gray-700">{receivingItem.expectedQuantity}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Received Quantity */}
+            <div>
+              <label className="block text-sm text-gray-600 mb-1">
+                {t('inventory.itemReceivedQuantity')} <span className="text-red-500">*</span>
+              </label>
+              <Input
+                type="number"
+                min={0}
+                max={receivingItem.expectedQuantity}
+                value={itemReceivingData.receivedQuantity}
+                onChange={e => {
+                  const val = parseInt(e.target.value, 10) || 0;
+                  setItemReceivingData({
+                    ...itemReceivingData,
+                    receivedQuantity: Math.min(val, receivingItem.expectedQuantity),
+                    damagedQuantity: Math.min(itemReceivingData.damagedQuantity ?? 0, val),
+                  });
+                }}
+              />
+            </div>
+
+            {/* Damaged Quantity */}
+            <div>
+              <label className="block text-sm text-gray-600 mb-1">
+                {t('inventory.damagedQuantity')}
+              </label>
+              <Input
+                type="number"
+                min={0}
+                max={itemReceivingData.receivedQuantity}
+                value={itemReceivingData.damagedQuantity ?? 0}
+                onChange={e => {
+                  const val = parseInt(e.target.value, 10) || 0;
+                  setItemReceivingData({
+                    ...itemReceivingData,
+                    damagedQuantity: Math.min(val, itemReceivingData.receivedQuantity),
+                  });
+                }}
+              />
+              <div className="text-xs text-gray-400 mt-1">
+                {t('warehouseOps.damagedQuantityHint')}
+              </div>
+            </div>
+
+            {/* Warehouse Remark */}
+            <div>
+              <label className="block text-sm text-gray-600 mb-1">
+                {t('warehouseOps.receivingNotes')}
+              </label>
+              <TextArea
+                value={itemReceivingData.warehouseRemark || ''}
+                onChange={e =>
+                  setItemReceivingData({
+                    ...itemReceivingData,
+                    warehouseRemark: e.target.value,
+                  })
+                }
+                rows={2}
+                placeholder={t('warehouseOps.receivingNotesPlaceholder')}
+              />
+            </div>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 }

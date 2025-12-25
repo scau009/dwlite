@@ -59,4 +59,57 @@ class SalesChannelRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    /**
+     * @return array{data: SalesChannel[], total: int}
+     */
+    public function findPaginated(int $page = 1, int $limit = 20, array $filters = []): array
+    {
+        $qb = $this->createQueryBuilder('c')
+            ->orderBy('c.sortOrder', 'ASC')
+            ->addOrderBy('c.createdAt', 'DESC');
+
+        if (!empty($filters['name'])) {
+            $qb->andWhere('c.name LIKE :name OR c.code LIKE :name')
+                ->setParameter('name', '%' . $filters['name'] . '%');
+        }
+
+        if (!empty($filters['code'])) {
+            $qb->andWhere('c.code LIKE :code')
+                ->setParameter('code', '%' . $filters['code'] . '%');
+        }
+
+        if (!empty($filters['businessType'])) {
+            $qb->andWhere('c.businessType = :businessType')
+                ->setParameter('businessType', $filters['businessType']);
+        }
+
+        if (!empty($filters['status'])) {
+            $qb->andWhere('c.status = :status')
+                ->setParameter('status', $filters['status']);
+        }
+
+        $countQb = clone $qb;
+        $total = (int) $countQb->select('COUNT(c.id)')->getQuery()->getSingleScalarResult();
+
+        $offset = ($page - 1) * $limit;
+        $data = $qb->setFirstResult($offset)->setMaxResults($limit)->getQuery()->getResult();
+
+        return ['data' => $data, 'total' => $total];
+    }
+
+    public function existsByCode(string $code, ?string $excludeId = null): bool
+    {
+        $qb = $this->createQueryBuilder('c')
+            ->select('COUNT(c.id)')
+            ->where('c.code = :code')
+            ->setParameter('code', $code);
+
+        if ($excludeId !== null) {
+            $qb->andWhere('c.id != :excludeId')
+                ->setParameter('excludeId', $excludeId);
+        }
+
+        return (int) $qb->getQuery()->getSingleScalarResult() > 0;
+    }
 }
