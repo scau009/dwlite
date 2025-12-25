@@ -307,6 +307,9 @@ class InboundOrderService
             $order->setCompletedAt(new \DateTimeImmutable());
         }
 
+        // 自动创建异常单（数量差异或损坏）
+        $this->autoCreateExceptions($order, $operatorId);
+
         $this->entityManager->flush();
 
         $this->logger->info('Completed receiving for inbound order', [
@@ -489,5 +492,144 @@ class InboundOrderService
         ]);
 
         return $order;
+    }
+
+    /**
+     * 自动创建异常单（收货时数量差异或损坏）
+     *
+     * 根据收货结果自动创建以下类型的异常单：
+     * - 数量短少：实收 < 预报
+     * - 数量超出：实收 > 预报
+     * - 货物损坏：损坏数量 > 0
+     */
+    private function autoCreateExceptions(InboundOrder $order, ?string $reportedBy = null): void
+    {
+        $shortItems = [];   // 数量短少的明细
+        $overItems = [];    // 数量超出的明细
+        $damagedItems = []; // 有损坏的明细
+
+        // 收集各类异常明细
+        foreach ($order->getItems() as $item) {
+            $expected = $item->getExpectedQuantity();
+            $received = $item->getReceivedQuantity();
+            $damaged = $item->getDamagedQuantity();
+
+            // 数量短少
+            if ($received < $expected) {
+                $shortItems[] = [
+                    'item' => $item,
+                    'quantity' => $expected - $received,
+                ];
+            }
+
+            // 数量超出
+            if ($received > $expected) {
+                $overItems[] = [
+                    'item' => $item,
+                    'quantity' => $received - $expected,
+                ];
+            }
+
+            // 货物损坏
+            if ($damaged > 0) {
+                $damagedItems[] = [
+                    'item' => $item,
+                    'quantity' => $damaged,
+                ];
+            }
+        }
+
+        // 创建数量短少异常单
+        if (!empty($shortItems)) {
+            $this->createAutoException(
+                $order,
+                InboundException::TYPE_QUANTITY_SHORT,
+                $shortItems,
+                $reportedBy
+            );
+        }
+
+        // 创建数量超出异常单
+        if (!empty($overItems)) {
+            $this->createAutoException(
+                $order,
+                InboundException::TYPE_QUANTITY_OVER,
+                $overItems,
+                $reportedBy
+            );
+        }
+
+        // 创建货物损坏异常单
+        if (!empty($damagedItems)) {
+            $this->createAutoException(
+                $order,
+                InboundException::TYPE_DAMAGED,
+                $damagedItems,
+                $reportedBy
+            );
+        }
+    }
+
+    /**
+     * 创建自动异常单
+     *
+     * @param array<array{item: InboundOrderItem, quantity: int}> $items
+     */
+    private function createAutoException(
+        InboundOrder $order,
+        string $type,
+        array $items,
+        ?string $reportedBy = null
+    ): InboundException {
+        // 生成异常描述
+        $description = match ($type) {
+            InboundException::TYPE_QUANTITY_SHORT => sprintf(
+                '收货时发现数量短少，共 %d 个 SKU 存在短少情况',
+                count($items)
+            ),
+            InboundException::TYPE_QUANTITY_OVER => sprintf(
+                '收货时发现数量超出预报，共 %d 个 SKU 存在超量情况',
+                count($items)
+            ),
+            InboundException::TYPE_DAMAGED => sprintf(
+                '收货时发现货物损坏，共 %d 个 SKU 存在损坏情况',
+                count($items)
+            ),
+            default => '收货异常',
+        };
+
+        // 创建异常单
+        $exception = InboundException::createForInboundOrder($order, $type, $description);
+
+        if ($reportedBy !== null) {
+            $exception->setReportedBy($reportedBy);
+        }
+
+        // 添加异常明细
+        foreach ($items as $itemData) {
+            /** @var InboundOrderItem $orderItem */
+            $orderItem = $itemData['item'];
+
+            $exceptionItem = new InboundExceptionItem();
+            $exceptionItem->snapshotFromInboundOrderItem($orderItem);
+            $exceptionItem->setQuantity($itemData['quantity']);
+
+            $exception->addItem($exceptionItem);
+        }
+
+        // 重新计算汇总
+        $exception->recalculateTotals();
+
+        $this->entityManager->persist($exception);
+
+        $this->logger->info('Auto-created inbound exception', [
+            'exception_no' => $exception->getExceptionNo(),
+            'order_id' => $order->getId(),
+            'order_no' => $order->getOrderNo(),
+            'type' => $type,
+            'items_count' => count($items),
+        ]);
+
+        return $exception;
     }
 }
