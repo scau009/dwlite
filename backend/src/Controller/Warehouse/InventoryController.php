@@ -3,7 +3,7 @@
 namespace App\Controller\Warehouse;
 
 use App\Attribute\WarehouseOnly;
-use App\Entity\User;
+use App\Entity\Warehouse;
 use App\Repository\MerchantInventoryRepository;
 use App\Service\CosService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -11,7 +11,6 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Security\Http\Attribute\CurrentUser;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 /**
@@ -33,14 +32,9 @@ class InventoryController extends AbstractController
      */
     #[Route('', name: 'warehouse_inventory_list', methods: ['GET'])]
     public function listInventory(
-        #[CurrentUser] User $user,
+        Warehouse $warehouse,
         Request $request
     ): JsonResponse {
-        $warehouse = $user->getWarehouse();
-        if ($warehouse === null) {
-            return $this->json(['error' => 'No warehouse assigned'], Response::HTTP_FORBIDDEN);
-        }
-
         $page = max(1, (int) $request->query->get('page', 1));
         $limit = min(50, max(1, (int) $request->query->get('limit', 20)));
         $search = $request->query->get('search');
@@ -72,13 +66,8 @@ class InventoryController extends AbstractController
      */
     #[Route('/summary', name: 'warehouse_inventory_summary', methods: ['GET'])]
     public function getSummary(
-        #[CurrentUser] User $user
+        Warehouse $warehouse
     ): JsonResponse {
-        $warehouse = $user->getWarehouse();
-        if ($warehouse === null) {
-            return $this->json(['error' => 'No warehouse assigned'], Response::HTTP_FORBIDDEN);
-        }
-
         $summary = $this->inventoryRepository->getWarehouseSummary($warehouse);
 
         return $this->json([

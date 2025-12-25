@@ -4,7 +4,7 @@ namespace App\Controller\Warehouse;
 
 use App\Attribute\WarehouseOnly;
 use App\Entity\OutboundOrder;
-use App\Entity\User;
+use App\Entity\Warehouse;
 use App\Repository\OutboundOrderRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -12,7 +12,6 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Security\Http\Attribute\CurrentUser;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
@@ -36,14 +35,9 @@ class OutboundController extends AbstractController
      */
     #[Route('/orders', name: 'warehouse_outbound_list', methods: ['GET'])]
     public function listOrders(
-        #[CurrentUser] User $user,
+        Warehouse $warehouse,
         Request $request
     ): JsonResponse {
-        $warehouse = $user->getWarehouse();
-        if ($warehouse === null) {
-            return $this->json(['error' => 'No warehouse assigned'], Response::HTTP_FORBIDDEN);
-        }
-
         $page = max(1, (int) $request->query->get('page', 1));
         $limit = min(50, max(1, (int) $request->query->get('limit', 20)));
         $status = $request->query->get('status');
@@ -61,14 +55,9 @@ class OutboundController extends AbstractController
      */
     #[Route('/orders/{id}', name: 'warehouse_outbound_detail', methods: ['GET'])]
     public function getOrder(
-        #[CurrentUser] User $user,
+        Warehouse $warehouse,
         string $id
     ): JsonResponse {
-        $warehouse = $user->getWarehouse();
-        if ($warehouse === null) {
-            return $this->json(['error' => 'No warehouse assigned'], Response::HTTP_FORBIDDEN);
-        }
-
         $order = $this->outboundOrderRepository->find($id);
 
         if ($order === null || $order->getWarehouse()->getId() !== $warehouse->getId()) {
@@ -85,14 +74,9 @@ class OutboundController extends AbstractController
      */
     #[Route('/orders/{id}/start-picking', name: 'warehouse_outbound_start_picking', methods: ['POST'])]
     public function startPicking(
-        #[CurrentUser] User $user,
+        Warehouse $warehouse,
         string $id
     ): JsonResponse {
-        $warehouse = $user->getWarehouse();
-        if ($warehouse === null) {
-            return $this->json(['error' => 'No warehouse assigned'], Response::HTTP_FORBIDDEN);
-        }
-
         $order = $this->outboundOrderRepository->find($id);
 
         if ($order === null || $order->getWarehouse()->getId() !== $warehouse->getId()) {
@@ -117,14 +101,9 @@ class OutboundController extends AbstractController
      */
     #[Route('/orders/{id}/start-packing', name: 'warehouse_outbound_start_packing', methods: ['POST'])]
     public function startPacking(
-        #[CurrentUser] User $user,
+        Warehouse $warehouse,
         string $id
     ): JsonResponse {
-        $warehouse = $user->getWarehouse();
-        if ($warehouse === null) {
-            return $this->json(['error' => 'No warehouse assigned'], Response::HTTP_FORBIDDEN);
-        }
-
         $order = $this->outboundOrderRepository->find($id);
 
         if ($order === null || $order->getWarehouse()->getId() !== $warehouse->getId()) {
@@ -150,14 +129,9 @@ class OutboundController extends AbstractController
      */
     #[Route('/orders/{id}/complete-packing', name: 'warehouse_outbound_complete_packing', methods: ['POST'])]
     public function completePacking(
-        #[CurrentUser] User $user,
+        Warehouse $warehouse,
         string $id
     ): JsonResponse {
-        $warehouse = $user->getWarehouse();
-        if ($warehouse === null) {
-            return $this->json(['error' => 'No warehouse assigned'], Response::HTTP_FORBIDDEN);
-        }
-
         $order = $this->outboundOrderRepository->find($id);
 
         if ($order === null || $order->getWarehouse()->getId() !== $warehouse->getId()) {
@@ -182,15 +156,10 @@ class OutboundController extends AbstractController
      */
     #[Route('/orders/{id}/ship', name: 'warehouse_outbound_ship', methods: ['POST'])]
     public function shipOrder(
-        #[CurrentUser] User $user,
+        Warehouse $warehouse,
         string $id,
         Request $request
     ): JsonResponse {
-        $warehouse = $user->getWarehouse();
-        if ($warehouse === null) {
-            return $this->json(['error' => 'No warehouse assigned'], Response::HTTP_FORBIDDEN);
-        }
-
         $order = $this->outboundOrderRepository->find($id);
 
         if ($order === null || $order->getWarehouse()->getId() !== $warehouse->getId()) {

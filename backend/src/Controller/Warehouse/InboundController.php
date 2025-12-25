@@ -6,6 +6,7 @@ use App\Attribute\WarehouseOnly;
 use App\Dto\Inbound\CompleteInboundReceivingRequest;
 use App\Dto\Inbound\CreateInboundExceptionRequest;
 use App\Entity\User;
+use App\Entity\Warehouse;
 use App\Repository\InboundOrderRepository;
 use App\Service\CosService;
 use App\Service\InboundOrderService;
@@ -40,14 +41,9 @@ class InboundController extends AbstractController
      */
     #[Route('/orders', name: 'warehouse_inbound_list', methods: ['GET'])]
     public function listOrders(
-        #[CurrentUser] User $user,
+        Warehouse $warehouse,
         Request $request
     ): JsonResponse {
-        $warehouse = $user->getWarehouse();
-        if ($warehouse === null) {
-            return $this->json(['error' => 'No warehouse assigned'], Response::HTTP_FORBIDDEN);
-        }
-
         $page = max(1, (int) $request->query->get('page', 1));
         $limit = min(50, max(1, (int) $request->query->get('limit', 20)));
         $status = $request->query->get('status');
@@ -79,14 +75,9 @@ class InboundController extends AbstractController
      */
     #[Route('/orders/{id}', name: 'warehouse_inbound_detail', methods: ['GET'])]
     public function getOrder(
-        #[CurrentUser] User $user,
+        Warehouse $warehouse,
         string $id
     ): JsonResponse {
-        $warehouse = $user->getWarehouse();
-        if ($warehouse === null) {
-            return $this->json(['error' => 'No warehouse assigned'], Response::HTTP_FORBIDDEN);
-        }
-
         $order = $this->inboundOrderService->getOrderById($id);
 
         if ($order === null || $order->getWarehouse()->getId() !== $warehouse->getId()) {
@@ -104,14 +95,10 @@ class InboundController extends AbstractController
     #[Route('/orders/{id}/receive', name: 'warehouse_inbound_receive', methods: ['POST'])]
     public function receiveOrder(
         #[CurrentUser] User $user,
+        Warehouse $warehouse,
         string $id,
         #[MapRequestPayload] CompleteInboundReceivingRequest $dto
     ): JsonResponse {
-        $warehouse = $user->getWarehouse();
-        if ($warehouse === null) {
-            return $this->json(['error' => 'No warehouse assigned'], Response::HTTP_FORBIDDEN);
-        }
-
         $order = $this->inboundOrderService->getOrderById($id);
 
         if ($order === null || $order->getWarehouse()->getId() !== $warehouse->getId()) {
@@ -140,15 +127,10 @@ class InboundController extends AbstractController
      */
     #[Route('/orders/{id}/exceptions', name: 'warehouse_inbound_exception', methods: ['POST'])]
     public function createException(
-        #[CurrentUser] User $user,
+        Warehouse $warehouse,
         string $id,
         #[MapRequestPayload] CreateInboundExceptionRequest $dto
     ): JsonResponse {
-        $warehouse = $user->getWarehouse();
-        if ($warehouse === null) {
-            return $this->json(['error' => 'No warehouse assigned'], Response::HTTP_FORBIDDEN);
-        }
-
         $order = $this->inboundOrderService->getOrderById($id);
 
         if ($order === null || $order->getWarehouse()->getId() !== $warehouse->getId()) {
@@ -172,15 +154,10 @@ class InboundController extends AbstractController
      */
     #[Route('/orders/{id}/notes', name: 'warehouse_inbound_notes', methods: ['PUT'])]
     public function updateNotes(
-        #[CurrentUser] User $user,
+        Warehouse $warehouse,
         string $id,
         Request $request
     ): JsonResponse {
-        $warehouse = $user->getWarehouse();
-        if ($warehouse === null) {
-            return $this->json(['error' => 'No warehouse assigned'], Response::HTTP_FORBIDDEN);
-        }
-
         $order = $this->inboundOrderService->getOrderById($id);
 
         if ($order === null || $order->getWarehouse()->getId() !== $warehouse->getId()) {
