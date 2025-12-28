@@ -475,23 +475,43 @@ export const inboundApi = {
   // ========== Inbound Exceptions ==========
 
   /**
+   * Get resolution options for exceptions
+   */
+  getResolutionOptions: async (): Promise<{ value: string; label: string }[]> => {
+    const response = await apiFetch<{ data: { value: string; label: string }[] }>(
+      '/api/inbound/exceptions/resolution-options'
+    );
+    return response.data || [];
+  },
+
+  /**
    * Get inbound exceptions list
    */
-  getInboundExceptions: async (params: any = {}): Promise<PaginatedResponse<InboundException>> => {
+  getInboundExceptions: async (params: {
+    page?: number;
+    limit?: number;
+    status?: string;
+    type?: string;
+    search?: string;
+  } = {}): Promise<PaginatedResponse<InboundException>> => {
     const queryParams = new URLSearchParams();
     if (params.limit) queryParams.append('limit', params.limit.toString());
     if (params.page) queryParams.append('page', params.page.toString());
+    if (params.status) queryParams.append('status', params.status);
+    if (params.type) queryParams.append('type', params.type);
+    if (params.search) queryParams.append('search', params.search);
 
     const query = queryParams.toString();
-    const response = await apiFetch<{ data: InboundException[] }>(
-      `/api/inbound/exceptions${query ? `?${query}` : ''}`
-    );
-    const data = response.data || [];
+    const response = await apiFetch<{
+      data: InboundException[];
+      meta: { total: number; page: number; limit: number; totalPages: number };
+    }>(`/api/inbound/exceptions${query ? `?${query}` : ''}`);
+
     return {
-      data,
-      total: data.length,
-      page: params.page || 1,
-      limit: params.limit || 20,
+      data: response.data || [],
+      total: response.meta?.total || 0,
+      page: response.meta?.page || params.page || 1,
+      limit: response.meta?.limit || params.limit || 20,
     };
   },
 

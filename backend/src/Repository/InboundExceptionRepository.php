@@ -82,4 +82,59 @@ class InboundExceptionRepository extends ServiceEntityRepository
             ->getQuery()
             ->getSingleScalarResult();
     }
+
+    /**
+     * 分页查询商户异常单
+     *
+     * @return array{data: InboundException[], meta: array{total: int, page: int, limit: int, totalPages: int}}
+     */
+    public function findWithFilters(
+        Merchant $merchant,
+        ?string $status = null,
+        ?string $type = null,
+        ?string $search = null,
+        int $page = 1,
+        int $limit = 20
+    ): array {
+        $qb = $this->createQueryBuilder('e')
+            ->leftJoin('e.inboundOrder', 'o')
+            ->andWhere('e.merchant = :merchant')
+            ->setParameter('merchant', $merchant);
+
+        if ($status !== null) {
+            $qb->andWhere('e.status = :status')
+                ->setParameter('status', $status);
+        }
+
+        if ($type !== null) {
+            $qb->andWhere('e.type = :type')
+                ->setParameter('type', $type);
+        }
+
+        if ($search !== null && $search !== '') {
+            $qb->andWhere('e.exceptionNo LIKE :search')
+                ->setParameter('search', '%' . $search . '%');
+        }
+
+        // Count total
+        $countQb = clone $qb;
+        $total = (int) $countQb->select('COUNT(e.id)')->getQuery()->getSingleScalarResult();
+
+        // Get paginated data
+        $qb->orderBy('e.createdAt', 'DESC')
+            ->setFirstResult(($page - 1) * $limit)
+            ->setMaxResults($limit);
+
+        $data = $qb->getQuery()->getResult();
+
+        return [
+            'data' => $data,
+            'meta' => [
+                'total' => $total,
+                'page' => $page,
+                'limit' => $limit,
+                'totalPages' => (int) ceil($total / $limit),
+            ],
+        ];
+    }
 }

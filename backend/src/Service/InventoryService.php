@@ -175,6 +175,65 @@ class InventoryService
     }
 
     /**
+     * 清除剩余的在途库存（入库单完结时调用）
+     * 当预期数量 > 实收数量时，差异部分的在途库存需要清除
+     */
+    public function clearRemainingInTransit(
+        InboundOrder $order,
+        ?string $operatorId = null,
+        ?string $operatorName = null
+    ): void {
+        foreach ($order->getItems() as $item) {
+            // 计算差异：预期 - 实收 - 损坏
+            $expectedQty = $item->getExpectedQuantity();
+            $receivedQty = $item->getReceivedQuantity();
+            $damagedQty = $item->getDamagedQuantity();
+            $difference = $expectedQty - $receivedQty - $damagedQty;
+
+            if ($difference <= 0) {
+                continue; // 没有差异或超收，跳过
+            }
+
+            $inventory = $this->getOrCreateInventory(
+                $order->getMerchant(),
+                $order->getWarehouse(),
+                $item->getProductSku()
+            );
+
+            $balanceBefore = $inventory->getQuantityInTransit();
+
+            // 扣减在途库存
+            $inventory->reduceInTransit($difference);
+
+            $balanceAfter = $inventory->getQuantityInTransit();
+
+            // 记录流水
+            $this->recordTransaction(
+                $inventory,
+                InventoryTransaction::TYPE_INBOUND_SHORTAGE,
+                'in_transit',
+                -$difference,
+                $balanceBefore,
+                $balanceAfter,
+                InventoryTransaction::REF_INBOUND_ORDER,
+                $order->getId(),
+                $order->getOrderNo(),
+                null,
+                $operatorId,
+                $operatorName,
+                sprintf('入库单 %s 完结，清除差异在途库存', $order->getOrderNo())
+            );
+        }
+
+        $this->entityManager->flush();
+
+        $this->logger->info('Cleared remaining in-transit stock for order', [
+            'order_id' => $order->getId(),
+            'order_no' => $order->getOrderNo(),
+        ]);
+    }
+
+    /**
      * 锁定库存（订单占用）
      */
     public function reserveStock(

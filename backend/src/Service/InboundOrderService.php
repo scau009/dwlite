@@ -437,7 +437,9 @@ class InboundOrderService
      */
     public function resolveException(
         InboundException $exception,
-        ResolveInboundExceptionRequest $dto
+        ResolveInboundExceptionRequest $dto,
+        ?string $operatorId = null,
+        ?string $operatorName = null
     ): InboundException {
         $exception->resolve(
             $dto->resolution,
@@ -457,7 +459,53 @@ class InboundOrderService
             'resolution' => $dto->resolution,
         ]);
 
+        // 检查关联的入库单是否可以完结
+        $order = $exception->getInboundOrder();
+        if ($order !== null && $order->getStatus() === InboundOrder::STATUS_PARTIAL_COMPLETED) {
+            $this->tryCompleteOrder($order, $operatorId, $operatorName);
+        }
+
         return $exception;
+    }
+
+    /**
+     * 尝试完结入库单（检查是否还有待处理的异常单）
+     */
+    private function tryCompleteOrder(
+        InboundOrder $order,
+        ?string $operatorId = null,
+        ?string $operatorName = null
+    ): void {
+        // 检查是否还有待处理的异常单
+        $hasPendingExceptions = false;
+        foreach ($order->getExceptions() as $exception) {
+            if ($exception->isPending()) {
+                $hasPendingExceptions = true;
+                break;
+            }
+        }
+
+        if ($hasPendingExceptions) {
+            $this->logger->info('Inbound order still has pending exceptions', [
+                'order_id' => $order->getId(),
+                'order_no' => $order->getOrderNo(),
+            ]);
+            return;
+        }
+
+        // 清除剩余的在途库存（差异部分）
+        $this->inventoryService->clearRemainingInTransit($order, $operatorId, $operatorName);
+
+        // 没有待处理的异常单，完结入库单
+        $order->setStatus(InboundOrder::STATUS_COMPLETED);
+        $order->setCompletedAt(new \DateTimeImmutable());
+
+        $this->entityManager->flush();
+
+        $this->logger->info('Inbound order completed after all exceptions resolved', [
+            'order_id' => $order->getId(),
+            'order_no' => $order->getOrderNo(),
+        ]);
     }
 
     /**

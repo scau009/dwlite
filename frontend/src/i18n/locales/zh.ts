@@ -962,6 +962,12 @@ export default {
     itemStatusPending: '待收',
     damagedQuantityHint: '破损商品将计入已收数量中',
 
+    // Batch Receive
+    receiveAll: '全部收货',
+    receiveSelected: '批量收货',
+    batchReceiveConfirm: '确认将 {{count}} 件商品按预期数量收货？',
+    batchReceiveSuccess: '批量收货成功',
+
     // Exception Status
     exceptionStatusPending: '待处理',
     exceptionStatusProcessing: '处理中',

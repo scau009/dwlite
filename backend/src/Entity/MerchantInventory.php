@@ -322,6 +322,17 @@ class MerchantInventory
     }
 
     /**
+     * 减少在途库存（差异/缺货时调用）
+     */
+    public function reduceInTransit(int $quantity): void
+    {
+        $this->quantityInTransit -= $quantity;
+        if ($this->quantityInTransit < 0) {
+            $this->quantityInTransit = 0;
+        }
+    }
+
+    /**
      * 在途转可用（入库完成时调用）
      */
     public function confirmInbound(int $quantity, int $damagedQuantity = 0): void

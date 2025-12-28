@@ -55,15 +55,6 @@ const typeColors: Record<InboundExceptionType, string> = {
   other: 'default',
 };
 
-// Resolution options
-const RESOLUTION_OPTIONS = [
-  { value: 'accept_as_is', label: '接受现状' },
-  { value: 'request_compensation', label: '申请赔偿' },
-  { value: 'request_reshipment', label: '申请补发' },
-  { value: 'return_goods', label: '退回货物' },
-  { value: 'other', label: '其他' },
-];
-
 export function InboundExceptionDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -74,6 +65,7 @@ export function InboundExceptionDetailPage() {
   const [loading, setLoading] = useState(true);
   const [resolveModalOpen, setResolveModalOpen] = useState(false);
   const [resolving, setResolving] = useState(false);
+  const [resolutionOptions, setResolutionOptions] = useState<{ value: string; label: string }[]>([]);
   const [form] = Form.useForm();
 
   const loadException = async () => {
@@ -89,8 +81,18 @@ export function InboundExceptionDetailPage() {
     }
   };
 
+  const loadResolutionOptions = async () => {
+    try {
+      const options = await inboundApi.getResolutionOptions();
+      setResolutionOptions(options);
+    } catch {
+      // Silently fail, will show empty select
+    }
+  };
+
   useEffect(() => {
     loadException();
+    loadResolutionOptions();
   }, [id]);
 
   // Get status label
@@ -308,7 +310,7 @@ export function InboundExceptionDetailPage() {
         }}
         onOk={handleResolve}
         confirmLoading={resolving}
-        destroyOnClose
+        destroyOnHidden
         width={500}
       >
         <Form form={form} layout="vertical" className="mt-4">
@@ -319,7 +321,7 @@ export function InboundExceptionDetailPage() {
           >
             <Select
               placeholder={t('inventory.selectResolution')}
-              options={RESOLUTION_OPTIONS}
+              options={resolutionOptions}
             />
           </Form.Item>
 

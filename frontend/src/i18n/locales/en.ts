@@ -921,6 +921,12 @@ export default {
     itemStatusPending: 'Pending',
     damagedQuantityHint: 'Damaged items are included in received quantity',
 
+    // Batch Receive
+    receiveAll: 'Receive All',
+    receiveSelected: 'Batch Receive',
+    batchReceiveConfirm: 'Confirm receiving {{count}} items as expected quantity?',
+    batchReceiveSuccess: 'Batch receive successful',
+
     // Exception Status
     exceptionStatusPending: 'Pending',
     exceptionStatusProcessing: 'Processing',

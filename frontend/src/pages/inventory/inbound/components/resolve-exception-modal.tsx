@@ -12,11 +12,6 @@ interface ResolveExceptionModalProps {
   onSuccess: () => void;
 }
 
-// Resolution options - keep it simple with just accept/reject
-const getResolutionOptions = () => {
-  return ['accept', 'reject'];
-};
-
 export function ResolveExceptionModal({
   open,
   exception,
@@ -27,6 +22,20 @@ export function ResolveExceptionModal({
   const { message } = App.useApp();
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
+  const [resolutionOptions, setResolutionOptions] = useState<{ value: string; label: string }[]>([]);
+
+  // Load resolution options from API
+  useEffect(() => {
+    const loadOptions = async () => {
+      try {
+        const options = await inboundApi.getResolutionOptions();
+        setResolutionOptions(options);
+      } catch {
+        // Silently fail
+      }
+    };
+    loadOptions();
+  }, []);
 
   // Reset form when exception changes
   useEffect(() => {
@@ -48,18 +57,6 @@ export function ResolveExceptionModal({
       other: t('inventory.typeOther'),
     };
     return labels[type] || type;
-  };
-
-  // Helper to get resolution label
-  const getResolutionLabel = (resolution: string) => {
-    const labels: Record<string, string> = {
-      accept: t('inventory.resolutionAccept'),
-      reject: t('inventory.resolutionReject'),
-      claim: t('inventory.resolutionClaim'),
-      recount: t('inventory.resolutionRecount'),
-      partial_accept: t('inventory.resolutionPartialAccept'),
-    };
-    return labels[resolution] || resolution;
   };
 
   const handleSubmit = async () => {
@@ -118,8 +115,6 @@ export function ResolveExceptionModal({
 
   if (!exception) return null;
 
-  const availableResolutions = getResolutionOptions();
-
   return (
     <Modal
       title={t('inventory.resolveException')}
@@ -128,7 +123,7 @@ export function ResolveExceptionModal({
       onOk={handleSubmit}
       confirmLoading={loading}
       width={640}
-      destroyOnClose
+      destroyOnHidden
     >
       {/* Exception Summary */}
       <Descriptions column={2} size="small" className="mb-4">
@@ -151,7 +146,7 @@ export function ResolveExceptionModal({
 
       {/* Exception Items */}
       {exception.items && exception.items.length > 0 && (
-        <div className="mb-4">
+        <div className="mb-4 mt-4">
           <div className="text-sm font-medium mb-2">{t('inventory.exceptionItems')}</div>
           <Table
             columns={itemColumns}
@@ -177,13 +172,10 @@ export function ResolveExceptionModal({
           label={t('inventory.resolution')}
           rules={[{ required: true, message: t('inventory.resolutionRequired') }]}
         >
-          <Select placeholder={t('inventory.selectResolution')}>
-            {availableResolutions.map(res => (
-              <Select.Option key={res} value={res}>
-                {getResolutionLabel(res)}
-              </Select.Option>
-            ))}
-          </Select>
+          <Select
+            placeholder={t('inventory.selectResolution')}
+            options={resolutionOptions}
+          />
         </Form.Item>
 
         <Form.Item

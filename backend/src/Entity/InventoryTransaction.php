@@ -21,6 +21,7 @@ class InventoryTransaction
     public const TYPE_INBOUND_TRANSIT = 'inbound_transit';       // 入库在途（发货时）
     public const TYPE_INBOUND_STOCK = 'inbound_stock';           // 入库上架（仓库收货后）
     public const TYPE_INBOUND_DAMAGED = 'inbound_damaged';       // 入库损坏
+    public const TYPE_INBOUND_SHORTAGE = 'inbound_shortage';     // 入库缺货（差异清除）
     public const TYPE_OUTBOUND_RESERVE = 'outbound_reserve';     // 出库锁定（订单占用）
     public const TYPE_OUTBOUND_RELEASE = 'outbound_release';     // 出库释放（订单取消）
     public const TYPE_OUTBOUND_SHIP = 'outbound_ship';           // 出库发货
@@ -279,6 +280,7 @@ class InventoryTransaction
             self::TYPE_INBOUND_TRANSIT => '入库在途',
             self::TYPE_INBOUND_STOCK => '入库上架',
             self::TYPE_INBOUND_DAMAGED => '入库损坏',
+            self::TYPE_INBOUND_SHORTAGE => '入库缺货',
             self::TYPE_OUTBOUND_RESERVE => '订单锁定',
             self::TYPE_OUTBOUND_RELEASE => '订单释放',
             self::TYPE_OUTBOUND_SHIP => '出库发货',

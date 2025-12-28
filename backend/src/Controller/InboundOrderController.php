@@ -10,9 +10,11 @@ use App\Dto\Inbound\Query\InboundOrderListQuery;
 use App\Dto\Inbound\ResolveInboundExceptionRequest;
 use App\Dto\Inbound\ShipInboundOrderRequest;
 use App\Dto\Inbound\UpdateInboundOrderItemRequest;
+use App\Entity\InboundException;
 use App\Entity\Product;
 use App\Entity\User;
 use App\Entity\Warehouse;
+use App\Repository\InboundExceptionRepository;
 use App\Repository\MerchantRepository;
 use App\Repository\ProductRepository;
 use App\Repository\WarehouseRepository;
@@ -38,6 +40,7 @@ class InboundOrderController extends AbstractController
         private MerchantRepository $merchantRepository,
         private WarehouseRepository $warehouseRepository,
         private ProductRepository $productRepository,
+        private InboundExceptionRepository $inboundExceptionRepository,
         private CosService $cosService,
         private TranslatorInterface $translator,
     ) {
@@ -475,6 +478,68 @@ class InboundOrderController extends AbstractController
     }
 
     /**
+     * 获取异常处理方式选项
+     */
+    #[Route('/exceptions/resolution-options', name: 'inbound_exception_resolution_options', methods: ['GET'])]
+    public function getResolutionOptions(): JsonResponse
+    {
+        return $this->json([
+            'data' => InboundException::getResolutionOptions(),
+        ]);
+    }
+
+    /**
+     * 获取商户异常单列表
+     */
+    #[Route('/exceptions', name: 'inbound_list_exceptions', methods: ['GET'])]
+    public function listExceptions(
+        #[CurrentUser] User $user,
+        Request $request
+    ): JsonResponse {
+        $merchant = $this->getCurrentMerchant($user);
+
+        $page = max(1, (int) $request->query->get('page', 1));
+        $limit = min((int) $request->query->get('limit', 20), 50);
+        $status = $request->query->get('status');
+        $type = $request->query->get('type');
+        $search = $request->query->get('search');
+
+        $result = $this->inboundExceptionRepository->findWithFilters(
+            $merchant,
+            $status,
+            $type,
+            $search,
+            $page,
+            $limit
+        );
+
+        return $this->json([
+            'data' => array_map([$this, 'serializeExceptionWithOrder'], $result['data']),
+            'meta' => $result['meta'],
+        ]);
+    }
+
+    /**
+     * 获取异常单详情
+     */
+    #[Route('/exceptions/{id}', name: 'inbound_get_exception', methods: ['GET'])]
+    public function getException(
+        #[CurrentUser] User $user,
+        string $id
+    ): JsonResponse {
+        $merchant = $this->getCurrentMerchant($user);
+        $exception = $this->inboundOrderService->getExceptionById($id);
+
+        if ($exception === null || $exception->getMerchant()->getId() !== $merchant->getId()) {
+            return $this->json(['error' => 'Exception not found'], Response::HTTP_NOT_FOUND);
+        }
+
+        return $this->json([
+            'data' => $this->serializeExceptionWithOrder($exception),
+        ]);
+    }
+
+    /**
      * 处理异常单
      */
     #[Route('/exceptions/{id}/resolve', name: 'inbound_resolve_exception', methods: ['POST'])]
@@ -491,11 +556,20 @@ class InboundOrderController extends AbstractController
         }
 
         try {
-            $exception = $this->inboundOrderService->resolveException($exception, $dto);
+            $exception = $this->inboundOrderService->resolveException(
+                $exception,
+                $dto,
+                $user->getId(),
+                $user->getEmail()
+            );
 
+            // 返回更新后的异常单和入库单状态
+            $order = $exception->getInboundOrder();
             return $this->json([
                 'message' => $this->translator->trans('inbound.exception.resolved'),
                 'data' => $this->serializeException($exception),
+                'orderStatus' => $order?->getStatus(),
+                'orderCompleted' => $order?->isCompleted(),
             ]);
         } catch (\LogicException $e) {
             return $this->json(['error' => $e->getMessage()], Response::HTTP_BAD_REQUEST);
@@ -644,6 +718,29 @@ class InboundOrderController extends AbstractController
             'productImage' => $item->getProductImage(),
             'quantity' => $item->getQuantity(),
         ];
+    }
+
+    /**
+     * 序列化异常单（包含入库单信息）
+     */
+    private function serializeExceptionWithOrder($exception): array
+    {
+        $data = $this->serializeException($exception);
+
+        $order = $exception->getInboundOrder();
+        if ($order !== null) {
+            $data['inboundOrder'] = [
+                'id' => $order->getId(),
+                'orderNo' => $order->getOrderNo(),
+                'status' => $order->getStatus(),
+                'warehouse' => [
+                    'id' => $order->getWarehouse()->getId(),
+                    'name' => $order->getWarehouse()->getName(),
+                ],
+            ];
+        }
+
+        return $data;
     }
 
     /**

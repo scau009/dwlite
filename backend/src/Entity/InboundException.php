@@ -410,6 +410,41 @@ class InboundException
     }
 
     /**
+     * 获取所有处理方式选项
+     *
+     * @return array<array{value: string, label: string}>
+     */
+    public static function getResolutionOptions(): array
+    {
+        return [
+            ['value' => self::RESOLUTION_ACCEPT, 'label' => '接受（按实收入库）'],
+            ['value' => self::RESOLUTION_REJECT, 'label' => '拒收退回'],
+//            ['value' => self::RESOLUTION_CLAIM, 'label' => '申请理赔'],
+//            ['value' => self::RESOLUTION_RECOUNT, 'label' => '重新清点'],
+//            ['value' => self::RESOLUTION_PARTIAL_ACCEPT, 'label' => '部分接受'],
+        ];
+    }
+
+    /**
+     * 获取处理方式标签
+     */
+    public function getResolutionLabel(): ?string
+    {
+        if ($this->resolution === null) {
+            return null;
+        }
+
+        return match ($this->resolution) {
+            self::RESOLUTION_ACCEPT => '接受（按实收入库）',
+            self::RESOLUTION_PARTIAL_ACCEPT => '部分接受',
+            self::RESOLUTION_REJECT => '拒收退回',
+            self::RESOLUTION_CLAIM => '申请理赔',
+            self::RESOLUTION_RECOUNT => '重新清点',
+            default => $this->resolution,
+        };
+    }
+
+    /**
      * 生成异常单号
      */
     public static function generateExceptionNo(): string

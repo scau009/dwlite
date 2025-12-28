@@ -54,7 +54,7 @@ export function WarehouseInboundDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const { message } = App.useApp();
+  const { message, modal } = App.useApp();
 
   const [order, setOrder] = useState<WarehouseInboundOrderDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -73,6 +73,9 @@ export function WarehouseInboundDetailPage() {
   const [itemSearchKeyword, setItemSearchKeyword] = useState('');
   const [itemCurrentPage, setItemCurrentPage] = useState(1);
   const itemPageSize = 10;
+
+  // Batch receive state
+  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
 
   const loadOrder = async () => {
     if (!id) return;
@@ -141,6 +144,74 @@ export function WarehouseInboundDetailPage() {
     }
   };
 
+  // Handle batch receive all pending items
+  const handleBatchReceiveAll = () => {
+    if (pendingItems.length === 0) return;
+
+    modal.confirm({
+      title: t('warehouseOps.receiveAll'),
+      content: t('warehouseOps.batchReceiveConfirm', { count: pendingItems.length }),
+      okText: t('common.confirm'),
+      cancelText: t('common.cancel'),
+      onOk: async () => {
+        setActionLoading(true);
+        try {
+          const items = pendingItems.map(item => ({
+            itemId: item.id,
+            receivedQuantity: item.expectedQuantity,
+            damagedQuantity: 0,
+          }));
+          await warehouseOpsApi.completeReceiving(id!, { items });
+          message.success(t('warehouseOps.batchReceiveSuccess'));
+          setSelectedRowKeys([]);
+          loadOrder();
+        } catch (error) {
+          const err = error as { error?: string };
+          message.error(err.error || t('common.error'));
+        } finally {
+          setActionLoading(false);
+        }
+      },
+    });
+  };
+
+  // Handle batch receive selected items
+  const handleBatchReceiveSelected = () => {
+    if (selectedRowKeys.length === 0) return;
+
+    const selectedItems = order?.items.filter(
+      item => selectedRowKeys.includes(item.id) && item.status !== 'received'
+    ) || [];
+
+    if (selectedItems.length === 0) return;
+
+    modal.confirm({
+      title: t('warehouseOps.receiveSelected'),
+      content: t('warehouseOps.batchReceiveConfirm', { count: selectedItems.length }),
+      okText: t('common.confirm'),
+      cancelText: t('common.cancel'),
+      onOk: async () => {
+        setActionLoading(true);
+        try {
+          const items = selectedItems.map(item => ({
+            itemId: item.id,
+            receivedQuantity: item.expectedQuantity,
+            damagedQuantity: 0,
+          }));
+          await warehouseOpsApi.completeReceiving(id!, { items });
+          message.success(t('warehouseOps.batchReceiveSuccess'));
+          setSelectedRowKeys([]);
+          loadOrder();
+        } catch (error) {
+          const err = error as { error?: string };
+          message.error(err.error || t('common.error'));
+        } finally {
+          setActionLoading(false);
+        }
+      },
+    });
+  };
+
   // Handle save notes
   const handleSaveNotes = async () => {
     setActionLoading(true);
@@ -156,6 +227,12 @@ export function WarehouseInboundDetailPage() {
       setActionLoading(false);
     }
   };
+
+  // Pending items (not received)
+  const pendingItems = useMemo(() =>
+    order?.items.filter(item => item.status !== 'received') || [],
+    [order?.items]
+  );
 
   // Filter items based on search keyword
   const filteredItems = useMemo(() => {
@@ -554,7 +631,32 @@ export function WarehouseInboundDetailPage() {
       )}
 
       {/* Items */}
-      <Card title={`${t('inventory.orderItems')} (${order.items.length})`}>
+      <Card
+        title={`${t('inventory.orderItems')} (${order.items.length})`}
+        extra={
+          canReceive && pendingItems.length > 0 && (
+            <Space>
+              {selectedRowKeys.length > 0 && (
+                <Button
+                  icon={<CheckCircleOutlined />}
+                  onClick={handleBatchReceiveSelected}
+                  loading={actionLoading}
+                >
+                  {t('warehouseOps.receiveSelected')} ({selectedRowKeys.length})
+                </Button>
+              )}
+              <Button
+                type="primary"
+                icon={<CheckCircleOutlined />}
+                onClick={handleBatchReceiveAll}
+                loading={actionLoading}
+              >
+                {t('warehouseOps.receiveAll')} ({pendingItems.length})
+              </Button>
+            </Space>
+          )
+        }
+      >
         {/* Search input */}
         <div className="mb-3">
           <Input.Search
@@ -569,6 +671,13 @@ export function WarehouseInboundDetailPage() {
           columns={itemColumns}
           dataSource={filteredItems}
           rowKey="id"
+          rowSelection={canReceive ? {
+            selectedRowKeys,
+            onChange: (keys) => setSelectedRowKeys(keys),
+            getCheckboxProps: (record) => ({
+              disabled: record.status === 'received',
+            }),
+          } : undefined}
           pagination={{
             current: itemCurrentPage,
             pageSize: itemPageSize,
