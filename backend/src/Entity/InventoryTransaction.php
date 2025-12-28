@@ -34,6 +34,7 @@ class InventoryTransaction
 
     // 关联单据类型
     public const REF_INBOUND_ORDER = 'inbound_order';            // 送仓单
+    public const REF_OUTBOUND_ORDER = 'outbound_order';          // 出库单
     public const REF_SALES_ORDER = 'sales_order';                // 销售订单
     public const REF_RETURN_ORDER = 'return_order';              // 退货单
     public const REF_ADJUSTMENT = 'adjustment';                  // 盘点单

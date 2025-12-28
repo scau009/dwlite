@@ -55,6 +55,7 @@ export function getMenuData(t: TFunction): AccessMenuDataItem[] {
       children: [
         { path: '/inventory/stock', name: t('menu.stockQuery'), access: 'merchant' },
         { path: '/inventory/inbound', name: t('menu.inboundOrders'), access: 'merchant' },
+        { path: '/inventory/outbound', name: t('menu.outboundOrders'), access: 'merchant' },
         { path: '/inventory/exceptions', name: t('menu.inboundExceptions'), access: 'merchant' },
       ],
     },

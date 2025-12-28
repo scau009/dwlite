@@ -34,6 +34,8 @@ import {
   InboundExceptionsListPage,
   InboundExceptionDetailPage,
   MerchantStockListPage,
+  OutboundOrdersListPage,
+  OutboundOrderDetailPage,
 } from '@/pages/inventory';
 import { WarehousesListPage, WarehouseUsersListPage } from '@/pages/warehouses';
 import {
@@ -161,6 +163,8 @@ export const router = createBrowserRouter([
               { path: '/inventory/stock', element: <MerchantStockListPage /> },
               { path: '/inventory/inbound', element: <InboundOrdersListPage /> },
               { path: '/inventory/inbound/detail/:id', element: <InboundOrderDetailPage /> },
+              { path: '/inventory/outbound', element: <OutboundOrdersListPage /> },
+              { path: '/inventory/outbound/detail/:id', element: <OutboundOrderDetailPage /> },
               { path: '/inventory/exceptions', element: <InboundExceptionsListPage /> },
               { path: '/inventory/exceptions/detail/:id', element: <InboundExceptionDetailPage /> },
 

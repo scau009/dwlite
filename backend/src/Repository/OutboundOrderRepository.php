@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Merchant;
 use App\Entity\OutboundOrder;
 use App\Entity\Warehouse;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -15,6 +16,83 @@ class OutboundOrderRepository extends ServiceEntityRepository
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, OutboundOrder::class);
+    }
+
+    /**
+     * 根据商户查询出库单列表（分页）
+     *
+     * @return array{items: OutboundOrder[], total: int}
+     */
+    public function findByMerchantPaginated(
+        Merchant $merchant,
+        ?string $status = null,
+        ?string $outboundType = null,
+        ?string $warehouseId = null,
+        ?string $outboundNo = null,
+        ?string $trackingNumber = null,
+        int $page = 1,
+        int $limit = 20
+    ): array {
+        $qb = $this->createQueryBuilder('o')
+            ->where('o.merchant = :merchant')
+            ->setParameter('merchant', $merchant)
+            ->orderBy('o.createdAt', 'DESC');
+
+        if ($status !== null) {
+            $qb->andWhere('o.status = :status')
+                ->setParameter('status', $status);
+        }
+
+        if ($outboundType !== null) {
+            $qb->andWhere('o.outboundType = :outboundType')
+                ->setParameter('outboundType', $outboundType);
+        }
+
+        if ($warehouseId !== null) {
+            $qb->andWhere('o.warehouse = :warehouseId')
+                ->setParameter('warehouseId', $warehouseId);
+        }
+
+        if ($outboundNo !== null) {
+            $qb->andWhere('o.outboundNo LIKE :outboundNo')
+                ->setParameter('outboundNo', '%' . $outboundNo . '%');
+        }
+
+        if ($trackingNumber !== null) {
+            $qb->andWhere('o.trackingNumber LIKE :trackingNumber')
+                ->setParameter('trackingNumber', '%' . $trackingNumber . '%');
+        }
+
+        // Count total
+        $countQb = clone $qb;
+        $countQb->select('COUNT(o.id)');
+        $total = (int) ($countQb->getQuery()->getSingleScalarResult() ?? 0);
+
+        // Get paginated results
+        $items = $qb
+            ->setFirstResult(($page - 1) * $limit)
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+
+        return [
+            'items' => $items,
+            'total' => $total,
+        ];
+    }
+
+    /**
+     * 根据商户查询出库单详情
+     */
+    public function findOneByIdAndMerchant(string $id, Merchant $merchant): ?OutboundOrder
+    {
+        return $this->createQueryBuilder('o')
+            ->where('o.id = :id')
+            ->andWhere('o.merchant = :merchant')
+            ->setParameter('id', $id)
+            ->setParameter('merchant', $merchant)
+            ->getQuery()
+            ->getOneOrNullResult();
     }
 
     /**

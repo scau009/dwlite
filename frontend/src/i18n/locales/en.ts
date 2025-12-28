@@ -36,6 +36,9 @@ export default {
     yes: 'Yes',
     no: 'No',
     close: 'Close',
+    max: 'Max',
+    total: 'Total',
+    items: 'items',
   },
 
   // Navigation
@@ -99,6 +102,8 @@ export default {
     warehouseInbound: 'Inbound Orders',
     warehouseOutbound: 'Outbound Orders',
     warehouseInventory: 'Inventory',
+    // Merchant Outbound
+    outboundOrders: 'Outbound Orders',
     // Settings
     generalSettings: 'General',
     walletManagement: 'Wallet',
@@ -687,6 +692,7 @@ export default {
     completedAt: 'Completed At',
     productImage: 'Product Image',
     productName: 'Product Name',
+    skuInfo: 'SKU Info',
     expectedQuantity: 'Expected Qty',
     differenceQuantity: 'Difference',
     // Status
@@ -1141,5 +1147,143 @@ export default {
     quantity: 'Quantity',
     summary: '{{skuCount}} sizes, {{totalQuantity}} items total',
     orderCreated: 'Inbound order created successfully',
+  },
+
+  // Outbound Management (Merchant)
+  outbound: {
+    title: 'Outbound Management',
+    description: 'View and manage your outbound orders',
+
+    // Fields
+    orderNo: 'Outbound No',
+    outboundType: 'Type',
+    receiver: 'Receiver',
+    receiverName: 'Receiver Name',
+    receiverPhone: 'Receiver Phone',
+    receiverAddress: 'Receiver Address',
+    receiverPostalCode: 'Postal Code',
+    carrier: 'Carrier',
+    trackingNumber: 'Tracking No',
+    relatedOrder: 'Related Order',
+    warehouse: 'Warehouse',
+    totalQuantity: 'Total Quantity',
+    remark: 'Remark',
+
+    // Types
+    typeSales: 'Sales',
+    typeReturnToMerchant: 'Return to Merchant',
+    typeTransfer: 'Transfer',
+    typeScrap: 'Scrap',
+
+    // Status
+    statusDraft: 'Draft',
+    statusPending: 'Pending',
+    statusPicking: 'Picking',
+    statusPacking: 'Packing',
+    statusReady: 'Ready to Ship',
+    statusShipped: 'Shipped',
+    statusCancelled: 'Cancelled',
+
+    // Actions
+    createOutbound: 'Create Outbound Order',
+    createDraft: 'Create Draft',
+    viewOrder: 'View Order',
+    viewDetail: 'View Details',
+    deleteOrder: 'Delete Order',
+    submitOrder: 'Submit Order',
+    addItem: 'Add Item',
+    removeItem: 'Remove Item',
+
+    // Create Modal
+    createTitle: 'Create Outbound Order',
+    createDraftDescription: 'Create a draft outbound order. You can add items later on the detail page.',
+    selectWarehouse: 'Select Warehouse',
+    selectWarehousePlaceholder: 'Please select a warehouse',
+    selectWarehouseRequired: 'Please select a warehouse',
+    selectItems: 'Select Items',
+    stepReceiverInfo: 'Receiver Information',
+    stepSelectItems: 'Select Items',
+    receiverInfo: 'Receiver Information',
+    enterReceiverName: 'Enter receiver name',
+    enterReceiverPhone: 'Enter receiver phone',
+    enterReceiverAddress: 'Enter receiver address',
+    enterReceiverPostalCode: 'Enter postal code (optional)',
+    enterRemark: 'Enter remark (optional)',
+    selectItemsDescription: 'Select items to ship out and set quantities',
+    noInventoryAvailable: 'No available inventory in this warehouse',
+    noItemsSelected: 'Please select at least one item',
+    product: 'Product',
+    sku: 'SKU',
+    available: 'Available',
+    outboundQuantity: 'Quantity',
+    batchFill: 'Batch Fill',
+    fillAll: 'Fill All',
+    clearAll: 'Clear All',
+    summary: 'Selected {{skuCount}} SKUs, total {{totalQuantity}} items',
+    confirmCreate: 'Confirm',
+    createSuccess: 'Outbound order created successfully',
+
+    // Detail Page
+    basicInfo: 'Basic Information',
+    shippingInfo: 'Shipping Information',
+    orderItems: 'Order Items',
+    timeline: 'Timeline',
+    postalCode: 'Postal Code',
+    cancelledAt: 'Cancelled At',
+    cancelReason: 'Cancel Reason',
+    stockType: 'Stock Type',
+
+    // Timeline Events
+    timelineCreated: 'Order Created',
+    timelinePickingStarted: 'Picking Started',
+    timelinePickingCompleted: 'Picking Completed',
+    timelinePackingStarted: 'Packing Started',
+    timelinePackingCompleted: 'Packing Completed',
+    timelineShipped: 'Shipped',
+    timelineCancelled: 'Cancelled',
+
+    // Messages
+    orderCreated: 'Outbound order created successfully',
+    orderNotFound: 'Outbound order not found',
+    orderDeleted: 'Outbound order deleted',
+    orderSubmitted: 'Outbound order submitted',
+    itemAdded: 'Item added',
+    itemRemoved: 'Item removed',
+    onlyDraftCanDelete: 'Only draft orders can be deleted',
+    onlyDraftCanEdit: 'Only draft orders can be edited',
+    onlyDraftCanSubmit: 'Only draft orders can be submitted',
+    noItemsToSubmit: 'Please add items before submitting',
+    confirmDeleteOrder: 'Are you sure you want to delete this order?',
+    confirmSubmitOrder: 'Are you sure you want to submit this order? Inventory will be reserved.',
+    addItemDescription: 'Select items from warehouse inventory to add to the order',
+    noItemsYet: 'No items yet. Please add items before submitting.',
+
+    // Validation
+    warehouseRequired: 'Please select a warehouse',
+    receiverNameRequired: 'Please enter receiver name',
+    receiverPhoneRequired: 'Please enter receiver phone',
+    receiverAddressRequired: 'Please enter receiver address',
+    itemsRequired: 'Please select items',
+    quantityRequired: 'Please enter quantity',
+    quantityMustBePositive: 'Quantity must be greater than 0',
+
+    // Item Selector
+    selectInventory: 'Select Inventory',
+    inventoryList: 'Inventory List',
+    availableQty: 'Available',
+    selectedQty: 'Selected Qty',
+    noInventory: 'No available inventory',
+    insufficientStock: 'Insufficient stock',
+
+    // Inventory Selector Modal
+    normalStock: 'Normal Stock',
+    damagedStock: 'Damaged Stock',
+    availableStock: 'Available Stock',
+    searchInventory: 'Search by product name or style number...',
+    addToOrder: 'Add to Order',
+    pleaseSelectItem: 'Please select at least one item',
+    itemsAdded: 'Items added successfully',
+    selectedItems: '{{count}} items selected',
+    totalQuantityValue: 'Total: {{quantity}} items',
   },
 }

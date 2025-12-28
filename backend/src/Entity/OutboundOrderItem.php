@@ -34,6 +34,10 @@ class OutboundOrderItem
     #[ORM\JoinColumn(name: 'warehouse_id', nullable: true)]
     private ?Warehouse $warehouse = null;
 
+    #[ORM\ManyToOne(targetEntity: ProductSku::class)]
+    #[ORM\JoinColumn(name: 'product_sku_id', nullable: true)]
+    private ?ProductSku $productSku = null;
+
     // SKU 快照字段（保留出库时的商品信息）
     #[ORM\Column(name: 'sku_code', length: 50, nullable: true)]
     private ?string $skuCode = null;
@@ -52,6 +56,13 @@ class OutboundOrderItem
 
     #[ORM\Column(name: 'product_image', length: 500, nullable: true)]
     private ?string $productImage = null;
+
+    // 库存类型：normal（正常库存）或 damaged（破损库存）
+    public const STOCK_TYPE_NORMAL = 'normal';
+    public const STOCK_TYPE_DAMAGED = 'damaged';
+
+    #[ORM\Column(name: 'stock_type', length: 20)]
+    private string $stockType = self::STOCK_TYPE_NORMAL;
 
     // 数量
     #[ORM\Column(type: 'integer')]
@@ -105,6 +116,17 @@ class OutboundOrderItem
     public function setWarehouse(?Warehouse $warehouse): static
     {
         $this->warehouse = $warehouse;
+        return $this;
+    }
+
+    public function getProductSku(): ?ProductSku
+    {
+        return $this->productSku;
+    }
+
+    public function setProductSku(?ProductSku $productSku): static
+    {
+        $this->productSku = $productSku;
         return $this;
     }
 
@@ -176,6 +198,27 @@ class OutboundOrderItem
         return $this;
     }
 
+    public function getStockType(): string
+    {
+        return $this->stockType;
+    }
+
+    public function setStockType(string $stockType): static
+    {
+        $this->stockType = $stockType;
+        return $this;
+    }
+
+    public function isNormalStock(): bool
+    {
+        return $this->stockType === self::STOCK_TYPE_NORMAL;
+    }
+
+    public function isDamagedStock(): bool
+    {
+        return $this->stockType === self::STOCK_TYPE_DAMAGED;
+    }
+
     public function getQuantity(): int
     {
         return $this->quantity;
@@ -210,9 +253,9 @@ class OutboundOrderItem
     {
         $product = $sku->getProduct();
 
-        $this->skuCode = $sku->getSkuCode();
+        $this->skuCode = $product->getStyleNumber();
+        $this->colorCode = $product->getColor();
         $this->sizeValue = $sku->getSizeValue();
-        $this->specInfo = $sku->getSpecInfo();
         $this->productName = $product->getName();
 
         $primaryImage = $product->getPrimaryImage();

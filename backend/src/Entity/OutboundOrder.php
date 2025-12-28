@@ -13,6 +13,7 @@ use Symfony\Component\Uid\Ulid;
  */
 #[ORM\Entity(repositoryClass: OutboundOrderRepository::class)]
 #[ORM\Table(name: 'outbound_orders')]
+#[ORM\Index(name: 'idx_outbound_merchant', columns: ['merchant_id'])]
 #[ORM\Index(name: 'idx_outbound_fulfillment', columns: ['fulfillment_id'])]
 #[ORM\Index(name: 'idx_outbound_warehouse', columns: ['warehouse_id'])]
 #[ORM\Index(name: 'idx_outbound_status', columns: ['status'])]
@@ -22,6 +23,7 @@ use Symfony\Component\Uid\Ulid;
 class OutboundOrder
 {
     // 出库单状态
+    public const STATUS_DRAFT = 'draft';             // 草稿
     public const STATUS_PENDING = 'pending';         // 待处理
     public const STATUS_PICKING = 'picking';         // 拣货中
     public const STATUS_PACKING = 'packing';         // 打包中
@@ -56,13 +58,17 @@ class OutboundOrder
     #[ORM\JoinColumn(name: 'warehouse_id', nullable: false)]
     private Warehouse $warehouse;
 
+    #[ORM\ManyToOne(targetEntity: Merchant::class)]
+    #[ORM\JoinColumn(name: 'merchant_id', nullable: false)]
+    private Merchant $merchant;
+
     // 出库类型
     #[ORM\Column(type: 'string', length: 30)]
     private string $outboundType = self::TYPE_SALES;
 
     // 状态
     #[ORM\Column(type: 'string', length: 20)]
-    private string $status = self::STATUS_PENDING;
+    private string $status = self::STATUS_DRAFT;
 
     // WMS 同步相关
     #[ORM\Column(type: 'string', length: 20)]
@@ -190,6 +196,17 @@ class OutboundOrder
     public function setWarehouse(Warehouse $warehouse): static
     {
         $this->warehouse = $warehouse;
+        return $this;
+    }
+
+    public function getMerchant(): Merchant
+    {
+        return $this->merchant;
+    }
+
+    public function setMerchant(Merchant $merchant): static
+    {
+        $this->merchant = $merchant;
         return $this;
     }
 
@@ -476,6 +493,11 @@ class OutboundOrder
 
     // 便捷方法
 
+    public function isDraft(): bool
+    {
+        return $this->status === self::STATUS_DRAFT;
+    }
+
     public function isPending(): bool
     {
         return $this->status === self::STATUS_PENDING;
@@ -519,9 +541,26 @@ class OutboundOrder
     public function canCancel(): bool
     {
         return in_array($this->status, [
+            self::STATUS_DRAFT,
             self::STATUS_PENDING,
             self::STATUS_PICKING,
         ], true);
+    }
+
+    /**
+     * 提交出库单（草稿 → 待处理）
+     */
+    public function submit(): void
+    {
+        if ($this->status !== self::STATUS_DRAFT) {
+            throw new \LogicException('Only draft orders can be submitted');
+        }
+
+        if ($this->items->isEmpty()) {
+            throw new \LogicException('Cannot submit order without items');
+        }
+
+        $this->status = self::STATUS_PENDING;
     }
 
     /**

@@ -287,6 +287,59 @@ class InventoryService
     }
 
     /**
+     * 锁定破损库存（订单占用）
+     */
+    public function reserveDamagedStock(
+        MerchantInventory $inventory,
+        int $quantity,
+        string $referenceType,
+        string $referenceId,
+        ?string $referenceNo = null,
+        ?string $operatorId = null,
+        ?string $operatorName = null
+    ): void {
+        $balanceBefore = $inventory->getQuantityDamaged();
+        $inventory->reserveDamaged($quantity);
+        $balanceAfter = $inventory->getQuantityDamaged();
+
+        $this->recordTransaction(
+            $inventory,
+            InventoryTransaction::TYPE_OUTBOUND_RESERVE,
+            'damaged',
+            -$quantity,
+            $balanceBefore,
+            $balanceAfter,
+            $referenceType,
+            $referenceId,
+            $referenceNo,
+            null,
+            $operatorId,
+            $operatorName,
+            '订单锁定破损库存'
+        );
+
+        // 同时记录锁定库存增加
+        $reservedBefore = $inventory->getQuantityReserved() - $quantity;
+        $this->recordTransaction(
+            $inventory,
+            InventoryTransaction::TYPE_OUTBOUND_RESERVE,
+            'reserved',
+            $quantity,
+            $reservedBefore,
+            $inventory->getQuantityReserved(),
+            $referenceType,
+            $referenceId,
+            $referenceNo,
+            null,
+            $operatorId,
+            $operatorName,
+            '订单锁定破损库存'
+        );
+
+        $this->entityManager->flush();
+    }
+
+    /**
      * 释放库存（订单取消）
      */
     public function releaseStock(

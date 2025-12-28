@@ -187,6 +187,13 @@ validation:
   # Color
   color_format: 'Color must be a valid HEX format (e.g. #FF5733)'
 
+  # Inventory
+  warehouse_not_found: 'Warehouse not found'
+  inventory_not_found: 'Inventory record not found'
+  inventory_not_owned: 'Inventory does not belong to current merchant'
+  inventory_warehouse_mismatch: 'Inventory warehouse does not match order warehouse'
+  insufficient_stock: 'SKU %sku% insufficient stock, available %available%, requested %requested%'
+
 # Inbound order messages
 inbound:
   order:
@@ -206,8 +213,38 @@ inbound:
 
 # Outbound order messages
 outbound:
+  # Order messages
+  order_not_found: 'Outbound order not found'
+  order_created: 'Outbound order created successfully'
+  order_deleted: 'Outbound order deleted'
+  order_submitted: 'Outbound order submitted'
+  only_draft_can_delete: 'Only draft orders can be deleted'
+  only_draft_can_submit: 'Only draft orders can be submitted'
+  only_draft_can_edit: 'Only draft orders can be edited'
+  no_items_to_submit: 'Please add items before submitting'
+  # Item messages
+  item_added: 'Item added'
+  item_removed: 'Item removed'
+  item_not_found: 'Item not found'
+  item_already_exists: 'This item already exists in the order'
+  # Order status events
   order:
     picking_started: 'Picking started'
     packing_started: 'Packing started'
     ready_to_ship: 'Packing completed, ready to ship'
     shipped: 'Order shipped'
+  # Type labels
+  type:
+    sales: 'Sales'
+    return_to_merchant: 'Return to Merchant'
+    transfer: 'Transfer'
+    scrap: 'Scrap'
+  # Status labels
+  status:
+    draft: 'Draft'
+    pending: 'Pending'
+    picking: 'Picking'
+    packing: 'Packing'
+    ready: 'Ready to Ship'
+    shipped: 'Shipped'
+    cancelled: 'Cancelled'

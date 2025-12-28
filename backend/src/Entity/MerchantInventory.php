@@ -361,6 +361,18 @@ class MerchantInventory
     }
 
     /**
+     * 锁定破损库存（订单占用）
+     */
+    public function reserveDamaged(int $quantity): void
+    {
+        if ($quantity > $this->quantityDamaged) {
+            throw new \LogicException('Insufficient damaged inventory');
+        }
+        $this->quantityDamaged -= $quantity;
+        $this->quantityReserved += $quantity;
+    }
+
+    /**
      * 释放锁定库存（订单取消）
      */
     public function release(int $quantity): void
@@ -370,6 +382,18 @@ class MerchantInventory
         }
         $this->quantityReserved -= $quantity;
         $this->quantityAvailable += $quantity;
+    }
+
+    /**
+     * 释放锁定破损库存（订单取消）
+     */
+    public function releaseDamaged(int $quantity): void
+    {
+        if ($quantity > $this->quantityReserved) {
+            throw new \LogicException('Cannot release more than reserved');
+        }
+        $this->quantityReserved -= $quantity;
+        $this->quantityDamaged += $quantity;
     }
 
     /**

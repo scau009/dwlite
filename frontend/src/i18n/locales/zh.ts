@@ -36,6 +36,9 @@ export default {
     yes: '是',
     no: '否',
     close: '关闭',
+    max: '最多',
+    total: '共',
+    items: '项',
   },
 
   // Navigation
@@ -99,6 +102,8 @@ export default {
     warehouseInbound: '入库管理',
     warehouseOutbound: '出库管理',
     warehouseInventory: '库存查询',
+    // Merchant Outbound
+    outboundOrders: '出库单',
     // Settings
     generalSettings: '基本设置',
     walletManagement: '电子钱包',
@@ -687,6 +692,7 @@ export default {
     completedAt: '完成时间',
     productImage: '商品图片',
     productName: '商品名称',
+    skuInfo: 'SKU信息',
     skuName: '尺码',
     colorName: '颜色',
     quantity: '数量',
@@ -1147,5 +1153,143 @@ export default {
     quantity: '数量',
     summary: '共 {{skuCount}} 个尺码，合计 {{totalQuantity}} 件',
     orderCreated: '入库单创建成功',
+  },
+
+  // Outbound Management (Merchant)
+  outbound: {
+    title: '出库管理',
+    description: '查看和管理您的出库单',
+
+    // Fields
+    orderNo: '出库单号',
+    outboundType: '出库类型',
+    receiver: '收件人',
+    receiverName: '收件人姓名',
+    receiverPhone: '收件人电话',
+    receiverAddress: '收件地址',
+    receiverPostalCode: '邮政编码',
+    carrier: '物流公司',
+    trackingNumber: '运单号',
+    relatedOrder: '关联订单',
+    warehouse: '仓库',
+    totalQuantity: '商品数量',
+    remark: '备注',
+
+    // Types
+    typeSales: '销售出库',
+    typeReturnToMerchant: '退还商户',
+    typeTransfer: '调拨出库',
+    typeScrap: '报废出库',
+
+    // Status
+    statusDraft: '草稿',
+    statusPending: '待处理',
+    statusPicking: '拣货中',
+    statusPacking: '打包中',
+    statusReady: '待发货',
+    statusShipped: '已发货',
+    statusCancelled: '已取消',
+
+    // Actions
+    createOutbound: '创建出库单',
+    createDraft: '创建草稿',
+    viewOrder: '查看订单',
+    viewDetail: '查看详情',
+    deleteOrder: '删除出库单',
+    submitOrder: '提交出库单',
+    addItem: '添加商品',
+    removeItem: '移除商品',
+
+    // Create Modal
+    createTitle: '创建出库单',
+    createDraftDescription: '创建草稿出库单，稍后可在详情页添加商品',
+    selectWarehouse: '选择仓库',
+    selectWarehousePlaceholder: '请选择出库仓库',
+    selectWarehouseRequired: '请选择仓库',
+    selectItems: '选择商品',
+    stepReceiverInfo: '填写收货信息',
+    stepSelectItems: '选择出库商品',
+    receiverInfo: '收货信息',
+    enterReceiverName: '请输入收件人姓名',
+    enterReceiverPhone: '请输入收件人电话',
+    enterReceiverAddress: '请输入收件地址',
+    enterReceiverPostalCode: '请输入邮政编码（选填）',
+    enterRemark: '请输入备注（选填）',
+    selectItemsDescription: '选择需要出库的商品并设置数量',
+    noInventoryAvailable: '该仓库暂无可用库存',
+    noItemsSelected: '请至少选择一件商品',
+    product: '商品',
+    sku: 'SKU',
+    available: '可用库存',
+    outboundQuantity: '出库数量',
+    batchFill: '批量填充',
+    fillAll: '填充全部',
+    clearAll: '清空全部',
+    summary: '已选择 {{skuCount}} 个SKU，共 {{totalQuantity}} 件',
+    confirmCreate: '确认创建',
+    createSuccess: '出库单创建成功',
+
+    // Detail Page
+    basicInfo: '基本信息',
+    shippingInfo: '物流信息',
+    orderItems: '商品明细',
+    timeline: '时间线',
+    postalCode: '邮编',
+    cancelledAt: '取消时间',
+    cancelReason: '取消原因',
+    stockType: '库存类型',
+
+    // Timeline Events
+    timelineCreated: '创建出库单',
+    timelinePickingStarted: '开始拣货',
+    timelinePickingCompleted: '拣货完成',
+    timelinePackingStarted: '开始打包',
+    timelinePackingCompleted: '打包完成',
+    timelineShipped: '已发货',
+    timelineCancelled: '已取消',
+
+    // Messages
+    orderCreated: '出库单创建成功',
+    orderNotFound: '出库单不存在',
+    orderDeleted: '出库单已删除',
+    orderSubmitted: '出库单已提交',
+    itemAdded: '商品已添加',
+    itemRemoved: '商品已移除',
+    onlyDraftCanDelete: '只有草稿状态的出库单可以删除',
+    onlyDraftCanEdit: '只有草稿状态的出库单可以编辑',
+    onlyDraftCanSubmit: '只有草稿状态的出库单可以提交',
+    noItemsToSubmit: '请先添加商品再提交',
+    confirmDeleteOrder: '确定要删除这个出库单吗？',
+    confirmSubmitOrder: '确定要提交这个出库单吗？提交后将锁定库存。',
+    addItemDescription: '从仓库库存中选择商品添加到出库单',
+    noItemsYet: '暂无商品，请添加商品后提交',
+
+    // Validation
+    warehouseRequired: '请选择仓库',
+    receiverNameRequired: '请输入收件人姓名',
+    receiverPhoneRequired: '请输入收件人电话',
+    receiverAddressRequired: '请输入收件地址',
+    itemsRequired: '请选择商品',
+    quantityRequired: '请输入数量',
+    quantityMustBePositive: '数量必须大于0',
+
+    // Item Selector
+    selectInventory: '选择库存',
+    inventoryList: '库存列表',
+    availableQty: '可用数量',
+    selectedQty: '选择数量',
+    noInventory: '暂无可用库存',
+    insufficientStock: '库存不足',
+
+    // Inventory Selector Modal
+    normalStock: '正常库存',
+    damagedStock: '破损库存',
+    availableStock: '可用库存',
+    searchInventory: '搜索商品名称、款号、尺码...',
+    addToOrder: '添加到出库单',
+    pleaseSelectItem: '请选择要出库的商品',
+    itemsAdded: '商品已添加',
+    selectedItems: '已选择 {{count}} 件商品',
+    totalQuantityValue: '共 {{quantity}} 件',
   },
 }

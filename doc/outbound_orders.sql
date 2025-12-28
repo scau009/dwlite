@@ -6,6 +6,7 @@ CREATE TABLE `outbound_orders` (
     `outbound_no` VARCHAR(30) NOT NULL UNIQUE,
     `fulfillment_id` VARCHAR(26) NULL,
     `warehouse_id` VARCHAR(26) NOT NULL,
+    `merchant_id` VARCHAR(26) NOT NULL,
     `outbound_type` VARCHAR(30) NOT NULL DEFAULT 'sales' COMMENT 'sales, return_to_merchant, transfer, scrap',
     `status` VARCHAR(20) NOT NULL DEFAULT 'pending' COMMENT 'pending, picking, packing, ready, shipped, cancelled',
     `sync_status` VARCHAR(20) NOT NULL DEFAULT 'pending' COMMENT 'pending, synced, failed, callback',
@@ -30,11 +31,18 @@ CREATE TABLE `outbound_orders` (
     `remark` TEXT NULL,
     `created_at` DATETIME NOT NULL,
     `updated_at` DATETIME NOT NULL,
+    INDEX `idx_outbound_merchant` (`merchant_id`),
     INDEX `idx_outbound_fulfillment` (`fulfillment_id`),
     INDEX `idx_outbound_warehouse` (`warehouse_id`),
     INDEX `idx_outbound_status` (`status`),
     INDEX `idx_outbound_sync_status` (`sync_status`),
     INDEX `idx_outbound_external` (`external_id`),
+    CONSTRAINT `fk_outbound_merchant` FOREIGN KEY (`merchant_id`) REFERENCES `merchants` (`id`),
     CONSTRAINT `fk_outbound_fulfillment` FOREIGN KEY (`fulfillment_id`) REFERENCES `fulfillments` (`id`) ON DELETE SET NULL,
     CONSTRAINT `fk_outbound_warehouse` FOREIGN KEY (`warehouse_id`) REFERENCES `warehouses` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Outbound orders';
+
+-- Migration for existing tables:
+ALTER TABLE `outbound_orders` ADD COLUMN `merchant_id` VARCHAR(26) NOT NULL AFTER `warehouse_id`;
+ALTER TABLE `outbound_orders` ADD INDEX `idx_outbound_merchant` (`merchant_id`);
+ALTER TABLE `outbound_orders` ADD CONSTRAINT `fk_outbound_merchant` FOREIGN KEY (`merchant_id`) REFERENCES `merchants` (`id`);
