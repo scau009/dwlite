@@ -263,6 +263,7 @@ export function ChannelsListPage() {
         search={{
           labelWidth: 'auto',
           defaultCollapsed: false,
+          span: 6,
         }}
         options={{
           density: true,

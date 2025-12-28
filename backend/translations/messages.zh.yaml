@@ -187,6 +187,23 @@ validation:
   # Color
   color_format: '颜色必须是有效的HEX格式（如 #FF5733）'
 
+# Inbound order messages
+inbound:
+  order:
+    created: '入库单创建成功'
+    submitted: '入库单已提交'
+    shipped: '已发货'
+    received: '收货完成'
+    cancelled: '入库单已取消'
+    deleted: '入库单已删除'
+  item:
+    added: '商品添加成功'
+    updated: '商品更新成功'
+    removed: '商品删除成功'
+  exception:
+    created: '异常单创建成功'
+    resolved: '异常单处理完成'
+
 # Outbound order messages
 outbound:
   order:

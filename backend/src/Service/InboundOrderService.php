@@ -182,6 +182,33 @@ class InboundOrderService
     }
 
     /**
+     * 删除草稿入库单
+     */
+    public function deleteOrder(InboundOrder $order): void
+    {
+        if (!$order->isDraft()) {
+            throw new \LogicException('Only draft orders can be deleted');
+        }
+
+        $orderId = $order->getId();
+        $orderNo = $order->getOrderNo();
+
+        // 删除所有明细
+        foreach ($order->getItems() as $item) {
+            $this->entityManager->remove($item);
+        }
+
+        // 删除入库单
+        $this->entityManager->remove($order);
+        $this->entityManager->flush();
+
+        $this->logger->info('Deleted inbound order', [
+            'order_id' => $orderId,
+            'order_no' => $orderNo,
+        ]);
+    }
+
+    /**
      * 提交入库单（草稿 -> 待发货）
      */
     public function submitOrder(InboundOrder $order): InboundOrder

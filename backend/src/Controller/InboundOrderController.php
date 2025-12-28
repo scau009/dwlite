@@ -78,13 +78,16 @@ class InboundOrderController extends AbstractController
     }
 
     /**
-     * 搜索商品（供入库单添加明细使用）
+     * 搜索商品（供入库单添加明细和商机发现使用）
      */
     #[Route('/products', name: 'inbound_search_products', methods: ['GET'])]
     public function searchProducts(Request $request): JsonResponse
     {
         $search = $request->query->get('search', '');
-        $limit = min((int) $request->query->get('limit', 10), 50);
+        $brandId = $request->query->get('brandId');
+        $categoryId = $request->query->get('categoryId');
+        $page = max(1, (int) $request->query->get('page', 1));
+        $limit = min((int) $request->query->get('limit', 20), 50);
 
         $filters = [
             'status' => 'active',  // 只查询已上架的商品
@@ -94,12 +97,18 @@ class InboundOrderController extends AbstractController
         if ($search) {
             $filters['search'] = $search;
         }
+        if ($brandId) {
+            $filters['brandId'] = $brandId;
+        }
+        if ($categoryId) {
+            $filters['categoryId'] = $categoryId;
+        }
 
-        $result = $this->productRepository->findWithFilters($filters, 1, $limit);
+        $result = $this->productRepository->findWithFilters($filters, $page, $limit);
 
         return $this->json([
             'data' => array_map(fn(Product $p) => $this->serializeProductForInbound($p), $result['data']),
-            'total' => $result['meta']['total'],
+            'meta' => $result['meta'],
         ]);
     }
 
@@ -198,6 +207,32 @@ class InboundOrderController extends AbstractController
         return $this->json([
             'data' => $this->serializeOrderDetail($order),
         ]);
+    }
+
+    /**
+     * 删除草稿入库单
+     */
+    #[Route('/orders/{id}', name: 'inbound_delete_order', methods: ['DELETE'])]
+    public function deleteOrder(
+        #[CurrentUser] User $user,
+        string $id
+    ): JsonResponse {
+        $merchant = $this->getCurrentMerchant($user);
+        $order = $this->inboundOrderService->getOrderById($id);
+
+        if ($order === null || $order->getMerchant()->getId() !== $merchant->getId()) {
+            return $this->json(['error' => 'Order not found'], Response::HTTP_NOT_FOUND);
+        }
+
+        try {
+            $this->inboundOrderService->deleteOrder($order);
+
+            return $this->json([
+                'message' => $this->translator->trans('inbound.order.deleted'),
+            ]);
+        } catch (\LogicException $e) {
+            return $this->json(['error' => $e->getMessage()], Response::HTTP_BAD_REQUEST);
+        }
     }
 
     /**

@@ -211,6 +211,24 @@ export interface InboundProduct {
   skus: InboundProductSku[];
 }
 
+export interface ProductDiscoveryParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  brandId?: string;
+  categoryId?: string;
+}
+
+export interface ProductDiscoveryResponse {
+  data: InboundProduct[];
+  meta: {
+    total: number;
+    page: number;
+    limit: number;
+    pages: number;
+  };
+}
+
 // ========== API Methods ==========
 
 export const inboundApi = {
@@ -239,6 +257,25 @@ export const inboundApi = {
       `/api/inbound/products${query ? `?${query}` : ''}`
     );
     return response.data || [];
+  },
+
+  /**
+   * Search products for discovery page with pagination
+   */
+  searchProductsForDiscovery: async (
+    params: ProductDiscoveryParams = {}
+  ): Promise<ProductDiscoveryResponse> => {
+    const queryParams = new URLSearchParams();
+    if (params.page) queryParams.append('page', params.page.toString());
+    if (params.limit) queryParams.append('limit', params.limit.toString());
+    if (params.search) queryParams.append('search', params.search);
+    if (params.brandId) queryParams.append('brandId', params.brandId);
+    if (params.categoryId) queryParams.append('categoryId', params.categoryId);
+
+    const query = queryParams.toString();
+    return await apiFetch<ProductDiscoveryResponse>(
+      `/api/inbound/products${query ? `?${query}` : ''}`
+    );
   },
 
   // ========== Inbound Orders ==========

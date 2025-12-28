@@ -187,6 +187,23 @@ validation:
   # Color
   color_format: 'Color must be a valid HEX format (e.g. #FF5733)'
 
+# Inbound order messages
+inbound:
+  order:
+    created: 'Inbound order created successfully'
+    submitted: 'Inbound order submitted'
+    shipped: 'Order shipped'
+    received: 'Receiving completed'
+    cancelled: 'Inbound order cancelled'
+    deleted: 'Inbound order deleted'
+  item:
+    added: 'Item added successfully'
+    updated: 'Item updated successfully'
+    removed: 'Item removed successfully'
+  exception:
+    created: 'Exception created successfully'
+    resolved: 'Exception resolved'
+
 # Outbound order messages
 outbound:
   order:

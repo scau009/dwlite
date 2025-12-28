@@ -1,3 +1,6 @@
+// Opportunities
+export { OpportunitiesListPage } from './opportunities/list';
+
 // Inbound Orders
 export { InboundOrdersListPage } from './inbound/list';
 export { InboundOrderDetailPage } from './inbound/detail';

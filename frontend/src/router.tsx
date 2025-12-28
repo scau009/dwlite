@@ -28,6 +28,7 @@ import { ChannelsListPage, MerchantChannelsListPage } from '@/pages/channels';
 import { CategoriesListPage } from '@/pages/categories';
 import { TagsListPage } from '@/pages/tags';
 import {
+  OpportunitiesListPage,
   InboundOrdersListPage,
   InboundOrderDetailPage,
   InboundExceptionsListPage,
@@ -152,6 +153,9 @@ export const router = createBrowserRouter([
               { path: '/fulfillment/pending', element: <PlaceholderPage title="Pending Shipment" /> },
               { path: '/fulfillment/shipped', element: <PlaceholderPage title="Shipped" /> },
               { path: '/fulfillment/exceptions', element: <PlaceholderPage title="Fulfillment Exceptions" /> },
+
+              // Opportunities
+              { path: '/opportunities', element: <OpportunitiesListPage /> },
 
               // Inventory
               { path: '/inventory/stock', element: <MerchantStockListPage /> },

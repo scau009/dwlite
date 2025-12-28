@@ -8,7 +8,7 @@ class CreateSalesChannelRequest
 {
     #[Assert\NotBlank(message: 'validation.code_required')]
     #[Assert\Length(max: 50, maxMessage: 'validation.code_max_length')]
-    #[Assert\Regex(pattern: '/^[a-z0-9_]+$/', message: 'validation.code_format')]
+    #[Assert\Regex(pattern: '/^[A-Z0-9_]+$/', message: 'validation.code_format')]
     public string $code = '';
 
     #[Assert\NotBlank(message: 'validation.name_required')]
