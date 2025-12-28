@@ -136,4 +136,31 @@ class MerchantSalesChannelRepository extends ServiceEntityRepository
             ->getQuery()
             ->getSingleScalarResult();
     }
+
+    /**
+     * 分页查询指定商户的渠道申请记录
+     *
+     * @return array{data: MerchantSalesChannel[], total: int}
+     */
+    public function findByMerchantPaginated(Merchant $merchant, int $page = 1, int $limit = 20, array $filters = []): array
+    {
+        $qb = $this->createQueryBuilder('mc')
+            ->innerJoin('mc.salesChannel', 'c')
+            ->where('mc.merchant = :merchant')
+            ->setParameter('merchant', $merchant)
+            ->orderBy('mc.createdAt', 'DESC');
+
+        if (!empty($filters['status'])) {
+            $qb->andWhere('mc.status = :status')
+                ->setParameter('status', $filters['status']);
+        }
+
+        $countQb = clone $qb;
+        $total = (int) $countQb->select('COUNT(mc.id)')->getQuery()->getSingleScalarResult();
+
+        $offset = ($page - 1) * $limit;
+        $data = $qb->setFirstResult($offset)->setMaxResults($limit)->getQuery()->getResult();
+
+        return ['data' => $data, 'total' => $total];
+    }
 }

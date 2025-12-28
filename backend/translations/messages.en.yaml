@@ -125,6 +125,19 @@ merchant:
   not_found: 'Merchant not found'
   profile_updated: 'Profile updated successfully'
 
+# Merchant channel messages
+merchant_channel:
+  not_found: 'Channel application not found'
+  channel_not_found: 'Sales channel not found'
+  channel_not_available: 'This channel is not available for application'
+  already_applied: 'You have already applied for this channel'
+  applied: 'Channel application submitted successfully'
+  application_cancelled: 'Channel application cancelled'
+  disabled: 'Channel has been disabled'
+  enabled: 'Channel has been enabled'
+  cannot_cancel_or_disable: 'Cannot cancel or disable in current status'
+  not_disabled: 'This channel is not disabled'
+
 # Wallet messages
 wallet:
   init_success: 'Wallets initialized successfully'

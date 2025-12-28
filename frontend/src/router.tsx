@@ -45,7 +45,7 @@ import {
   WarehouseOutboundDetailPage,
   WarehouseInventoryListPage,
 } from '@/pages/warehouse-ops';
-import { MerchantProfilePage, MerchantWalletPage } from '@/pages/settings';
+import { MerchantProfilePage, MerchantWalletPage, MerchantChannelsPage } from '@/pages/settings';
 
 // Placeholder component for pages not yet implemented
 function PlaceholderPage({ title }: { title: string }) {
@@ -195,6 +195,7 @@ export const router = createBrowserRouter([
               // Settings
               { path: '/settings/info', element: <MerchantProfilePage /> },
               { path: '/settings/wallet', element: <MerchantWalletPage /> },
+              { path: '/settings/channels', element: <MerchantChannelsPage /> },
               { path: '/settings/users', element: <PlaceholderPage title="User Management" /> },
               { path: '/settings/roles', element: <PlaceholderPage title="Role Management" /> },
               { path: '/settings/logs', element: <PlaceholderPage title="Operation Logs" /> },

@@ -107,6 +107,7 @@ export default {
     // Settings
     generalSettings: 'General',
     walletManagement: 'Wallet',
+    myChannels: 'My Channels',
     userManagement: 'Users',
     roleManagement: 'Roles',
     operationLogs: 'Logs',
@@ -1285,5 +1286,59 @@ export default {
     itemsAdded: 'Items added successfully',
     selectedItems: '{{count}} items selected',
     totalQuantityValue: 'Total: {{quantity}} items',
+  },
+
+  // My Channels (Merchant)
+  myChannels: {
+    title: 'Sales Channel Management',
+    description: 'Apply for and manage your sales channel connections',
+    availableChannels: 'Available Channels',
+    myChannels: 'My Channels',
+    // Available Channels Tab
+    noAvailableChannels: 'No channels available for application',
+    applyChannel: 'Apply',
+    businessType: {
+      import: 'Import',
+      export: 'Export',
+    },
+    // My Channels Tab
+    channel: 'Channel',
+    status: 'Status',
+    remark: 'Remark',
+    appliedAt: 'Applied At',
+    approvedAt: 'Approved At',
+    noMyChannels: 'You have not applied for any channels yet',
+    // Status
+    statusPending: 'Pending',
+    statusActive: 'Active',
+    statusSuspended: 'Suspended',
+    statusDisabled: 'Disabled',
+    // Actions
+    disable: 'Disable',
+    enable: 'Enable',
+    cancelApplication: 'Cancel Application',
+    // Apply Modal
+    applyTitle: 'Apply for Channel',
+    channelInfo: 'Channel Information',
+    channelName: 'Channel Name',
+    remarkLabel: 'Remark',
+    remarkPlaceholder: 'Enter application remark (optional)',
+    remarkHint: 'You can describe your intention or relevant information',
+    submitApplication: 'Submit Application',
+    // Messages
+    applySuccess: 'Application submitted successfully, awaiting review',
+    cancelSuccess: 'Application cancelled',
+    disableSuccess: 'Channel disabled',
+    enableSuccess: 'Channel enabled',
+    // Confirm
+    confirmCancel: 'Confirm Cancel',
+    confirmCancelDesc: 'Are you sure you want to cancel this channel application?',
+    confirmDisable: 'Confirm Disable',
+    confirmDisableDesc: 'After disabling, you will not be able to use this channel. Are you sure?',
+    confirmEnable: 'Confirm Enable',
+    confirmEnableDesc: 'Are you sure you want to re-enable this channel?',
+    // Status Description
+    pendingDesc: 'Awaiting platform review',
+    suspendedByAdmin: 'Suspended by admin',
   },
 }

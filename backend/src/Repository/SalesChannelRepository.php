@@ -2,6 +2,8 @@
 
 namespace App\Repository;
 
+use App\Entity\Merchant;
+use App\Entity\MerchantSalesChannel;
 use App\Entity\SalesChannel;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -111,5 +113,37 @@ class SalesChannelRepository extends ServiceEntityRepository
         }
 
         return (int) $qb->getQuery()->getSingleScalarResult() > 0;
+    }
+
+    /**
+     * 获取商户可申请的销售渠道（排除已申请的）
+     *
+     * @return SalesChannel[]
+     */
+    public function findAvailableForMerchant(Merchant $merchant): array
+    {
+        $em = $this->getEntityManager();
+
+        // 获取商户已申请的渠道 ID 列表
+        $appliedChannelIds = $em->createQueryBuilder()
+            ->select('IDENTITY(mc.salesChannel)')
+            ->from(MerchantSalesChannel::class, 'mc')
+            ->where('mc.merchant = :merchant')
+            ->setParameter('merchant', $merchant)
+            ->getQuery()
+            ->getSingleColumnResult();
+
+        $qb = $this->createQueryBuilder('c')
+            ->where('c.status = :status')
+            ->setParameter('status', SalesChannel::STATUS_ACTIVE)
+            ->orderBy('c.sortOrder', 'ASC')
+            ->addOrderBy('c.name', 'ASC');
+
+        if (!empty($appliedChannelIds)) {
+            $qb->andWhere('c.id NOT IN (:appliedIds)')
+                ->setParameter('appliedIds', $appliedChannelIds);
+        }
+
+        return $qb->getQuery()->getResult();
     }
 }

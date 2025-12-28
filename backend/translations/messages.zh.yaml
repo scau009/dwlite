@@ -125,6 +125,19 @@ merchant:
   not_found: '未找到商户信息'
   profile_updated: '商户信息更新成功'
 
+# Merchant channel messages
+merchant_channel:
+  not_found: '未找到渠道申请记录'
+  channel_not_found: '销售渠道不存在'
+  channel_not_available: '该渠道暂不可申请'
+  already_applied: '您已申请过该渠道'
+  applied: '渠道申请已提交'
+  application_cancelled: '渠道申请已取消'
+  disabled: '渠道已停用'
+  enabled: '渠道已启用'
+  cannot_cancel_or_disable: '当前状态下无法取消或停用'
+  not_disabled: '该渠道未停用'
+
 # Wallet messages
 wallet:
   init_success: '钱包初始化成功'

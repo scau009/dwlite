@@ -7,7 +7,7 @@ import {
   // ShoppingCartOutlined,
   // CarOutlined,
   // BarChartOutlined,
-  // SettingOutlined,
+  SettingOutlined,
   TeamOutlined,
   HomeOutlined,
   ShopOutlined,
@@ -150,19 +150,16 @@ export function getMenuData(t: TFunction): AccessMenuDataItem[] {
     //     { path: '/data/reports', name: t('menu.reports'), access: 'admin' },
     //   ],
     // },
-    // TODO: 系统设置 - 暂时隐藏
-    // {
-    //   path: '/settings',
-    //   name: t('nav.settings'),
-    //   icon: <SettingOutlined />,
-    //   access: ['admin', 'merchant'],
-    //   children: [
-    //     { path: '/settings/info', name: t('menu.generalSettings'), access: 'merchant' },
-    //     { path: '/settings/wallet', name: t('menu.walletManagement'), access: 'merchant' },
-    //     { path: '/settings/users', name: t('menu.userManagement'), access: 'admin' },
-    //     { path: '/settings/roles', name: t('menu.roleManagement'), access: 'admin' },
-    //     { path: '/settings/logs', name: t('menu.operationLogs'), access: 'admin' },
-    //   ],
-    // },
+    {
+      path: '/settings',
+      name: t('nav.settings'),
+      icon: <SettingOutlined />,
+      access: 'merchant',
+      children: [
+        { path: '/settings/info', name: t('menu.generalSettings'), access: 'merchant' },
+        { path: '/settings/wallet', name: t('menu.walletManagement'), access: 'merchant' },
+        { path: '/settings/channels', name: t('menu.myChannels'), access: 'merchant' },
+      ],
+    },
   ];
 }
