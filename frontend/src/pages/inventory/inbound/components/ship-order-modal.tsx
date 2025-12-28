@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Modal, Form, Input, InputNumber, DatePicker, App, Select, Divider } from 'antd';
 
 import { inboundApi } from '@/lib/inbound-api';
+import { commonApi, type Carrier } from '@/lib/common-api';
 
 interface ShipOrderModalProps {
   open: boolean;
@@ -10,20 +11,6 @@ interface ShipOrderModalProps {
   onClose: () => void;
   onSuccess: () => void;
 }
-
-// Common carriers in China
-const CARRIERS = [
-  { code: 'SF', name: '顺丰速运' },
-  { code: 'YTO', name: '圆通速递' },
-  { code: 'ZTO', name: '中通快递' },
-  { code: 'STO', name: '申通快递' },
-  { code: 'YD', name: '韵达速递' },
-  { code: 'JTSD', name: '极兔速递' },
-  { code: 'EMS', name: '邮政EMS' },
-  { code: 'DBKD', name: '德邦快递' },
-  { code: 'JD', name: '京东物流' },
-  { code: 'OTHER', name: '其他' },
-];
 
 export function ShipOrderModal({
   open,
@@ -35,13 +22,34 @@ export function ShipOrderModal({
   const [form] = Form.useForm();
   const { message } = App.useApp();
   const [loading, setLoading] = useState(false);
+  const [carriers, setCarriers] = useState<Carrier[]>([]);
+  const [carriersLoading, setCarriersLoading] = useState(false);
+
+  useEffect(() => {
+    if (open) {
+      loadCarriers();
+    }
+  }, [open]);
+
+  const loadCarriers = async () => {
+    try {
+      setCarriersLoading(true);
+      const data = await commonApi.getCarrierOptions();
+      setCarriers(data);
+    } catch {
+      // Fallback to empty array if API fails
+      setCarriers([]);
+    } finally {
+      setCarriersLoading(false);
+    }
+  };
 
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields();
       setLoading(true);
 
-      const carrier = CARRIERS.find((c) => c.code === values.carrierCode);
+      const carrier = carriers.find((c) => c.code === values.carrierCode);
 
       await inboundApi.shipInboundOrder(orderId, {
         carrierCode: values.carrierCode,
@@ -100,7 +108,8 @@ export function ShipOrderModal({
           >
             <Select
               placeholder={t('inventory.selectCarrier')}
-              options={CARRIERS.map((c) => ({
+              loading={carriersLoading}
+              options={carriers.map((c) => ({
                 value: c.code,
                 label: c.name,
               }))}

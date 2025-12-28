@@ -12,6 +12,7 @@ services:
     environment:
       - APP_ENV=dev
       - APP_SECRET=${APP_SECRET:-change-me-in-production}
+      - TZ=UTC
     extra_hosts:
       - "host.docker.internal:host-gateway"
     labels:
@@ -38,6 +39,7 @@ services:
     environment:
       - APP_ENV=dev
       - APP_SECRET=${APP_SECRET:-change-me-in-production}
+      - TZ=UTC
     extra_hosts:
       - "host.docker.internal:host-gateway"
     command: php bin/console messenger:consume async --time-limit=3600 --memory-limit=128M -vv
@@ -65,6 +67,7 @@ services:
     environment:
       - APP_ENV=dev
       - APP_SECRET=${APP_SECRET:-change-me-in-production}
+      - TZ=UTC
     extra_hosts:
       - "host.docker.internal:host-gateway"
     command: php bin/console messenger:consume scheduler_default --time-limit=3600 --memory-limit=128M -vv

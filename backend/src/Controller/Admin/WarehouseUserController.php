@@ -228,8 +228,8 @@ class WarehouseUserController extends AbstractController
                 'code' => $warehouse->getCode(),
                 'name' => $warehouse->getName(),
             ] : null,
-            'createdAt' => $user->getCreatedAt()->format('Y-m-d H:i:s'),
-            'updatedAt' => $user->getUpdatedAt()->format('Y-m-d H:i:s'),
+            'createdAt' => $user->getCreatedAt()->format('c'),
+            'updatedAt' => $user->getUpdatedAt()->format('c'),
         ];
     }
 }

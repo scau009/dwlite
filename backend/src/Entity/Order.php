@@ -160,9 +160,9 @@ class Order
         $this->orderNo = $this->generateOrderNo();
         $this->items = new ArrayCollection();
         $this->fulfillments = new ArrayCollection();
-        $this->syncedAt = new \DateTimeImmutable();
-        $this->createdAt = new \DateTimeImmutable();
-        $this->updatedAt = new \DateTimeImmutable();
+        $this->syncedAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
+        $this->createdAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
+        $this->updatedAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
     }
 
     private function generateOrderNo(): string
@@ -565,7 +565,7 @@ class Order
     #[ORM\PreUpdate]
     public function setUpdatedAtValue(): void
     {
-        $this->updatedAt = new \DateTimeImmutable();
+        $this->updatedAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
     }
 
     // 便捷方法
@@ -649,7 +649,7 @@ class Order
     public function markAllocated(): void
     {
         $this->status = self::STATUS_ALLOCATED;
-        $this->allocatedAt = new \DateTimeImmutable();
+        $this->allocatedAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
     }
 
     /**
@@ -675,7 +675,7 @@ class Order
     public function markShipped(): void
     {
         $this->status = self::STATUS_SHIPPED;
-        $this->shippedAt = new \DateTimeImmutable();
+        $this->shippedAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
     }
 
     /**
@@ -684,7 +684,7 @@ class Order
     public function markDelivered(): void
     {
         $this->status = self::STATUS_DELIVERED;
-        $this->deliveredAt = new \DateTimeImmutable();
+        $this->deliveredAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
     }
 
     /**
@@ -693,7 +693,7 @@ class Order
     public function markCompleted(): void
     {
         $this->status = self::STATUS_COMPLETED;
-        $this->completedAt = new \DateTimeImmutable();
+        $this->completedAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
     }
 
     /**
@@ -702,6 +702,6 @@ class Order
     public function markCancelled(): void
     {
         $this->status = self::STATUS_CANCELLED;
-        $this->cancelledAt = new \DateTimeImmutable();
+        $this->cancelledAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
     }
 }

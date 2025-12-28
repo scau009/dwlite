@@ -32,8 +32,8 @@ class PasswordResetToken
         $this->id = (string) new Ulid();
         $this->token = bin2hex(random_bytes(32));
         $this->user = $user;
-        $this->expiresAt = new \DateTimeImmutable("+{$expiresInHours} hours");
-        $this->createdAt = new \DateTimeImmutable();
+        $this->expiresAt = new \DateTimeImmutable("+{$expiresInHours} hours", new \DateTimeZone('UTC'));
+        $this->createdAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
     }
 
     public function getId(): string
@@ -63,6 +63,6 @@ class PasswordResetToken
 
     public function isExpired(): bool
     {
-        return $this->expiresAt < new \DateTimeImmutable();
+        return $this->expiresAt < new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
     }
 }

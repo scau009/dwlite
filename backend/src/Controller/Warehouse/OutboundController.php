@@ -6,6 +6,7 @@ use App\Attribute\WarehouseOnly;
 use App\Entity\OutboundOrder;
 use App\Entity\Warehouse;
 use App\Repository\OutboundOrderRepository;
+use App\Service\CosService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -27,6 +28,7 @@ class OutboundController extends AbstractController
         private OutboundOrderRepository $outboundOrderRepository,
         private EntityManagerInterface $entityManager,
         private TranslatorInterface $translator,
+        private CosService $cosService,
     ) {
     }
 
@@ -261,8 +263,8 @@ class OutboundController extends AbstractController
             'totalQuantity' => $order->getTotalQuantity(),
             'shippingCarrier' => $order->getShippingCarrier(),
             'trackingNumber' => $order->getTrackingNumber(),
-            'shippedAt' => $order->getShippedAt()?->format('Y-m-d H:i:s'),
-            'createdAt' => $order->getCreatedAt()->format('Y-m-d H:i:s'),
+            'shippedAt' => $order->getShippedAt()?->format('c'),
+            'createdAt' => $order->getCreatedAt()->format('c'),
         ];
     }
 
@@ -278,23 +280,61 @@ class OutboundController extends AbstractController
         $data['cancelReason'] = $order->getCancelReason();
 
         // 时间节点
-        $data['pickingStartedAt'] = $order->getPickingStartedAt()?->format('Y-m-d H:i:s');
-        $data['pickingCompletedAt'] = $order->getPickingCompletedAt()?->format('Y-m-d H:i:s');
-        $data['packingStartedAt'] = $order->getPackingStartedAt()?->format('Y-m-d H:i:s');
-        $data['packingCompletedAt'] = $order->getPackingCompletedAt()?->format('Y-m-d H:i:s');
+        $data['pickingStartedAt'] = $order->getPickingStartedAt()?->format('c');
+        $data['pickingCompletedAt'] = $order->getPickingCompletedAt()?->format('c');
+        $data['packingStartedAt'] = $order->getPackingStartedAt()?->format('c');
+        $data['packingCompletedAt'] = $order->getPackingCompletedAt()?->format('c');
 
         // 明细
         $data['items'] = array_map(function ($item) {
+            // 签名图片 URL
+            $productImageUrl = null;
+            $productImage = $item->getProductImage();
+            if ($productImage) {
+                $cosKey = $this->extractCosKey($productImage);
+                if ($cosKey) {
+                    $productImageUrl = $this->cosService->getSignedUrl(
+                        $cosKey,
+                        3600,
+                        'imageMogr2/thumbnail/120x120>'
+                    );
+                }
+            }
+
             return [
                 'id' => $item->getId(),
                 'productSkuId' => $item->getProductSku()?->getId(),
                 'skuName' => $item->getSkuName(),
+                'styleNumber' => $item->getStyleNumber(),
+                'colorName' => $item->getColorName(),
                 'productName' => $item->getProductName(),
+                'productImage' => $productImageUrl,
+                'stockType' => $item->getStockType(),
                 'quantity' => $item->getQuantity(),
-                'pickedQuantity' => $item->getPickedQuantity(),
             ];
         }, $order->getItems()->toArray());
 
         return $data;
+    }
+
+    /**
+     * 从图片路径或 URL 中提取 COS key
+     */
+    private function extractCosKey(string $imagePathOrUrl): ?string
+    {
+        // 如果已经是相对路径（COS key），直接返回
+        if (!str_starts_with($imagePathOrUrl, 'http')) {
+            return $imagePathOrUrl;
+        }
+
+        // 从完整 URL 中提取 COS key
+        // URL 格式: https://bucket.cos.region.myqcloud.com/dwlite/...
+        $parsed = parse_url($imagePathOrUrl);
+        if ($parsed && isset($parsed['path'])) {
+            // 去掉开头的斜杠
+            return ltrim($parsed['path'], '/');
+        }
+
+        return null;
     }
 }

@@ -298,4 +298,119 @@ class MerchantInventoryRepository extends ServiceEntityRepository
             ->getQuery()
             ->getSingleResult();
     }
+
+    /**
+     * 按商户分页查询库存（按 styleNumber + sizeValue 分组）
+     *
+     * @return array{data: array[], meta: array{total: int, page: int, limit: int, pages: int}}
+     */
+    public function findByMerchantPaginatedGrouped(
+        Merchant $merchant,
+        int $page = 1,
+        int $limit = 20,
+        array $filters = []
+    ): array {
+        $qb = $this->getEntityManager()->createQueryBuilder()
+            ->select('p.styleNumber')
+            ->addSelect('p.name as productName')
+            ->addSelect('p.color as colorName')
+            ->addSelect('sku.sizeUnit')
+            ->addSelect('sku.sizeValue')
+            ->addSelect('sku.skuName')
+            ->addSelect('SUM(i.quantityInTransit) as quantityInTransit')
+            ->addSelect('SUM(i.quantityAvailable) as quantityAvailable')
+            ->addSelect('SUM(i.quantityReserved) as quantityReserved')
+            ->addSelect('SUM(i.quantityDamaged) as quantityDamaged')
+            ->addSelect('SUM(i.quantityAllocated) as quantityAllocated')
+            ->addSelect('MAX(i.updatedAt) as updatedAt')
+            ->addSelect('MIN(sku.id) as skuId')
+            ->addSelect('MIN(p.id) as productId')
+            ->from(MerchantInventory::class, 'i')
+            ->leftJoin('i.productSku', 'sku')
+            ->leftJoin('sku.product', 'p')
+            ->andWhere('i.merchant = :merchant')
+            ->setParameter('merchant', $merchant)
+            ->groupBy('p.styleNumber, sku.sizeValue, sku.sizeUnit, p.name, p.color, sku.skuName')
+            ->orderBy('MAX(i.updatedAt)', 'DESC');
+
+        // 搜索商品名或 SKU 名或货号
+        if (!empty($filters['search'])) {
+            $qb->andWhere('sku.skuName LIKE :search OR p.name LIKE :search OR p.styleNumber LIKE :search')
+                ->setParameter('search', '%' . $filters['search'] . '%');
+        }
+
+        // 按仓库筛选
+        if (!empty($filters['warehouseId'])) {
+            $qb->leftJoin('i.warehouse', 'w')
+                ->andWhere('i.warehouse = :warehouseId')
+                ->setParameter('warehouseId', $filters['warehouseId']);
+        }
+
+        // 库存状态筛选
+        if (!empty($filters['stockStatus'])) {
+            switch ($filters['stockStatus']) {
+                case 'in_transit':
+                    $qb->andHaving('SUM(i.quantityInTransit) > 0');
+                    break;
+                case 'available':
+                    $qb->andHaving('SUM(i.quantityAvailable) > 0');
+                    break;
+                case 'reserved':
+                    $qb->andHaving('SUM(i.quantityReserved) > 0');
+                    break;
+                case 'damaged':
+                    $qb->andHaving('SUM(i.quantityDamaged) > 0');
+                    break;
+                case 'has_stock':
+                    $qb->andHaving('SUM(i.quantityInTransit) > 0 OR SUM(i.quantityAvailable) > 0 OR SUM(i.quantityReserved) > 0');
+                    break;
+            }
+        }
+
+        // 只显示有库存的
+        if (!empty($filters['hasStock'])) {
+            $qb->andHaving('SUM(i.quantityInTransit) > 0 OR SUM(i.quantityAvailable) > 0 OR SUM(i.quantityReserved) > 0');
+        }
+
+        // 计算总数 - 需要用子查询
+        $countQb = $this->getEntityManager()->createQueryBuilder()
+            ->select('COUNT(DISTINCT CONCAT(p2.styleNumber, \'-\', sku2.sizeValue))')
+            ->from(MerchantInventory::class, 'i2')
+            ->leftJoin('i2.productSku', 'sku2')
+            ->leftJoin('sku2.product', 'p2')
+            ->andWhere('i2.merchant = :merchant')
+            ->setParameter('merchant', $merchant);
+
+        if (!empty($filters['search'])) {
+            $countQb->andWhere('sku2.skuName LIKE :search OR p2.name LIKE :search OR p2.styleNumber LIKE :search')
+                ->setParameter('search', '%' . $filters['search'] . '%');
+        }
+
+        if (!empty($filters['warehouseId'])) {
+            $countQb->andWhere('i2.warehouse = :warehouseId')
+                ->setParameter('warehouseId', $filters['warehouseId']);
+        }
+
+        if (!empty($filters['hasStock'])) {
+            $countQb->andWhere('i2.quantityInTransit > 0 OR i2.quantityAvailable > 0 OR i2.quantityReserved > 0');
+        }
+
+        $total = (int) $countQb->getQuery()->getSingleScalarResult();
+
+        // 分页
+        $qb->setFirstResult(($page - 1) * $limit)
+            ->setMaxResults($limit);
+
+        $data = $qb->getQuery()->getResult();
+
+        return [
+            'data' => $data,
+            'meta' => [
+                'total' => $total,
+                'page' => $page,
+                'limit' => $limit,
+                'pages' => $total > 0 ? (int) ceil($total / $limit) : 0,
+            ],
+        ];
+    }
 }

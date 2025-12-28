@@ -39,17 +39,14 @@ class OutboundOrderItem
     private ?ProductSku $productSku = null;
 
     // SKU 快照字段（保留出库时的商品信息）
-    #[ORM\Column(name: 'sku_code', length: 50, nullable: true)]
-    private ?string $skuCode = null;
+    #[ORM\Column(name: 'sku_name', length: 255, nullable: true)]
+    private ?string $skuName = null;
 
-    #[ORM\Column(name: 'color_code', length: 20, nullable: true)]
-    private ?string $colorCode = null;
+    #[ORM\Column(name: 'style_number', length: 255, nullable: true)]
+    private ?string $styleNumber = null;
 
-    #[ORM\Column(name: 'size_value', length: 20, nullable: true)]
-    private ?string $sizeValue = null;
-
-    #[ORM\Column(name: 'spec_info', type: 'json', nullable: true)]
-    private ?array $specInfo = null;
+    #[ORM\Column(name: 'color_name', length: 255, nullable: true)]
+    private ?string $colorName = null;
 
     #[ORM\Column(name: 'product_name', length: 255, nullable: true)]
     private ?string $productName = null;
@@ -77,8 +74,8 @@ class OutboundOrderItem
     public function __construct()
     {
         $this->id = (string) new Ulid();
-        $this->createdAt = new \DateTimeImmutable();
-        $this->updatedAt = new \DateTimeImmutable();
+        $this->createdAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
+        $this->updatedAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
     }
 
     public function getId(): string
@@ -132,47 +129,36 @@ class OutboundOrderItem
 
     // SKU 快照字段 getter/setter
 
-    public function getSkuCode(): ?string
+    public function getSkuName(): ?string
     {
-        return $this->skuCode;
+        return $this->skuName;
     }
 
-    public function setSkuCode(?string $skuCode): static
+    public function setSkuName(?string $skuName): static
     {
-        $this->skuCode = $skuCode;
+        $this->skuName = $skuName;
         return $this;
     }
 
-    public function getColorCode(): ?string
+    public function getStyleNumber(): ?string
     {
-        return $this->colorCode;
+        return $this->styleNumber;
     }
 
-    public function setColorCode(?string $colorCode): static
+    public function setStyleNumber(?string $styleNumber): static
     {
-        $this->colorCode = $colorCode;
+        $this->styleNumber = $styleNumber;
         return $this;
     }
 
-    public function getSizeValue(): ?string
+    public function getColorName(): ?string
     {
-        return $this->sizeValue;
+        return $this->colorName;
     }
 
-    public function setSizeValue(?string $sizeValue): static
+    public function setColorName(?string $colorName): static
     {
-        $this->sizeValue = $sizeValue;
-        return $this;
-    }
-
-    public function getSpecInfo(): ?array
-    {
-        return $this->specInfo;
-    }
-
-    public function setSpecInfo(?array $specInfo): static
-    {
-        $this->specInfo = $specInfo;
+        $this->colorName = $colorName;
         return $this;
     }
 
@@ -243,7 +229,7 @@ class OutboundOrderItem
     #[ORM\PreUpdate]
     public function setUpdatedAtValue(): void
     {
-        $this->updatedAt = new \DateTimeImmutable();
+        $this->updatedAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
     }
 
     /**
@@ -253,9 +239,9 @@ class OutboundOrderItem
     {
         $product = $sku->getProduct();
 
-        $this->skuCode = $product->getStyleNumber();
-        $this->colorCode = $product->getColor();
-        $this->sizeValue = $sku->getSizeValue();
+        $this->skuName = $sku->getSizeValue();
+        $this->styleNumber = $product->getStyleNumber();
+        $this->colorName = $product->getColor();
         $this->productName = $product->getName();
 
         $primaryImage = $product->getPrimaryImage();

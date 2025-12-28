@@ -148,17 +148,19 @@ class OutboundOrder
 
     public function __construct()
     {
+        $nowUtc = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
         $this->id = (string) new Ulid();
         $this->outboundNo = $this->generateOutboundNo();
         $this->items = new ArrayCollection();
-        $this->createdAt = new \DateTimeImmutable();
-        $this->updatedAt = new \DateTimeImmutable();
+        $this->createdAt = $nowUtc;
+        $this->updatedAt = $nowUtc;
     }
 
     private function generateOutboundNo(): string
     {
         // 格式：OB + 年月日 + 6位随机数
-        return 'OB' . date('Ymd') . str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+        $dateUtc = (new \DateTimeImmutable('now', new \DateTimeZone('UTC')))->format('Ymd');
+        return 'OB' . $dateUtc . str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
     }
 
     public function getId(): string
@@ -488,7 +490,7 @@ class OutboundOrder
     #[ORM\PreUpdate]
     public function setUpdatedAtValue(): void
     {
-        $this->updatedAt = new \DateTimeImmutable();
+        $this->updatedAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
     }
 
     // 便捷方法
@@ -582,8 +584,8 @@ class OutboundOrder
     {
         $this->syncStatus = self::SYNC_SYNCED;
         $this->externalId = $externalId;
-        $this->syncedAt = new \DateTimeImmutable();
-        $this->lastSyncAt = new \DateTimeImmutable();
+        $this->syncedAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
+        $this->lastSyncAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
         $this->syncError = null;
     }
 
@@ -594,7 +596,7 @@ class OutboundOrder
     {
         $this->syncStatus = self::SYNC_FAILED;
         $this->syncError = $error;
-        $this->lastSyncAt = new \DateTimeImmutable();
+        $this->lastSyncAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
         $this->syncAttempts++;
     }
 
@@ -604,7 +606,7 @@ class OutboundOrder
     public function startPicking(): void
     {
         $this->status = self::STATUS_PICKING;
-        $this->pickingStartedAt = new \DateTimeImmutable();
+        $this->pickingStartedAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
     }
 
     /**
@@ -612,7 +614,7 @@ class OutboundOrder
      */
     public function completePicking(): void
     {
-        $this->pickingCompletedAt = new \DateTimeImmutable();
+        $this->pickingCompletedAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
     }
 
     /**
@@ -621,7 +623,7 @@ class OutboundOrder
     public function startPacking(): void
     {
         $this->status = self::STATUS_PACKING;
-        $this->packingStartedAt = new \DateTimeImmutable();
+        $this->packingStartedAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
     }
 
     /**
@@ -630,7 +632,7 @@ class OutboundOrder
     public function completePacking(): void
     {
         $this->status = self::STATUS_READY;
-        $this->packingCompletedAt = new \DateTimeImmutable();
+        $this->packingCompletedAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
     }
 
     /**
@@ -641,7 +643,7 @@ class OutboundOrder
         $this->status = self::STATUS_SHIPPED;
         $this->shippingCarrier = $carrier;
         $this->trackingNumber = $trackingNumber;
-        $this->shippedAt = new \DateTimeImmutable();
+        $this->shippedAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
 
         // 同步到履约单（如果有关联）
         if ($this->fulfillment !== null) {
@@ -656,7 +658,7 @@ class OutboundOrder
     {
         $this->status = self::STATUS_CANCELLED;
         $this->cancelReason = $reason;
-        $this->cancelledAt = new \DateTimeImmutable();
+        $this->cancelledAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
     }
 
     /**

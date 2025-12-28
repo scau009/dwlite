@@ -42,7 +42,7 @@ class Tag
     {
         $this->id = (string) new Ulid();
         $this->products = new ArrayCollection();
-        $this->createdAt = new \DateTimeImmutable();
+        $this->createdAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
     }
 
     public function getId(): string

@@ -113,8 +113,8 @@ class Fulfillment
         $this->id = (string) new Ulid();
         $this->fulfillmentNo = $this->generateFulfillmentNo();
         $this->items = new ArrayCollection();
-        $this->createdAt = new \DateTimeImmutable();
-        $this->updatedAt = new \DateTimeImmutable();
+        $this->createdAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
+        $this->updatedAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
     }
 
     private function generateFulfillmentNo(): string
@@ -340,7 +340,7 @@ class Fulfillment
     #[ORM\PreUpdate]
     public function setUpdatedAtValue(): void
     {
-        $this->updatedAt = new \DateTimeImmutable();
+        $this->updatedAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
     }
 
     // 便捷方法
@@ -415,7 +415,7 @@ class Fulfillment
     {
         $this->status = self::STATUS_PROCESSING;
         if ($this->isMerchantWarehouse()) {
-            $this->notifiedAt = new \DateTimeImmutable();
+            $this->notifiedAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
         }
     }
 
@@ -428,7 +428,7 @@ class Fulfillment
         $this->shippingCarrier = $carrier;
         $this->trackingNumber = $trackingNumber;
         $this->trackingUrl = $trackingUrl;
-        $this->shippedAt = new \DateTimeImmutable();
+        $this->shippedAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
 
         // 更新订单明细的发货数量
         foreach ($this->items as $item) {
@@ -442,7 +442,7 @@ class Fulfillment
     public function markDelivered(): void
     {
         $this->status = self::STATUS_DELIVERED;
-        $this->deliveredAt = new \DateTimeImmutable();
+        $this->deliveredAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
     }
 
     /**
@@ -452,7 +452,7 @@ class Fulfillment
     {
         $this->status = self::STATUS_CANCELLED;
         $this->cancelReason = $reason;
-        $this->cancelledAt = new \DateTimeImmutable();
+        $this->cancelledAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
     }
 
     /**

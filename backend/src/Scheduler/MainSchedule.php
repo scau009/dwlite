@@ -23,7 +23,7 @@ class MainSchedule implements ScheduleProviderInterface
             ->with(
                 // Run cleanup every minute (for demo purposes)
                 // In production, use '1 hour', '1 day', or cron expressions
-                RecurringMessage::every('1 minute', new CleanupMessage(new \DateTimeImmutable())),
+                RecurringMessage::every('1 minute', new CleanupMessage(new \DateTimeImmutable('now', new \DateTimeZone('UTC')))),
 
                 // Examples of other schedule patterns:
                 // RecurringMessage::every('1 hour', new HourlyTaskMessage()),

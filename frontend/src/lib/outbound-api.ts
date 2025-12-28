@@ -42,9 +42,9 @@ export type StockType = 'normal' | 'damaged';
 
 export interface OutboundOrderItem {
   id: string;
-  skuCode: string | null;
-  colorCode: string | null;
-  sizeValue: string | null;
+  skuName: string | null;
+  styleNumber: string | null;
+  colorName: string | null;
   productName: string | null;
   productImage: string | null;
   stockType: StockType;

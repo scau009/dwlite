@@ -110,7 +110,7 @@ class InventoryController extends AbstractController
             'id' => $inventory->getId(),
             'merchant' => [
                 'id' => $inventory->getMerchant()->getId(),
-                'companyName' => $inventory->getMerchant()->getCompanyName(),
+                'name' => $inventory->getMerchant()->getName(),
             ],
             'product' => $product ? [
                 'id' => $product->getId(),
@@ -132,7 +132,7 @@ class InventoryController extends AbstractController
             'quantityAllocated' => $inventory->getQuantityAllocated(),
             'averageCost' => $inventory->getAverageCost(),
             'safetyStock' => $inventory->getSafetyStock(),
-            'updatedAt' => $inventory->getUpdatedAt()->format('Y-m-d H:i:s'),
+            'updatedAt' => $inventory->getUpdatedAt()->format('c'),
         ];
     }
 }

@@ -119,8 +119,8 @@ class InboundException
     {
         $this->id = (string) new Ulid();
         $this->items = new ArrayCollection();
-        $this->createdAt = new \DateTimeImmutable();
-        $this->updatedAt = new \DateTimeImmutable();
+        $this->createdAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
+        $this->updatedAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
     }
 
     public function getId(): string
@@ -345,7 +345,7 @@ class InboundException
     #[ORM\PreUpdate]
     public function setUpdatedAtValue(): void
     {
-        $this->updatedAt = new \DateTimeImmutable();
+        $this->updatedAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
     }
 
     // 便捷方法
@@ -372,7 +372,7 @@ class InboundException
     {
         $log = $this->communicationLog ?? [];
         $log[] = [
-            'time' => (new \DateTimeImmutable())->format('Y-m-d H:i:s'),
+            'time' => (new \DateTimeImmutable('now', new \DateTimeZone('UTC')))->format('c'),
             'from' => $from,
             'content' => $content,
         ];
@@ -387,7 +387,7 @@ class InboundException
         $this->resolution = $resolution;
         $this->resolutionNotes = $notes;
         $this->resolvedBy = $resolvedBy;
-        $this->resolvedAt = new \DateTimeImmutable();
+        $this->resolvedAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
         $this->status = self::STATUS_RESOLVED;
     }
 

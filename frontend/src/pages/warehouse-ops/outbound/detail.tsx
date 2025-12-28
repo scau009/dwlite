@@ -12,11 +12,12 @@ import {
   Descriptions,
   Table,
   Typography,
-  Timeline,
   Modal,
   Form,
   Input,
+  Select,
   Steps,
+  Image,
 } from 'antd';
 import {
   ArrowLeftOutlined,
@@ -33,6 +34,7 @@ import {
   type WarehouseOutboundStatus,
   type WarehouseOutboundItem,
 } from '@/lib/warehouse-operations-api';
+import { commonApi, type Carrier } from '@/lib/common-api';
 
 const { Text } = Typography;
 
@@ -69,6 +71,20 @@ export function WarehouseOutboundDetailPage() {
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   const [shipModalOpen, setShipModalOpen] = useState(false);
+  const [carriers, setCarriers] = useState<Carrier[]>([]);
+  const [carriersLoading, setCarriersLoading] = useState(false);
+
+  const loadCarriers = async () => {
+    try {
+      setCarriersLoading(true);
+      const data = await commonApi.getCarrierOptions();
+      setCarriers(data);
+    } catch {
+      setCarriers([]);
+    } finally {
+      setCarriersLoading(false);
+    }
+  };
 
   const loadOrder = async () => {
     if (!id) return;
@@ -85,6 +101,7 @@ export function WarehouseOutboundDetailPage() {
 
   useEffect(() => {
     loadOrder();
+    loadCarriers();
   }, [id]);
 
   // Get status label
@@ -175,8 +192,15 @@ export function WarehouseOutboundDetailPage() {
     try {
       const values = await form.validateFields();
       setActionLoading(true);
+
+      // Get carrier name from code, or use custom name for OTHER
+      const carrier = carriers.find((c) => c.code === values.carrierCode);
+      const carrierName = values.carrierCode === 'OTHER'
+        ? values.carrierName
+        : carrier?.name || values.carrierCode;
+
       await warehouseOpsApi.shipOrder(id!, {
-        carrier: values.carrier,
+        carrier: carrierName,
         trackingNumber: values.trackingNumber,
       });
       message.success(t('warehouseOps.orderShipped'));
@@ -195,33 +219,66 @@ export function WarehouseOutboundDetailPage() {
   // Item table columns
   const itemColumns: ColumnsType<WarehouseOutboundItem> = [
     {
+      title: t('inventory.productImage'),
+      dataIndex: 'productImage',
+      width: 80,
+      render: (url: string | null) =>
+        url ? (
+          <Image
+            src={url}
+            width={60}
+            height={60}
+            style={{ objectFit: 'cover' }}
+            preview={{ mask: null }}
+          />
+        ) : (
+          <div className="w-[60px] h-[60px] bg-gray-100 flex items-center justify-center text-gray-400 text-xs">
+            {t('common.noImages')}
+          </div>
+        ),
+    },
+    {
       title: t('warehouseOps.productName'),
       dataIndex: 'productName',
-      width: 200,
+      ellipsis: true,
       render: (name: string | null) => name || '-',
+    },
+    {
+      title: t('products.styleNumber'),
+      dataIndex: 'styleNumber',
+      width: 120,
+      render: (code: string | null) =>
+        code ? <Text code>{code}</Text> : '-',
+    },
+    {
+      title: t('products.color'),
+      dataIndex: 'colorName',
+      width: 100,
+      render: (color: string | null) => color || '-',
     },
     {
       title: t('warehouseOps.skuName'),
       dataIndex: 'skuName',
-      width: 100,
+      width: 80,
+      align: 'center',
       render: (skuName: string | null) => skuName || '-',
+    },
+    {
+      title: t('outbound.stockType'),
+      dataIndex: 'stockType',
+      width: 100,
+      align: 'center',
+      render: (stockType: string) => (
+        <Tag color={stockType === 'normal' ? 'green' : 'orange'}>
+          {stockType === 'normal' ? t('outbound.normalStock') : t('outbound.damagedStock')}
+        </Tag>
+      ),
     },
     {
       title: t('warehouseOps.quantity'),
       dataIndex: 'quantity',
       width: 80,
       align: 'center',
-    },
-    {
-      title: t('warehouseOps.pickedQuantity'),
-      dataIndex: 'pickedQuantity',
-      width: 100,
-      align: 'center',
-      render: (picked: number, record) => (
-        <span className={picked < record.quantity ? 'text-orange-500' : 'text-green-500'}>
-          {picked}
-        </span>
-      ),
     },
   ];
 
@@ -314,11 +371,41 @@ export function WarehouseOutboundDetailPage() {
             current={currentStep}
             size="small"
             items={[
-              { title: t('warehouseOps.outboundStatusPending'), icon: <InboxOutlined /> },
-              { title: t('warehouseOps.outboundStatusPicking'), icon: <CarryOutOutlined /> },
-              { title: t('warehouseOps.outboundStatusPacking'), icon: <InboxOutlined /> },
-              { title: t('warehouseOps.outboundStatusReady'), icon: <CheckCircleOutlined /> },
-              { title: t('warehouseOps.outboundStatusShipped'), icon: <SendOutlined /> },
+              {
+                title: t('warehouseOps.outboundStatusPending'),
+                icon: <InboxOutlined />,
+                description: order.createdAt
+                  ? new Date(order.createdAt).toLocaleString()
+                  : undefined,
+              },
+              {
+                title: t('warehouseOps.outboundStatusPicking'),
+                icon: <CarryOutOutlined />,
+                description: order.pickingStartedAt
+                  ? new Date(order.pickingStartedAt).toLocaleString()
+                  : undefined,
+              },
+              {
+                title: t('warehouseOps.outboundStatusPacking'),
+                icon: <InboxOutlined />,
+                description: order.packingStartedAt
+                  ? new Date(order.packingStartedAt).toLocaleString()
+                  : undefined,
+              },
+              {
+                title: t('warehouseOps.outboundStatusReady'),
+                icon: <CheckCircleOutlined />,
+                description: order.packingCompletedAt
+                  ? new Date(order.packingCompletedAt).toLocaleString()
+                  : undefined,
+              },
+              {
+                title: t('warehouseOps.outboundStatusShipped'),
+                icon: <SendOutlined />,
+                description: order.shippedAt
+                  ? new Date(order.shippedAt).toLocaleString()
+                  : undefined,
+              },
             ]}
           />
         </Card>
@@ -420,122 +507,8 @@ export function WarehouseOutboundDetailPage() {
           dataSource={order.items}
           rowKey="id"
           pagination={false}
-          scroll={{ x: 500 }}
+          scroll={{ x: 800 }}
           size="small"
-        />
-      </Card>
-
-      {/* Order Timeline */}
-      <Card title={t('warehouseOps.orderTimeline')}>
-        <Timeline
-          items={[
-            {
-              color: 'green',
-              children: (
-                <div>
-                  <Text strong>{t('warehouseOps.orderCreated')}</Text>
-                  <br />
-                  <Text type="secondary">{new Date(order.createdAt).toLocaleString()}</Text>
-                </div>
-              ),
-            },
-            ...(order.pickingStartedAt
-              ? [
-                  {
-                    color: 'cyan',
-                    children: (
-                      <div>
-                        <Text strong>{t('warehouseOps.timelinePickingStarted')}</Text>
-                        <br />
-                        <Text type="secondary">
-                          {new Date(order.pickingStartedAt).toLocaleString()}
-                        </Text>
-                      </div>
-                    ),
-                  },
-                ]
-              : []),
-            ...(order.pickingCompletedAt
-              ? [
-                  {
-                    color: 'cyan',
-                    children: (
-                      <div>
-                        <Text strong>{t('warehouseOps.timelinePickingCompleted')}</Text>
-                        <br />
-                        <Text type="secondary">
-                          {new Date(order.pickingCompletedAt).toLocaleString()}
-                        </Text>
-                      </div>
-                    ),
-                  },
-                ]
-              : []),
-            ...(order.packingStartedAt
-              ? [
-                  {
-                    color: 'blue',
-                    children: (
-                      <div>
-                        <Text strong>{t('warehouseOps.timelinePackingStarted')}</Text>
-                        <br />
-                        <Text type="secondary">
-                          {new Date(order.packingStartedAt).toLocaleString()}
-                        </Text>
-                      </div>
-                    ),
-                  },
-                ]
-              : []),
-            ...(order.packingCompletedAt
-              ? [
-                  {
-                    color: 'purple',
-                    children: (
-                      <div>
-                        <Text strong>{t('warehouseOps.timelinePackingCompleted')}</Text>
-                        <br />
-                        <Text type="secondary">
-                          {new Date(order.packingCompletedAt).toLocaleString()}
-                        </Text>
-                      </div>
-                    ),
-                  },
-                ]
-              : []),
-            ...(order.shippedAt
-              ? [
-                  {
-                    color: 'green',
-                    children: (
-                      <div>
-                        <Text strong>{t('warehouseOps.orderShipped')}</Text>
-                        <br />
-                        <Text type="secondary">{new Date(order.shippedAt).toLocaleString()}</Text>
-                      </div>
-                    ),
-                  },
-                ]
-              : []),
-            ...(order.status === 'cancelled'
-              ? [
-                  {
-                    color: 'red',
-                    children: (
-                      <div>
-                        <Text strong>{t('warehouseOps.orderCancelled')}</Text>
-                        {order.cancelReason && (
-                          <>
-                            <br />
-                            <Text type="secondary">{order.cancelReason}</Text>
-                          </>
-                        )}
-                      </div>
-                    ),
-                  },
-                ]
-              : []),
-          ]}
         />
       </Card>
 
@@ -554,11 +527,31 @@ export function WarehouseOutboundDetailPage() {
       >
         <Form form={form} layout="vertical">
           <Form.Item
-            name="carrier"
+            name="carrierCode"
             label={t('warehouseOps.carrier')}
             rules={[{ required: true, message: t('warehouseOps.carrierRequired') }]}
           >
-            <Input placeholder={t('warehouseOps.carrierPlaceholder')} />
+            <Select
+              placeholder={t('inventory.selectCarrier')}
+              loading={carriersLoading}
+              options={carriers.map((c) => ({
+                value: c.code,
+                label: c.name,
+              }))}
+            />
+          </Form.Item>
+          <Form.Item noStyle shouldUpdate={(prev, curr) => prev.carrierCode !== curr.carrierCode}>
+            {({ getFieldValue }) =>
+              getFieldValue('carrierCode') === 'OTHER' && (
+                <Form.Item
+                  name="carrierName"
+                  label={t('inventory.carrierName')}
+                  rules={[{ required: true, message: t('inventory.carrierNameRequired') }]}
+                >
+                  <Input placeholder={t('inventory.enterCarrierName')} />
+                </Form.Item>
+              )
+            }
           </Form.Item>
           <Form.Item
             name="trackingNumber"

@@ -83,8 +83,8 @@ class Merchant
         $this->id = (string) new Ulid();
         $this->wallets = new ArrayCollection();
         $this->salesChannels = new ArrayCollection();
-        $this->createdAt = new \DateTimeImmutable();
-        $this->updatedAt = new \DateTimeImmutable();
+        $this->createdAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
+        $this->updatedAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
     }
 
     public function getId(): string
@@ -259,7 +259,7 @@ class Merchant
     #[ORM\PreUpdate]
     public function setUpdatedAtValue(): void
     {
-        $this->updatedAt = new \DateTimeImmutable();
+        $this->updatedAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
     }
 
     // 便捷方法
@@ -286,7 +286,7 @@ class Merchant
     public function approve(): static
     {
         $this->status = self::STATUS_APPROVED;
-        $this->approvedAt = new \DateTimeImmutable();
+        $this->approvedAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
         $this->rejectedReason = null;
         return $this;
     }

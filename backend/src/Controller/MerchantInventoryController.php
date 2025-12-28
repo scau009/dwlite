@@ -6,6 +6,7 @@ use App\Entity\MerchantInventory;
 use App\Entity\User;
 use App\Repository\MerchantInventoryRepository;
 use App\Repository\MerchantRepository;
+use App\Repository\ProductRepository;
 use App\Repository\WarehouseRepository;
 use App\Service\CosService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -23,6 +24,7 @@ class MerchantInventoryController extends AbstractController
         private MerchantInventoryRepository $inventoryRepository,
         private MerchantRepository $merchantRepository,
         private WarehouseRepository $warehouseRepository,
+        private ProductRepository $productRepository,
         private CosService $cosService,
     ) {
     }
@@ -40,7 +42,7 @@ class MerchantInventoryController extends AbstractController
     }
 
     /**
-     * 获取商户库存列表（分页）
+     * 获取商户库存列表（分页，按 styleNumber + sizeValue 分组）
      */
     #[Route('', name: 'merchant_inventory_list', methods: ['GET'])]
     public function list(Request $request, #[CurrentUser] User $user): JsonResponse
@@ -68,10 +70,27 @@ class MerchantInventoryController extends AbstractController
             $filters['hasStock'] = true;
         }
 
-        $result = $this->inventoryRepository->findByMerchantPaginated($merchant, $page, $limit, $filters);
+        $result = $this->inventoryRepository->findByMerchantPaginatedGrouped($merchant, $page, $limit, $filters);
+
+        // 获取商品图片
+        $productIds = array_filter(array_unique(array_column($result['data'], 'productId')));
+        $productImages = [];
+        if (!empty($productIds)) {
+            $products = $this->productRepository->findBy(['id' => $productIds]);
+            foreach ($products as $product) {
+                $primaryImage = $product->getPrimaryImage();
+                if ($primaryImage) {
+                    $productImages[$product->getId()] = $this->cosService->getSignedUrl(
+                        $primaryImage->getCosKey(),
+                        3600,
+                        'imageMogr2/thumbnail/80x80>'
+                    );
+                }
+            }
+        }
 
         return $this->json([
-            'data' => array_map(fn(MerchantInventory $inv) => $this->formatInventory($inv), $result['data']),
+            'data' => array_map(fn(array $row) => $this->formatGroupedInventory($row, $productImages), $result['data']),
             'meta' => $result['meta'],
         ]);
     }
@@ -114,6 +133,40 @@ class MerchantInventoryController extends AbstractController
                 'name' => $w->getName(),
             ], $warehouses),
         ]);
+    }
+
+    /**
+     * 格式化分组后的库存记录
+     */
+    private function formatGroupedInventory(array $row, array $productImages): array
+    {
+        $productId = $row['productId'] ?? null;
+        $sizeUnit = $row['sizeUnit'] ?? null;
+
+        return [
+            'id' => $row['styleNumber'] . '-' . ($row['sizeValue'] ?? ''),
+            'product' => [
+                'id' => $productId,
+                'name' => $row['productName'] ?? null,
+                'styleNumber' => $row['styleNumber'] ?? null,
+                'color' => $row['colorName'] ?? null,
+                'primaryImage' => $productId ? ($productImages[$productId] ?? null) : null,
+            ],
+            'sku' => [
+                'id' => $row['skuId'] ?? null,
+                'skuName' => $row['skuName'] ?? null,
+                'sizeUnit' => $sizeUnit?->value ?? $sizeUnit,
+                'sizeValue' => $row['sizeValue'] ?? null,
+            ],
+            'quantityInTransit' => (int) ($row['quantityInTransit'] ?? 0),
+            'quantityAvailable' => (int) ($row['quantityAvailable'] ?? 0),
+            'quantityReserved' => (int) ($row['quantityReserved'] ?? 0),
+            'quantityDamaged' => (int) ($row['quantityDamaged'] ?? 0),
+            'quantityAllocated' => (int) ($row['quantityAllocated'] ?? 0),
+            'updatedAt' => $row['updatedAt'] instanceof \DateTimeInterface
+                ? $row['updatedAt']->format('c')
+                : $row['updatedAt'],
+        ];
     }
 
     /**

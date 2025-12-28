@@ -89,8 +89,8 @@ class MerchantInventory
     {
         $this->id = (string) new Ulid();
         $this->transactions = new ArrayCollection();
-        $this->createdAt = new \DateTimeImmutable();
-        $this->updatedAt = new \DateTimeImmutable();
+        $this->createdAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
+        $this->updatedAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
     }
 
     public function getId(): string
@@ -273,7 +273,7 @@ class MerchantInventory
     #[ORM\PreUpdate]
     public function setUpdatedAtValue(): void
     {
-        $this->updatedAt = new \DateTimeImmutable();
+        $this->updatedAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
     }
 
     // 便捷方法
@@ -340,7 +340,7 @@ class MerchantInventory
         $this->quantityInTransit -= ($quantity + $damagedQuantity);
         $this->quantityAvailable += $quantity;
         $this->quantityDamaged += $damagedQuantity;
-        $this->lastInboundAt = new \DateTimeImmutable();
+        $this->lastInboundAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
 
         // 确保在途数量不为负
         if ($this->quantityInTransit < 0) {
@@ -405,7 +405,7 @@ class MerchantInventory
             throw new \LogicException('Cannot ship more than reserved');
         }
         $this->quantityReserved -= $quantity;
-        $this->lastOutboundAt = new \DateTimeImmutable();
+        $this->lastOutboundAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
     }
 
     /**
@@ -489,7 +489,7 @@ class MerchantInventory
         }
 
         $this->quantityAvailable = max(0, $quantity);
-        $this->lastSyncedAt = new \DateTimeImmutable();
+        $this->lastSyncedAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
     }
 
     /**
@@ -501,7 +501,7 @@ class MerchantInventory
             return true;
         }
 
-        $now = new \DateTimeImmutable();
+        $now = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
         $diff = $now->getTimestamp() - $this->lastSyncedAt->getTimestamp();
 
         return $diff > ($thresholdMinutes * 60);

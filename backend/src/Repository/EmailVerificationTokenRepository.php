@@ -55,7 +55,7 @@ class EmailVerificationTokenRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('t')
             ->delete()
             ->where('t.expiresAt < :now')
-            ->setParameter('now', new \DateTimeImmutable())
+            ->setParameter('now', new \DateTimeImmutable('now', new \DateTimeZone('UTC')))
             ->getQuery()
             ->execute();
     }

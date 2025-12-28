@@ -593,10 +593,10 @@ class InboundOrderController extends AbstractController
             'totalQuantity' => $order->getTotalQuantity(),
             'receivedQuantity' => $order->getReceivedQuantity(),
             'expectedArrivalDate' => $order->getExpectedArrivalDate()?->format('Y-m-d'),
-            'submittedAt' => $order->getSubmittedAt()?->format('Y-m-d H:i:s'),
-            'shippedAt' => $order->getShippedAt()?->format('Y-m-d H:i:s'),
-            'completedAt' => $order->getCompletedAt()?->format('Y-m-d H:i:s'),
-            'createdAt' => $order->getCreatedAt()->format('Y-m-d H:i:s'),
+            'submittedAt' => $order->getSubmittedAt()?->format('c'),
+            'shippedAt' => $order->getShippedAt()?->format('c'),
+            'completedAt' => $order->getCompletedAt()?->format('c'),
+            'createdAt' => $order->getCreatedAt()->format('c'),
         ];
     }
 
@@ -657,7 +657,7 @@ class InboundOrderController extends AbstractController
             'unitCost' => $item->getUnitCost(),
             'status' => $item->getStatus(),
             'warehouseRemark' => $item->getWarehouseRemark(),
-            'receivedAt' => $item->getReceivedAt()?->format('Y-m-d H:i:s'),
+            'receivedAt' => $item->getReceivedAt()?->format('c'),
         ];
     }
 
@@ -677,9 +677,9 @@ class InboundOrderController extends AbstractController
             'senderAddress' => $shipment->getSenderAddress(),
             'boxCount' => $shipment->getBoxCount(),
             'totalWeight' => $shipment->getTotalWeight(),
-            'shippedAt' => $shipment->getShippedAt()->format('Y-m-d H:i:s'),
+            'shippedAt' => $shipment->getShippedAt()->format('c'),
             'estimatedArrivalDate' => $shipment->getEstimatedArrivalDate()?->format('Y-m-d'),
-            'deliveredAt' => $shipment->getDeliveredAt()?->format('Y-m-d H:i:s'),
+            'deliveredAt' => $shipment->getDeliveredAt()?->format('c'),
         ];
     }
 
@@ -700,8 +700,8 @@ class InboundOrderController extends AbstractController
             'evidenceImages' => $exception->getEvidenceImages(),
             'resolution' => $exception->getResolution(),
             'resolutionNotes' => $exception->getResolutionNotes(),
-            'resolvedAt' => $exception->getResolvedAt()?->format('Y-m-d H:i:s'),
-            'createdAt' => $exception->getCreatedAt()->format('Y-m-d H:i:s'),
+            'resolvedAt' => $exception->getResolvedAt()?->format('c'),
+            'createdAt' => $exception->getCreatedAt()->format('c'),
         ];
     }
 

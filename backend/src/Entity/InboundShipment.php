@@ -98,9 +98,9 @@ class InboundShipment
     public function __construct()
     {
         $this->id = (string) new Ulid();
-        $this->shippedAt = new \DateTimeImmutable();
-        $this->createdAt = new \DateTimeImmutable();
-        $this->updatedAt = new \DateTimeImmutable();
+        $this->shippedAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
+        $this->createdAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
+        $this->updatedAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
     }
 
     public function getId(): string
@@ -319,7 +319,7 @@ class InboundShipment
     #[ORM\PreUpdate]
     public function setUpdatedAtValue(): void
     {
-        $this->updatedAt = new \DateTimeImmutable();
+        $this->updatedAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
     }
 
     // 便捷方法
@@ -340,7 +340,7 @@ class InboundShipment
     public function addTrackingEvent(string $status, string $description, ?string $location = null): void
     {
         $event = [
-            'time' => (new \DateTimeImmutable())->format('Y-m-d H:i:s'),
+            'time' => (new \DateTimeImmutable('now', new \DateTimeZone('UTC')))->format('c'),
             'status' => $status,
             'desc' => $description,
         ];

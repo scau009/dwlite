@@ -192,9 +192,12 @@ export interface WarehouseOutboundItem {
   id: string;
   productSkuId: string | null;
   skuName: string | null;
+  styleNumber: string | null;
+  colorName: string | null;
   productName: string | null;
+  productImage: string | null;
+  stockType: 'normal' | 'damaged';
   quantity: number;
-  pickedQuantity: number;
 }
 
 export interface WarehouseOutboundOrderDetail extends WarehouseOutboundOrder {

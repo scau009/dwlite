@@ -342,7 +342,7 @@ class InboundOrderService
                 $order->setStatus(InboundOrder::STATUS_PARTIAL_COMPLETED);
             } else {
                 $order->setStatus(InboundOrder::STATUS_COMPLETED);
-                $order->setCompletedAt(new \DateTimeImmutable());
+                $order->setCompletedAt(new \DateTimeImmutable('now', new \DateTimeZone('UTC')));
             }
 
             // 自动创建异常单（数量差异或损坏）
@@ -498,7 +498,7 @@ class InboundOrderService
 
         // 没有待处理的异常单，完结入库单
         $order->setStatus(InboundOrder::STATUS_COMPLETED);
-        $order->setCompletedAt(new \DateTimeImmutable());
+        $order->setCompletedAt(new \DateTimeImmutable('now', new \DateTimeZone('UTC')));
 
         $this->entityManager->flush();
 

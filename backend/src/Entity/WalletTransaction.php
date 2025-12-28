@@ -71,7 +71,7 @@ class WalletTransaction
     public function __construct()
     {
         $this->id = (string) new Ulid();
-        $this->createdAt = new \DateTimeImmutable();
+        $this->createdAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
     }
 
     public function getId(): string

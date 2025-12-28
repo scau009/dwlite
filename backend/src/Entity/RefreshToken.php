@@ -37,8 +37,8 @@ class RefreshToken
         $this->id = (string) new Ulid();
         $this->token = bin2hex(random_bytes(64)); // 128 char hex string
         $this->user = $user;
-        $this->expiresAt = new \DateTimeImmutable("+{$ttl} seconds");
-        $this->createdAt = new \DateTimeImmutable();
+        $this->expiresAt = new \DateTimeImmutable("+{$ttl} seconds", new \DateTimeZone('UTC'));
+        $this->createdAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
     }
 
     public function getId(): string
@@ -79,7 +79,7 @@ class RefreshToken
 
     public function isExpired(): bool
     {
-        return $this->expiresAt < new \DateTimeImmutable();
+        return $this->expiresAt < new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
     }
 
     public function isValid(): bool

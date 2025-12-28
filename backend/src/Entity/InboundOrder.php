@@ -109,8 +109,8 @@ class InboundOrder
         $this->id = (string) new Ulid();
         $this->items = new ArrayCollection();
         $this->exceptions = new ArrayCollection();
-        $this->createdAt = new \DateTimeImmutable();
-        $this->updatedAt = new \DateTimeImmutable();
+        $this->createdAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
+        $this->updatedAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
     }
 
     public function getId(): string
@@ -353,7 +353,7 @@ class InboundOrder
     #[ORM\PreUpdate]
     public function setUpdatedAtValue(): void
     {
-        $this->updatedAt = new \DateTimeImmutable();
+        $this->updatedAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
     }
 
     // 便捷方法
@@ -428,7 +428,7 @@ class InboundOrder
             throw new \LogicException('Only draft orders can be submitted');
         }
         $this->status = self::STATUS_PENDING;
-        $this->submittedAt = new \DateTimeImmutable();
+        $this->submittedAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
     }
 
     /**
@@ -440,7 +440,7 @@ class InboundOrder
             throw new \LogicException('Only pending orders can be shipped');
         }
         $this->status = self::STATUS_SHIPPED;
-        $this->shippedAt = new \DateTimeImmutable();
+        $this->shippedAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
     }
 
     /**
@@ -453,7 +453,7 @@ class InboundOrder
         }
         $this->status = self::STATUS_CANCELLED;
         $this->cancelReason = $reason;
-        $this->cancelledAt = new \DateTimeImmutable();
+        $this->cancelledAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
     }
 
     /**

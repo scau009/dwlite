@@ -31,15 +31,16 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 class MerchantOutboundController extends AbstractController
 {
     public function __construct(
-        private MerchantRepository $merchantRepository,
-        private OutboundOrderRepository $outboundOrderRepository,
-        private WarehouseRepository $warehouseRepository,
+        private MerchantRepository          $merchantRepository,
+        private OutboundOrderRepository     $outboundOrderRepository,
+        private WarehouseRepository         $warehouseRepository,
         private MerchantInventoryRepository $inventoryRepository,
-        private InventoryService $inventoryService,
-        private CosService $cosService,
-        private EntityManagerInterface $entityManager,
-        private TranslatorInterface $translator,
-    ) {
+        private InventoryService            $inventoryService,
+        private CosService                  $cosService,
+        private EntityManagerInterface      $entityManager,
+        private TranslatorInterface         $translator,
+    )
+    {
     }
 
     /**
@@ -94,9 +95,10 @@ class MerchantOutboundController extends AbstractController
      */
     #[Route('/orders', name: 'outbound_list_orders', methods: ['GET'])]
     public function listOrders(
-        #[CurrentUser] User $user,
+        #[CurrentUser] User                       $user,
         #[MapQueryString] ?OutboundOrderListQuery $query = null
-    ): JsonResponse {
+    ): JsonResponse
+    {
         $query = $query ?? new OutboundOrderListQuery();
         $merchant = $this->getCurrentMerchant($user);
 
@@ -117,7 +119,7 @@ class MerchantOutboundController extends AbstractController
                 'total' => $result['total'],
                 'page' => $query->page,
                 'limit' => $query->limit,
-                'totalPages' => (int) ceil($result['total'] / $query->limit),
+                'totalPages' => (int)ceil($result['total'] / $query->limit),
             ],
         ]);
     }
@@ -127,9 +129,10 @@ class MerchantOutboundController extends AbstractController
      */
     #[Route('/orders/{id}', name: 'outbound_get_order', methods: ['GET'])]
     public function getOrder(
-        string $id,
+        string              $id,
         #[CurrentUser] User $user
-    ): JsonResponse {
+    ): JsonResponse
+    {
         $merchant = $this->getCurrentMerchant($user);
         $order = $this->outboundOrderRepository->findOneByIdAndMerchant($id, $merchant);
 
@@ -149,9 +152,10 @@ class MerchantOutboundController extends AbstractController
      */
     #[Route('/orders', name: 'outbound_create_order', methods: ['POST'])]
     public function createOrder(
-        #[CurrentUser] User $user,
+        #[CurrentUser] User                             $user,
         #[MapRequestPayload] CreateOutboundOrderRequest $request
-    ): JsonResponse {
+    ): JsonResponse
+    {
         $merchant = $this->getCurrentMerchant($user);
 
         // 验证仓库
@@ -187,9 +191,10 @@ class MerchantOutboundController extends AbstractController
      */
     #[Route('/orders/{id}', name: 'outbound_delete_order', methods: ['DELETE'])]
     public function deleteOrder(
-        string $id,
+        string              $id,
         #[CurrentUser] User $user
-    ): JsonResponse {
+    ): JsonResponse
+    {
         $merchant = $this->getCurrentMerchant($user);
         $order = $this->outboundOrderRepository->findOneByIdAndMerchant($id, $merchant);
 
@@ -218,9 +223,10 @@ class MerchantOutboundController extends AbstractController
      */
     #[Route('/orders/{id}/submit', name: 'outbound_submit_order', methods: ['POST'])]
     public function submitOrder(
-        string $id,
+        string              $id,
         #[CurrentUser] User $user
-    ): JsonResponse {
+    ): JsonResponse
+    {
         $merchant = $this->getCurrentMerchant($user);
         $order = $this->outboundOrderRepository->findOneByIdAndMerchant($id, $merchant);
 
@@ -265,7 +271,7 @@ class MerchantOutboundController extends AbstractController
             if ($availableQuantity < $item->getQuantity()) {
                 return $this->json([
                     'error' => $this->translator->trans('validation.insufficient_stock', [
-                        '%sku%' => $item->getSkuCode(),
+                        '%sku%' => $item->getStyleNumber() . '-' . $item->getSkuName(),
                         '%available%' => $availableQuantity,
                         '%requested%' => $item->getQuantity(),
                     ]),
@@ -310,10 +316,11 @@ class MerchantOutboundController extends AbstractController
      */
     #[Route('/orders/{id}/items', name: 'outbound_add_item', methods: ['POST'])]
     public function addItem(
-        string $id,
-        #[CurrentUser] User $user,
+        string                                      $id,
+        #[CurrentUser] User                         $user,
         #[MapRequestPayload] AddOutboundItemRequest $request
-    ): JsonResponse {
+    ): JsonResponse
+    {
         $merchant = $this->getCurrentMerchant($user);
         $order = $this->outboundOrderRepository->findOneByIdAndMerchant($id, $merchant);
 
@@ -370,9 +377,9 @@ class MerchantOutboundController extends AbstractController
 
         // 检查是否已存在该商品（通过 SKU ID + 库存类型 比较）
         foreach ($order->getItems() as $existingItem) {
-            // 比较 styleNumber + sizeValue + stockType 组合
-            if ($existingItem->getSkuCode() === $product->getStyleNumber() &&
-                $existingItem->getSizeValue() === $sku->getSizeValue() &&
+            // 比较 styleNumber + skuName + stockType 组合
+            if ($existingItem->getStyleNumber() === $product->getStyleNumber() &&
+                $existingItem->getSkuName() === $sku->getSizeValue() &&
                 $existingItem->getStockType() === $request->stockType) {
                 return $this->json([
                     'error' => $this->translator->trans('outbound.item_already_exists'),
@@ -405,10 +412,11 @@ class MerchantOutboundController extends AbstractController
      */
     #[Route('/orders/{orderId}/items/{itemId}', name: 'outbound_remove_item', methods: ['DELETE'])]
     public function removeItem(
-        string $orderId,
-        string $itemId,
+        string              $orderId,
+        string              $itemId,
         #[CurrentUser] User $user
-    ): JsonResponse {
+    ): JsonResponse
+    {
         $merchant = $this->getCurrentMerchant($user);
         $order = $this->outboundOrderRepository->findOneByIdAndMerchant($orderId, $merchant);
 
@@ -472,8 +480,8 @@ class MerchantOutboundController extends AbstractController
             'shippingCarrier' => $order->getShippingCarrier(),
             'trackingNumber' => $order->getTrackingNumber(),
             'totalQuantity' => $order->getTotalQuantity(),
-            'shippedAt' => $order->getShippedAt()?->format('Y-m-d H:i:s'),
-            'createdAt' => $order->getCreatedAt()->format('Y-m-d H:i:s'),
+            'shippedAt' => $this->formatUtcIso8601($order->getShippedAt()),
+            'createdAt' => $this->formatUtcIso8601($order->getCreatedAt()),
         ];
     }
 
@@ -487,12 +495,12 @@ class MerchantOutboundController extends AbstractController
         $data['receiverPostalCode'] = $order->getReceiverPostalCode();
         $data['remark'] = $order->getRemark();
         $data['cancelReason'] = $order->getCancelReason();
-        $data['pickingStartedAt'] = $order->getPickingStartedAt()?->format('Y-m-d H:i:s');
-        $data['pickingCompletedAt'] = $order->getPickingCompletedAt()?->format('Y-m-d H:i:s');
-        $data['packingStartedAt'] = $order->getPackingStartedAt()?->format('Y-m-d H:i:s');
-        $data['packingCompletedAt'] = $order->getPackingCompletedAt()?->format('Y-m-d H:i:s');
-        $data['cancelledAt'] = $order->getCancelledAt()?->format('Y-m-d H:i:s');
-        $data['updatedAt'] = $order->getUpdatedAt()->format('Y-m-d H:i:s');
+        $data['pickingStartedAt'] = $this->formatUtcIso8601($order->getPickingStartedAt());
+        $data['pickingCompletedAt'] = $this->formatUtcIso8601($order->getPickingCompletedAt());
+        $data['packingStartedAt'] = $this->formatUtcIso8601($order->getPackingStartedAt());
+        $data['packingCompletedAt'] = $this->formatUtcIso8601($order->getPackingCompletedAt());
+        $data['cancelledAt'] = $this->formatUtcIso8601($order->getCancelledAt());
+        $data['updatedAt'] = $this->formatUtcIso8601($order->getUpdatedAt());
 
         // 关联订单信息
         $fulfillment = $order->getFulfillment();
@@ -522,9 +530,9 @@ class MerchantOutboundController extends AbstractController
 
             return [
                 'id' => $item->getId(),
-                'skuCode' => $item->getSkuCode(),
-                'colorCode' => $item->getColorCode(),
-                'sizeValue' => $item->getSizeValue(),
+                'skuName' => $item->getSkuName(),
+                'styleNumber' => $item->getStyleNumber(),
+                'colorName' => $item->getColorName(),
                 'productName' => $item->getProductName(),
                 'productImage' => $productImageUrl,
                 'stockType' => $item->getStockType(),
@@ -533,6 +541,15 @@ class MerchantOutboundController extends AbstractController
         }, $order->getItems()->toArray());
 
         return $data;
+    }
+
+    private function formatUtcIso8601(?\DateTimeImmutable $dateTime): ?string
+    {
+        if ($dateTime === null) {
+            return null;
+        }
+
+        return $dateTime->setTimezone(new \DateTimeZone('UTC'))->format('c');
     }
 
     /**

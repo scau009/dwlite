@@ -120,7 +120,7 @@ export function OutboundOrderDetailPage() {
   // Get existing SKU codes to filter in modal
   const existingSkuCodes = useMemo(() => {
     if (!order) return [];
-    return order.items.map(item => `${item.skuCode}-${item.sizeValue}`);
+    return order.items.map(item => `${item.styleNumber}-${item.skuName}`);
   }, [order?.items]);
 
   // Handle add item modal success
@@ -351,21 +351,21 @@ export function OutboundOrderDetailPage() {
       render: (name: string | null) => name || '-',
     },
     {
-      title: t('products.skuCode'),
-      dataIndex: 'skuCode',
+      title: t('products.styleNumber'),
+      dataIndex: 'styleNumber',
       width: 150,
       render: (code: string | null) =>
         code ? <Text code>{code}</Text> : '-',
     },
     {
       title: t('products.color'),
-      dataIndex: 'colorCode',
+      dataIndex: 'colorName',
       width: 100,
       render: (color: string | null) => color || '-',
     },
     {
       title: t('inventory.skuName'),
-      dataIndex: 'sizeValue',
+      dataIndex: 'skuName',
       width: 80,
       align: 'center',
       render: (size: string | null) => size || '-',

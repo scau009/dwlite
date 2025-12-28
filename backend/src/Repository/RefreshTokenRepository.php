@@ -70,7 +70,7 @@ class RefreshTokenRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('r')
             ->delete()
             ->where('r.expiresAt < :now')
-            ->setParameter('now', new \DateTimeImmutable())
+            ->setParameter('now', new \DateTimeImmutable('now', new \DateTimeZone('UTC')))
             ->getQuery()
             ->execute();
     }
@@ -84,7 +84,7 @@ class RefreshTokenRepository extends ServiceEntityRepository
             ->andWhere('r.expiresAt > :now')
             ->setParameter('user', $user)
             ->setParameter('revoked', false)
-            ->setParameter('now', new \DateTimeImmutable())
+            ->setParameter('now', new \DateTimeImmutable('now', new \DateTimeZone('UTC')))
             ->getQuery()
             ->getSingleScalarResult();
     }

@@ -125,7 +125,7 @@ class WarehouseRepository extends ServiceEntityRepository
      */
     public function findContractExpiringWithin(int $days = 30): array
     {
-        $now = new \DateTimeImmutable();
+        $now = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
         $futureDate = $now->modify("+{$days} days");
 
         return $this->createQueryBuilder('w')

@@ -7,10 +7,9 @@ CREATE TABLE `outbound_order_items` (
     `merchant_id` VARCHAR(26) NULL COMMENT 'Merchant snapshot',
     `warehouse_id` VARCHAR(26) NULL COMMENT 'Warehouse snapshot',
     `product_sku_id` VARCHAR(26) NULL COMMENT 'Product SKU reference',
-    `sku_code` VARCHAR(50) NULL COMMENT 'SKU snapshot',
-    `color_code` VARCHAR(20) NULL,
-    `size_value` VARCHAR(20) NULL,
-    `spec_info` JSON NULL,
+    `sku_name` VARCHAR(255) NULL COMMENT 'SKU name snapshot (e.g. size value)',
+    `style_number` VARCHAR(255) NULL COMMENT 'Style number snapshot',
+    `color_name` VARCHAR(255) NULL COMMENT 'Color name snapshot',
     `product_name` VARCHAR(255) NULL,
     `product_image` VARCHAR(500) NULL,
     `stock_type` VARCHAR(20) NOT NULL DEFAULT 'normal' COMMENT 'Stock type: normal or damaged',
@@ -32,3 +31,10 @@ CREATE TABLE `outbound_order_items` (
 # ALTER TABLE `outbound_order_items` ADD INDEX `idx_outbound_item_sku` (`product_sku_id`);
 # ALTER TABLE `outbound_order_items` ADD CONSTRAINT `fk_outbound_item_sku` FOREIGN KEY (`product_sku_id`) REFERENCES `product_skus` (`id`) ON DELETE SET NULL;
 # ALTER TABLE `outbound_order_items` ADD COLUMN `stock_type` VARCHAR(20) NOT NULL DEFAULT 'normal' COMMENT 'Stock type: normal or damaged' AFTER `product_image`;
+
+-- Migration: Rename columns from old schema to new schema
+# ALTER TABLE `outbound_order_items`
+#   DROP COLUMN `spec_info`,
+#   CHANGE COLUMN `sku_code` `sku_name` VARCHAR(255) NULL COMMENT 'SKU name snapshot (e.g. size value)',
+#   CHANGE COLUMN `color_code` `style_number` VARCHAR(255) NULL COMMENT 'Style number snapshot',
+#   CHANGE COLUMN `size_value` `color_name` VARCHAR(255) NULL COMMENT 'Color name snapshot';
