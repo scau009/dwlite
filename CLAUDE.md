@@ -86,7 +86,7 @@ dwlite/
 - **Runtime**: FrankenPHP (PHP 8.2) with worker mode enabled (应用常驻内存)
 - **Web Server**: Caddy (via FrankenPHP)
 - **Database**: MySQL 8.0 (external, connects via `host.docker.internal:3306`)
-- **ORM**: Doctrine with migrations support
+- **ORM**: Doctrine (注意：不使用 migrations，手动管理 schema)
 - **Routing**: Attribute-based routes in `src/Controller/`
 - **Logging**: Monolog with JSON format, collected by Promtail
 - **Metrics**: Prometheus client (APCu storage) exposed at `/metrics`
@@ -160,8 +160,6 @@ docker compose logs -f scheduler  # Follow scheduler logs
 composer install                  # Install dependencies
 composer cache:clear              # Clear Symfony cache
 php bin/console debug:router      # List all routes
-php bin/console make:migration    # Generate migration from entity changes
-php bin/console doctrine:migrations:migrate  # Run pending migrations
 php bin/console lexik:jwt:generate-keypair   # Generate JWT keys (first-time setup)
 php bin/console app:create-admin admin@example.com password  # Create admin user
 ```
@@ -406,6 +404,16 @@ Admin 控制器位于 `src/Controller/Admin/`，处理：
 
 - `MerchantProfileController`: 商户资料和钱包
 - `InboundOrderController`: 入库单管理
+- `MerchantOutboundController`: 出库单管理
+- `MerchantInventoryController`: 库存查询
+
+### 仓库作业
+
+仓库人员通过以下端点管理仓库作业（位于 `src/Controller/Warehouse/`）：
+
+- `InboundController`: 入库作业（收货、上架）
+- `OutboundController`: 出库作业（拣货、打包、发货）
+- `InventoryController`: 库存盘点和查询
 
 ## Architecture Principles
 
@@ -445,6 +453,25 @@ Admin 控制器位于 `src/Controller/Admin/`，处理：
 - 接口返回的文本需要考虑 i18n
 - 永远不要用 Doctrine 的 migration 来修改数据库结构
 - 每次修改数据库结构时，都要更新对应的 doc 目录下的 sql 文件
+
+### DateTime 处理
+
+所有 `DateTimeImmutable` 实例必须显式指定 UTC 时区：
+
+```php
+// 正确 - 显式指定 UTC
+new \DateTimeImmutable('now', new \DateTimeZone('UTC'))
+new \DateTimeImmutable('+1 hour', new \DateTimeZone('UTC'))
+
+// 错误 - 禁止不指定时区
+new \DateTimeImmutable()
+new \DateTimeImmutable('+1 hour')
+```
+
+API 返回时间时使用 ISO 8601 格式：
+```php
+$datetime->format(\DateTimeInterface::ATOM)  // 2025-01-15T10:30:00+00:00
+```
 
 ## UI Design Guidelines
 
