@@ -58,7 +58,7 @@ export function SuspendModal({ open, merchantChannel, onClose, onSuccess }: Susp
       okText={t('common.confirm')}
       cancelText={t('common.cancel')}
       okButtonProps={{ danger: true }}
-      destroyOnClose
+      destroyOnHidden
       width={450}
     >
       {merchantChannel && (
