@@ -245,7 +245,7 @@ export function CreateOrderModal({
       onCancel={onClose}
       width={800}
       footer={null}
-      destroyOnClose
+      destroyOnHidden
     >
       <Steps
         current={currentStep}
