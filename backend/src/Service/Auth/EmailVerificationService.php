@@ -36,6 +36,7 @@ class EmailVerificationService
         if ($this->verificationTemplateId > 0) {
             $this->mailService->sendWithTemplate(
                 $user->getEmail(),
+                $this->translator->trans('email.verification.subject'),
                 $this->verificationTemplateId,
                 ['token' => $token->getToken()]
             );

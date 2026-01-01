@@ -34,6 +34,7 @@ interface MailServiceInterface
      */
     public function sendWithTemplate(
         string $to,
+        string $subject,
         int $templateId,
         array $templateData = [],
         ?string $fromEmail = null,

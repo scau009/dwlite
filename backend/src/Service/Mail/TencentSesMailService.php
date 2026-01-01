@@ -8,6 +8,7 @@ use TencentCloud\Common\Exception\TencentCloudSDKException;
 use TencentCloud\Common\Profile\ClientProfile;
 use TencentCloud\Common\Profile\HttpProfile;
 use TencentCloud\Ses\V20201002\Models\SendEmailRequest;
+use TencentCloud\Ses\V20201002\Models\Template;
 use TencentCloud\Ses\V20201002\SesClient;
 
 class TencentSesMailService implements MailServiceInterface
@@ -86,6 +87,7 @@ class TencentSesMailService implements MailServiceInterface
 
     public function sendWithTemplate(
         string $to,
+        string $subject,
         int $templateId,
         array $templateData = [],
         ?string $fromEmail = null,
@@ -95,15 +97,14 @@ class TencentSesMailService implements MailServiceInterface
         $senderName = $fromName ?? $this->fromName;
 
         $request = new SendEmailRequest();
-
+        $request->setSubject($subject);
         $request->setFromEmailAddress($this->formatEmailAddress($senderEmail, $senderName));
         $request->setDestination([$to]);
 
-        $request->setTemplate([
-            'TemplateID' => $templateId,
-            'TemplateData' => json_encode($templateData, JSON_UNESCAPED_UNICODE),
-        ]);
-
+        $tpl = new Template();
+        $tpl->setTemplateID($templateId);
+        $tpl->setTemplateData(json_encode($templateData, JSON_UNESCAPED_UNICODE));
+        $request->setTemplate($tpl);
         try {
             $response = $this->client->SendEmail($request);
 
