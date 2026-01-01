@@ -1,0 +1,174 @@
+name: CD - Production
+
+on:
+  push:
+    branches:
+      - release
+  workflow_dispatch:
+    inputs:
+      git_ref:
+        description: 'Git ref to deploy (branch, tag, or SHA)'
+        required: false
+        default: 'release'
+
+env:
+  REGISTRY: ccr.ccs.tencentyun.com/dwlite/
+
+jobs:
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    # Removed environment requirement for MVP - no manual approval needed
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.git_ref || github.ref }}
+
+      - name: Set deployment tag
+        id: set-tag
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            # For manual dispatch, use the provided git ref
+            TAG="${{ github.event.inputs.git_ref }}"
+            # If it's a full SHA, shorten it
+            if [[ ${#TAG} -eq 40 ]]; then
+              TAG=$(echo $TAG | cut -c1-7)
+            fi
+          else
+            # For release branch push, use git SHA (shortened)
+            TAG=$(echo ${{ github.sha }} | cut -c1-7)
+          fi
+          echo "tag=${TAG}" >> $GITHUB_OUTPUT
+          echo "Deploying tag: ${TAG}"
+
+      - name: Deployment info
+        run: |
+          echo "### Production Deployment" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Tag:** \`${{ steps.set-tag.outputs.tag }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Deployed by:** @${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Timestamp:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.PROD_SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -p ${{ secrets.PROD_SSH_PORT }} ${{ secrets.PROD_SSH_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Backup current deployment info
+        id: backup
+        run: |
+          # Query current running version from server
+          CURRENT_VERSION=$(ssh -p ${{ secrets.PROD_SSH_PORT }} -i ~/.ssh/deploy_key \
+            ${{ secrets.PROD_SSH_USER }}@${{ secrets.PROD_SSH_HOST }} \
+            "cd /opt/dwlite && docker compose -f docker-compose.prod.yml ps -q backend | xargs docker inspect --format='{{.Config.Image}}' 2>/dev/null | cut -d':' -f2 || echo 'unknown'") || echo "unknown"
+
+          echo "current_version=${CURRENT_VERSION}" >> $GITHUB_OUTPUT
+          echo "Current production version: ${CURRENT_VERSION}"
+          echo "**Current Version:** \`${CURRENT_VERSION}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**New Version:** \`${{ steps.set-tag.outputs.tag }}\`" >> $GITHUB_STEP_SUMMARY
+
+      - name: Copy deployment files to server
+        run: |
+          # Copy observability configs if they don't exist on server
+          ssh -p ${{ secrets.PROD_SSH_PORT }} -i ~/.ssh/deploy_key \
+            ${{ secrets.PROD_SSH_USER }}@${{ secrets.PROD_SSH_HOST }} \
+            "mkdir -p /opt/dwlite/scripts /opt/dwlite/observability"
+
+          scp -P ${{ secrets.PROD_SSH_PORT }} -i ~/.ssh/deploy_key \
+            docker-compose.prod.yml \
+            ${{ secrets.PROD_SSH_USER }}@${{ secrets.PROD_SSH_HOST }}:/opt/dwlite/
+
+          scp -P ${{ secrets.PROD_SSH_PORT }} -i ~/.ssh/deploy_key \
+            scripts/deploy.sh \
+            ${{ secrets.PROD_SSH_USER }}@${{ secrets.PROD_SSH_HOST }}:/opt/dwlite/scripts/
+
+          # Copy observability configs if needed
+          ssh -p ${{ secrets.PROD_SSH_PORT }} -i ~/.ssh/deploy_key \
+            ${{ secrets.PROD_SSH_USER }}@${{ secrets.PROD_SSH_HOST }} \
+            "if [ ! -d '/opt/dwlite/observability/loki' ]; then echo 'Observability configs missing'; fi" || true
+
+      - name: Deploy application
+        id: deploy
+        run: |
+          set +e  # Don't exit on error, we want to capture the exit code
+
+          ssh -p ${{ secrets.PROD_SSH_PORT }} -i ~/.ssh/deploy_key \
+            ${{ secrets.PROD_SSH_USER }}@${{ secrets.PROD_SSH_HOST }} \
+            "cd /opt/dwlite && \
+             chmod +x scripts/deploy.sh && \
+             ENVIRONMENT=production \
+             TAG=${{ steps.set-tag.outputs.tag }} \
+             REGISTRY=${{ env.REGISTRY }} \
+             CCR_USERNAME=${{ secrets.TENCENT_CCR_USERNAME }} \
+             CCR_PASSWORD=${{ secrets.TENCENT_CCR_PASSWORD }} \
+             ENV_FILE_CONTENT='${{ secrets.PROD_ENV_FILE }}' \
+             bash scripts/deploy.sh"
+
+          DEPLOY_EXIT_CODE=$?
+
+          if [ $DEPLOY_EXIT_CODE -ne 0 ]; then
+            echo "deployment_failed=true" >> $GITHUB_OUTPUT
+            exit $DEPLOY_EXIT_CODE
+          else
+            echo "deployment_failed=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Post-deployment verification
+        if: success()
+        run: |
+          echo "Running post-deployment verification..."
+
+          # Verify services are running
+          ssh -p ${{ secrets.PROD_SSH_PORT }} -i ~/.ssh/deploy_key \
+            ${{ secrets.PROD_SSH_USER }}@${{ secrets.PROD_SSH_HOST }} \
+            "cd /opt/dwlite && docker compose -f docker-compose.prod.yml ps"
+
+          echo "Post-deployment verification completed"
+
+      - name: Deployment success summary
+        if: success()
+        run: |
+          echo "### Deployment Successful :rocket:" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment:** Production" >> $GITHUB_STEP_SUMMARY
+          echo "**Previous Version:** \`${{ steps.backup.outputs.current_version }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**New Version:** \`${{ steps.set-tag.outputs.tag }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Deployed by:** @${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Completed at:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Images deployed:**" >> $GITHUB_STEP_SUMMARY
+          echo "- \`${{ env.REGISTRY }}dwlite-backend:${{ steps.set-tag.outputs.tag }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- \`${{ env.REGISTRY }}dwlite-frontend:${{ steps.set-tag.outputs.tag }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo ":white_check_mark: Production deployment completed successfully!" >> $GITHUB_STEP_SUMMARY
+
+      - name: Deployment failure summary
+        if: failure()
+        run: |
+          echo "### Deployment Failed :x:" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment:** Production" >> $GITHUB_STEP_SUMMARY
+          echo "**Attempted Version:** \`${{ steps.set-tag.outputs.tag }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Current Version:** \`${{ steps.backup.outputs.current_version }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo ":warning: **Deployment failed!** Check the logs above for error details." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "The deployment script may have performed an automatic rollback to the previous version." >> $GITHUB_STEP_SUMMARY
+          echo "Verify the production environment status and consider manual intervention if needed." >> $GITHUB_STEP_SUMMARY
+
+      - name: Cleanup SSH key
+        if: always()
+        run: rm -f ~/.ssh/deploy_key
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "Production deployment failed for version ${{ steps.set-tag.outputs.tag }}"
+          echo "Manual investigation required!"

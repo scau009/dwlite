@@ -1,0 +1,250 @@
+name: Manual Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      git_ref:
+        description: 'Git ref to deploy (branch, tag, or SHA)'
+        required: true
+        default: 'release'
+      skip_quality_checks:
+        description: 'Skip code quality checks (emergency only!)'
+        required: false
+        type: boolean
+        default: false
+
+env:
+  REGISTRY: ccr.ccs.tencentyun.com/dwlite/
+
+jobs:
+  validate:
+    name: Validate Deployment Request
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deployment request summary
+        run: |
+          echo "### Manual Deployment Request" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Git Ref:** \`${{ github.event.inputs.git_ref }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Skip Quality Checks:** \`${{ github.event.inputs.skip_quality_checks }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Requested by:** @${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Timestamp:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+
+          if [ "${{ github.event.inputs.skip_quality_checks }}" == "true" ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo ":warning: **WARNING: Quality checks will be skipped!**" >> $GITHUB_STEP_SUMMARY
+          fi
+
+  quality-checks:
+    name: Code Quality Checks
+    runs-on: ubuntu-latest
+    needs: validate
+    if: github.event.inputs.skip_quality_checks == 'false'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.git_ref }}
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: ctype, iconv, bcmath, pdo_mysql, redis
+          coverage: none
+          tools: composer:v2
+
+      - name: Install backend dependencies
+        run: composer install --prefer-dist --no-progress --no-scripts
+        working-directory: backend
+
+      - name: Run PHPStan
+        run: vendor/bin/phpstan analyse --no-progress
+        working-directory: backend
+
+      - name: Run PHP-CS-Fixer
+        run: vendor/bin/php-cs-fixer fix --dry-run --diff --verbose
+        working-directory: backend
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        run: npm ci
+        working-directory: frontend
+
+      - name: Run ESLint
+        run: npm run lint
+        working-directory: frontend
+
+      - name: Run TypeScript check
+        run: npx tsc -b
+        working-directory: frontend
+
+  build:
+    name: Build Docker Images
+    runs-on: ubuntu-latest
+    needs: [validate, quality-checks]
+    if: always() && (needs.quality-checks.result == 'success' || needs.quality-checks.result == 'skipped')
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.git_ref }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Tencent CCR
+        uses: docker/login-action@v3
+        with:
+          registry: ccr.ccs.tencentyun.com
+          username: ${{ secrets.TENCENT_CCR_USERNAME }}
+          password: ${{ secrets.TENCENT_CCR_PASSWORD }}
+
+      - name: Determine image tag
+        id: tag
+        run: |
+          GIT_REF="${{ github.event.inputs.git_ref }}"
+
+          # If it's a full SHA, shorten it
+          if [[ ${#GIT_REF} -eq 40 ]]; then
+            TAG=$(echo $GIT_REF | cut -c1-7)
+          # If it's a tag ref, extract the version
+          elif [[ $GIT_REF == refs/tags/* ]]; then
+            TAG=${GIT_REF#refs/tags/}
+          # If it's a version tag, use it as-is
+          elif [[ $GIT_REF =~ ^v[0-9]+\.[0-9]+\.[0-9]+ ]]; then
+            TAG=$GIT_REF
+          # Otherwise, use git SHA
+          else
+            TAG=$(git rev-parse --short HEAD)
+          fi
+
+          echo "tag=${TAG}" >> $GITHUB_OUTPUT
+          echo "Deploying tag: ${TAG}"
+
+      - name: Build and push backend image
+        run: |
+          # Pull or build base image
+          if ! docker pull ${REGISTRY}dwlite-php-base:latest 2>/dev/null; then
+            docker buildx build \
+              --file backend/Dockerfile.base \
+              --tag ${REGISTRY}dwlite-php-base:latest \
+              --push \
+              backend/
+          fi
+
+          # Build backend image
+          docker buildx build \
+            --file backend/Dockerfile \
+            --build-arg BASE_IMAGE=${REGISTRY}dwlite-php-base:latest \
+            --tag ${REGISTRY}dwlite-backend:${{ steps.tag.outputs.tag }} \
+            --tag ${REGISTRY}dwlite-backend:manual-${{ github.run_number }} \
+            --push \
+            backend/
+
+      - name: Build and push frontend image
+        run: |
+          docker buildx build \
+            --file frontend/Dockerfile \
+            --tag ${REGISTRY}dwlite-frontend:${{ steps.tag.outputs.tag }} \
+            --tag ${REGISTRY}dwlite-frontend:manual-${{ github.run_number }} \
+            --push \
+            frontend/
+
+      - name: Build summary
+        run: |
+          echo "### Docker Images Built" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Tag:** \`${{ steps.tag.outputs.tag }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- \`${REGISTRY}dwlite-backend:${{ steps.tag.outputs.tag }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- \`${REGISTRY}dwlite-frontend:${{ steps.tag.outputs.tag }}\`" >> $GITHUB_STEP_SUMMARY
+
+  deploy:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.git_ref }}
+
+      - name: Determine deployment tag
+        id: tag
+        run: |
+          GIT_REF="${{ github.event.inputs.git_ref }}"
+
+          if [[ ${#GIT_REF} -eq 40 ]]; then
+            TAG=$(echo $GIT_REF | cut -c1-7)
+          elif [[ $GIT_REF == refs/tags/* ]]; then
+            TAG=${GIT_REF#refs/tags/}
+          elif [[ $GIT_REF =~ ^v[0-9]+\.[0-9]+\.[0-9]+ ]]; then
+            TAG=$GIT_REF
+          else
+            TAG=$(git rev-parse --short HEAD)
+          fi
+
+          echo "tag=${TAG}" >> $GITHUB_OUTPUT
+
+      - name: Setup SSH
+        id: ssh
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.PROD_SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+
+          SSH_HOST="${{ secrets.PROD_SSH_HOST }}"
+          SSH_PORT="${{ secrets.PROD_SSH_PORT }}"
+          SSH_USER="${{ secrets.PROD_SSH_USER }}"
+
+          ssh-keyscan -p ${SSH_PORT} ${SSH_HOST} >> ~/.ssh/known_hosts
+
+          echo "ssh_host=${SSH_HOST}" >> $GITHUB_OUTPUT
+          echo "ssh_port=${SSH_PORT}" >> $GITHUB_OUTPUT
+          echo "ssh_user=${SSH_USER}" >> $GITHUB_OUTPUT
+
+      - name: Copy deployment files
+        run: |
+          scp -P ${{ steps.ssh.outputs.ssh_port }} -i ~/.ssh/deploy_key \
+            docker-compose.prod.yml \
+            scripts/deploy.sh \
+            ${{ steps.ssh.outputs.ssh_user }}@${{ steps.ssh.outputs.ssh_host }}:/opt/dwlite/
+
+      - name: Deploy application
+        run: |
+          ssh -p ${{ steps.ssh.outputs.ssh_port }} -i ~/.ssh/deploy_key \
+            ${{ steps.ssh.outputs.ssh_user }}@${{ steps.ssh.outputs.ssh_host }} \
+            "cd /opt/dwlite && \
+             chmod +x scripts/deploy.sh && \
+             ENVIRONMENT=production \
+             TAG=${{ steps.tag.outputs.tag }} \
+             REGISTRY=${REGISTRY} \
+             CCR_USERNAME=${{ secrets.TENCENT_CCR_USERNAME }} \
+             CCR_PASSWORD=${{ secrets.TENCENT_CCR_PASSWORD }} \
+             ENV_FILE_CONTENT='${{ secrets.PROD_ENV_FILE }}' \
+             bash scripts/deploy.sh"
+
+      - name: Deployment summary
+        if: success()
+        run: |
+          echo "### Manual Deployment Successful :white_check_mark:" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Tag:** \`${{ steps.tag.outputs.tag }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Git Ref:** \`${{ github.event.inputs.git_ref }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Deployed by:** @${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Quality Checks:** ${{ github.event.inputs.skip_quality_checks == 'true' && 'Skipped' || 'Passed' }}" >> $GITHUB_STEP_SUMMARY
+
+      - name: Cleanup
+        if: always()
+        run: rm -f ~/.ssh/deploy_key

@@ -9,9 +9,25 @@
 Thumbs.db
 
 # Environment files
+.env
 .env.local
-*.local
+.env.*.local
+backend/.env.local
+frontend/.env.local
+
+# JWT Keys (sensitive)
+backend/config/jwt/*.pem
 
 # Docker
 docker-compose.override.yml
 ./crawler/
+
+# PHP
+backend/vendor/
+backend/var/
+backend/.php-cs-fixer.cache
+
+# Node/Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
