@@ -45,7 +45,9 @@ import {
   WarehouseOutboundDetailPage,
   WarehouseInventoryListPage,
 } from '@/pages/warehouse-ops';
-import { MerchantProfilePage, MerchantWalletPage } from '@/pages/settings';
+import { MerchantProfilePage, MerchantWalletPage, MerchantChannelsPage } from '@/pages/settings';
+import { MerchantRulesPage } from '@/pages/settings/rules';
+import { PlatformRulesListPage } from '@/pages/platform-rules/list';
 
 // Placeholder component for pages not yet implemented
 // eslint-disable-next-line react-refresh/only-export-components
@@ -181,6 +183,7 @@ export const router = createBrowserRouter([
               { path: '/channels/merchants', element: <MerchantChannelsListPage /> },
               { path: '/channels/available', element: <AvailableChannelsPage /> },
               { path: '/channels/my-channels', element: <MyChannelsPage /> },
+              { path: '/channels/rules', element: <MerchantRulesPage /> },
 
               // Warehouses (Admin)
               { path: '/warehouses', element: <Navigate to="/warehouses/list" replace /> },
@@ -199,6 +202,9 @@ export const router = createBrowserRouter([
               { path: '/data/sales', element: <PlaceholderPage title="Sales Analysis" /> },
               { path: '/data/inventory', element: <PlaceholderPage title="Inventory Analysis" /> },
               { path: '/data/reports', element: <PlaceholderPage title="Reports" /> },
+
+              // Platform Rules (Admin)
+              { path: '/platform-rules', element: <PlatformRulesListPage /> },
 
               // Settings
               { path: '/settings/info', element: <MerchantProfilePage /> },

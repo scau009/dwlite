@@ -1,7 +1,7 @@
 import { useRef, useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ProTable, type ActionType, type ProColumns } from '@ant-design/pro-components';
-import { Tag, Statistic, Card, Row, Col, Image, Select, Space, Tooltip } from 'antd';
+import { Tag, Statistic, Card, Row, Col, Image, Tooltip } from 'antd';
 import {
   InboxOutlined,
   ShoppingOutlined,
@@ -25,8 +25,6 @@ export function MerchantStockListPage() {
 
   const [summary, setSummary] = useState<MerchantInventorySummary | null>(null);
   const [warehouses, setWarehouses] = useState<InventoryWarehouse[]>([]);
-  const [selectedWarehouse, setSelectedWarehouse] = useState<string | undefined>(undefined);
-  const [selectedStatus, setSelectedStatus] = useState<StockStatus | undefined>(undefined);
 
   // Load summary
   const loadSummary = async () => {
@@ -54,65 +52,73 @@ export function MerchantStockListPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Stock status options
-  const stockStatusOptions = [
-    { value: 'has_stock', label: t('merchantStock.statusHasStock') },
-    { value: 'in_transit', label: t('merchantStock.statusInTransit') },
-    { value: 'available', label: t('merchantStock.statusAvailable') },
-    { value: 'reserved', label: t('merchantStock.statusReserved') },
-    { value: 'damaged', label: t('merchantStock.statusDamaged') },
-    { value: 'low_stock', label: t('merchantStock.statusLowStock') },
-  ];
-
   const columns: ProColumns<MerchantInventoryItem>[] = [
     {
-      title: t('merchantStock.productImage'),
-      dataIndex: ['product', 'primaryImage'],
-      width: 80,
-      search: false,
+      title: t('merchantStock.productInfo'),
+      dataIndex: 'name',
+      width: 280,
+      ellipsis: true,
+      fieldProps: {
+        placeholder: t('merchantStock.searchPlaceholder'),
+      },
       render: (_, record) => {
         const image = record.product?.primaryImage;
-        return image ? (
-          <Image src={image} width={60} height={60} style={{ objectFit: 'cover' }} />
-        ) : (
-          <div className="w-[60px] h-[60px] bg-gray-100 flex items-center justify-center text-gray-400">
-            N/A
+        return (
+          <div className="flex gap-3">
+            {image ? (
+              <Image src={image} width={50} height={50} style={{ objectFit: 'cover', borderRadius: '4px' }} />
+            ) : (
+              <div className="w-[50px] h-[50px] bg-gray-100 flex items-center justify-center text-gray-400 rounded text-xs">
+                N/A
+              </div>
+            )}
+            <div className="flex-1 min-w-0">
+              <div className="font-medium text-sm truncate">{record.product?.name || '-'}</div>
+              <div className="text-xs text-gray-500 space-x-2 mt-1">
+                <span className="font-mono">{record.product?.styleNumber || '-'}</span>
+                {record.sku?.skuName && (
+                  <>
+                    <span>•</span>
+                    <span>{record.sku.skuName}</span>
+                  </>
+                )}
+              </div>
+            </div>
           </div>
         );
       },
     },
     {
-      title: t('merchantStock.productName'),
-      dataIndex: ['product', 'name'],
-      width: 180,
-      ellipsis: true,
+      title: t('merchantStock.warehouse'),
+      dataIndex: 'warehouseId',
+      width: 120,
+      valueType: 'select',
       fieldProps: {
-        placeholder: t('merchantStock.searchPlaceholder'),
+        placeholder: t('merchantStock.selectWarehouse'),
+        options: warehouses.map(w => ({ value: w.id, label: w.name })),
+      },
+      render: (_, record) => {
+        if (!record.warehouse) return '-';
+        return (
+          <Tooltip title={record.warehouse.code}>
+            <Tag>{record.warehouse.name}</Tag>
+          </Tooltip>
+        );
       },
     },
     {
-      title: t('merchantStock.styleNumber'),
-      dataIndex: ['product', 'styleNumber'],
+      title: t('merchantStock.stockStatus'),
+      dataIndex: 'stockStatus',
       width: 120,
-      search: false,
-      render: (_, record) => record.product?.styleNumber || '-',
-    },
-    {
-      title: t('merchantStock.skuName'),
-      dataIndex: ['sku', 'skuName'],
-      width: 80,
-      search: false,
-    },
-    {
-      title: t('merchantStock.warehouse'),
-      dataIndex: ['warehouse', 'name'],
-      width: 120,
-      search: false,
-      render: (_, record) => (
-        <Tooltip title={record.warehouse.code}>
-          <Tag>{record.warehouse.name}</Tag>
-        </Tooltip>
-      ),
+      valueType: 'select',
+      valueEnum: {
+        has_stock: { text: t('merchantStock.statusHasStock') },
+        in_transit: { text: t('merchantStock.statusInTransit') },
+        available: { text: t('merchantStock.statusAvailable') },
+        reserved: { text: t('merchantStock.statusReserved') },
+        damaged: { text: t('merchantStock.statusDamaged') },
+      },
+      hideInTable: true,
     },
     {
       title: t('merchantStock.inTransit'),
@@ -135,19 +141,12 @@ export function MerchantStockListPage() {
       render: (_, record) => (
         <span
           className={
-            record.isBelowSafetyStock
-              ? 'text-orange-500'
-              : record.quantityAvailable > 0
-                ? 'text-green-500 font-medium'
-                : 'text-gray-400'
+            record.quantityAvailable > 0
+              ? 'text-green-500 font-medium'
+              : 'text-gray-400'
           }
         >
           {record.quantityAvailable}
-          {record.isBelowSafetyStock && (
-            <Tooltip title={t('merchantStock.belowSafetyStock')}>
-              <WarningOutlined className="ml-1 text-orange-500" />
-            </Tooltip>
-          )}
         </span>
       ),
     },
@@ -174,33 +173,6 @@ export function MerchantStockListPage() {
           {record.quantityDamaged}
         </span>
       ),
-    },
-    {
-      title: t('merchantStock.averageCost'),
-      dataIndex: 'averageCost',
-      width: 100,
-      search: false,
-      align: 'right',
-      render: (_, record) => {
-        const value = record.averageCost ? parseFloat(record.averageCost) : 0;
-        return value > 0 ? `¥${value.toFixed(2)}` : '-';
-      },
-    },
-    {
-      title: t('merchantStock.safetyStock'),
-      dataIndex: 'safetyStock',
-      width: 80,
-      search: false,
-      align: 'center',
-      render: (_, record) => (record.safetyStock !== null ? record.safetyStock : '-'),
-    },
-    {
-      title: t('merchantStock.lastInbound'),
-      dataIndex: 'lastInboundAt',
-      width: 140,
-      search: false,
-      render: (_, record) =>
-        record.lastInboundAt ? new Date(record.lastInboundAt).toLocaleDateString() : '-',
     },
     {
       title: t('common.updatedAt'),
@@ -279,10 +251,6 @@ export function MerchantStockListPage() {
         actionRef={actionRef}
         columns={columns}
         rowKey="id"
-        params={{
-          warehouseId: selectedWarehouse,
-          stockStatus: selectedStatus,
-        }}
         request={async params => {
           try {
             const result = await merchantInventoryApi.getInventoryList({
@@ -306,32 +274,6 @@ export function MerchantStockListPage() {
             };
           }
         }}
-        toolBarRender={() => [
-          <Space key="filters" wrap>
-            <Select
-              placeholder={t('merchantStock.selectWarehouse')}
-              allowClear
-              style={{ width: 160 }}
-              value={selectedWarehouse}
-              onChange={value => {
-                setSelectedWarehouse(value);
-                actionRef.current?.reload();
-              }}
-              options={warehouses.map(w => ({ value: w.id, label: w.name }))}
-            />
-            <Select
-              placeholder={t('merchantStock.selectStatus')}
-              allowClear
-              style={{ width: 140 }}
-              value={selectedStatus}
-              onChange={value => {
-                setSelectedStatus(value);
-                actionRef.current?.reload();
-              }}
-              options={stockStatusOptions}
-            />
-          </Space>,
-        ]}
         search={{
           labelWidth: 'auto',
           defaultCollapsed: false,

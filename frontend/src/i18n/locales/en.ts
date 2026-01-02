@@ -58,6 +58,7 @@ export default {
     warehouseOperations: 'Warehouse Operations',
     dataCenter: 'Data Center',
     settings: 'Settings',
+    platformRules: 'Platform Rules',
   },
 
   // Sidebar menu items
@@ -111,6 +112,7 @@ export default {
     // Settings
     generalSettings: 'General',
     walletManagement: 'Wallet',
+    merchantRules: 'Rules',
     userManagement: 'Users',
     roleManagement: 'Roles',
     operationLogs: 'Logs',
@@ -1134,11 +1136,13 @@ export default {
   merchantStock: {
     title: 'Stock Query',
     description: 'View your SKU inventory by warehouse and status',
+    productInfo: 'Product Info',
     productImage: 'Image',
     productName: 'Product Name',
     styleNumber: 'Style No',
     skuName: 'Size',
     warehouse: 'Warehouse',
+    stockStatus: 'Stock Status',
     inTransit: 'In Transit',
     available: 'Available',
     reserved: 'Reserved',
@@ -1398,5 +1402,122 @@ export default {
     // Status Description
     pendingDesc: 'Awaiting platform review',
     suspendedByAdmin: 'Suspended by admin',
+  },
+
+  // Rules Engine
+  rules: {
+    // Common
+    code: 'Rule Code',
+    name: 'Rule Name',
+    description: 'Description',
+    expression: 'Expression',
+    conditionExpression: 'Condition Expression',
+    priority: 'Priority',
+    status: 'Status',
+    statusActive: 'Active',
+    statusInactive: 'Inactive',
+    enableSwitch: 'Enable',
+    category: 'Category',
+    config: 'Configuration',
+    channel: 'Channel',
+    scopeType: 'Scope Type',
+    scopeName: 'Scope Name',
+    scopeMerchant: 'Merchant',
+    scopeChannelProduct: 'Channel Product',
+    effectivePriority: 'Effective Priority',
+    overridden: 'Overridden',
+    priorityOverride: 'Priority Override',
+    assignments: 'Assignments',
+
+    // Rule Types
+    pricingRules: 'Pricing Rules',
+    stockAllocationRules: 'Stock Allocation Rules',
+    platformPricingRules: 'Pricing Rules',
+    stockPriorityRules: 'Stock Priority Rules',
+    settlementFeeRules: 'Settlement Fee Rules',
+
+    // Categories
+    categoryMarkup: 'Markup',
+    categoryDiscount: 'Discount',
+    categoryRatio: 'Ratio',
+    categoryLimit: 'Limit',
+    categoryPriority: 'Priority',
+    categoryFeeRate: 'Fee Rate',
+    categoryFeerate: 'Fee Rate',
+
+    // Actions
+    addRule: 'Add Rule',
+    editRule: 'Edit Rule',
+    created: 'Rule created successfully',
+    updated: 'Rule updated successfully',
+    deleted: 'Rule deleted successfully',
+    activated: 'Rule activated',
+    deactivated: 'Rule deactivated',
+    confirmDelete: 'Confirm Delete',
+    confirmDeleteDesc: 'Are you sure you want to delete rule "{{name}}"? This action cannot be undone.',
+    confirmActivate: 'Confirm activate this rule?',
+    confirmDeactivate: 'Confirm deactivate this rule?',
+    cannotDeleteSystem: 'System rules cannot be deleted',
+    cannotModifySystem: 'System rules cannot be modified',
+    systemRule: 'System Rule',
+
+    // Form
+    codePlaceholder: 'e.g., markup_rate_15',
+    codeRequired: 'Please enter rule code',
+    codeMaxLength: 'Rule code cannot exceed 100 characters',
+    codeInvalid: 'Rule code must start with a letter and contain only lowercase letters, numbers, and underscores',
+    namePlaceholder: 'Enter rule name',
+    nameRequired: 'Please enter rule name',
+    nameMaxLength: 'Rule name cannot exceed 200 characters',
+    descriptionPlaceholder: 'Enter rule description (optional)',
+    descriptionMaxLength: 'Description cannot exceed 1000 characters',
+    categoryRequired: 'Please select a category',
+    expressionRequired: 'Please enter expression',
+    expressionPlaceholder: 'Enter expression, e.g., markup(cost, 0.3)',
+    conditionExpressionTooltip: 'Optional condition. Rule only applies when condition is true',
+    priorityTooltip: 'Higher priority rules are executed first',
+
+    // Tabs
+    basicInfo: 'Basic Info',
+    testTab: 'Test',
+
+    // Expression Editor
+    availableVariables: 'Available Variables',
+    availableFunctions: 'Available Functions',
+    example: 'Example',
+    expressionValid: 'Expression is valid',
+    validating: 'Validating',
+    validationFailed: 'Validation failed',
+
+    // Test Panel
+    testExecution: 'Test Execution',
+    runTest: 'Run Test',
+    testFailed: 'Test failed',
+    testError: 'Test Error',
+    conditionResult: 'Condition Result',
+    conditionPassed: 'Condition passed',
+    conditionFailed: 'Condition not met',
+    executionResult: 'Execution Result',
+    output: 'Output',
+
+    // Assignments
+    manageAssignments: 'Manage Assignments',
+    assignmentFor: 'Assignments for',
+    addAssignment: 'Add Assignment',
+    noAssignments: 'No assignments',
+    assignmentAdded: 'Assignment added successfully',
+    assignmentRemoved: 'Assignment removed successfully',
+    assignmentEnabled: 'Assignment enabled',
+    assignmentDisabled: 'Assignment disabled',
+    confirmRemoveAssignment: 'Are you sure you want to remove this assignment?',
+    selectChannel: 'Select Channel',
+    channelRequired: 'Please select a channel',
+    selectMerchant: 'Select Merchant',
+    merchantRequired: 'Please select a merchant',
+    channelProductId: 'Channel Product ID',
+    channelProductIdRequired: 'Please enter channel product ID',
+    channelProductIdInvalid: 'Invalid channel product ID',
+    channelProductIdPlaceholder: 'Enter 26-character channel product ID',
+    priorityOverridePlaceholder: 'Leave empty to use default priority',
   },
 }

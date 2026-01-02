@@ -6,7 +6,6 @@ use App\Entity\MerchantInventory;
 use App\Entity\User;
 use App\Repository\MerchantInventoryRepository;
 use App\Repository\MerchantRepository;
-use App\Repository\ProductRepository;
 use App\Repository\WarehouseRepository;
 use App\Service\CosService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -21,34 +20,24 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class MerchantInventoryController extends AbstractController
 {
     public function __construct(
-        private MerchantInventoryRepository $inventoryRepository,
-        private MerchantRepository $merchantRepository,
-        private WarehouseRepository $warehouseRepository,
-        private ProductRepository $productRepository,
-        private CosService $cosService,
+        private readonly CosService $cosService,
     ) {
-    }
-
-    /**
-     * 获取当前商户.
-     */
-    private function getCurrentMerchant(User $user)
-    {
-        $merchant = $this->merchantRepository->findByUser($user);
-        if ($merchant === null) {
-            throw $this->createAccessDeniedException('Merchant not found');
-        }
-
-        return $merchant;
     }
 
     /**
      * 获取商户库存列表（分页，按 styleNumber + sizeValue 分组）.
      */
     #[Route('', name: 'merchant_inventory_list', methods: ['GET'])]
-    public function list(Request $request, #[CurrentUser] User $user): JsonResponse
-    {
-        $merchant = $this->getCurrentMerchant($user);
+    public function list(
+        Request $request,
+        #[CurrentUser] User $user,
+        MerchantRepository $merchantRepository,
+        MerchantInventoryRepository $inventoryRepository,
+    ): JsonResponse {
+        $merchant = $merchantRepository->findByUser($user);
+        if (!$merchant) {
+            throw $this->createAccessDeniedException('Merchant not found');
+        }
 
         $page = max(1, (int) $request->query->get('page', '1'));
         $limit = min(100, max(1, (int) $request->query->get('limit', '20')));
@@ -71,27 +60,10 @@ class MerchantInventoryController extends AbstractController
             $filters['hasStock'] = true;
         }
 
-        $result = $this->inventoryRepository->findByMerchantPaginatedGrouped($merchant, $page, $limit, $filters);
-
-        // 获取商品图片
-        $productIds = array_filter(array_unique(array_column($result['data'], 'productId')));
-        $productImages = [];
-        if (!empty($productIds)) {
-            $products = $this->productRepository->findBy(['id' => $productIds]);
-            foreach ($products as $product) {
-                $primaryImage = $product->getPrimaryImage();
-                if ($primaryImage) {
-                    $productImages[$product->getId()] = $this->cosService->getSignedUrl(
-                        $primaryImage->getCosKey(),
-                        3600,
-                        'imageMogr2/thumbnail/80x80>'
-                    );
-                }
-            }
-        }
+        $result = $inventoryRepository->findByMerchantPaginated($merchant, $page, $limit, $filters);
 
         return $this->json([
-            'data' => array_map(fn (array $row) => $this->formatGroupedInventory($row, $productImages), $result['data']),
+            'data' => array_map(fn ($inventory) => $this->formatInventory($inventory), $result['data']),
             'meta' => $result['meta'],
         ]);
     }
@@ -100,11 +72,17 @@ class MerchantInventoryController extends AbstractController
      * 获取商户库存汇总.
      */
     #[Route('/summary', name: 'merchant_inventory_summary', methods: ['GET'])]
-    public function summary(#[CurrentUser] User $user): JsonResponse
-    {
-        $merchant = $this->getCurrentMerchant($user);
+    public function summary(
+        #[CurrentUser] User $user,
+        MerchantRepository $merchantRepository,
+        MerchantInventoryRepository $inventoryRepository,
+    ): JsonResponse {
+        $merchant = $merchantRepository->findByUser($user);
+        if (!$merchant) {
+            throw $this->createAccessDeniedException('Merchant not found');
+        }
 
-        $summary = $this->inventoryRepository->getMerchantSummary($merchant);
+        $summary = $inventoryRepository->getMerchantSummary($merchant);
 
         return $this->json([
             'data' => [
@@ -122,10 +100,11 @@ class MerchantInventoryController extends AbstractController
      * 获取可用仓库列表（用于筛选）.
      */
     #[Route('/warehouses', name: 'merchant_inventory_warehouses', methods: ['GET'])]
-    public function warehouses(): JsonResponse
-    {
+    public function warehouses(
+        WarehouseRepository $warehouseRepository,
+    ): JsonResponse {
         // 获取所有活跃的平台仓库
-        $warehouses = $this->warehouseRepository->findActivePlatformWarehouses();
+        $warehouses = $warehouseRepository->findActivePlatformWarehouses();
 
         return $this->json([
             'data' => array_map(fn ($w) => [
@@ -143,9 +122,19 @@ class MerchantInventoryController extends AbstractController
     {
         $productId = $row['productId'] ?? null;
         $sizeUnit = $row['sizeUnit'] ?? null;
+        $sizeValue = $row['sizeValue'] ?? null;
+
+        // 构建 SKU 名称
+        $skuName = null;
+        if ($sizeUnit && $sizeValue) {
+            $unitValue = $sizeUnit->value ?? $sizeUnit;
+            $skuName = $unitValue.' '.$sizeValue;
+        } elseif ($sizeValue) {
+            $skuName = $sizeValue;
+        }
 
         return [
-            'id' => $row['styleNumber'].'-'.($row['sizeValue'] ?? ''),
+            'id' => $row['styleNumber'].'-'.($sizeValue ?? ''),
             'product' => [
                 'id' => $productId,
                 'name' => $row['productName'] ?? null,
@@ -155,9 +144,9 @@ class MerchantInventoryController extends AbstractController
             ],
             'sku' => [
                 'id' => $row['skuId'] ?? null,
-                'skuName' => $row['skuName'] ?? null,
+                'skuName' => $skuName,
                 'sizeUnit' => $sizeUnit?->value ?? $sizeUnit,
-                'sizeValue' => $row['sizeValue'] ?? null,
+                'sizeValue' => $sizeValue,
             ],
             'quantityInTransit' => (int) ($row['quantityInTransit'] ?? 0),
             'quantityAvailable' => (int) ($row['quantityAvailable'] ?? 0),

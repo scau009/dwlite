@@ -58,6 +58,7 @@ export default {
     warehouseOperations: '仓库作业',
     dataCenter: '数据中心',
     settings: '系统设置',
+    platformRules: '平台规则',
   },
 
   // Sidebar menu items
@@ -111,6 +112,7 @@ export default {
     // Settings
     generalSettings: '基本设置',
     walletManagement: '电子钱包',
+    merchantRules: '规则配置',
     userManagement: '用户管理',
     roleManagement: '角色权限',
     operationLogs: '操作日志',
@@ -1008,11 +1010,13 @@ export default {
     statusLowStock: '库存预警',
 
     // Table columns
+    productInfo: '商品信息',
     productImage: '商品图片',
     productName: '商品名称',
     styleNumber: '款号',
     skuName: '尺码',
     warehouse: '仓库',
+    stockStatus: '库存状态',
     inTransit: '在途',
     available: '可用',
     reserved: '锁定',
@@ -1387,5 +1391,122 @@ export default {
     itemsAdded: '商品已添加',
     selectedItems: '已选择 {{count}} 件商品',
     totalQuantityValue: '共 {{quantity}} 件',
+  },
+
+  // Rules Engine
+  rules: {
+    // Common
+    code: '规则编码',
+    name: '规则名称',
+    description: '描述',
+    expression: '表达式',
+    conditionExpression: '条件表达式',
+    priority: '优先级',
+    status: '状态',
+    statusActive: '启用',
+    statusInactive: '停用',
+    enableSwitch: '启用',
+    category: '分类',
+    config: '配置',
+    channel: '渠道',
+    scopeType: '范围类型',
+    scopeName: '范围名称',
+    scopeMerchant: '商户',
+    scopeChannelProduct: '渠道商品',
+    effectivePriority: '生效优先级',
+    overridden: '已覆盖',
+    priorityOverride: '优先级覆盖',
+    assignments: '分配',
+
+    // Rule Types
+    pricingRules: '定价规则',
+    stockAllocationRules: '库存分配规则',
+    platformPricingRules: '加价规则',
+    stockPriorityRules: '库存优先级规则',
+    settlementFeeRules: '结算费率规则',
+
+    // Categories
+    categoryMarkup: '加价',
+    categoryDiscount: '折扣',
+    categoryRatio: '比例',
+    categoryLimit: '上限',
+    categoryPriority: '优先级',
+    categoryFeeRate: '费率',
+    categoryFeerate: '费率',
+
+    // Actions
+    addRule: '添加规则',
+    editRule: '编辑规则',
+    created: '规则创建成功',
+    updated: '规则更新成功',
+    deleted: '规则删除成功',
+    activated: '规则已启用',
+    deactivated: '规则已停用',
+    confirmDelete: '确认删除',
+    confirmDeleteDesc: '确定要删除规则"{{name}}"吗？此操作不可撤销。',
+    confirmActivate: '确定要启用此规则吗？',
+    confirmDeactivate: '确定要停用此规则吗？',
+    cannotDeleteSystem: '系统规则不能删除',
+    cannotModifySystem: '系统规则不能修改',
+    systemRule: '系统规则',
+
+    // Form
+    codePlaceholder: '例如：markup_rate_15',
+    codeRequired: '请输入规则编码',
+    codeMaxLength: '规则编码不能超过100个字符',
+    codeInvalid: '规则编码必须以字母开头，只能包含小写字母、数字和下划线',
+    namePlaceholder: '输入规则名称',
+    nameRequired: '请输入规则名称',
+    nameMaxLength: '规则名称不能超过200个字符',
+    descriptionPlaceholder: '输入规则描述（可选）',
+    descriptionMaxLength: '描述不能超过1000个字符',
+    categoryRequired: '请选择分类',
+    expressionRequired: '请输入表达式',
+    expressionPlaceholder: '输入表达式，例如：markup(cost, 0.3)',
+    conditionExpressionTooltip: '可选条件。只有条件为真时规则才会生效',
+    priorityTooltip: '优先级越高的规则越先执行',
+
+    // Tabs
+    basicInfo: '基本信息',
+    testTab: '测试',
+
+    // Expression Editor
+    availableVariables: '可用变量',
+    availableFunctions: '可用函数',
+    example: '示例',
+    expressionValid: '表达式有效',
+    validating: '验证中',
+    validationFailed: '验证失败',
+
+    // Test Panel
+    testExecution: '测试执行',
+    runTest: '运行测试',
+    testFailed: '测试失败',
+    testError: '测试错误',
+    conditionResult: '条件结果',
+    conditionPassed: '条件满足',
+    conditionFailed: '条件不满足',
+    executionResult: '执行结果',
+    output: '输出',
+
+    // Assignments
+    manageAssignments: '管理分配',
+    assignmentFor: '规则分配',
+    addAssignment: '添加分配',
+    noAssignments: '暂无分配',
+    assignmentAdded: '分配添加成功',
+    assignmentRemoved: '分配已移除',
+    assignmentEnabled: '分配已启用',
+    assignmentDisabled: '分配已停用',
+    confirmRemoveAssignment: '确定要移除此分配吗？',
+    selectChannel: '选择渠道',
+    channelRequired: '请选择渠道',
+    selectMerchant: '选择商户',
+    merchantRequired: '请选择商户',
+    channelProductId: '渠道商品ID',
+    channelProductIdRequired: '请输入渠道商品ID',
+    channelProductIdInvalid: '渠道商品ID格式无效',
+    channelProductIdPlaceholder: '输入26位渠道商品ID',
+    priorityOverridePlaceholder: '留空则使用默认优先级',
   },
 }

@@ -12,6 +12,7 @@ import {
   HomeOutlined,
   ShopOutlined,
   BulbOutlined,
+  FunctionOutlined,
 } from '@ant-design/icons';
 import type { TFunction } from 'i18next';
 import type { AccountType } from '@/types/auth';
@@ -127,6 +128,7 @@ export function getMenuData(t: TFunction): AccessMenuDataItem[] {
         { path: '/channels/merchants', name: t('menu.merchantChannels'), access: 'admin' },
         { path: '/channels/available', name: t('menu.availableChannels'), access: 'merchant' },
         { path: '/channels/my-channels', name: t('menu.myChannels'), access: 'merchant' },
+        { path: '/channels/rules', name: t('menu.merchantRules'), access: 'merchant' },
       ],
     },
     {
@@ -152,6 +154,12 @@ export function getMenuData(t: TFunction): AccessMenuDataItem[] {
     //     { path: '/data/reports', name: t('menu.reports'), access: 'admin' },
     //   ],
     // },
+    {
+      path: '/platform-rules',
+      name: t('nav.platformRules'),
+      icon: <FunctionOutlined />,
+      access: 'admin',
+    },
     {
       path: '/settings',
       name: t('nav.settings'),

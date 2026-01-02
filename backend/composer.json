@@ -20,11 +20,11 @@
         "predis/predis": "^3.3",
         "promphp/prometheus_client_php": "^2.14",
         "qcloud/cos-sdk-v5": "^2.6",
-        "tencentcloud/ses": "^3.0",
         "runtime/frankenphp-symfony": "^0.2.0",
         "symfony/cache": "6.4.*",
         "symfony/console": "6.4.*",
         "symfony/dotenv": "6.4.*",
+        "symfony/expression-language": "6.4.*",
         "symfony/flex": "^2",
         "symfony/framework-bundle": "6.4.*",
         "symfony/lock": "6.4.*",
@@ -43,7 +43,8 @@
         "symfony/twig-bundle": "6.4.*",
         "symfony/uid": "6.4.*",
         "symfony/validator": "6.4.*",
-        "symfony/yaml": "6.4.*"
+        "symfony/yaml": "6.4.*",
+        "tencentcloud/ses": "^3.0"
     },
     "config": {
         "allow-plugins": {

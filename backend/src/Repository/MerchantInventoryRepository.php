@@ -147,9 +147,9 @@ class MerchantInventoryRepository extends ServiceEntityRepository
             ->setParameter('warehouse', $warehouse)
             ->orderBy('i.updatedAt', 'DESC');
 
-        // 搜索商品名或 SKU 名
+        // 搜索商品名或货号或尺码
         if (!empty($filters['search'])) {
-            $qb->andWhere('sku.skuName LIKE :search OR p.name LIKE :search OR p.styleNumber LIKE :search')
+            $qb->andWhere('p.name LIKE :search OR p.styleNumber LIKE :search OR sku.sizeValue LIKE :search')
                 ->setParameter('search', '%'.$filters['search'].'%');
         }
 
@@ -217,9 +217,9 @@ class MerchantInventoryRepository extends ServiceEntityRepository
             ->setParameter('merchant', $merchant)
             ->orderBy('i.updatedAt', 'DESC');
 
-        // 搜索商品名或 SKU 名
+        // 搜索商品名或货号或尺码
         if (!empty($filters['search'])) {
-            $qb->andWhere('sku.skuName LIKE :search OR p.name LIKE :search OR p.styleNumber LIKE :search')
+            $qb->andWhere('p.name LIKE :search OR p.styleNumber LIKE :search OR sku.sizeValue LIKE :search')
                 ->setParameter('search', '%'.$filters['search'].'%');
         }
 
@@ -316,7 +316,6 @@ class MerchantInventoryRepository extends ServiceEntityRepository
             ->addSelect('p.color as colorName')
             ->addSelect('sku.sizeUnit')
             ->addSelect('sku.sizeValue')
-            ->addSelect('sku.skuName')
             ->addSelect('SUM(i.quantityInTransit) as quantityInTransit')
             ->addSelect('SUM(i.quantityAvailable) as quantityAvailable')
             ->addSelect('SUM(i.quantityReserved) as quantityReserved')
@@ -330,12 +329,12 @@ class MerchantInventoryRepository extends ServiceEntityRepository
             ->leftJoin('sku.product', 'p')
             ->andWhere('i.merchant = :merchant')
             ->setParameter('merchant', $merchant)
-            ->groupBy('p.styleNumber, sku.sizeValue, sku.sizeUnit, p.name, p.color, sku.skuName')
+            ->groupBy('p.styleNumber, sku.sizeValue, sku.sizeUnit, p.name, p.color')
             ->orderBy('MAX(i.updatedAt)', 'DESC');
 
-        // 搜索商品名或 SKU 名或货号
+        // 搜索商品名或货号或尺码
         if (!empty($filters['search'])) {
-            $qb->andWhere('sku.skuName LIKE :search OR p.name LIKE :search OR p.styleNumber LIKE :search')
+            $qb->andWhere('p.name LIKE :search OR p.styleNumber LIKE :search OR sku.sizeValue LIKE :search')
                 ->setParameter('search', '%'.$filters['search'].'%');
         }
 
@@ -382,7 +381,7 @@ class MerchantInventoryRepository extends ServiceEntityRepository
             ->setParameter('merchant', $merchant);
 
         if (!empty($filters['search'])) {
-            $countQb->andWhere('sku2.skuName LIKE :search OR p2.name LIKE :search OR p2.styleNumber LIKE :search')
+            $countQb->andWhere('p2.name LIKE :search OR p2.styleNumber LIKE :search OR sku2.sizeValue LIKE :search')
                 ->setParameter('search', '%'.$filters['search'].'%');
         }
 
