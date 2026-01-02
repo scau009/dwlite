@@ -7,7 +7,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Uid\Ulid;
 
 /**
- * 出库单明细 - 出库单中的商品明细
+ * 出库单明细 - 出库单中的商品明细.
  */
 #[ORM\Entity(repositoryClass: OutboundOrderItemRepository::class)]
 #[ORM\Table(name: 'outbound_order_items')]
@@ -91,6 +91,7 @@ class OutboundOrderItem
     public function setOutboundOrder(OutboundOrder $outboundOrder): static
     {
         $this->outboundOrder = $outboundOrder;
+
         return $this;
     }
 
@@ -102,6 +103,7 @@ class OutboundOrderItem
     public function setMerchant(?Merchant $merchant): static
     {
         $this->merchant = $merchant;
+
         return $this;
     }
 
@@ -113,6 +115,7 @@ class OutboundOrderItem
     public function setWarehouse(?Warehouse $warehouse): static
     {
         $this->warehouse = $warehouse;
+
         return $this;
     }
 
@@ -124,6 +127,7 @@ class OutboundOrderItem
     public function setProductSku(?ProductSku $productSku): static
     {
         $this->productSku = $productSku;
+
         return $this;
     }
 
@@ -137,6 +141,7 @@ class OutboundOrderItem
     public function setSkuName(?string $skuName): static
     {
         $this->skuName = $skuName;
+
         return $this;
     }
 
@@ -148,6 +153,7 @@ class OutboundOrderItem
     public function setStyleNumber(?string $styleNumber): static
     {
         $this->styleNumber = $styleNumber;
+
         return $this;
     }
 
@@ -159,6 +165,7 @@ class OutboundOrderItem
     public function setColorName(?string $colorName): static
     {
         $this->colorName = $colorName;
+
         return $this;
     }
 
@@ -170,6 +177,7 @@ class OutboundOrderItem
     public function setProductName(?string $productName): static
     {
         $this->productName = $productName;
+
         return $this;
     }
 
@@ -181,6 +189,7 @@ class OutboundOrderItem
     public function setProductImage(?string $productImage): static
     {
         $this->productImage = $productImage;
+
         return $this;
     }
 
@@ -192,6 +201,7 @@ class OutboundOrderItem
     public function setStockType(string $stockType): static
     {
         $this->stockType = $stockType;
+
         return $this;
     }
 
@@ -213,6 +223,7 @@ class OutboundOrderItem
     public function setQuantity(int $quantity): static
     {
         $this->quantity = $quantity;
+
         return $this;
     }
 
@@ -233,7 +244,7 @@ class OutboundOrderItem
     }
 
     /**
-     * 从 SKU 快照关键信息
+     * 从 SKU 快照关键信息.
      */
     public function snapshotFromSku(ProductSku $sku): void
     {

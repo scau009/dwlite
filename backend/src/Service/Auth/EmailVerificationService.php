@@ -44,7 +44,7 @@ class EmailVerificationService
             $htmlContent = $this->twig->render('emails/verification.html.twig', [
                 'user' => $user,
                 'token' => $token->getToken(),
-                'verifyUrl' => $this->frontendUrl . '/verify-email?token=' . $token->getToken(),
+                'verifyUrl' => $this->frontendUrl.'/verify-email?token='.$token->getToken(),
             ]);
 
             $this->mailService->send(

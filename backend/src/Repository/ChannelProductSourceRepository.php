@@ -20,7 +20,7 @@ class ChannelProductSourceRepository extends ServiceEntityRepository
     }
 
     /**
-     * 获取渠道商品的所有来源
+     * 获取渠道商品的所有来源.
      *
      * @return ChannelProductSource[]
      */
@@ -35,7 +35,7 @@ class ChannelProductSourceRepository extends ServiceEntityRepository
     }
 
     /**
-     * 获取渠道商品的活跃来源
+     * 获取渠道商品的活跃来源.
      *
      * @return ChannelProductSource[]
      */
@@ -51,7 +51,7 @@ class ChannelProductSourceRepository extends ServiceEntityRepository
     }
 
     /**
-     * 获取某商家上架配置关联的所有渠道商品来源
+     * 获取某商家上架配置关联的所有渠道商品来源.
      *
      * @return ChannelProductSource[]
      */
@@ -78,7 +78,7 @@ class ChannelProductSourceRepository extends ServiceEntityRepository
     }
 
     /**
-     * 获取或创建来源
+     * 获取或创建来源.
      */
     public function findOrCreate(
         ChannelProduct $product,
@@ -96,7 +96,7 @@ class ChannelProductSourceRepository extends ServiceEntityRepository
     }
 
     /**
-     * 获取商家为某渠道商品提供的所有来源
+     * 获取商家为某渠道商品提供的所有来源.
      *
      * @return ChannelProductSource[]
      */
@@ -115,7 +115,7 @@ class ChannelProductSourceRepository extends ServiceEntityRepository
     }
 
     /**
-     * 获取商家的所有供货来源
+     * 获取商家的所有供货来源.
      *
      * @return ChannelProductSource[]
      */
@@ -132,7 +132,7 @@ class ChannelProductSourceRepository extends ServiceEntityRepository
     }
 
     /**
-     * 统计渠道商品的活跃来源数量
+     * 统计渠道商品的活跃来源数量.
      */
     public function countActiveByProduct(ChannelProduct $product): int
     {
@@ -146,7 +146,7 @@ class ChannelProductSourceRepository extends ServiceEntityRepository
     }
 
     /**
-     * 获取按优先级排序的第一个活跃来源（用于发货）
+     * 获取按优先级排序的第一个活跃来源（用于发货）.
      */
     public function findFirstActiveSource(ChannelProduct $product): ?ChannelProductSource
     {
@@ -161,7 +161,7 @@ class ChannelProductSourceRepository extends ServiceEntityRepository
     }
 
     /**
-     * 获取有库存的来源（按优先级排序）
+     * 获取有库存的来源（按优先级排序）.
      *
      * @return ChannelProductSource[]
      */
@@ -170,6 +170,6 @@ class ChannelProductSourceRepository extends ServiceEntityRepository
         // 需要在应用层过滤，因为库存计算涉及多表
         $sources = $this->findActiveByProduct($product);
 
-        return array_filter($sources, fn(ChannelProductSource $s) => $s->getAvailableQuantity() > 0);
+        return array_filter($sources, fn (ChannelProductSource $s) => $s->getAvailableQuantity() > 0);
     }
 }

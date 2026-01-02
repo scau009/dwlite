@@ -7,7 +7,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Uid\Ulid;
 
 /**
- * 库存上架配置 - 商家侧
+ * 库存上架配置 - 商家侧.
  *
  * 商家将库存上架到指定渠道的配置，包含定价和库存分配策略
  */
@@ -93,6 +93,7 @@ class InventoryListing
     public function setMerchantInventory(MerchantInventory $merchantInventory): static
     {
         $this->merchantInventory = $merchantInventory;
+
         return $this;
     }
 
@@ -104,6 +105,7 @@ class InventoryListing
     public function setMerchantSalesChannel(MerchantSalesChannel $merchantSalesChannel): static
     {
         $this->merchantSalesChannel = $merchantSalesChannel;
+
         return $this;
     }
 
@@ -115,6 +117,7 @@ class InventoryListing
     public function setAllocationMode(string $allocationMode): static
     {
         $this->allocationMode = $allocationMode;
+
         return $this;
     }
 
@@ -126,6 +129,7 @@ class InventoryListing
     public function setAllocatedQuantity(?int $allocatedQuantity): static
     {
         $this->allocatedQuantity = $allocatedQuantity;
+
         return $this;
     }
 
@@ -137,6 +141,7 @@ class InventoryListing
     public function setSoldQuantity(int $soldQuantity): static
     {
         $this->soldQuantity = $soldQuantity;
+
         return $this;
     }
 
@@ -148,6 +153,7 @@ class InventoryListing
     public function setPrice(string $price): static
     {
         $this->price = $price;
+
         return $this;
     }
 
@@ -159,6 +165,7 @@ class InventoryListing
     public function setCompareAtPrice(?string $compareAtPrice): static
     {
         $this->compareAtPrice = $compareAtPrice;
+
         return $this;
     }
 
@@ -170,6 +177,7 @@ class InventoryListing
     public function setStatus(string $status): static
     {
         $this->status = $status;
+
         return $this;
     }
 
@@ -181,6 +189,7 @@ class InventoryListing
     public function setRemark(?string $remark): static
     {
         $this->remark = $remark;
+
         return $this;
     }
 
@@ -233,7 +242,7 @@ class InventoryListing
     }
 
     /**
-     * 获取可售数量
+     * 获取可售数量.
      */
     public function getAvailableQuantity(): int
     {
@@ -247,7 +256,7 @@ class InventoryListing
     }
 
     /**
-     * 是否有可售库存
+     * 是否有可售库存.
      */
     public function hasAvailableStock(): bool
     {
@@ -255,7 +264,7 @@ class InventoryListing
     }
 
     /**
-     * 激活上架
+     * 激活上架.
      */
     public function activate(): void
     {
@@ -266,7 +275,7 @@ class InventoryListing
     }
 
     /**
-     * 暂停上架
+     * 暂停上架.
      */
     public function pause(): void
     {
@@ -274,7 +283,7 @@ class InventoryListing
     }
 
     /**
-     * 记录销售
+     * 记录销售.
      */
     public function recordSale(int $quantity): void
     {
@@ -287,7 +296,7 @@ class InventoryListing
     }
 
     /**
-     * 设置为独占模式并分配库存
+     * 设置为独占模式并分配库存.
      */
     public function setDedicatedAllocation(int $quantity): void
     {
@@ -306,7 +315,7 @@ class InventoryListing
     }
 
     /**
-     * 切换为共享模式
+     * 切换为共享模式.
      */
     public function setSharedAllocation(): void
     {
@@ -320,7 +329,7 @@ class InventoryListing
     }
 
     /**
-     * 调整独占分配数量
+     * 调整独占分配数量.
      */
     public function adjustAllocatedQuantity(int $newQuantity): void
     {

@@ -123,7 +123,7 @@ class ChannelProductRepository extends ServiceEntityRepository
     }
 
     /**
-     * 通过外部 ID 查找
+     * 通过外部 ID 查找.
      */
     public function findByExternalId(SalesChannel $channel, string $externalId): ?ChannelProduct
     {
@@ -134,7 +134,7 @@ class ChannelProductRepository extends ServiceEntityRepository
     }
 
     /**
-     * 统计各状态的商品数量
+     * 统计各状态的商品数量.
      */
     public function countByChannelGroupByStatus(SalesChannel $channel): array
     {

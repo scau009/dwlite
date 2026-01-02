@@ -39,7 +39,7 @@ class WalletTransactionRepository extends ServiceEntityRepository
     }
 
     /**
-     * 分页查询钱包交易记录
+     * 分页查询钱包交易记录.
      *
      * @return array ['data' => WalletTransaction[], 'total' => int]
      */
@@ -78,7 +78,7 @@ class WalletTransactionRepository extends ServiceEntityRepository
     }
 
     /**
-     * 创建交易记录
+     * 创建交易记录.
      */
     public function createTransaction(
         Wallet $wallet,

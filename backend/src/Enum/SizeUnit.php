@@ -11,7 +11,7 @@ enum SizeUnit: string
 
     public function label(): string
     {
-        return match($this) {
+        return match ($this) {
             self::EU => 'EU (欧码)',
             self::US => 'US (美码)',
             self::UK => 'UK (英码)',
@@ -21,6 +21,6 @@ enum SizeUnit: string
 
     public static function values(): array
     {
-        return array_map(fn($case) => $case->value, self::cases());
+        return array_map(fn ($case) => $case->value, self::cases());
     }
 }

@@ -5,8 +5,8 @@ namespace App\Controller\Admin;
 use App\Attribute\AdminOnly;
 use App\Dto\Admin\CreateTagRequest;
 use App\Dto\Admin\Query\TagListQuery;
-use App\Dto\Admin\UpdateTagRequest;
 use App\Dto\Admin\UpdateStatusRequest;
+use App\Dto\Admin\UpdateTagRequest;
 use App\Entity\Tag;
 use App\Repository\TagRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -38,7 +38,7 @@ class TagController extends AbstractController
         );
 
         return $this->json([
-            'data' => array_map(fn(Tag $t) => $this->serializeTag($t), $result['data']),
+            'data' => array_map(fn (Tag $t) => $this->serializeTag($t), $result['data']),
             'total' => $result['total'],
             'page' => $query->getPage(),
             'limit' => $query->getLimit(),
@@ -185,6 +185,7 @@ class TagController extends AbstractController
     private function generateSlug(string $name): string
     {
         $slugger = new AsciiSlugger();
+
         return strtolower($slugger->slug($name)->toString());
     }
 }

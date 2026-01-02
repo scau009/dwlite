@@ -9,7 +9,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Uid\Ulid;
 
 /**
- * 平台订单 - 从销售渠道同步的订单
+ * 平台订单 - 从销售渠道同步的订单.
  */
 #[ORM\Entity(repositoryClass: OrderRepository::class)]
 #[ORM\Table(name: 'orders')]
@@ -168,7 +168,7 @@ class Order
     private function generateOrderNo(): string
     {
         // 格式：PO + 年月日 + 6位随机数，如 PO20241217123456
-        return 'PO' . date('Ymd') . str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+        return 'PO'.date('Ymd').str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
     }
 
     public function getId(): string
@@ -184,6 +184,7 @@ class Order
     public function setOrderNo(string $orderNo): static
     {
         $this->orderNo = $orderNo;
+
         return $this;
     }
 
@@ -195,6 +196,7 @@ class Order
     public function setSalesChannel(SalesChannel $salesChannel): static
     {
         $this->salesChannel = $salesChannel;
+
         return $this;
     }
 
@@ -206,6 +208,7 @@ class Order
     public function setExternalOrderId(string $externalOrderId): static
     {
         $this->externalOrderId = $externalOrderId;
+
         return $this;
     }
 
@@ -217,6 +220,7 @@ class Order
     public function setExternalOrderNo(?string $externalOrderNo): static
     {
         $this->externalOrderNo = $externalOrderNo;
+
         return $this;
     }
 
@@ -228,6 +232,7 @@ class Order
     public function setReceiverName(string $receiverName): static
     {
         $this->receiverName = $receiverName;
+
         return $this;
     }
 
@@ -239,6 +244,7 @@ class Order
     public function setReceiverPhone(string $receiverPhone): static
     {
         $this->receiverPhone = $receiverPhone;
+
         return $this;
     }
 
@@ -250,6 +256,7 @@ class Order
     public function setReceiverProvince(?string $receiverProvince): static
     {
         $this->receiverProvince = $receiverProvince;
+
         return $this;
     }
 
@@ -261,6 +268,7 @@ class Order
     public function setReceiverCity(?string $receiverCity): static
     {
         $this->receiverCity = $receiverCity;
+
         return $this;
     }
 
@@ -272,6 +280,7 @@ class Order
     public function setReceiverDistrict(?string $receiverDistrict): static
     {
         $this->receiverDistrict = $receiverDistrict;
+
         return $this;
     }
 
@@ -283,6 +292,7 @@ class Order
     public function setReceiverAddress(string $receiverAddress): static
     {
         $this->receiverAddress = $receiverAddress;
+
         return $this;
     }
 
@@ -294,13 +304,14 @@ class Order
     public function setReceiverPostalCode(?string $receiverPostalCode): static
     {
         $this->receiverPostalCode = $receiverPostalCode;
+
         return $this;
     }
 
     public function getReceiverFullAddress(): string
     {
-        return ($this->receiverProvince ?? '') . ($this->receiverCity ?? '')
-            . ($this->receiverDistrict ?? '') . $this->receiverAddress;
+        return ($this->receiverProvince ?? '').($this->receiverCity ?? '')
+            .($this->receiverDistrict ?? '').$this->receiverAddress;
     }
 
     public function getTotalAmount(): string
@@ -311,6 +322,7 @@ class Order
     public function setTotalAmount(string $totalAmount): static
     {
         $this->totalAmount = $totalAmount;
+
         return $this;
     }
 
@@ -322,6 +334,7 @@ class Order
     public function setProductAmount(string $productAmount): static
     {
         $this->productAmount = $productAmount;
+
         return $this;
     }
 
@@ -333,6 +346,7 @@ class Order
     public function setShippingAmount(string $shippingAmount): static
     {
         $this->shippingAmount = $shippingAmount;
+
         return $this;
     }
 
@@ -344,6 +358,7 @@ class Order
     public function setDiscountAmount(string $discountAmount): static
     {
         $this->discountAmount = $discountAmount;
+
         return $this;
     }
 
@@ -355,6 +370,7 @@ class Order
     public function setCurrency(string $currency): static
     {
         $this->currency = $currency;
+
         return $this;
     }
 
@@ -366,6 +382,7 @@ class Order
     public function setStatus(string $status): static
     {
         $this->status = $status;
+
         return $this;
     }
 
@@ -377,6 +394,7 @@ class Order
     public function setPaymentStatus(string $paymentStatus): static
     {
         $this->paymentStatus = $paymentStatus;
+
         return $this;
     }
 
@@ -388,6 +406,7 @@ class Order
     public function setPlacedAt(\DateTimeImmutable $placedAt): static
     {
         $this->placedAt = $placedAt;
+
         return $this;
     }
 
@@ -399,6 +418,7 @@ class Order
     public function setPaidAt(?\DateTimeImmutable $paidAt): static
     {
         $this->paidAt = $paidAt;
+
         return $this;
     }
 
@@ -410,6 +430,7 @@ class Order
     public function setAllocatedAt(?\DateTimeImmutable $allocatedAt): static
     {
         $this->allocatedAt = $allocatedAt;
+
         return $this;
     }
 
@@ -421,6 +442,7 @@ class Order
     public function setShippedAt(?\DateTimeImmutable $shippedAt): static
     {
         $this->shippedAt = $shippedAt;
+
         return $this;
     }
 
@@ -432,6 +454,7 @@ class Order
     public function setDeliveredAt(?\DateTimeImmutable $deliveredAt): static
     {
         $this->deliveredAt = $deliveredAt;
+
         return $this;
     }
 
@@ -443,6 +466,7 @@ class Order
     public function setCompletedAt(?\DateTimeImmutable $completedAt): static
     {
         $this->completedAt = $completedAt;
+
         return $this;
     }
 
@@ -454,6 +478,7 @@ class Order
     public function setCancelledAt(?\DateTimeImmutable $cancelledAt): static
     {
         $this->cancelledAt = $cancelledAt;
+
         return $this;
     }
 
@@ -465,6 +490,7 @@ class Order
     public function setBuyerRemark(?string $buyerRemark): static
     {
         $this->buyerRemark = $buyerRemark;
+
         return $this;
     }
 
@@ -476,6 +502,7 @@ class Order
     public function setSellerRemark(?string $sellerRemark): static
     {
         $this->sellerRemark = $sellerRemark;
+
         return $this;
     }
 
@@ -487,6 +514,7 @@ class Order
     public function setAllocationFailReason(?string $allocationFailReason): static
     {
         $this->allocationFailReason = $allocationFailReason;
+
         return $this;
     }
 
@@ -498,6 +526,7 @@ class Order
     public function setSyncedAt(\DateTimeImmutable $syncedAt): static
     {
         $this->syncedAt = $syncedAt;
+
         return $this;
     }
 
@@ -509,6 +538,7 @@ class Order
     public function setExternalData(?array $externalData): static
     {
         $this->externalData = $externalData;
+
         return $this;
     }
 
@@ -526,12 +556,14 @@ class Order
             $this->items->add($item);
             $item->setOrder($this);
         }
+
         return $this;
     }
 
     public function removeItem(OrderItem $item): static
     {
         $this->items->removeElement($item);
+
         return $this;
     }
 
@@ -549,6 +581,7 @@ class Order
             $this->fulfillments->add($fulfillment);
             $fulfillment->setOrder($this);
         }
+
         return $this;
     }
 
@@ -624,7 +657,7 @@ class Order
     }
 
     /**
-     * 获取订单商品总数量
+     * 获取订单商品总数量.
      */
     public function getTotalQuantity(): int
     {
@@ -632,11 +665,12 @@ class Order
         foreach ($this->items as $item) {
             $total += $item->getQuantity();
         }
+
         return $total;
     }
 
     /**
-     * 标记为分配中
+     * 标记为分配中.
      */
     public function markAllocating(): void
     {
@@ -653,7 +687,7 @@ class Order
     }
 
     /**
-     * 标记分配失败
+     * 标记分配失败.
      */
     public function markAllocationFailed(string $reason): void
     {
@@ -662,7 +696,7 @@ class Order
     }
 
     /**
-     * 标记履约中
+     * 标记履约中.
      */
     public function markFulfilling(): void
     {
@@ -670,7 +704,7 @@ class Order
     }
 
     /**
-     * 标记已发货
+     * 标记已发货.
      */
     public function markShipped(): void
     {
@@ -679,7 +713,7 @@ class Order
     }
 
     /**
-     * 标记已签收
+     * 标记已签收.
      */
     public function markDelivered(): void
     {
@@ -688,7 +722,7 @@ class Order
     }
 
     /**
-     * 标记已完成
+     * 标记已完成.
      */
     public function markCompleted(): void
     {
@@ -697,7 +731,7 @@ class Order
     }
 
     /**
-     * 标记已取消
+     * 标记已取消.
      */
     public function markCancelled(): void
     {

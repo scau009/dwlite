@@ -87,6 +87,7 @@ class WalletTransaction
     public function setTransactionNo(string $transactionNo): static
     {
         $this->transactionNo = $transactionNo;
+
         return $this;
     }
 
@@ -98,6 +99,7 @@ class WalletTransaction
     public function setWallet(Wallet $wallet): static
     {
         $this->wallet = $wallet;
+
         return $this;
     }
 
@@ -109,6 +111,7 @@ class WalletTransaction
     public function setType(string $type): static
     {
         $this->type = $type;
+
         return $this;
     }
 
@@ -120,6 +123,7 @@ class WalletTransaction
     public function setAmount(string $amount): static
     {
         $this->amount = $amount;
+
         return $this;
     }
 
@@ -131,6 +135,7 @@ class WalletTransaction
     public function setBalanceBefore(string $balanceBefore): static
     {
         $this->balanceBefore = $balanceBefore;
+
         return $this;
     }
 
@@ -142,6 +147,7 @@ class WalletTransaction
     public function setBalanceAfter(string $balanceAfter): static
     {
         $this->balanceAfter = $balanceAfter;
+
         return $this;
     }
 
@@ -153,6 +159,7 @@ class WalletTransaction
     public function setBizType(string $bizType): static
     {
         $this->bizType = $bizType;
+
         return $this;
     }
 
@@ -164,6 +171,7 @@ class WalletTransaction
     public function setBizId(?string $bizId): static
     {
         $this->bizId = $bizId;
+
         return $this;
     }
 
@@ -175,6 +183,7 @@ class WalletTransaction
     public function setRemark(?string $remark): static
     {
         $this->remark = $remark;
+
         return $this;
     }
 
@@ -186,6 +195,7 @@ class WalletTransaction
     public function setOperatorId(?string $operatorId): static
     {
         $this->operatorId = $operatorId;
+
         return $this;
     }
 

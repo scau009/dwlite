@@ -11,7 +11,7 @@ use Symfony\Component\HttpKernel\ControllerMetadata\ArgumentMetadata;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 /**
- * 自动为 #[WarehouseOnly] 标记的控制器方法注入当前用户的 Warehouse 实体
+ * 自动为 #[WarehouseOnly] 标记的控制器方法注入当前用户的 Warehouse 实体.
  *
  * 使用方法：在控制器方法参数中声明 Warehouse $warehouse 即可自动注入
  */

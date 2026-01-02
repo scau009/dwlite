@@ -7,7 +7,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Uid\Ulid;
 
 /**
- * 入库异常单明细 - 异常单中的 SKU 明细
+ * 入库异常单明细 - 异常单中的 SKU 明细.
  */
 #[ORM\Entity(repositoryClass: InboundExceptionItemRepository::class)]
 #[ORM\Table(name: 'inbound_exception_items')]
@@ -70,6 +70,7 @@ class InboundExceptionItem
     public function setInboundException(InboundException $inboundException): static
     {
         $this->inboundException = $inboundException;
+
         return $this;
     }
 
@@ -81,6 +82,7 @@ class InboundExceptionItem
     public function setInboundOrderItem(?InboundOrderItem $inboundOrderItem): static
     {
         $this->inboundOrderItem = $inboundOrderItem;
+
         return $this;
     }
 
@@ -92,6 +94,7 @@ class InboundExceptionItem
     public function setSkuName(?string $skuName): static
     {
         $this->skuName = $skuName;
+
         return $this;
     }
 
@@ -103,6 +106,7 @@ class InboundExceptionItem
     public function setColorName(?string $colorName): static
     {
         $this->colorName = $colorName;
+
         return $this;
     }
 
@@ -114,6 +118,7 @@ class InboundExceptionItem
     public function setProductName(?string $productName): static
     {
         $this->productName = $productName;
+
         return $this;
     }
 
@@ -125,6 +130,7 @@ class InboundExceptionItem
     public function setProductImage(?string $productImage): static
     {
         $this->productImage = $productImage;
+
         return $this;
     }
 
@@ -136,6 +142,7 @@ class InboundExceptionItem
     public function setQuantity(int $quantity): static
     {
         $this->quantity = $quantity;
+
         return $this;
     }
 
@@ -156,7 +163,7 @@ class InboundExceptionItem
     }
 
     /**
-     * 从入库单明细快照信息
+     * 从入库单明细快照信息.
      */
     public function snapshotFromInboundOrderItem(InboundOrderItem $orderItem): void
     {

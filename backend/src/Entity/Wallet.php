@@ -72,6 +72,7 @@ class Wallet
     public function setMerchant(Merchant $merchant): static
     {
         $this->merchant = $merchant;
+
         return $this;
     }
 
@@ -83,6 +84,7 @@ class Wallet
     public function setType(string $type): static
     {
         $this->type = $type;
+
         return $this;
     }
 
@@ -94,6 +96,7 @@ class Wallet
     public function setBalance(string $balance): static
     {
         $this->balance = $balance;
+
         return $this;
     }
 
@@ -105,6 +108,7 @@ class Wallet
     public function setFrozenAmount(string $frozenAmount): static
     {
         $this->frozenAmount = $frozenAmount;
+
         return $this;
     }
 
@@ -116,6 +120,7 @@ class Wallet
     public function setStatus(string $status): static
     {
         $this->status = $status;
+
         return $this;
     }
 
@@ -133,6 +138,7 @@ class Wallet
             $this->transactions->add($transaction);
             $transaction->setWallet($this);
         }
+
         return $this;
     }
 
@@ -180,7 +186,7 @@ class Wallet
     }
 
     /**
-     * 可用余额 = 余额 - 冻结金额
+     * 可用余额 = 余额 - 冻结金额.
      */
     public function getAvailableBalance(): string
     {
@@ -188,16 +194,17 @@ class Wallet
     }
 
     /**
-     * 增加余额
+     * 增加余额.
      */
     public function credit(string $amount): static
     {
         $this->balance = bcadd($this->balance, $amount, 2);
+
         return $this;
     }
 
     /**
-     * 减少余额
+     * 减少余额.
      */
     public function debit(string $amount): static
     {
@@ -205,11 +212,12 @@ class Wallet
             throw new \InvalidArgumentException('Insufficient available balance');
         }
         $this->balance = bcsub($this->balance, $amount, 2);
+
         return $this;
     }
 
     /**
-     * 冻结金额
+     * 冻结金额.
      */
     public function freeze(string $amount): static
     {
@@ -217,11 +225,12 @@ class Wallet
             throw new \InvalidArgumentException('Insufficient available balance to freeze');
         }
         $this->frozenAmount = bcadd($this->frozenAmount, $amount, 2);
+
         return $this;
     }
 
     /**
-     * 解冻金额
+     * 解冻金额.
      */
     public function unfreeze(string $amount): static
     {
@@ -229,6 +238,7 @@ class Wallet
             throw new \InvalidArgumentException('Unfreeze amount exceeds frozen amount');
         }
         $this->frozenAmount = bcsub($this->frozenAmount, $amount, 2);
+
         return $this;
     }
 }

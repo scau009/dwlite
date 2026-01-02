@@ -3,7 +3,6 @@
 namespace App\Service;
 
 use App\Entity\InboundOrder;
-use App\Entity\InboundOrderItem;
 use App\Entity\InventoryTransaction;
 use App\Entity\Merchant;
 use App\Entity\MerchantInventory;
@@ -23,7 +22,7 @@ class InventoryService
     }
 
     /**
-     * 获取或创建库存记录
+     * 获取或创建库存记录.
      */
     public function getOrCreateInventory(
         Merchant $merchant,
@@ -54,7 +53,7 @@ class InventoryService
     }
 
     /**
-     * 发货时增加在途库存
+     * 发货时增加在途库存.
      */
     public function addInTransitStock(
         InboundOrder $order,
@@ -94,7 +93,7 @@ class InventoryService
                 $item->getUnitCost(),
                 $operatorId,
                 $operatorName,
-                sprintf('入库单 %s 发货，SKU: %s', $order->getOrderNo(), $item->getStyleNumber() . '-' . $item->getSkuName())
+                sprintf('入库单 %s 发货，SKU: %s', $order->getOrderNo(), $item->getStyleNumber().'-'.$item->getSkuName())
             );
 
             $this->entityManager->flush();
@@ -107,7 +106,7 @@ class InventoryService
     }
 
     /**
-     * 确认收货，在途转可用
+     * 确认收货，在途转可用.
      */
     public function confirmInbound(
         InboundOrder $order,
@@ -176,7 +175,7 @@ class InventoryService
 
     /**
      * 清除剩余的在途库存（入库单完结时调用）
-     * 当预期数量 > 实收数量时，差异部分的在途库存需要清除
+     * 当预期数量 > 实收数量时，差异部分的在途库存需要清除.
      */
     public function clearRemainingInTransit(
         InboundOrder $order,
@@ -234,7 +233,7 @@ class InventoryService
     }
 
     /**
-     * 锁定库存（订单占用）
+     * 锁定库存（订单占用）.
      */
     public function reserveStock(
         MerchantInventory $inventory,
@@ -287,7 +286,7 @@ class InventoryService
     }
 
     /**
-     * 锁定破损库存（订单占用）
+     * 锁定破损库存（订单占用）.
      */
     public function reserveDamagedStock(
         MerchantInventory $inventory,
@@ -340,7 +339,7 @@ class InventoryService
     }
 
     /**
-     * 释放库存（订单取消）
+     * 释放库存（订单取消）.
      */
     public function releaseStock(
         MerchantInventory $inventory,
@@ -393,7 +392,7 @@ class InventoryService
     }
 
     /**
-     * 确认出库（发货扣减）
+     * 确认出库（发货扣减）.
      */
     public function confirmOutbound(
         MerchantInventory $inventory,
@@ -428,7 +427,7 @@ class InventoryService
     }
 
     /**
-     * 记录库存流水
+     * 记录库存流水.
      */
     private function recordTransaction(
         MerchantInventory $inventory,
@@ -479,7 +478,7 @@ class InventoryService
     }
 
     /**
-     * 回滚在途库存（取消发货时）
+     * 回滚在途库存（取消发货时）.
      */
     public function rollbackInTransit(
         InboundOrder $order,

@@ -38,7 +38,7 @@ class WarehouseController extends AbstractController
         );
 
         return $this->json([
-            'data' => array_map(fn(Warehouse $w) => $this->serializeWarehouse($w), $result['data']),
+            'data' => array_map(fn (Warehouse $w) => $this->serializeWarehouse($w), $result['data']),
             'total' => $result['total'],
             'page' => $query->getPage(),
             'limit' => $query->getLimit(),
@@ -160,27 +160,69 @@ class WarehouseController extends AbstractController
 
     private function applyUpdateDtoToWarehouse(Warehouse $warehouse, UpdateWarehouseRequest $dto): void
     {
-        if ($dto->code !== null) $warehouse->setCode($dto->code);
-        if ($dto->name !== null) $warehouse->setName($dto->name);
-        if ($dto->shortName !== null) $warehouse->setShortName($dto->shortName);
-        if ($dto->type !== null) $warehouse->setType($dto->type);
-        if ($dto->category !== null) $warehouse->setCategory($dto->category);
-        if ($dto->description !== null) $warehouse->setDescription($dto->description);
-        if ($dto->countryCode !== null) $warehouse->setCountryCode($dto->countryCode);
-        if ($dto->timezone !== null) $warehouse->setTimezone($dto->timezone);
-        if ($dto->province !== null) $warehouse->setProvince($dto->province);
-        if ($dto->city !== null) $warehouse->setCity($dto->city);
-        if ($dto->district !== null) $warehouse->setDistrict($dto->district);
-        if ($dto->address !== null) $warehouse->setAddress($dto->address);
-        if ($dto->postalCode !== null) $warehouse->setPostalCode($dto->postalCode);
-        if ($dto->longitude !== null) $warehouse->setLongitude($dto->longitude);
-        if ($dto->latitude !== null) $warehouse->setLatitude($dto->latitude);
-        if ($dto->contactName !== null) $warehouse->setContactName($dto->contactName);
-        if ($dto->contactPhone !== null) $warehouse->setContactPhone($dto->contactPhone);
-        if ($dto->contactEmail !== null) $warehouse->setContactEmail($dto->contactEmail);
-        if ($dto->internalNotes !== null) $warehouse->setInternalNotes($dto->internalNotes);
-        if ($dto->status !== null) $warehouse->setStatus($dto->status);
-        if ($dto->sortOrder !== null) $warehouse->setSortOrder($dto->sortOrder);
+        if ($dto->code !== null) {
+            $warehouse->setCode($dto->code);
+        }
+        if ($dto->name !== null) {
+            $warehouse->setName($dto->name);
+        }
+        if ($dto->shortName !== null) {
+            $warehouse->setShortName($dto->shortName);
+        }
+        if ($dto->type !== null) {
+            $warehouse->setType($dto->type);
+        }
+        if ($dto->category !== null) {
+            $warehouse->setCategory($dto->category);
+        }
+        if ($dto->description !== null) {
+            $warehouse->setDescription($dto->description);
+        }
+        if ($dto->countryCode !== null) {
+            $warehouse->setCountryCode($dto->countryCode);
+        }
+        if ($dto->timezone !== null) {
+            $warehouse->setTimezone($dto->timezone);
+        }
+        if ($dto->province !== null) {
+            $warehouse->setProvince($dto->province);
+        }
+        if ($dto->city !== null) {
+            $warehouse->setCity($dto->city);
+        }
+        if ($dto->district !== null) {
+            $warehouse->setDistrict($dto->district);
+        }
+        if ($dto->address !== null) {
+            $warehouse->setAddress($dto->address);
+        }
+        if ($dto->postalCode !== null) {
+            $warehouse->setPostalCode($dto->postalCode);
+        }
+        if ($dto->longitude !== null) {
+            $warehouse->setLongitude($dto->longitude);
+        }
+        if ($dto->latitude !== null) {
+            $warehouse->setLatitude($dto->latitude);
+        }
+        if ($dto->contactName !== null) {
+            $warehouse->setContactName($dto->contactName);
+        }
+        if ($dto->contactPhone !== null) {
+            $warehouse->setContactPhone($dto->contactPhone);
+        }
+        if ($dto->contactEmail !== null) {
+            $warehouse->setContactEmail($dto->contactEmail);
+        }
+        if ($dto->internalNotes !== null) {
+            $warehouse->setInternalNotes($dto->internalNotes);
+        }
+        if ($dto->status !== null) {
+            $warehouse->setStatus($dto->status);
+        }
+        if ($dto->sortOrder !== null) {
+            $warehouse->setSortOrder($dto->sortOrder);
+        }
     }
 
     private function serializeWarehouse(Warehouse $warehouse, bool $detail = false): array

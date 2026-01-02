@@ -38,7 +38,7 @@ class InboundOrderService
     }
 
     /**
-     * 创建入库单（草稿状态）
+     * 创建入库单（草稿状态）.
      */
     public function createInboundOrder(
         Merchant $merchant,
@@ -75,7 +75,7 @@ class InboundOrderService
     }
 
     /**
-     * 添加商品到入库单
+     * 添加商品到入库单.
      */
     public function addItem(
         InboundOrder $order,
@@ -128,7 +128,7 @@ class InboundOrderService
     }
 
     /**
-     * 更新入库单明细
+     * 更新入库单明细.
      */
     public function updateItem(
         InboundOrderItem $item,
@@ -159,7 +159,7 @@ class InboundOrderService
     }
 
     /**
-     * 删除入库单明细
+     * 删除入库单明细.
      */
     public function removeItem(InboundOrderItem $item): void
     {
@@ -182,7 +182,7 @@ class InboundOrderService
     }
 
     /**
-     * 删除草稿入库单
+     * 删除草稿入库单.
      */
     public function deleteOrder(InboundOrder $order): void
     {
@@ -209,7 +209,7 @@ class InboundOrderService
     }
 
     /**
-     * 提交入库单（草稿 -> 待发货）
+     * 提交入库单（草稿 -> 待发货）.
      */
     public function submitOrder(InboundOrder $order): InboundOrder
     {
@@ -229,7 +229,7 @@ class InboundOrderService
     }
 
     /**
-     * 填写物流信息并发货（待发货 -> 已发货，增加在途库存）
+     * 填写物流信息并发货（待发货 -> 已发货，增加在途库存）.
      */
     public function shipOrder(
         InboundOrder $order,
@@ -291,7 +291,7 @@ class InboundOrderService
 
     /**
      * 完成收货（支持单个商品或批量收货）
-     * 已发货 -> 收货中 -> 已完成/部分完成
+     * 已发货 -> 收货中 -> 已完成/部分完成.
      */
     public function completeReceiving(
         InboundOrder $order,
@@ -366,7 +366,7 @@ class InboundOrderService
     }
 
     /**
-     * 创建异常单
+     * 创建异常单.
      */
     public function createException(
         InboundOrder $order,
@@ -433,7 +433,7 @@ class InboundOrderService
     }
 
     /**
-     * 处理异常单
+     * 处理异常单.
      */
     public function resolveException(
         InboundException $exception,
@@ -469,7 +469,7 @@ class InboundOrderService
     }
 
     /**
-     * 尝试完结入库单（检查是否还有待处理的异常单）
+     * 尝试完结入库单（检查是否还有待处理的异常单）.
      */
     private function tryCompleteOrder(
         InboundOrder $order,
@@ -490,6 +490,7 @@ class InboundOrderService
                 'order_id' => $order->getId(),
                 'order_no' => $order->getOrderNo(),
             ]);
+
             return;
         }
 
@@ -509,7 +510,7 @@ class InboundOrderService
     }
 
     /**
-     * 取消入库单
+     * 取消入库单.
      */
     public function cancelOrder(
         InboundOrder $order,
@@ -535,7 +536,7 @@ class InboundOrderService
     }
 
     /**
-     * 获取商户的入库单列表
+     * 获取商户的入库单列表.
      */
     public function getMerchantOrders(
         Merchant $merchant,
@@ -547,7 +548,7 @@ class InboundOrderService
     }
 
     /**
-     * 获取入库单详情
+     * 获取入库单详情.
      */
     public function getOrderById(string $id): ?InboundOrder
     {
@@ -555,7 +556,7 @@ class InboundOrderService
     }
 
     /**
-     * 获取入库单明细
+     * 获取入库单明细.
      */
     public function getItemById(string $id): ?InboundOrderItem
     {
@@ -563,7 +564,7 @@ class InboundOrderService
     }
 
     /**
-     * 获取异常单详情
+     * 获取异常单详情.
      */
     public function getExceptionById(string $id): ?InboundException
     {
@@ -571,7 +572,7 @@ class InboundOrderService
     }
 
     /**
-     * 更新仓库备注
+     * 更新仓库备注.
      */
     public function updateWarehouseNotes(InboundOrder $order, string $notes): InboundOrder
     {
@@ -587,7 +588,7 @@ class InboundOrderService
     }
 
     /**
-     * 自动创建异常单（收货时数量差异或损坏）
+     * 自动创建异常单（收货时数量差异或损坏）.
      *
      * 根据收货结果自动创建以下类型的异常单：
      * - 数量短少：实收 < 预报
@@ -663,7 +664,7 @@ class InboundOrderService
     }
 
     /**
-     * 创建自动异常单
+     * 创建自动异常单.
      *
      * @param array<array{item: InboundOrderItem, quantity: int}> $items
      */

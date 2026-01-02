@@ -9,7 +9,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Uid\Ulid;
 
 /**
- * 入库异常单 - 入库时发现的数量差异或质量问题
+ * 入库异常单 - 入库时发现的数量差异或质量问题.
  */
 #[ORM\Entity(repositoryClass: InboundExceptionRepository::class)]
 #[ORM\Table(name: 'inbound_exceptions')]
@@ -136,6 +136,7 @@ class InboundException
     public function setExceptionNo(string $exceptionNo): static
     {
         $this->exceptionNo = $exceptionNo;
+
         return $this;
     }
 
@@ -147,6 +148,7 @@ class InboundException
     public function setInboundOrder(InboundOrder $inboundOrder): static
     {
         $this->inboundOrder = $inboundOrder;
+
         return $this;
     }
 
@@ -158,6 +160,7 @@ class InboundException
     public function setMerchant(Merchant $merchant): static
     {
         $this->merchant = $merchant;
+
         return $this;
     }
 
@@ -169,6 +172,7 @@ class InboundException
     public function setWarehouse(Warehouse $warehouse): static
     {
         $this->warehouse = $warehouse;
+
         return $this;
     }
 
@@ -180,6 +184,7 @@ class InboundException
     public function setType(string $type): static
     {
         $this->type = $type;
+
         return $this;
     }
 
@@ -191,6 +196,7 @@ class InboundException
     public function setStatus(string $status): static
     {
         $this->status = $status;
+
         return $this;
     }
 
@@ -208,6 +214,7 @@ class InboundException
             $this->items->add($item);
             $item->setInboundException($this);
         }
+
         return $this;
     }
 
@@ -219,6 +226,7 @@ class InboundException
                 $item->setInboundException($this);
             }
         }
+
         return $this;
     }
 
@@ -230,6 +238,7 @@ class InboundException
     public function setTotalQuantity(int $totalQuantity): static
     {
         $this->totalQuantity = $totalQuantity;
+
         return $this;
     }
 
@@ -241,6 +250,7 @@ class InboundException
     public function setDescription(string $description): static
     {
         $this->description = $description;
+
         return $this;
     }
 
@@ -252,6 +262,7 @@ class InboundException
     public function setEvidenceImages(?array $evidenceImages): static
     {
         $this->evidenceImages = $evidenceImages;
+
         return $this;
     }
 
@@ -263,6 +274,7 @@ class InboundException
     public function setResolution(?string $resolution): static
     {
         $this->resolution = $resolution;
+
         return $this;
     }
 
@@ -274,6 +286,7 @@ class InboundException
     public function setResolutionNotes(?string $resolutionNotes): static
     {
         $this->resolutionNotes = $resolutionNotes;
+
         return $this;
     }
 
@@ -285,6 +298,7 @@ class InboundException
     public function setClaimAmount(?string $claimAmount): static
     {
         $this->claimAmount = $claimAmount;
+
         return $this;
     }
 
@@ -296,6 +310,7 @@ class InboundException
     public function setResolvedAt(?\DateTimeImmutable $resolvedAt): static
     {
         $this->resolvedAt = $resolvedAt;
+
         return $this;
     }
 
@@ -307,6 +322,7 @@ class InboundException
     public function setCommunicationLog(?array $communicationLog): static
     {
         $this->communicationLog = $communicationLog;
+
         return $this;
     }
 
@@ -318,6 +334,7 @@ class InboundException
     public function setReportedBy(?string $reportedBy): static
     {
         $this->reportedBy = $reportedBy;
+
         return $this;
     }
 
@@ -329,6 +346,7 @@ class InboundException
     public function setResolvedBy(?string $resolvedBy): static
     {
         $this->resolvedBy = $resolvedBy;
+
         return $this;
     }
 
@@ -366,7 +384,7 @@ class InboundException
     }
 
     /**
-     * 添加沟通记录
+     * 添加沟通记录.
      */
     public function addCommunication(string $from, string $content): void
     {
@@ -380,7 +398,7 @@ class InboundException
     }
 
     /**
-     * 解决异常
+     * 解决异常.
      */
     public function resolve(string $resolution, ?string $notes = null, ?string $resolvedBy = null): void
     {
@@ -392,7 +410,7 @@ class InboundException
     }
 
     /**
-     * 获取类型标签
+     * 获取类型标签.
      */
     public function getTypeLabel(): string
     {
@@ -410,7 +428,7 @@ class InboundException
     }
 
     /**
-     * 获取所有处理方式选项
+     * 获取所有处理方式选项.
      *
      * @return array<array{value: string, label: string}>
      */
@@ -419,14 +437,14 @@ class InboundException
         return [
             ['value' => self::RESOLUTION_ACCEPT, 'label' => '接受（按实收入库）'],
             ['value' => self::RESOLUTION_REJECT, 'label' => '拒收退回'],
-//            ['value' => self::RESOLUTION_CLAIM, 'label' => '申请理赔'],
-//            ['value' => self::RESOLUTION_RECOUNT, 'label' => '重新清点'],
-//            ['value' => self::RESOLUTION_PARTIAL_ACCEPT, 'label' => '部分接受'],
+            //            ['value' => self::RESOLUTION_CLAIM, 'label' => '申请理赔'],
+            //            ['value' => self::RESOLUTION_RECOUNT, 'label' => '重新清点'],
+            //            ['value' => self::RESOLUTION_PARTIAL_ACCEPT, 'label' => '部分接受'],
         ];
     }
 
     /**
-     * 获取处理方式标签
+     * 获取处理方式标签.
      */
     public function getResolutionLabel(): ?string
     {
@@ -445,15 +463,15 @@ class InboundException
     }
 
     /**
-     * 生成异常单号
+     * 生成异常单号.
      */
     public static function generateExceptionNo(): string
     {
-        return 'EX' . date('Ymd') . strtoupper(substr((string) new Ulid(), -8));
+        return 'EX'.date('Ymd').strtoupper(substr((string) new Ulid(), -8));
     }
 
     /**
-     * 从入库单创建异常单
+     * 从入库单创建异常单.
      */
     public static function createForInboundOrder(
         InboundOrder $order,
@@ -472,7 +490,7 @@ class InboundException
     }
 
     /**
-     * 重新计算数量汇总
+     * 重新计算数量汇总.
      */
     public function recalculateTotals(): void
     {

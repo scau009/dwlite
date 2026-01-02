@@ -74,6 +74,7 @@ class RefreshToken
     public function revoke(): self
     {
         $this->revoked = true;
+
         return $this;
     }
 

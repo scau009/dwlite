@@ -37,7 +37,7 @@ class MerchantChannelController extends AbstractController
         );
 
         return $this->json([
-            'data' => array_map(fn(MerchantSalesChannel $mc) => $this->serializeMerchantChannel($mc), $result['data']),
+            'data' => array_map(fn (MerchantSalesChannel $mc) => $this->serializeMerchantChannel($mc), $result['data']),
             'total' => $result['total'],
             'page' => $query->getPage(),
             'limit' => $query->getLimit(),
@@ -50,7 +50,7 @@ class MerchantChannelController extends AbstractController
         $result = $this->merchantChannelRepository->findPendingApproval();
 
         return $this->json([
-            'data' => array_map(fn(MerchantSalesChannel $mc) => $this->serializeMerchantChannel($mc), $result),
+            'data' => array_map(fn (MerchantSalesChannel $mc) => $this->serializeMerchantChannel($mc), $result),
             'total' => count($result),
         ]);
     }

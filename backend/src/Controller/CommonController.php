@@ -8,14 +8,14 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 /**
- * 通用选项接口
+ * 通用选项接口.
  */
 #[Route('/api/common')]
 #[IsGranted('ROLE_USER')]
 class CommonController extends AbstractController
 {
     /**
-     * 物流公司列表
+     * 物流公司列表.
      */
     private const CARRIERS = [
         ['code' => 'SF', 'name' => '顺丰速运'],
@@ -35,7 +35,7 @@ class CommonController extends AbstractController
     ];
 
     /**
-     * 获取物流公司选项列表
+     * 获取物流公司选项列表.
      */
     #[Route('/carriers', name: 'common_carrier_options', methods: ['GET'])]
     public function getCarrierOptions(): JsonResponse

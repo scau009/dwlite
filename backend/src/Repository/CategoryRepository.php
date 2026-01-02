@@ -75,11 +75,12 @@ class CategoryRepository extends ServiceEntityRepository
     }
 
     /**
-     * 分页查询分类列表
+     * 分页查询分类列表.
      *
      * @param int $page 页码（从1开始）
      * @param int $limit 每页数量
      * @param array $filters 筛选条件 ['name' => string, 'isActive' => bool, 'parentId' => string|null]
+     *
      * @return array ['data' => Category[], 'total' => int]
      */
     public function findPaginated(int $page = 1, int $limit = 20, array $filters = []): array
@@ -91,7 +92,7 @@ class CategoryRepository extends ServiceEntityRepository
         // 名称筛选（模糊匹配）
         if (!empty($filters['name'])) {
             $qb->andWhere('c.name LIKE :name OR c.slug LIKE :name')
-                ->setParameter('name', '%' . $filters['name'] . '%');
+                ->setParameter('name', '%'.$filters['name'].'%');
         }
 
         // 状态筛选
@@ -130,7 +131,7 @@ class CategoryRepository extends ServiceEntityRepository
     }
 
     /**
-     * 检查 slug 是否已存在
+     * 检查 slug 是否已存在.
      */
     public function existsBySlug(string $slug, ?string $excludeId = null): bool
     {
@@ -148,7 +149,7 @@ class CategoryRepository extends ServiceEntityRepository
     }
 
     /**
-     * 获取所有分类（包括子分类），用于构建树结构
+     * 获取所有分类（包括子分类），用于构建树结构.
      */
     public function findAllForTree(bool $activeOnly = false): array
     {

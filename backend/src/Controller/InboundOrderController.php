@@ -47,7 +47,7 @@ class InboundOrderController extends AbstractController
     }
 
     /**
-     * 获取当前商户
+     * 获取当前商户.
      */
     private function getCurrentMerchant(User $user)
     {
@@ -55,11 +55,12 @@ class InboundOrderController extends AbstractController
         if ($merchant === null) {
             throw $this->createAccessDeniedException('Merchant not found');
         }
+
         return $merchant;
     }
 
     /**
-     * 获取可用仓库列表（平台仓库）
+     * 获取可用仓库列表（平台仓库）.
      */
     #[Route('/warehouses', name: 'inbound_list_warehouses', methods: ['GET'])]
     public function listWarehouses(): JsonResponse
@@ -67,7 +68,7 @@ class InboundOrderController extends AbstractController
         $warehouses = $this->warehouseRepository->findActivePlatformWarehouses();
 
         return $this->json([
-            'data' => array_map(fn(Warehouse $w) => [
+            'data' => array_map(fn (Warehouse $w) => [
                 'id' => $w->getId(),
                 'code' => $w->getCode(),
                 'name' => $w->getName(),
@@ -81,7 +82,7 @@ class InboundOrderController extends AbstractController
     }
 
     /**
-     * 搜索商品（供入库单添加明细和商机发现使用）
+     * 搜索商品（供入库单添加明细和商机发现使用）.
      */
     #[Route('/products', name: 'inbound_search_products', methods: ['GET'])]
     public function searchProducts(Request $request): JsonResponse
@@ -110,13 +111,13 @@ class InboundOrderController extends AbstractController
         $result = $this->productRepository->findWithFilters($filters, $page, $limit);
 
         return $this->json([
-            'data' => array_map(fn(Product $p) => $this->serializeProductForInbound($p), $result['data']),
+            'data' => array_map(fn (Product $p) => $this->serializeProductForInbound($p), $result['data']),
             'meta' => $result['meta'],
         ]);
     }
 
     /**
-     * 序列化商品（入库单用，包含 SKU 列表）
+     * 序列化商品（入库单用，包含 SKU 列表）.
      */
     private function serializeProductForInbound(Product $product): array
     {
@@ -137,19 +138,19 @@ class InboundOrderController extends AbstractController
             'color' => $product->getColor(),
             'primaryImageUrl' => $primaryImageUrl,
             'brandName' => $product->getBrand()?->getName(),
-            'skus' => array_map(fn($sku) => [
+            'skus' => array_map(fn ($sku) => [
                 'id' => $sku->getId(),
                 'skuName' => $sku->getSkuName(),
                 'sizeUnit' => $sku->getSizeUnit()?->value,
                 'sizeValue' => $sku->getSizeValue(),
                 'price' => $sku->getPrice(),
                 'isActive' => $sku->isActive(),
-            ], $product->getSkus()->filter(fn($s) => $s->isActive())->toArray()),
+            ], $product->getSkus()->filter(fn ($s) => $s->isActive())->toArray()),
         ];
     }
 
     /**
-     * 创建入库单
+     * 创建入库单.
      */
     #[Route('/orders', name: 'inbound_create_order', methods: ['POST'])]
     public function createOrder(
@@ -171,7 +172,7 @@ class InboundOrderController extends AbstractController
     }
 
     /**
-     * 获取入库单列表
+     * 获取入库单列表.
      */
     #[Route('/orders', name: 'inbound_list_orders', methods: ['GET'])]
     public function listOrders(
@@ -193,7 +194,7 @@ class InboundOrderController extends AbstractController
     }
 
     /**
-     * 获取入库单详情
+     * 获取入库单详情.
      */
     #[Route('/orders/{id}', name: 'inbound_get_order', methods: ['GET'])]
     public function getOrder(
@@ -213,7 +214,7 @@ class InboundOrderController extends AbstractController
     }
 
     /**
-     * 删除草稿入库单
+     * 删除草稿入库单.
      */
     #[Route('/orders/{id}', name: 'inbound_delete_order', methods: ['DELETE'])]
     public function deleteOrder(
@@ -239,7 +240,7 @@ class InboundOrderController extends AbstractController
     }
 
     /**
-     * 添加商品到入库单
+     * 添加商品到入库单.
      */
     #[Route('/orders/{id}/items', name: 'inbound_add_item', methods: ['POST'])]
     public function addItem(
@@ -261,13 +262,13 @@ class InboundOrderController extends AbstractController
                 'message' => $this->translator->trans('inbound.item.added'),
                 'data' => $this->serializeItem($item),
             ], Response::HTTP_CREATED);
-        } catch (\InvalidArgumentException | \LogicException $e) {
+        } catch (\InvalidArgumentException|\LogicException $e) {
             return $this->json(['error' => $e->getMessage()], Response::HTTP_BAD_REQUEST);
         }
     }
 
     /**
-     * 更新入库单明细
+     * 更新入库单明细.
      */
     #[Route('/orders/items/{id}', name: 'inbound_update_item', methods: ['PUT'])]
     public function updateItem(
@@ -295,7 +296,7 @@ class InboundOrderController extends AbstractController
     }
 
     /**
-     * 删除入库单明细
+     * 删除入库单明细.
      */
     #[Route('/orders/items/{id}', name: 'inbound_remove_item', methods: ['DELETE'])]
     public function removeItem(
@@ -321,7 +322,7 @@ class InboundOrderController extends AbstractController
     }
 
     /**
-     * 提交入库单
+     * 提交入库单.
      */
     #[Route('/orders/{id}/submit', name: 'inbound_submit_order', methods: ['POST'])]
     public function submitOrder(
@@ -348,7 +349,7 @@ class InboundOrderController extends AbstractController
     }
 
     /**
-     * 发货
+     * 发货.
      */
     #[Route('/orders/{id}/ship', name: 'inbound_ship_order', methods: ['POST'])]
     public function shipOrder(
@@ -381,7 +382,7 @@ class InboundOrderController extends AbstractController
     }
 
     /**
-     * 完成收货（仓库操作）
+     * 完成收货（仓库操作）.
      */
     #[Route('/orders/{id}/receive', name: 'inbound_receive_order', methods: ['POST'])]
     public function receiveOrder(
@@ -408,13 +409,13 @@ class InboundOrderController extends AbstractController
                 'message' => $this->translator->trans('inbound.order.received'),
                 'data' => $this->serializeOrderDetail($order),
             ]);
-        } catch (\LogicException | \InvalidArgumentException $e) {
+        } catch (\LogicException|\InvalidArgumentException $e) {
             return $this->json(['error' => $e->getMessage()], Response::HTTP_BAD_REQUEST);
         }
     }
 
     /**
-     * 取消入库单
+     * 取消入库单.
      */
     #[Route('/orders/{id}/cancel', name: 'inbound_cancel_order', methods: ['POST'])]
     public function cancelOrder(
@@ -450,7 +451,7 @@ class InboundOrderController extends AbstractController
     }
 
     /**
-     * 创建异常单
+     * 创建异常单.
      */
     #[Route('/orders/{id}/exceptions', name: 'inbound_create_exception', methods: ['POST'])]
     public function createException(
@@ -478,7 +479,7 @@ class InboundOrderController extends AbstractController
     }
 
     /**
-     * 获取异常处理方式选项
+     * 获取异常处理方式选项.
      */
     #[Route('/exceptions/resolution-options', name: 'inbound_exception_resolution_options', methods: ['GET'])]
     public function getResolutionOptions(): JsonResponse
@@ -489,7 +490,7 @@ class InboundOrderController extends AbstractController
     }
 
     /**
-     * 获取商户异常单列表
+     * 获取商户异常单列表.
      */
     #[Route('/exceptions', name: 'inbound_list_exceptions', methods: ['GET'])]
     public function listExceptions(
@@ -520,7 +521,7 @@ class InboundOrderController extends AbstractController
     }
 
     /**
-     * 获取异常单详情
+     * 获取异常单详情.
      */
     #[Route('/exceptions/{id}', name: 'inbound_get_exception', methods: ['GET'])]
     public function getException(
@@ -540,7 +541,7 @@ class InboundOrderController extends AbstractController
     }
 
     /**
-     * 处理异常单
+     * 处理异常单.
      */
     #[Route('/exceptions/{id}/resolve', name: 'inbound_resolve_exception', methods: ['POST'])]
     public function resolveException(
@@ -565,6 +566,7 @@ class InboundOrderController extends AbstractController
 
             // 返回更新后的异常单和入库单状态
             $order = $exception->getInboundOrder();
+
             return $this->json([
                 'message' => $this->translator->trans('inbound.exception.resolved'),
                 'data' => $this->serializeException($exception),
@@ -577,7 +579,7 @@ class InboundOrderController extends AbstractController
     }
 
     /**
-     * 序列化入库单（列表）
+     * 序列化入库单（列表）.
      */
     private function serializeOrder($order): array
     {
@@ -601,7 +603,7 @@ class InboundOrderController extends AbstractController
     }
 
     /**
-     * 序列化入库单（详情）
+     * 序列化入库单（详情）.
      */
     private function serializeOrderDetail($order): array
     {
@@ -623,7 +625,7 @@ class InboundOrderController extends AbstractController
     }
 
     /**
-     * 序列化入库单明细
+     * 序列化入库单明细.
      */
     private function serializeItem($item): array
     {
@@ -662,7 +664,7 @@ class InboundOrderController extends AbstractController
     }
 
     /**
-     * 序列化物流信息
+     * 序列化物流信息.
      */
     private function serializeShipment($shipment): array
     {
@@ -684,7 +686,7 @@ class InboundOrderController extends AbstractController
     }
 
     /**
-     * 序列化异常单
+     * 序列化异常单.
      */
     private function serializeException($exception): array
     {
@@ -706,7 +708,7 @@ class InboundOrderController extends AbstractController
     }
 
     /**
-     * 序列化异常单明细
+     * 序列化异常单明细.
      */
     private function serializeExceptionItem($item): array
     {
@@ -721,7 +723,7 @@ class InboundOrderController extends AbstractController
     }
 
     /**
-     * 序列化异常单（包含入库单信息）
+     * 序列化异常单（包含入库单信息）.
      */
     private function serializeExceptionWithOrder($exception): array
     {
@@ -744,7 +746,7 @@ class InboundOrderController extends AbstractController
     }
 
     /**
-     * 从完整 URL 或 COS key 中提取 COS key
+     * 从完整 URL 或 COS key 中提取 COS key.
      */
     private function extractCosKey(string $imagePathOrUrl): ?string
     {

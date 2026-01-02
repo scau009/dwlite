@@ -5,7 +5,7 @@ namespace App\Service\Mail;
 interface MailServiceInterface
 {
     /**
-     * Send an email with raw HTML content
+     * Send an email with raw HTML content.
      *
      * @param string $to Recipient email address
      * @param string $subject Email subject
@@ -24,7 +24,7 @@ interface MailServiceInterface
     ): void;
 
     /**
-     * Send an email using a pre-approved template
+     * Send an email using a pre-approved template.
      *
      * @param string $to Recipient email address
      * @param int $templateId Template ID from the email service provider

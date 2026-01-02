@@ -19,7 +19,7 @@ use Symfony\Component\Security\Http\Attribute\CurrentUser;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
- * 商户自助服务 - 商户角色用户管理自己的商户信息和钱包
+ * 商户自助服务 - 商户角色用户管理自己的商户信息和钱包.
  */
 #[Route('/api/merchant')]
 class MerchantProfileController extends AbstractController
@@ -32,7 +32,7 @@ class MerchantProfileController extends AbstractController
     }
 
     /**
-     * 获取当前商户信息
+     * 获取当前商户信息.
      */
     #[Route('/profile', name: 'merchant_profile', methods: ['GET'])]
     public function getProfile(#[CurrentUser] User $user): JsonResponse
@@ -46,7 +46,7 @@ class MerchantProfileController extends AbstractController
     }
 
     /**
-     * 更新商户信息
+     * 更新商户信息.
      */
     #[Route('/profile', name: 'merchant_profile_update', methods: ['PUT'])]
     public function updateProfile(
@@ -76,7 +76,7 @@ class MerchantProfileController extends AbstractController
     }
 
     /**
-     * 获取钱包列表
+     * 获取钱包列表.
      */
     #[Route('/wallets', name: 'merchant_wallets', methods: ['GET'])]
     public function getWallets(#[CurrentUser] User $user): JsonResponse
@@ -96,7 +96,7 @@ class MerchantProfileController extends AbstractController
     }
 
     /**
-     * 获取保证金钱包交易明细
+     * 获取保证金钱包交易明细.
      */
     #[Route('/wallets/deposit/transactions', name: 'merchant_deposit_transactions', methods: ['GET'])]
     public function getDepositTransactions(
@@ -120,7 +120,7 @@ class MerchantProfileController extends AbstractController
         );
 
         return $this->json([
-            'data' => array_map(fn($t) => [
+            'data' => array_map(fn ($t) => [
                 'id' => $t->getId(),
                 'transactionNo' => $t->getTransactionNo(),
                 'type' => $t->getType(),
@@ -139,7 +139,7 @@ class MerchantProfileController extends AbstractController
     }
 
     /**
-     * 获取余额钱包交易明细
+     * 获取余额钱包交易明细.
      */
     #[Route('/wallets/balance/transactions', name: 'merchant_balance_transactions', methods: ['GET'])]
     public function getBalanceTransactions(
@@ -163,7 +163,7 @@ class MerchantProfileController extends AbstractController
         );
 
         return $this->json([
-            'data' => array_map(fn($t) => [
+            'data' => array_map(fn ($t) => [
                 'id' => $t->getId(),
                 'transactionNo' => $t->getTransactionNo(),
                 'type' => $t->getType(),

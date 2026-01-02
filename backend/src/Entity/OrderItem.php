@@ -7,7 +7,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Uid\Ulid;
 
 /**
- * 订单明细 - 订单中的商品明细
+ * 订单明细 - 订单中的商品明细.
  */
 #[ORM\Entity(repositoryClass: OrderItemRepository::class)]
 #[ORM\Table(name: 'order_items')]
@@ -126,6 +126,7 @@ class OrderItem
     public function setOrder(Order $order): static
     {
         $this->order = $order;
+
         return $this;
     }
 
@@ -137,6 +138,7 @@ class OrderItem
     public function setProductSku(?ProductSku $productSku): static
     {
         $this->productSku = $productSku;
+
         return $this;
     }
 
@@ -150,6 +152,7 @@ class OrderItem
     public function setSkuCode(?string $skuCode): static
     {
         $this->skuCode = $skuCode;
+
         return $this;
     }
 
@@ -161,6 +164,7 @@ class OrderItem
     public function setColorCode(?string $colorCode): static
     {
         $this->colorCode = $colorCode;
+
         return $this;
     }
 
@@ -172,6 +176,7 @@ class OrderItem
     public function setSizeValue(?string $sizeValue): static
     {
         $this->sizeValue = $sizeValue;
+
         return $this;
     }
 
@@ -183,6 +188,7 @@ class OrderItem
     public function setSpecInfo(?array $specInfo): static
     {
         $this->specInfo = $specInfo;
+
         return $this;
     }
 
@@ -194,6 +200,7 @@ class OrderItem
     public function setProductName(?string $productName): static
     {
         $this->productName = $productName;
+
         return $this;
     }
 
@@ -205,11 +212,12 @@ class OrderItem
     public function setProductImage(?string $productImage): static
     {
         $this->productImage = $productImage;
+
         return $this;
     }
 
     /**
-     * 从 SKU 快照关键信息
+     * 从 SKU 快照关键信息.
      */
     public function snapshotFromSku(ProductSku $sku): void
     {
@@ -232,6 +240,7 @@ class OrderItem
     public function setChannelProduct(?ChannelProduct $channelProduct): static
     {
         $this->channelProduct = $channelProduct;
+
         return $this;
     }
 
@@ -243,6 +252,7 @@ class OrderItem
     public function setExternalProductId(?string $externalProductId): static
     {
         $this->externalProductId = $externalProductId;
+
         return $this;
     }
 
@@ -254,6 +264,7 @@ class OrderItem
     public function setExternalProductName(?string $externalProductName): static
     {
         $this->externalProductName = $externalProductName;
+
         return $this;
     }
 
@@ -265,6 +276,7 @@ class OrderItem
     public function setExternalProductImage(?string $externalProductImage): static
     {
         $this->externalProductImage = $externalProductImage;
+
         return $this;
     }
 
@@ -276,6 +288,7 @@ class OrderItem
     public function setQuantity(int $quantity): static
     {
         $this->quantity = $quantity;
+
         return $this;
     }
 
@@ -288,6 +301,7 @@ class OrderItem
     {
         $this->allocatedQuantity = $allocatedQuantity;
         $this->updateAllocationStatus();
+
         return $this;
     }
 
@@ -299,6 +313,7 @@ class OrderItem
     public function setShippedQuantity(int $shippedQuantity): static
     {
         $this->shippedQuantity = $shippedQuantity;
+
         return $this;
     }
 
@@ -310,6 +325,7 @@ class OrderItem
     public function setUnitPrice(string $unitPrice): static
     {
         $this->unitPrice = $unitPrice;
+
         return $this;
     }
 
@@ -321,6 +337,7 @@ class OrderItem
     public function setTotalPrice(string $totalPrice): static
     {
         $this->totalPrice = $totalPrice;
+
         return $this;
     }
 
@@ -332,6 +349,7 @@ class OrderItem
     public function setDiscountAmount(string $discountAmount): static
     {
         $this->discountAmount = $discountAmount;
+
         return $this;
     }
 
@@ -343,6 +361,7 @@ class OrderItem
     public function setPayableAmount(string $payableAmount): static
     {
         $this->payableAmount = $payableAmount;
+
         return $this;
     }
 
@@ -354,6 +373,7 @@ class OrderItem
     public function setAllocationStatus(string $allocationStatus): static
     {
         $this->allocationStatus = $allocationStatus;
+
         return $this;
     }
 
@@ -365,6 +385,7 @@ class OrderItem
     public function setRemark(?string $remark): static
     {
         $this->remark = $remark;
+
         return $this;
     }
 
@@ -387,7 +408,7 @@ class OrderItem
     // 便捷方法
 
     /**
-     * 获取待分配数量
+     * 获取待分配数量.
      */
     public function getPendingQuantity(): int
     {
@@ -395,7 +416,7 @@ class OrderItem
     }
 
     /**
-     * 是否已全部分配
+     * 是否已全部分配.
      */
     public function isFullyAllocated(): bool
     {
@@ -403,7 +424,7 @@ class OrderItem
     }
 
     /**
-     * 是否部分分配
+     * 是否部分分配.
      */
     public function isPartiallyAllocated(): bool
     {
@@ -411,7 +432,7 @@ class OrderItem
     }
 
     /**
-     * 是否已全部发货
+     * 是否已全部发货.
      */
     public function isFullyShipped(): bool
     {
@@ -419,7 +440,7 @@ class OrderItem
     }
 
     /**
-     * 增加已分配数量
+     * 增加已分配数量.
      */
     public function addAllocatedQuantity(int $quantity): void
     {
@@ -428,7 +449,7 @@ class OrderItem
     }
 
     /**
-     * 增加已发货数量
+     * 增加已发货数量.
      */
     public function addShippedQuantity(int $quantity): void
     {
@@ -450,7 +471,7 @@ class OrderItem
     }
 
     /**
-     * 标记分配失败
+     * 标记分配失败.
      */
     public function markAllocationFailed(): void
     {
@@ -458,7 +479,7 @@ class OrderItem
     }
 
     /**
-     * 计算并设置金额
+     * 计算并设置金额.
      */
     public function calculateAmounts(): void
     {

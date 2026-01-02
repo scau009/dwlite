@@ -19,7 +19,7 @@ class OutboundOrderRepository extends ServiceEntityRepository
     }
 
     /**
-     * 根据商户查询出库单列表（分页）
+     * 根据商户查询出库单列表（分页）.
      *
      * @return array{items: OutboundOrder[], total: int}
      */
@@ -55,12 +55,12 @@ class OutboundOrderRepository extends ServiceEntityRepository
 
         if ($outboundNo !== null) {
             $qb->andWhere('o.outboundNo LIKE :outboundNo')
-                ->setParameter('outboundNo', '%' . $outboundNo . '%');
+                ->setParameter('outboundNo', '%'.$outboundNo.'%');
         }
 
         if ($trackingNumber !== null) {
             $qb->andWhere('o.trackingNumber LIKE :trackingNumber')
-                ->setParameter('trackingNumber', '%' . $trackingNumber . '%');
+                ->setParameter('trackingNumber', '%'.$trackingNumber.'%');
         }
 
         // Count total
@@ -82,7 +82,7 @@ class OutboundOrderRepository extends ServiceEntityRepository
     }
 
     /**
-     * 根据商户查询出库单详情
+     * 根据商户查询出库单详情.
      */
     public function findOneByIdAndMerchant(string $id, Merchant $merchant): ?OutboundOrder
     {
@@ -96,7 +96,8 @@ class OutboundOrderRepository extends ServiceEntityRepository
     }
 
     /**
-     * 获取待同步到 WMS 的出库单
+     * 获取待同步到 WMS 的出库单.
+     *
      * @return OutboundOrder[]
      */
     public function findPendingSync(int $limit = 50): array
@@ -113,7 +114,8 @@ class OutboundOrderRepository extends ServiceEntityRepository
     }
 
     /**
-     * 根据仓库获取待处理的出库单
+     * 根据仓库获取待处理的出库单.
+     *
      * @return OutboundOrder[]
      */
     public function findPendingByWarehouse(Warehouse $warehouse): array
@@ -139,7 +141,7 @@ class OutboundOrderRepository extends ServiceEntityRepository
     }
 
     /**
-     * 统计仓库各状态的出库单数量
+     * 统计仓库各状态的出库单数量.
      */
     public function countByWarehouseGroupByStatus(Warehouse $warehouse): array
     {
@@ -155,11 +157,12 @@ class OutboundOrderRepository extends ServiceEntityRepository
         foreach ($results as $row) {
             $counts[$row['status']] = (int) $row['count'];
         }
+
         return $counts;
     }
 
     /**
-     * 统计仓库今日已发货的出库单数量
+     * 统计仓库今日已发货的出库单数量.
      */
     public function countShippedTodayByWarehouse(Warehouse $warehouse): int
     {
@@ -181,13 +184,13 @@ class OutboundOrderRepository extends ServiceEntityRepository
     }
 
     /**
-     * 获取仓库近N天每日发货的出库单数量
+     * 获取仓库近N天每日发货的出库单数量.
      *
      * @return array<string, int> 日期 => 数量
      */
     public function countShippedByWarehouseGroupByDate(Warehouse $warehouse, int $days = 7): array
     {
-        $startDate = new \DateTimeImmutable("-" . ($days - 1) . " days", new \DateTimeZone('Asia/Shanghai'));
+        $startDate = new \DateTimeImmutable('-'.($days - 1).' days', new \DateTimeZone('Asia/Shanghai'));
         $startDate = $startDate->setTime(0, 0, 0);
 
         $conn = $this->getEntityManager()->getConnection();
@@ -210,6 +213,7 @@ class OutboundOrderRepository extends ServiceEntityRepository
         foreach ($results as $row) {
             $counts[$row['date']] = (int) $row['count'];
         }
+
         return $counts;
     }
 }

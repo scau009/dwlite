@@ -19,7 +19,7 @@ class InboundOrderRepository extends ServiceEntityRepository
     }
 
     /**
-     * 获取商户的送仓单列表
+     * 获取商户的送仓单列表.
      *
      * @return InboundOrder[]
      */
@@ -43,14 +43,14 @@ class InboundOrderRepository extends ServiceEntityRepository
         if ($trackingNumber !== null) {
             $qb->leftJoin('io.shipment', 's')
                 ->andWhere('s.trackingNumber LIKE :trackingNumber')
-                ->setParameter('trackingNumber', '%' . $trackingNumber . '%');
+                ->setParameter('trackingNumber', '%'.$trackingNumber.'%');
         }
 
         return $qb->getQuery()->getResult();
     }
 
     /**
-     * 获取仓库的待处理入库单
+     * 获取仓库的待处理入库单.
      *
      * @return InboundOrder[]
      */
@@ -71,7 +71,7 @@ class InboundOrderRepository extends ServiceEntityRepository
     }
 
     /**
-     * 按单号查找
+     * 按单号查找.
      */
     public function findByOrderNo(string $orderNo): ?InboundOrder
     {
@@ -79,7 +79,7 @@ class InboundOrderRepository extends ServiceEntityRepository
     }
 
     /**
-     * 获取商户的草稿单
+     * 获取商户的草稿单.
      *
      * @return InboundOrder[]
      */
@@ -96,7 +96,7 @@ class InboundOrderRepository extends ServiceEntityRepository
     }
 
     /**
-     * 统计商户各状态的送仓单数量
+     * 统计商户各状态的送仓单数量.
      */
     public function countByMerchantGroupByStatus(Merchant $merchant): array
     {
@@ -112,11 +112,12 @@ class InboundOrderRepository extends ServiceEntityRepository
         foreach ($results as $row) {
             $counts[$row['status']] = (int) $row['count'];
         }
+
         return $counts;
     }
 
     /**
-     * 按仓库分页查询入库单
+     * 按仓库分页查询入库单.
      *
      * @return array{data: InboundOrder[], meta: array{total: int, page: int, limit: int, pages: int}}
      */
@@ -139,7 +140,7 @@ class InboundOrderRepository extends ServiceEntityRepository
 
         if (!empty($filters['orderNo'])) {
             $qb->andWhere('io.orderNo LIKE :orderNo')
-                ->setParameter('orderNo', '%' . $filters['orderNo'] . '%');
+                ->setParameter('orderNo', '%'.$filters['orderNo'].'%');
         }
 
         // 计算总数
@@ -166,7 +167,7 @@ class InboundOrderRepository extends ServiceEntityRepository
     }
 
     /**
-     * 统计仓库各状态的入库单数量
+     * 统计仓库各状态的入库单数量.
      */
     public function countByWarehouseGroupByStatus(Warehouse $warehouse): array
     {
@@ -182,11 +183,12 @@ class InboundOrderRepository extends ServiceEntityRepository
         foreach ($results as $row) {
             $counts[$row['status']] = (int) $row['count'];
         }
+
         return $counts;
     }
 
     /**
-     * 统计仓库今日完成的入库单数量
+     * 统计仓库今日完成的入库单数量.
      */
     public function countCompletedTodayByWarehouse(Warehouse $warehouse): int
     {
@@ -208,13 +210,13 @@ class InboundOrderRepository extends ServiceEntityRepository
     }
 
     /**
-     * 获取仓库近N天每日完成的入库单数量
+     * 获取仓库近N天每日完成的入库单数量.
      *
      * @return array<string, int> 日期 => 数量
      */
     public function countCompletedByWarehouseGroupByDate(Warehouse $warehouse, int $days = 7): array
     {
-        $startDate = new \DateTimeImmutable("-" . ($days - 1) . " days", new \DateTimeZone('Asia/Shanghai'));
+        $startDate = new \DateTimeImmutable('-'.($days - 1).' days', new \DateTimeZone('Asia/Shanghai'));
         $startDate = $startDate->setTime(0, 0, 0);
 
         $conn = $this->getEntityManager()->getConnection();
@@ -238,6 +240,7 @@ class InboundOrderRepository extends ServiceEntityRepository
         foreach ($results as $row) {
             $counts[$row['date']] = (int) $row['count'];
         }
+
         return $counts;
     }
 }

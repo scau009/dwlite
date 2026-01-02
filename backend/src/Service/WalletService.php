@@ -20,7 +20,7 @@ class WalletService
     }
 
     /**
-     * 初始化商户钱包（保证金钱包和余额钱包）
+     * 初始化商户钱包（保证金钱包和余额钱包）.
      */
     public function initWallets(Merchant $merchant): array
     {
@@ -80,7 +80,7 @@ class WalletService
     }
 
     /**
-     * 获取保证金钱包信息
+     * 获取保证金钱包信息.
      */
     public function getDepositWallet(Merchant $merchant): ?Wallet
     {
@@ -88,7 +88,7 @@ class WalletService
     }
 
     /**
-     * 获取余额钱包信息
+     * 获取余额钱包信息.
      */
     public function getBalanceWallet(Merchant $merchant): ?Wallet
     {

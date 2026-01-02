@@ -12,7 +12,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 /**
- * 仓库用户 - 工作台
+ * 仓库用户 - 工作台.
  */
 #[Route('/api/warehouse/dashboard')]
 #[IsGranted('ROLE_USER')]
@@ -26,7 +26,7 @@ class DashboardController extends AbstractController
     }
 
     /**
-     * 获取近7天的入库/出库趋势数据
+     * 获取近7天的入库/出库趋势数据.
      */
     #[Route('/trend', name: 'warehouse_dashboard_trend', methods: ['GET'])]
     public function getTrend(Warehouse $warehouse): JsonResponse
@@ -37,7 +37,7 @@ class DashboardController extends AbstractController
         // 生成近7天的日期列表
         $trend = [];
         $timezone = new \DateTimeZone('Asia/Shanghai');
-        for ($i = 6; $i >= 0; $i--) {
+        for ($i = 6; $i >= 0; --$i) {
             $date = (new \DateTimeImmutable("-{$i} days", $timezone))->format('Y-m-d');
             $trend[] = [
                 'date' => $date,

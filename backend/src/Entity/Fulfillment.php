@@ -9,7 +9,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Uid\Ulid;
 
 /**
- * 履约单 - 订单库存分配成功后创建
+ * 履约单 - 订单库存分配成功后创建.
  *
  * 一个订单可能有多个履约单（不同仓库/不同商家）
  */
@@ -120,7 +120,7 @@ class Fulfillment
     private function generateFulfillmentNo(): string
     {
         // 格式：FF + 年月日 + 6位随机数
-        return 'FF' . date('Ymd') . str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+        return 'FF'.date('Ymd').str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
     }
 
     public function getId(): string
@@ -136,6 +136,7 @@ class Fulfillment
     public function setFulfillmentNo(string $fulfillmentNo): static
     {
         $this->fulfillmentNo = $fulfillmentNo;
+
         return $this;
     }
 
@@ -147,6 +148,7 @@ class Fulfillment
     public function setOrder(Order $order): static
     {
         $this->order = $order;
+
         return $this;
     }
 
@@ -158,6 +160,7 @@ class Fulfillment
     public function setFulfillmentType(string $fulfillmentType): static
     {
         $this->fulfillmentType = $fulfillmentType;
+
         return $this;
     }
 
@@ -169,6 +172,7 @@ class Fulfillment
     public function setMerchant(?Merchant $merchant): static
     {
         $this->merchant = $merchant;
+
         return $this;
     }
 
@@ -180,6 +184,7 @@ class Fulfillment
     public function setWarehouse(Warehouse $warehouse): static
     {
         $this->warehouse = $warehouse;
+
         return $this;
     }
 
@@ -191,6 +196,7 @@ class Fulfillment
     public function setStatus(string $status): static
     {
         $this->status = $status;
+
         return $this;
     }
 
@@ -202,6 +208,7 @@ class Fulfillment
     public function setShippingCarrier(?string $shippingCarrier): static
     {
         $this->shippingCarrier = $shippingCarrier;
+
         return $this;
     }
 
@@ -213,6 +220,7 @@ class Fulfillment
     public function setTrackingNumber(?string $trackingNumber): static
     {
         $this->trackingNumber = $trackingNumber;
+
         return $this;
     }
 
@@ -224,6 +232,7 @@ class Fulfillment
     public function setTrackingUrl(?string $trackingUrl): static
     {
         $this->trackingUrl = $trackingUrl;
+
         return $this;
     }
 
@@ -235,6 +244,7 @@ class Fulfillment
     public function setNotifiedAt(?\DateTimeImmutable $notifiedAt): static
     {
         $this->notifiedAt = $notifiedAt;
+
         return $this;
     }
 
@@ -246,6 +256,7 @@ class Fulfillment
     public function setShippedAt(?\DateTimeImmutable $shippedAt): static
     {
         $this->shippedAt = $shippedAt;
+
         return $this;
     }
 
@@ -257,6 +268,7 @@ class Fulfillment
     public function setDeliveredAt(?\DateTimeImmutable $deliveredAt): static
     {
         $this->deliveredAt = $deliveredAt;
+
         return $this;
     }
 
@@ -268,6 +280,7 @@ class Fulfillment
     public function setCancelledAt(?\DateTimeImmutable $cancelledAt): static
     {
         $this->cancelledAt = $cancelledAt;
+
         return $this;
     }
 
@@ -279,6 +292,7 @@ class Fulfillment
     public function setCancelReason(?string $cancelReason): static
     {
         $this->cancelReason = $cancelReason;
+
         return $this;
     }
 
@@ -290,6 +304,7 @@ class Fulfillment
     public function setRemark(?string $remark): static
     {
         $this->remark = $remark;
+
         return $this;
     }
 
@@ -307,12 +322,14 @@ class Fulfillment
             $this->items->add($item);
             $item->setFulfillment($this);
         }
+
         return $this;
     }
 
     public function removeItem(FulfillmentItem $item): static
     {
         $this->items->removeElement($item);
+
         return $this;
     }
 
@@ -324,6 +341,7 @@ class Fulfillment
     public function setOutboundOrder(?OutboundOrder $outboundOrder): static
     {
         $this->outboundOrder = $outboundOrder;
+
         return $this;
     }
 
@@ -389,7 +407,7 @@ class Fulfillment
     }
 
     /**
-     * 是否需要出库单
+     * 是否需要出库单.
      */
     public function needsOutboundOrder(): bool
     {
@@ -397,7 +415,7 @@ class Fulfillment
     }
 
     /**
-     * 获取总数量
+     * 获取总数量.
      */
     public function getTotalQuantity(): int
     {
@@ -405,11 +423,12 @@ class Fulfillment
         foreach ($this->items as $item) {
             $total += $item->getQuantity();
         }
+
         return $total;
     }
 
     /**
-     * 标记为处理中
+     * 标记为处理中.
      */
     public function markProcessing(): void
     {
@@ -420,7 +439,7 @@ class Fulfillment
     }
 
     /**
-     * 标记已发货
+     * 标记已发货.
      */
     public function markShipped(string $carrier, string $trackingNumber, ?string $trackingUrl = null): void
     {
@@ -437,7 +456,7 @@ class Fulfillment
     }
 
     /**
-     * 标记已签收
+     * 标记已签收.
      */
     public function markDelivered(): void
     {
@@ -446,7 +465,7 @@ class Fulfillment
     }
 
     /**
-     * 标记已取消
+     * 标记已取消.
      */
     public function markCancelled(string $reason): void
     {
@@ -456,7 +475,7 @@ class Fulfillment
     }
 
     /**
-     * 创建平台仓履约单的工厂方法
+     * 创建平台仓履约单的工厂方法.
      */
     public static function createForPlatformWarehouse(Order $order, Warehouse $warehouse): static
     {
@@ -464,11 +483,12 @@ class Fulfillment
         $fulfillment->setOrder($order);
         $fulfillment->setWarehouse($warehouse);
         $fulfillment->setFulfillmentType(self::TYPE_PLATFORM_WAREHOUSE);
+
         return $fulfillment;
     }
 
     /**
-     * 创建商家仓履约单的工厂方法
+     * 创建商家仓履约单的工厂方法.
      */
     public static function createForMerchantWarehouse(Order $order, Warehouse $warehouse, Merchant $merchant): static
     {
@@ -477,6 +497,7 @@ class Fulfillment
         $fulfillment->setWarehouse($warehouse);
         $fulfillment->setMerchant($merchant);
         $fulfillment->setFulfillmentType(self::TYPE_MERCHANT_WAREHOUSE);
+
         return $fulfillment;
     }
 }

@@ -9,7 +9,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Uid\Ulid;
 
 /**
- * 渠道商品 - 平台侧
+ * 渠道商品 - 平台侧.
  *
  * 平台对外销售渠道的商品，聚合多个商家的库存，对外隐藏商家信息
  */
@@ -129,6 +129,7 @@ class ChannelProduct
     public function setSalesChannel(SalesChannel $salesChannel): static
     {
         $this->salesChannel = $salesChannel;
+
         return $this;
     }
 
@@ -140,6 +141,7 @@ class ChannelProduct
     public function setProductSku(ProductSku $productSku): static
     {
         $this->productSku = $productSku;
+
         return $this;
     }
 
@@ -151,6 +153,7 @@ class ChannelProduct
     public function setPlatformPrice(string $platformPrice): static
     {
         $this->platformPrice = $platformPrice;
+
         return $this;
     }
 
@@ -162,6 +165,7 @@ class ChannelProduct
     public function setPlatformCompareAtPrice(?string $platformCompareAtPrice): static
     {
         $this->platformCompareAtPrice = $platformCompareAtPrice;
+
         return $this;
     }
 
@@ -173,6 +177,7 @@ class ChannelProduct
     public function setStockMode(string $stockMode): static
     {
         $this->stockMode = $stockMode;
+
         return $this;
     }
 
@@ -184,6 +189,7 @@ class ChannelProduct
     public function setStockQuantity(int $stockQuantity): static
     {
         $this->stockQuantity = $stockQuantity;
+
         return $this;
     }
 
@@ -195,6 +201,7 @@ class ChannelProduct
     public function setSafetyBuffer(int $safetyBuffer): static
     {
         $this->safetyBuffer = $safetyBuffer;
+
         return $this;
     }
 
@@ -206,6 +213,7 @@ class ChannelProduct
     public function setFixedStock(?int $fixedStock): static
     {
         $this->fixedStock = $fixedStock;
+
         return $this;
     }
 
@@ -217,6 +225,7 @@ class ChannelProduct
     public function setExternalId(?string $externalId): static
     {
         $this->externalId = $externalId;
+
         return $this;
     }
 
@@ -228,6 +237,7 @@ class ChannelProduct
     public function setExternalUrl(?string $externalUrl): static
     {
         $this->externalUrl = $externalUrl;
+
         return $this;
     }
 
@@ -239,6 +249,7 @@ class ChannelProduct
     public function setSyncStatus(string $syncStatus): static
     {
         $this->syncStatus = $syncStatus;
+
         return $this;
     }
 
@@ -250,6 +261,7 @@ class ChannelProduct
     public function setLastSyncedAt(?\DateTimeImmutable $lastSyncedAt): static
     {
         $this->lastSyncedAt = $lastSyncedAt;
+
         return $this;
     }
 
@@ -261,6 +273,7 @@ class ChannelProduct
     public function setSyncError(?string $syncError): static
     {
         $this->syncError = $syncError;
+
         return $this;
     }
 
@@ -272,6 +285,7 @@ class ChannelProduct
     public function setStatus(string $status): static
     {
         $this->status = $status;
+
         return $this;
     }
 
@@ -283,6 +297,7 @@ class ChannelProduct
     public function setTotalSoldQuantity(int $totalSoldQuantity): static
     {
         $this->totalSoldQuantity = $totalSoldQuantity;
+
         return $this;
     }
 
@@ -300,6 +315,7 @@ class ChannelProduct
             $this->sources->add($source);
             $source->setChannelProduct($this);
         }
+
         return $this;
     }
 
@@ -310,6 +326,7 @@ class ChannelProduct
                 $source->setChannelProduct($this);
             }
         }
+
         return $this;
     }
 
@@ -367,17 +384,17 @@ class ChannelProduct
     }
 
     /**
-     * 获取活跃的供货来源
+     * 获取活跃的供货来源.
      *
      * @return Collection<int, ChannelProductSource>
      */
     public function getActiveSources(): Collection
     {
-        return $this->sources->filter(fn(ChannelProductSource $source) => $source->isActive());
+        return $this->sources->filter(fn (ChannelProductSource $source) => $source->isActive());
     }
 
     /**
-     * 重新计算库存
+     * 重新计算库存.
      */
     public function recalculateStock(): void
     {
@@ -385,6 +402,7 @@ class ChannelProduct
 
         if ($activeSources->isEmpty()) {
             $this->stockQuantity = 0;
+
             return;
         }
 
@@ -400,7 +418,7 @@ class ChannelProduct
     }
 
     /**
-     * 聚合库存计算
+     * 聚合库存计算.
      */
     private function calculateAggregateStock(Collection $sources): int
     {
@@ -408,11 +426,12 @@ class ChannelProduct
         foreach ($sources as $source) {
             $total += $source->getInventoryListing()->getAvailableQuantity();
         }
+
         return $total;
     }
 
     /**
-     * 最低库存计算
+     * 最低库存计算.
      */
     private function calculateLowestStock(Collection $sources): int
     {
@@ -423,11 +442,12 @@ class ChannelProduct
                 $lowest = $qty;
             }
         }
+
         return $lowest === PHP_INT_MAX ? 0 : $lowest;
     }
 
     /**
-     * 标记需要同步
+     * 标记需要同步.
      */
     public function markNeedsSync(): void
     {
@@ -445,7 +465,7 @@ class ChannelProduct
     }
 
     /**
-     * 标记同步失败
+     * 标记同步失败.
      */
     public function markSyncFailed(string $error): void
     {
@@ -454,7 +474,7 @@ class ChannelProduct
     }
 
     /**
-     * 记录销售
+     * 记录销售.
      */
     public function recordSale(int $quantity): void
     {
@@ -462,7 +482,7 @@ class ChannelProduct
     }
 
     /**
-     * 激活上架
+     * 激活上架.
      */
     public function activate(): void
     {
@@ -471,7 +491,7 @@ class ChannelProduct
     }
 
     /**
-     * 暂停上架
+     * 暂停上架.
      */
     public function pause(): void
     {

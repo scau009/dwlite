@@ -73,6 +73,7 @@ class Category
     public function setName(string $name): static
     {
         $this->name = $name;
+
         return $this;
     }
 
@@ -84,6 +85,7 @@ class Category
     public function setSlug(string $slug): static
     {
         $this->slug = $slug;
+
         return $this;
     }
 
@@ -95,6 +97,7 @@ class Category
     public function setDescription(?string $description): static
     {
         $this->description = $description;
+
         return $this;
     }
 
@@ -106,6 +109,7 @@ class Category
     public function setParent(?self $parent): static
     {
         $this->parent = $parent;
+
         return $this;
     }
 
@@ -123,6 +127,7 @@ class Category
             $this->children->add($child);
             $child->setParent($this);
         }
+
         return $this;
     }
 
@@ -133,6 +138,7 @@ class Category
                 $child->setParent(null);
             }
         }
+
         return $this;
     }
 
@@ -152,6 +158,7 @@ class Category
     public function setSortOrder(int $sortOrder): static
     {
         $this->sortOrder = $sortOrder;
+
         return $this;
     }
 
@@ -163,6 +170,7 @@ class Category
     public function setIsActive(bool $isActive): static
     {
         $this->isActive = $isActive;
+
         return $this;
     }
 
@@ -197,9 +205,10 @@ class Category
         $level = 0;
         $parent = $this->parent;
         while ($parent !== null) {
-            $level++;
+            ++$level;
             $parent = $parent->getParent();
         }
+
         return $level;
     }
 }

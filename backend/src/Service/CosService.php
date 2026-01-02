@@ -14,13 +14,12 @@ class CosService
     private ?string $cdnDomain;
 
     public function __construct(
-        string  $secretId,
-        string  $secretKey,
-        string  $region,
-        string  $bucket,
+        string $secretId,
+        string $secretKey,
+        string $region,
+        string $bucket,
         ?string $cdnDomain = null,
-    )
-    {
+    ) {
         $this->region = $region;
         $this->bucket = $bucket;
         $this->cdnDomain = $cdnDomain ?: null;
@@ -36,18 +35,19 @@ class CosService
     }
 
     /**
-     * Upload a file to COS
+     * Upload a file to COS.
      *
      * @param UploadedFile $file The uploaded file
      * @param string $directory Directory path in COS (e.g., 'products/images')
+     *
      * @return array{cosKey: string, url: string, thumbnailUrl: string|null, fileSize: int, width: int|null, height: int|null}
      */
     public function uploadFile(UploadedFile $file, string $directory = 'uploads'): array
     {
         $extension = $file->guessExtension() ?: $file->getClientOriginalExtension();
-        $filename = (string)new Ulid() . '.' . $extension;
+        $filename = (string) new Ulid().'.'.$extension;
         $date = date('Y/m');
-        $cosKey = trim($directory, '/') . '/' . $date . '/' . $filename;
+        $cosKey = trim($directory, '/').'/'.$date.'/'.$filename;
 
         // Upload to COS
         $this->client->upload(
@@ -71,7 +71,7 @@ class CosService
                 $height = $imageSize[1];
             }
             // Generate thumbnail URL using COS image processing
-            $thumbnailUrl = $url . '?imageMogr2/thumbnail/300x300>';
+            $thumbnailUrl = $url.'?imageMogr2/thumbnail/300x300>';
         }
 
         return [
@@ -85,7 +85,7 @@ class CosService
     }
 
     /**
-     * Delete a file from COS
+     * Delete a file from COS.
      */
     public function deleteFile(string $cosKey): void
     {
@@ -100,19 +100,19 @@ class CosService
     }
 
     /**
-     * Get the full URL for a COS key (unsigned, for public buckets or CDN)
+     * Get the full URL for a COS key (unsigned, for public buckets or CDN).
      */
     public function getUrl(string $cosKey): string
     {
         if ($this->cdnDomain) {
-            return 'https://' . $this->cdnDomain . '/' . $cosKey;
+            return 'https://'.$this->cdnDomain.'/'.$cosKey;
         }
 
-        return 'https://' . $this->bucket . '.cos.' . $this->region . '.myqcloud.com/' . $cosKey;
+        return 'https://'.$this->bucket.'.cos.'.$this->region.'.myqcloud.com/'.$cosKey;
     }
 
     /**
-     * Get a signed URL for reading from private bucket
+     * Get a signed URL for reading from private bucket.
      *
      * @param string $cosKey The object key
      * @param int $expires Expiration time in seconds (default 1 hour)
@@ -125,24 +125,24 @@ class CosService
         $signedUrl = $this->client->getPresignedUrl('getObject', [
             'Bucket' => $this->bucket,
             'Key' => $cosKey,
-        ], '+' . $expires . ' seconds');
+        ], '+'.$expires.' seconds');
 
         // Append image processing params if provided
         if ($imageParams) {
-            $signedUrl .= '&' . $imageParams;
+            $signedUrl .= '&'.$imageParams;
         }
 
         return $signedUrl;
     }
 
     /**
-     * Generate a pre-signed URL for direct upload from client
+     * Generate a pre-signed URL for direct upload from client.
      */
     public function getPresignedUrl(string $cosKey, int $expires = 3600): string
     {
         return $this->client->getPresignedUrl('putObject', [
             'Bucket' => $this->bucket,
             'Key' => $cosKey,
-        ], '+' . $expires . ' seconds');
+        ], '+'.$expires.' seconds');
     }
 }

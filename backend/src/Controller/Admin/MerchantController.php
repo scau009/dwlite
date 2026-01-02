@@ -44,7 +44,7 @@ class MerchantController extends AbstractController
         );
 
         return $this->json([
-            'data' => array_map(fn(Merchant $m) => $this->serializeMerchant($m), $result['data']),
+            'data' => array_map(fn (Merchant $m) => $this->serializeMerchant($m), $result['data']),
             'total' => $result['total'],
             'page' => $query->getPage(),
             'limit' => $query->getLimit(),
@@ -188,7 +188,7 @@ class MerchantController extends AbstractController
         );
 
         return $this->json([
-            'data' => array_map(fn($t) => [
+            'data' => array_map(fn ($t) => [
                 'id' => $t->getId(),
                 'type' => $t->getType(),
                 'amount' => $t->getAmount(),

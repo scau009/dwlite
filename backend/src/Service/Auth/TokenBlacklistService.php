@@ -31,7 +31,7 @@ class TokenBlacklistService
             return; // Token already expired, no need to blacklist
         }
 
-        $item = $this->cache->getItem(self::BLACKLIST_PREFIX . $tokenId);
+        $item = $this->cache->getItem(self::BLACKLIST_PREFIX.$tokenId);
         $item->set(true);
         $item->expiresAfter($ttl);
         $this->cache->save($item);
@@ -42,7 +42,8 @@ class TokenBlacklistService
      */
     public function isBlacklisted(string $tokenId): bool
     {
-        $item = $this->cache->getItem(self::BLACKLIST_PREFIX . $tokenId);
+        $item = $this->cache->getItem(self::BLACKLIST_PREFIX.$tokenId);
+
         return $item->isHit() && $item->get() === true;
     }
 }

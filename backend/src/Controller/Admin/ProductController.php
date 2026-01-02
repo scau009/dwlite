@@ -37,14 +37,14 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 class ProductController extends AbstractController
 {
     public function __construct(
-        private ProductRepository      $productRepository,
-        private ProductSkuRepository   $skuRepository,
+        private ProductRepository $productRepository,
+        private ProductSkuRepository $skuRepository,
         private ProductImageRepository $imageRepository,
-        private BrandRepository        $brandRepository,
-        private CategoryRepository     $categoryRepository,
-        private TagRepository          $tagRepository,
-        private CosService             $cosService,
-        private TranslatorInterface    $translator, private readonly LoggerInterface $logger,
+        private BrandRepository $brandRepository,
+        private CategoryRepository $categoryRepository,
+        private TagRepository $tagRepository,
+        private CosService $cosService,
+        private TranslatorInterface $translator, private readonly LoggerInterface $logger,
     ) {
     }
 
@@ -58,7 +58,7 @@ class ProductController extends AbstractController
         );
 
         return $this->json([
-            'data' => array_map(fn(Product $p) => $this->serializeProduct($p), $result['data']),
+            'data' => array_map(fn (Product $p) => $this->serializeProduct($p), $result['data']),
             'total' => $result['meta']['total'],
             'page' => $query->getPage(),
             'limit' => $query->getLimit(),
@@ -251,8 +251,8 @@ class ProductController extends AbstractController
             if ($existingSku) {
                 return $this->json([
                     'error' => $this->translator->trans('admin.product.sku_size_exists', [
-                        '%size%' => $dto->sizeUnit . ' ' . $trimmedSizeValue,
-                    ])
+                        '%size%' => $dto->sizeUnit.' '.$trimmedSizeValue,
+                    ]),
                 ], Response::HTTP_CONFLICT);
             }
         }
@@ -320,11 +320,12 @@ class ProductController extends AbstractController
         // Validation 1: Check if existing SKUs have a different size unit
         if (!empty($existingSizeUnits) && !isset($existingSizeUnits[$dto->sizeUnit])) {
             $existingUnitKeys = array_keys($existingSizeUnits);
+
             return $this->json([
                 'error' => $this->translator->trans('admin.product.size_unit_mismatch', [
                     '%existing%' => implode(', ', $existingUnitKeys),
                     '%requested%' => $dto->sizeUnit,
-                ])
+                ]),
             ], Response::HTTP_CONFLICT);
         }
 
@@ -389,7 +390,7 @@ class ProductController extends AbstractController
             'createdCount' => count($createdSkus),
             'skippedCount' => count($skippedSizes),
             'skippedSizes' => $skippedSizes,
-            'skus' => array_map(fn($s) => $this->serializeSku($s), $allSkus),
+            'skus' => array_map(fn ($s) => $this->serializeSku($s), $allSkus),
         ], Response::HTTP_CREATED);
     }
 
@@ -503,7 +504,7 @@ class ProductController extends AbstractController
 
         try {
             // Upload to COS
-            $uploadResult = $this->cosService->uploadFile($file, 'products/' . $product->getId());
+            $uploadResult = $this->cosService->uploadFile($file, 'products/'.$product->getId());
 
             // Check if this is the first image (make it primary)
             $isPrimary = $product->getImages()->isEmpty();
@@ -528,6 +529,7 @@ class ProductController extends AbstractController
             ], Response::HTTP_CREATED);
         } catch (\Exception $e) {
             $this->logger->error($e->getMessage());
+
             return $this->json(['error' => $this->translator->trans('admin.product.upload_failed')], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
@@ -665,7 +667,7 @@ class ProductController extends AbstractController
             'priceRange' => $priceRange,
             'primaryImageUrl' => $primaryImageUrl,
             'tags' => array_map(
-                fn($t) => ['id' => $t->getId(), 'name' => $t->getName()],
+                fn ($t) => ['id' => $t->getId(), 'name' => $t->getName()],
                 $product->getTags()->toArray()
             ),
             'createdAt' => $product->getCreatedAt()->format('c'),
@@ -675,20 +677,25 @@ class ProductController extends AbstractController
         if ($detail) {
             $data['description'] = $product->getDescription();
             $data['skus'] = array_map(
-                fn($s) => $this->serializeSku($s),
+                fn ($s) => $this->serializeSku($s),
                 $product->getSkus()->toArray()
             );
 
             // Sort images: primary first, then by sortOrder
             $images = $product->getImages()->toArray();
             usort($images, function ($a, $b) {
-                if ($a->isPrimary() && !$b->isPrimary()) return -1;
-                if (!$a->isPrimary() && $b->isPrimary()) return 1;
+                if ($a->isPrimary() && !$b->isPrimary()) {
+                    return -1;
+                }
+                if (!$a->isPrimary() && $b->isPrimary()) {
+                    return 1;
+                }
+
                 return $a->getSortOrder() <=> $b->getSortOrder();
             });
 
             $data['images'] = array_map(
-                fn($i) => [
+                fn ($i) => [
                     'id' => $i->getId(),
                     'url' => $this->cosService->getSignedUrl($i->getCosKey()),
                     'thumbnailUrl' => $this->cosService->getSignedUrl($i->getCosKey(), 3600, 'imageMogr2/thumbnail/300x300>'),
@@ -721,11 +728,12 @@ class ProductController extends AbstractController
     private function generateSlug(string $name): string
     {
         $slugger = new AsciiSlugger();
+
         return strtolower($slugger->slug($name)->toString());
     }
 
     /**
-     * Reorder all SKUs for a product by size value (smallest to largest)
+     * Reorder all SKUs for a product by size value (smallest to largest).
      */
     private function reorderSkusBySizeValue(Product $product): void
     {
@@ -748,7 +756,7 @@ class ProductController extends AbstractController
             }
 
             // Compare as floats for numeric size values
-            return (float)$aValue <=> (float)$bValue;
+            return (float) $aValue <=> (float) $bValue;
         });
 
         // Update sort order

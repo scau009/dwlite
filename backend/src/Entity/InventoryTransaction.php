@@ -7,7 +7,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Uid\Ulid;
 
 /**
- * 库存流水 - 记录每一次库存变动
+ * 库存流水 - 记录每一次库存变动.
  */
 #[ORM\Entity(repositoryClass: InventoryTransactionRepository::class)]
 #[ORM\Table(name: 'inventory_transactions')]
@@ -111,6 +111,7 @@ class InventoryTransaction
     public function setMerchantInventory(MerchantInventory $merchantInventory): static
     {
         $this->merchantInventory = $merchantInventory;
+
         return $this;
     }
 
@@ -122,6 +123,7 @@ class InventoryTransaction
     public function setType(string $type): static
     {
         $this->type = $type;
+
         return $this;
     }
 
@@ -133,6 +135,7 @@ class InventoryTransaction
     public function setQuantity(int $quantity): static
     {
         $this->quantity = $quantity;
+
         return $this;
     }
 
@@ -144,6 +147,7 @@ class InventoryTransaction
     public function setStockType(string $stockType): static
     {
         $this->stockType = $stockType;
+
         return $this;
     }
 
@@ -155,6 +159,7 @@ class InventoryTransaction
     public function setBalanceBefore(int $balanceBefore): static
     {
         $this->balanceBefore = $balanceBefore;
+
         return $this;
     }
 
@@ -166,6 +171,7 @@ class InventoryTransaction
     public function setBalanceAfter(int $balanceAfter): static
     {
         $this->balanceAfter = $balanceAfter;
+
         return $this;
     }
 
@@ -177,6 +183,7 @@ class InventoryTransaction
     public function setReferenceType(?string $referenceType): static
     {
         $this->referenceType = $referenceType;
+
         return $this;
     }
 
@@ -188,6 +195,7 @@ class InventoryTransaction
     public function setReferenceId(?string $referenceId): static
     {
         $this->referenceId = $referenceId;
+
         return $this;
     }
 
@@ -199,6 +207,7 @@ class InventoryTransaction
     public function setReferenceNo(?string $referenceNo): static
     {
         $this->referenceNo = $referenceNo;
+
         return $this;
     }
 
@@ -210,6 +219,7 @@ class InventoryTransaction
     public function setUnitCost(?string $unitCost): static
     {
         $this->unitCost = $unitCost;
+
         return $this;
     }
 
@@ -221,6 +231,7 @@ class InventoryTransaction
     public function setOperatorId(?string $operatorId): static
     {
         $this->operatorId = $operatorId;
+
         return $this;
     }
 
@@ -232,6 +243,7 @@ class InventoryTransaction
     public function setOperatorName(?string $operatorName): static
     {
         $this->operatorName = $operatorName;
+
         return $this;
     }
 
@@ -243,6 +255,7 @@ class InventoryTransaction
     public function setNotes(?string $notes): static
     {
         $this->notes = $notes;
+
         return $this;
     }
 
@@ -273,7 +286,7 @@ class InventoryTransaction
     }
 
     /**
-     * 获取类型的中文描述
+     * 获取类型的中文描述.
      */
     public function getTypeLabel(): string
     {
@@ -296,7 +309,7 @@ class InventoryTransaction
     }
 
     /**
-     * 创建入库在途流水
+     * 创建入库在途流水.
      */
     public static function createInboundTransit(
         MerchantInventory $inventory,
@@ -321,7 +334,7 @@ class InventoryTransaction
     }
 
     /**
-     * 创建入库上架流水
+     * 创建入库上架流水.
      */
     public static function createInboundStock(
         MerchantInventory $inventory,

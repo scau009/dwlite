@@ -38,7 +38,7 @@ class BrandController extends AbstractController
         );
 
         return $this->json([
-            'data' => array_map(fn(Brand $b) => $this->serializeBrand($b), $result['data']),
+            'data' => array_map(fn (Brand $b) => $this->serializeBrand($b), $result['data']),
             'total' => $result['total'],
             'page' => $query->getPage(),
             'limit' => $query->getLimit(),
@@ -193,6 +193,7 @@ class BrandController extends AbstractController
     private function generateSlug(string $name): string
     {
         $slugger = new AsciiSlugger();
+
         return strtolower($slugger->slug($name)->toString());
     }
 }

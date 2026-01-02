@@ -4,8 +4,6 @@ namespace App\EventSubscriber;
 
 use App\Attribute\AdminOnly;
 use App\Entity\User;
-use ReflectionClass;
-use ReflectionMethod;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -14,7 +12,7 @@ use Symfony\Component\HttpKernel\Event\ControllerEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 
 /**
- * 检查 #[AdminOnly] 属性并拒绝非管理员访问
+ * 检查 #[AdminOnly] 属性并拒绝非管理员访问.
  */
 class AdminAccessSubscriber implements EventSubscriberInterface
 {
@@ -62,7 +60,7 @@ class AdminAccessSubscriber implements EventSubscriberInterface
 
     private function hasAdminOnlyAttribute(object $controller, string $methodName): bool
     {
-        $reflectionClass = new ReflectionClass($controller);
+        $reflectionClass = new \ReflectionClass($controller);
 
         // 检查类级别的属性
         if ($reflectionClass->getAttributes(AdminOnly::class)) {
@@ -71,7 +69,7 @@ class AdminAccessSubscriber implements EventSubscriberInterface
 
         // 检查方法级别的属性
         if ($reflectionClass->hasMethod($methodName)) {
-            $reflectionMethod = new ReflectionMethod($controller, $methodName);
+            $reflectionMethod = new \ReflectionMethod($controller, $methodName);
             if ($reflectionMethod->getAttributes(AdminOnly::class)) {
                 return true;
             }

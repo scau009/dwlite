@@ -44,6 +44,7 @@ class AuthController extends AbstractController
     {
         try {
             $user = $this->authService->register($dto);
+
             return $this->json([
                 'message' => $this->translator->trans('auth.register.success'),
                 'user' => [
@@ -103,6 +104,7 @@ class AuthController extends AbstractController
     {
         try {
             $tokens = $this->refreshTokenService->refresh($dto->refreshToken);
+
             return $this->json($tokens);
         } catch (\InvalidArgumentException $e) {
             return $this->json(['error' => $e->getMessage()], Response::HTTP_UNAUTHORIZED);
@@ -154,6 +156,7 @@ class AuthController extends AbstractController
     {
         try {
             $this->passwordResetService->resetPassword($dto);
+
             return $this->json(['message' => $this->translator->trans('auth.reset_password.success')]);
         } catch (\InvalidArgumentException $e) {
             return $this->json(['error' => $e->getMessage()], Response::HTTP_BAD_REQUEST);
@@ -167,6 +170,7 @@ class AuthController extends AbstractController
     ): JsonResponse {
         try {
             $this->authService->changePassword($user, $dto);
+
             return $this->json(['message' => $this->translator->trans('auth.change_password.success')]);
         } catch (\InvalidArgumentException $e) {
             return $this->json(['error' => $e->getMessage()], Response::HTTP_BAD_REQUEST);

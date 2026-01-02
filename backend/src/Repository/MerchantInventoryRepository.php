@@ -20,7 +20,7 @@ class MerchantInventoryRepository extends ServiceEntityRepository
     }
 
     /**
-     * 获取或创建库存记录
+     * 获取或创建库存记录.
      */
     public function findOrCreate(Merchant $merchant, Warehouse $warehouse, ProductSku $sku): MerchantInventory
     {
@@ -41,7 +41,7 @@ class MerchantInventoryRepository extends ServiceEntityRepository
     }
 
     /**
-     * 获取商户在某仓库的所有库存
+     * 获取商户在某仓库的所有库存.
      *
      * @return MerchantInventory[]
      */
@@ -58,7 +58,7 @@ class MerchantInventoryRepository extends ServiceEntityRepository
     }
 
     /**
-     * 获取商户所有库存
+     * 获取商户所有库存.
      *
      * @return MerchantInventory[]
      */
@@ -73,7 +73,7 @@ class MerchantInventoryRepository extends ServiceEntityRepository
     }
 
     /**
-     * 获取低于安全库存的记录
+     * 获取低于安全库存的记录.
      *
      * @return MerchantInventory[]
      */
@@ -90,7 +90,7 @@ class MerchantInventoryRepository extends ServiceEntityRepository
     }
 
     /**
-     * 获取商户某 SKU 在所有仓库的库存汇总
+     * 获取商户某 SKU 在所有仓库的库存汇总.
      */
     public function getSkuTotalInventory(Merchant $merchant, ProductSku $sku): array
     {
@@ -108,7 +108,7 @@ class MerchantInventoryRepository extends ServiceEntityRepository
     }
 
     /**
-     * 获取有库存的 SKU 列表（用于销售）
+     * 获取有库存的 SKU 列表（用于销售）.
      *
      * @return MerchantInventory[]
      */
@@ -130,7 +130,7 @@ class MerchantInventoryRepository extends ServiceEntityRepository
     }
 
     /**
-     * 按仓库分页查询库存
+     * 按仓库分页查询库存.
      *
      * @return array{data: MerchantInventory[], meta: array{total: int, page: int, limit: int, pages: int}}
      */
@@ -150,7 +150,7 @@ class MerchantInventoryRepository extends ServiceEntityRepository
         // 搜索商品名或 SKU 名
         if (!empty($filters['search'])) {
             $qb->andWhere('sku.skuName LIKE :search OR p.name LIKE :search OR p.styleNumber LIKE :search')
-                ->setParameter('search', '%' . $filters['search'] . '%');
+                ->setParameter('search', '%'.$filters['search'].'%');
         }
 
         // 只显示有库存的
@@ -182,7 +182,7 @@ class MerchantInventoryRepository extends ServiceEntityRepository
     }
 
     /**
-     * 获取仓库库存汇总
+     * 获取仓库库存汇总.
      */
     public function getWarehouseSummary(Warehouse $warehouse): array
     {
@@ -199,7 +199,7 @@ class MerchantInventoryRepository extends ServiceEntityRepository
     }
 
     /**
-     * 按商户分页查询库存
+     * 按商户分页查询库存.
      *
      * @return array{data: MerchantInventory[], meta: array{total: int, page: int, limit: int, pages: int}}
      */
@@ -220,7 +220,7 @@ class MerchantInventoryRepository extends ServiceEntityRepository
         // 搜索商品名或 SKU 名
         if (!empty($filters['search'])) {
             $qb->andWhere('sku.skuName LIKE :search OR p.name LIKE :search OR p.styleNumber LIKE :search')
-                ->setParameter('search', '%' . $filters['search'] . '%');
+                ->setParameter('search', '%'.$filters['search'].'%');
         }
 
         // 按仓库筛选
@@ -282,7 +282,7 @@ class MerchantInventoryRepository extends ServiceEntityRepository
     }
 
     /**
-     * 获取商户库存汇总
+     * 获取商户库存汇总.
      */
     public function getMerchantSummary(Merchant $merchant): array
     {
@@ -300,7 +300,7 @@ class MerchantInventoryRepository extends ServiceEntityRepository
     }
 
     /**
-     * 按商户分页查询库存（按 styleNumber + sizeValue 分组）
+     * 按商户分页查询库存（按 styleNumber + sizeValue 分组）.
      *
      * @return array{data: array[], meta: array{total: int, page: int, limit: int, pages: int}}
      */
@@ -336,7 +336,7 @@ class MerchantInventoryRepository extends ServiceEntityRepository
         // 搜索商品名或 SKU 名或货号
         if (!empty($filters['search'])) {
             $qb->andWhere('sku.skuName LIKE :search OR p.name LIKE :search OR p.styleNumber LIKE :search')
-                ->setParameter('search', '%' . $filters['search'] . '%');
+                ->setParameter('search', '%'.$filters['search'].'%');
         }
 
         // 按仓库筛选
@@ -383,7 +383,7 @@ class MerchantInventoryRepository extends ServiceEntityRepository
 
         if (!empty($filters['search'])) {
             $countQb->andWhere('sku2.skuName LIKE :search OR p2.name LIKE :search OR p2.styleNumber LIKE :search')
-                ->setParameter('search', '%' . $filters['search'] . '%');
+                ->setParameter('search', '%'.$filters['search'].'%');
         }
 
         if (!empty($filters['warehouseId'])) {

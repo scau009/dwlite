@@ -100,6 +100,7 @@ class Merchant
     public function setUser(User $user): static
     {
         $this->user = $user;
+
         return $this;
     }
 
@@ -111,6 +112,7 @@ class Merchant
     public function setName(string $name): static
     {
         $this->name = $name;
+
         return $this;
     }
 
@@ -122,6 +124,7 @@ class Merchant
     public function setLogo(?string $logo): static
     {
         $this->logo = $logo;
+
         return $this;
     }
 
@@ -133,6 +136,7 @@ class Merchant
     public function setDescription(?string $description): static
     {
         $this->description = $description;
+
         return $this;
     }
 
@@ -144,6 +148,7 @@ class Merchant
     public function setContactName(string $contactName): static
     {
         $this->contactName = $contactName;
+
         return $this;
     }
 
@@ -155,6 +160,7 @@ class Merchant
     public function setContactPhone(string $contactPhone): static
     {
         $this->contactPhone = $contactPhone;
+
         return $this;
     }
 
@@ -166,6 +172,7 @@ class Merchant
     public function setProvince(?string $province): static
     {
         $this->province = $province;
+
         return $this;
     }
 
@@ -177,6 +184,7 @@ class Merchant
     public function setCity(?string $city): static
     {
         $this->city = $city;
+
         return $this;
     }
 
@@ -188,6 +196,7 @@ class Merchant
     public function setDistrict(?string $district): static
     {
         $this->district = $district;
+
         return $this;
     }
 
@@ -199,6 +208,7 @@ class Merchant
     public function setAddress(?string $address): static
     {
         $this->address = $address;
+
         return $this;
     }
 
@@ -210,6 +220,7 @@ class Merchant
     public function setBusinessLicense(?string $businessLicense): static
     {
         $this->businessLicense = $businessLicense;
+
         return $this;
     }
 
@@ -221,6 +232,7 @@ class Merchant
     public function setStatus(string $status): static
     {
         $this->status = $status;
+
         return $this;
     }
 
@@ -232,6 +244,7 @@ class Merchant
     public function setApprovedAt(?\DateTimeImmutable $approvedAt): static
     {
         $this->approvedAt = $approvedAt;
+
         return $this;
     }
 
@@ -243,6 +256,7 @@ class Merchant
     public function setRejectedReason(?string $rejectedReason): static
     {
         $this->rejectedReason = $rejectedReason;
+
         return $this;
     }
 
@@ -288,6 +302,7 @@ class Merchant
         $this->status = self::STATUS_APPROVED;
         $this->approvedAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
         $this->rejectedReason = null;
+
         return $this;
     }
 
@@ -296,24 +311,27 @@ class Merchant
         $this->status = self::STATUS_REJECTED;
         $this->rejectedReason = $reason;
         $this->approvedAt = null;
+
         return $this;
     }
 
     public function disable(): static
     {
         $this->status = self::STATUS_DISABLED;
+
         return $this;
     }
 
     public function enable(): static
     {
         $this->status = self::STATUS_APPROVED;
+
         return $this;
     }
 
     public function getFullAddress(): string
     {
-        return ($this->province ?? '') . ($this->city ?? '') . ($this->district ?? '') . ($this->address ?? '');
+        return ($this->province ?? '').($this->city ?? '').($this->district ?? '').($this->address ?? '');
     }
 
     // 钱包相关方法
@@ -332,6 +350,7 @@ class Merchant
             $this->wallets->add($wallet);
             $wallet->setMerchant($this);
         }
+
         return $this;
     }
 
@@ -342,6 +361,7 @@ class Merchant
                 return $wallet;
             }
         }
+
         return null;
     }
 
@@ -352,6 +372,7 @@ class Merchant
                 return $wallet;
             }
         }
+
         return null;
     }
 
@@ -371,27 +392,29 @@ class Merchant
             $this->salesChannels->add($salesChannel);
             $salesChannel->setMerchant($this);
         }
+
         return $this;
     }
 
     public function removeSalesChannel(MerchantSalesChannel $salesChannel): static
     {
         $this->salesChannels->removeElement($salesChannel);
+
         return $this;
     }
 
     /**
-     * 获取已启用的销售渠道
+     * 获取已启用的销售渠道.
      */
     public function getActiveSalesChannels(): array
     {
         return $this->salesChannels
-            ->filter(fn(MerchantSalesChannel $mc) => $mc->isAvailable())
+            ->filter(fn (MerchantSalesChannel $mc) => $mc->isAvailable())
             ->toArray();
     }
 
     /**
-     * 检查是否已开通某渠道
+     * 检查是否已开通某渠道.
      */
     public function hasChannel(SalesChannel $channel): bool
     {
@@ -400,11 +423,12 @@ class Merchant
                 return true;
             }
         }
+
         return false;
     }
 
     /**
-     * 获取某渠道的关联信息
+     * 获取某渠道的关联信息.
      */
     public function getChannelRelation(SalesChannel $channel): ?MerchantSalesChannel
     {
@@ -413,6 +437,7 @@ class Merchant
                 return $mc;
             }
         }
+
         return null;
     }
 }

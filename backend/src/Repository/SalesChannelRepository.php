@@ -73,12 +73,12 @@ class SalesChannelRepository extends ServiceEntityRepository
 
         if (!empty($filters['name'])) {
             $qb->andWhere('c.name LIKE :name OR c.code LIKE :name')
-                ->setParameter('name', '%' . $filters['name'] . '%');
+                ->setParameter('name', '%'.$filters['name'].'%');
         }
 
         if (!empty($filters['code'])) {
             $qb->andWhere('c.code LIKE :code')
-                ->setParameter('code', '%' . $filters['code'] . '%');
+                ->setParameter('code', '%'.$filters['code'].'%');
         }
 
         if (!empty($filters['businessType'])) {
@@ -116,7 +116,7 @@ class SalesChannelRepository extends ServiceEntityRepository
     }
 
     /**
-     * 获取商户可申请的销售渠道（排除已申请的）
+     * 获取商户可申请的销售渠道（排除已申请的）.
      *
      * @return SalesChannel[]
      */

@@ -30,7 +30,7 @@ class MerchantInventoryController extends AbstractController
     }
 
     /**
-     * 获取当前商户
+     * 获取当前商户.
      */
     private function getCurrentMerchant(User $user)
     {
@@ -38,11 +38,12 @@ class MerchantInventoryController extends AbstractController
         if ($merchant === null) {
             throw $this->createAccessDeniedException('Merchant not found');
         }
+
         return $merchant;
     }
 
     /**
-     * 获取商户库存列表（分页，按 styleNumber + sizeValue 分组）
+     * 获取商户库存列表（分页，按 styleNumber + sizeValue 分组）.
      */
     #[Route('', name: 'merchant_inventory_list', methods: ['GET'])]
     public function list(Request $request, #[CurrentUser] User $user): JsonResponse
@@ -90,13 +91,13 @@ class MerchantInventoryController extends AbstractController
         }
 
         return $this->json([
-            'data' => array_map(fn(array $row) => $this->formatGroupedInventory($row, $productImages), $result['data']),
+            'data' => array_map(fn (array $row) => $this->formatGroupedInventory($row, $productImages), $result['data']),
             'meta' => $result['meta'],
         ]);
     }
 
     /**
-     * 获取商户库存汇总
+     * 获取商户库存汇总.
      */
     #[Route('/summary', name: 'merchant_inventory_summary', methods: ['GET'])]
     public function summary(#[CurrentUser] User $user): JsonResponse
@@ -118,7 +119,7 @@ class MerchantInventoryController extends AbstractController
     }
 
     /**
-     * 获取可用仓库列表（用于筛选）
+     * 获取可用仓库列表（用于筛选）.
      */
     #[Route('/warehouses', name: 'merchant_inventory_warehouses', methods: ['GET'])]
     public function warehouses(): JsonResponse
@@ -127,7 +128,7 @@ class MerchantInventoryController extends AbstractController
         $warehouses = $this->warehouseRepository->findActivePlatformWarehouses();
 
         return $this->json([
-            'data' => array_map(fn($w) => [
+            'data' => array_map(fn ($w) => [
                 'id' => $w->getId(),
                 'code' => $w->getCode(),
                 'name' => $w->getName(),
@@ -136,7 +137,7 @@ class MerchantInventoryController extends AbstractController
     }
 
     /**
-     * 格式化分组后的库存记录
+     * 格式化分组后的库存记录.
      */
     private function formatGroupedInventory(array $row, array $productImages): array
     {
@@ -144,7 +145,7 @@ class MerchantInventoryController extends AbstractController
         $sizeUnit = $row['sizeUnit'] ?? null;
 
         return [
-            'id' => $row['styleNumber'] . '-' . ($row['sizeValue'] ?? ''),
+            'id' => $row['styleNumber'].'-'.($row['sizeValue'] ?? ''),
             'product' => [
                 'id' => $productId,
                 'name' => $row['productName'] ?? null,
@@ -170,7 +171,7 @@ class MerchantInventoryController extends AbstractController
     }
 
     /**
-     * 格式化库存记录
+     * 格式化库存记录.
      */
     private function formatInventory(MerchantInventory $inventory): array
     {

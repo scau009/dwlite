@@ -66,6 +66,7 @@ class ProductImage
     public function setProduct(Product $product): static
     {
         $this->product = $product;
+
         return $this;
     }
 
@@ -77,6 +78,7 @@ class ProductImage
     public function setCosKey(string $cosKey): static
     {
         $this->cosKey = $cosKey;
+
         return $this;
     }
 
@@ -88,6 +90,7 @@ class ProductImage
     public function setUrl(string $url): static
     {
         $this->url = $url;
+
         return $this;
     }
 
@@ -99,6 +102,7 @@ class ProductImage
     public function setThumbnailUrl(?string $thumbnailUrl): static
     {
         $this->thumbnailUrl = $thumbnailUrl;
+
         return $this;
     }
 
@@ -110,6 +114,7 @@ class ProductImage
     public function setSortOrder(int $sortOrder): static
     {
         $this->sortOrder = $sortOrder;
+
         return $this;
     }
 
@@ -121,6 +126,7 @@ class ProductImage
     public function setIsPrimary(bool $isPrimary): static
     {
         $this->isPrimary = $isPrimary;
+
         return $this;
     }
 
@@ -132,6 +138,7 @@ class ProductImage
     public function setFileSize(?int $fileSize): static
     {
         $this->fileSize = $fileSize;
+
         return $this;
     }
 
@@ -143,6 +150,7 @@ class ProductImage
     public function setWidth(?int $width): static
     {
         $this->width = $width;
+
         return $this;
     }
 
@@ -154,6 +162,7 @@ class ProductImage
     public function setHeight(?int $height): static
     {
         $this->height = $height;
+
         return $this;
     }
 
@@ -163,7 +172,7 @@ class ProductImage
     }
 
     /**
-     * 获取人性化的文件大小
+     * 获取人性化的文件大小.
      */
     public function getHumanFileSize(): ?string
     {
@@ -177,14 +186,14 @@ class ProductImage
 
         while ($size >= 1024 && $unitIndex < count($units) - 1) {
             $size /= 1024;
-            $unitIndex++;
+            ++$unitIndex;
         }
 
-        return round($size, 2) . ' ' . $units[$unitIndex];
+        return round($size, 2).' '.$units[$unitIndex];
     }
 
     /**
-     * 获取图片尺寸描述
+     * 获取图片尺寸描述.
      */
     public function getDimensions(): ?string
     {
@@ -192,6 +201,6 @@ class ProductImage
             return null;
         }
 
-        return $this->width . 'x' . $this->height;
+        return $this->width.'x'.$this->height;
     }
 }

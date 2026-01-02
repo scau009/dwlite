@@ -84,6 +84,7 @@ class SalesChannel
     public function setCode(string $code): static
     {
         $this->code = $code;
+
         return $this;
     }
 
@@ -95,6 +96,7 @@ class SalesChannel
     public function setName(string $name): static
     {
         $this->name = $name;
+
         return $this;
     }
 
@@ -106,6 +108,7 @@ class SalesChannel
     public function setLogoUrl(?string $logoUrl): static
     {
         $this->logoUrl = $logoUrl;
+
         return $this;
     }
 
@@ -117,6 +120,7 @@ class SalesChannel
     public function setDescription(?string $description): static
     {
         $this->description = $description;
+
         return $this;
     }
 
@@ -128,6 +132,7 @@ class SalesChannel
     public function setConfig(?array $config): static
     {
         $this->config = $config;
+
         return $this;
     }
 
@@ -144,6 +149,7 @@ class SalesChannel
     public function setConfigSchema(?array $configSchema): static
     {
         $this->configSchema = $configSchema;
+
         return $this;
     }
 
@@ -155,6 +161,7 @@ class SalesChannel
     public function setBusinessType(string $businessType): static
     {
         $this->businessType = $businessType;
+
         return $this;
     }
 
@@ -166,6 +173,7 @@ class SalesChannel
     public function setStatus(string $status): static
     {
         $this->status = $status;
+
         return $this;
     }
 
@@ -177,6 +185,7 @@ class SalesChannel
     public function setSortOrder(int $sortOrder): static
     {
         $this->sortOrder = $sortOrder;
+
         return $this;
     }
 

@@ -9,7 +9,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Uid\Ulid;
 
 /**
- * 出库单 - 平台仓库发货时创建，用于与 WMS 系统对接
+ * 出库单 - 平台仓库发货时创建，用于与 WMS 系统对接.
  */
 #[ORM\Entity(repositoryClass: OutboundOrderRepository::class)]
 #[ORM\Table(name: 'outbound_orders')]
@@ -160,7 +160,8 @@ class OutboundOrder
     {
         // 格式：OB + 年月日 + 6位随机数
         $dateUtc = (new \DateTimeImmutable('now', new \DateTimeZone('UTC')))->format('Ymd');
-        return 'OB' . $dateUtc . str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+
+        return 'OB'.$dateUtc.str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
     }
 
     public function getId(): string
@@ -176,6 +177,7 @@ class OutboundOrder
     public function setOutboundNo(string $outboundNo): static
     {
         $this->outboundNo = $outboundNo;
+
         return $this;
     }
 
@@ -187,6 +189,7 @@ class OutboundOrder
     public function setFulfillment(?Fulfillment $fulfillment): static
     {
         $this->fulfillment = $fulfillment;
+
         return $this;
     }
 
@@ -198,6 +201,7 @@ class OutboundOrder
     public function setWarehouse(Warehouse $warehouse): static
     {
         $this->warehouse = $warehouse;
+
         return $this;
     }
 
@@ -209,6 +213,7 @@ class OutboundOrder
     public function setMerchant(Merchant $merchant): static
     {
         $this->merchant = $merchant;
+
         return $this;
     }
 
@@ -220,6 +225,7 @@ class OutboundOrder
     public function setOutboundType(string $outboundType): static
     {
         $this->outboundType = $outboundType;
+
         return $this;
     }
 
@@ -231,6 +237,7 @@ class OutboundOrder
     public function setStatus(string $status): static
     {
         $this->status = $status;
+
         return $this;
     }
 
@@ -242,6 +249,7 @@ class OutboundOrder
     public function setSyncStatus(string $syncStatus): static
     {
         $this->syncStatus = $syncStatus;
+
         return $this;
     }
 
@@ -253,6 +261,7 @@ class OutboundOrder
     public function setExternalId(?string $externalId): static
     {
         $this->externalId = $externalId;
+
         return $this;
     }
 
@@ -264,6 +273,7 @@ class OutboundOrder
     public function setSyncError(?string $syncError): static
     {
         $this->syncError = $syncError;
+
         return $this;
     }
 
@@ -275,6 +285,7 @@ class OutboundOrder
     public function setSyncAttempts(int $syncAttempts): static
     {
         $this->syncAttempts = $syncAttempts;
+
         return $this;
     }
 
@@ -286,6 +297,7 @@ class OutboundOrder
     public function setSyncedAt(?\DateTimeImmutable $syncedAt): static
     {
         $this->syncedAt = $syncedAt;
+
         return $this;
     }
 
@@ -297,6 +309,7 @@ class OutboundOrder
     public function setLastSyncAt(?\DateTimeImmutable $lastSyncAt): static
     {
         $this->lastSyncAt = $lastSyncAt;
+
         return $this;
     }
 
@@ -308,6 +321,7 @@ class OutboundOrder
     public function setReceiverName(string $receiverName): static
     {
         $this->receiverName = $receiverName;
+
         return $this;
     }
 
@@ -319,6 +333,7 @@ class OutboundOrder
     public function setReceiverPhone(string $receiverPhone): static
     {
         $this->receiverPhone = $receiverPhone;
+
         return $this;
     }
 
@@ -330,6 +345,7 @@ class OutboundOrder
     public function setReceiverAddress(string $receiverAddress): static
     {
         $this->receiverAddress = $receiverAddress;
+
         return $this;
     }
 
@@ -341,6 +357,7 @@ class OutboundOrder
     public function setReceiverPostalCode(?string $receiverPostalCode): static
     {
         $this->receiverPostalCode = $receiverPostalCode;
+
         return $this;
     }
 
@@ -352,6 +369,7 @@ class OutboundOrder
     public function setShippingCarrier(?string $shippingCarrier): static
     {
         $this->shippingCarrier = $shippingCarrier;
+
         return $this;
     }
 
@@ -363,6 +381,7 @@ class OutboundOrder
     public function setTrackingNumber(?string $trackingNumber): static
     {
         $this->trackingNumber = $trackingNumber;
+
         return $this;
     }
 
@@ -374,6 +393,7 @@ class OutboundOrder
     public function setPickingStartedAt(?\DateTimeImmutable $pickingStartedAt): static
     {
         $this->pickingStartedAt = $pickingStartedAt;
+
         return $this;
     }
 
@@ -385,6 +405,7 @@ class OutboundOrder
     public function setPickingCompletedAt(?\DateTimeImmutable $pickingCompletedAt): static
     {
         $this->pickingCompletedAt = $pickingCompletedAt;
+
         return $this;
     }
 
@@ -396,6 +417,7 @@ class OutboundOrder
     public function setPackingStartedAt(?\DateTimeImmutable $packingStartedAt): static
     {
         $this->packingStartedAt = $packingStartedAt;
+
         return $this;
     }
 
@@ -407,6 +429,7 @@ class OutboundOrder
     public function setPackingCompletedAt(?\DateTimeImmutable $packingCompletedAt): static
     {
         $this->packingCompletedAt = $packingCompletedAt;
+
         return $this;
     }
 
@@ -418,6 +441,7 @@ class OutboundOrder
     public function setShippedAt(?\DateTimeImmutable $shippedAt): static
     {
         $this->shippedAt = $shippedAt;
+
         return $this;
     }
 
@@ -429,6 +453,7 @@ class OutboundOrder
     public function setCancelledAt(?\DateTimeImmutable $cancelledAt): static
     {
         $this->cancelledAt = $cancelledAt;
+
         return $this;
     }
 
@@ -440,6 +465,7 @@ class OutboundOrder
     public function setCancelReason(?string $cancelReason): static
     {
         $this->cancelReason = $cancelReason;
+
         return $this;
     }
 
@@ -451,6 +477,7 @@ class OutboundOrder
     public function setRemark(?string $remark): static
     {
         $this->remark = $remark;
+
         return $this;
     }
 
@@ -468,12 +495,14 @@ class OutboundOrder
             $this->items->add($item);
             $item->setOutboundOrder($this);
         }
+
         return $this;
     }
 
     public function removeItem(OutboundOrderItem $item): static
     {
         $this->items->removeElement($item);
+
         return $this;
     }
 
@@ -550,7 +579,7 @@ class OutboundOrder
     }
 
     /**
-     * 提交出库单（草稿 → 待处理）
+     * 提交出库单（草稿 → 待处理）.
      */
     public function submit(): void
     {
@@ -566,7 +595,7 @@ class OutboundOrder
     }
 
     /**
-     * 获取总数量
+     * 获取总数量.
      */
     public function getTotalQuantity(): int
     {
@@ -574,6 +603,7 @@ class OutboundOrder
         foreach ($this->items as $item) {
             $total += $item->getQuantity();
         }
+
         return $total;
     }
 
@@ -590,18 +620,18 @@ class OutboundOrder
     }
 
     /**
-     * 记录同步失败
+     * 记录同步失败.
      */
     public function markSyncFailed(string $error): void
     {
         $this->syncStatus = self::SYNC_FAILED;
         $this->syncError = $error;
         $this->lastSyncAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
-        $this->syncAttempts++;
+        ++$this->syncAttempts;
     }
 
     /**
-     * 开始拣货
+     * 开始拣货.
      */
     public function startPicking(): void
     {
@@ -610,7 +640,7 @@ class OutboundOrder
     }
 
     /**
-     * 完成拣货
+     * 完成拣货.
      */
     public function completePicking(): void
     {
@@ -618,7 +648,7 @@ class OutboundOrder
     }
 
     /**
-     * 开始打包
+     * 开始打包.
      */
     public function startPacking(): void
     {
@@ -627,7 +657,7 @@ class OutboundOrder
     }
 
     /**
-     * 完成打包
+     * 完成打包.
      */
     public function completePacking(): void
     {
@@ -636,7 +666,7 @@ class OutboundOrder
     }
 
     /**
-     * 标记已发货
+     * 标记已发货.
      */
     public function markShipped(string $carrier, string $trackingNumber): void
     {
@@ -652,7 +682,7 @@ class OutboundOrder
     }
 
     /**
-     * 标记已取消
+     * 标记已取消.
      */
     public function markCancelled(string $reason): void
     {
@@ -662,7 +692,7 @@ class OutboundOrder
     }
 
     /**
-     * 从订单快照收货人信息
+     * 从订单快照收货人信息.
      */
     public function snapshotReceiverFromOrder(Order $order): void
     {
@@ -673,7 +703,7 @@ class OutboundOrder
     }
 
     /**
-     * 从履约单创建出库单的工厂方法
+     * 从履约单创建出库单的工厂方法.
      */
     public static function createFromFulfillment(Fulfillment $fulfillment): static
     {
@@ -681,6 +711,7 @@ class OutboundOrder
         $outbound->setFulfillment($fulfillment);
         $outbound->setWarehouse($fulfillment->getWarehouse());
         $outbound->snapshotReceiverFromOrder($fulfillment->getOrder());
+
         return $outbound;
     }
 }

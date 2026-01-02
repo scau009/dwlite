@@ -18,7 +18,8 @@ class FulfillmentRepository extends ServiceEntityRepository
     }
 
     /**
-     * 获取商家待处理的履约单（商家仓发货）
+     * 获取商家待处理的履约单（商家仓发货）.
+     *
      * @return Fulfillment[]
      */
     public function findPendingForMerchant(Merchant $merchant): array

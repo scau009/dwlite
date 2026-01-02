@@ -37,7 +37,7 @@ class SalesChannelController extends AbstractController
         );
 
         return $this->json([
-            'data' => array_map(fn(SalesChannel $c) => $this->serializeChannel($c), $result['data']),
+            'data' => array_map(fn (SalesChannel $c) => $this->serializeChannel($c), $result['data']),
             'total' => $result['total'],
             'page' => $query->getPage(),
             'limit' => $query->getLimit(),

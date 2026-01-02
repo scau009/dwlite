@@ -7,7 +7,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Uid\Ulid;
 
 /**
- * 履约单明细 - 履约单中的商品明细
+ * 履约单明细 - 履约单中的商品明细.
  */
 #[ORM\Entity(repositoryClass: FulfillmentItemRepository::class)]
 #[ORM\Table(name: 'fulfillment_items')]
@@ -82,6 +82,7 @@ class FulfillmentItem
     public function setFulfillment(Fulfillment $fulfillment): static
     {
         $this->fulfillment = $fulfillment;
+
         return $this;
     }
 
@@ -93,6 +94,7 @@ class FulfillmentItem
     public function setOrderItem(OrderItem $orderItem): static
     {
         $this->orderItem = $orderItem;
+
         return $this;
     }
 
@@ -104,6 +106,7 @@ class FulfillmentItem
     public function setMerchant(?Merchant $merchant): static
     {
         $this->merchant = $merchant;
+
         return $this;
     }
 
@@ -115,6 +118,7 @@ class FulfillmentItem
     public function setWarehouse(?Warehouse $warehouse): static
     {
         $this->warehouse = $warehouse;
+
         return $this;
     }
 
@@ -126,6 +130,7 @@ class FulfillmentItem
     public function setQuantity(int $quantity): static
     {
         $this->quantity = $quantity;
+
         return $this;
     }
 
@@ -137,6 +142,7 @@ class FulfillmentItem
     public function setListPrice(?string $listPrice): static
     {
         $this->listPrice = $listPrice;
+
         return $this;
     }
 
@@ -148,6 +154,7 @@ class FulfillmentItem
     public function setSettlementPrice(?string $settlementPrice): static
     {
         $this->settlementPrice = $settlementPrice;
+
         return $this;
     }
 
@@ -159,6 +166,7 @@ class FulfillmentItem
     public function setCommissionRate(?string $commissionRate): static
     {
         $this->commissionRate = $commissionRate;
+
         return $this;
     }
 
@@ -170,6 +178,7 @@ class FulfillmentItem
     public function setCommissionAmount(?string $commissionAmount): static
     {
         $this->commissionAmount = $commissionAmount;
+
         return $this;
     }
 
@@ -192,7 +201,7 @@ class FulfillmentItem
     // 便捷方法
 
     /**
-     * 计算结算金额
+     * 计算结算金额.
      */
     public function calculateSettlement(): void
     {
@@ -214,7 +223,7 @@ class FulfillmentItem
     }
 
     /**
-     * 获取结算总金额
+     * 获取结算总金额.
      */
     public function getSettlementTotal(): ?string
     {
@@ -226,7 +235,7 @@ class FulfillmentItem
     }
 
     /**
-     * 从 InventoryListing 快照结算信息
+     * 从 InventoryListing 快照结算信息.
      */
     public function snapshotFromListing(InventoryListing $listing): void
     {
@@ -235,7 +244,7 @@ class FulfillmentItem
     }
 
     /**
-     * 从 MerchantInventory 快照商户和仓库信息
+     * 从 MerchantInventory 快照商户和仓库信息.
      */
     public function snapshotFromInventory(MerchantInventory $inventory): void
     {

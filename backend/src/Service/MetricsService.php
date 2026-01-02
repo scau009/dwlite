@@ -3,8 +3,8 @@
 namespace App\Service;
 
 use Prometheus\CollectorRegistry;
-use Prometheus\Storage\APC;
 use Prometheus\RenderTextFormat;
+use Prometheus\Storage\APC;
 
 class MetricsService
 {
@@ -19,7 +19,7 @@ class MetricsService
 
     /**
      * Counter - 只能增加的计数器，适合统计累计事件
-     * 例如：请求总数、订单数、错误数
+     * 例如：请求总数、订单数、错误数.
      */
     public function counter(string $name, string $help, array $labels = [], float $value = 1): void
     {
@@ -34,7 +34,7 @@ class MetricsService
 
     /**
      * Gauge - 可增可减的数值，适合统计当前状态
-     * 例如：当前在线用户数、队列长度、内存使用
+     * 例如：当前在线用户数、队列长度、内存使用.
      */
     public function gauge(string $name, string $help, float $value, array $labels = []): void
     {
@@ -49,7 +49,7 @@ class MetricsService
 
     /**
      * Histogram - 观察值的分布，适合统计延迟、大小等
-     * 例如：响应时间、请求大小
+     * 例如：响应时间、请求大小.
      */
     public function histogram(
         string $name,
@@ -69,7 +69,7 @@ class MetricsService
     }
 
     /**
-     * 记录 HTTP 请求持续时间（内置方法）
+     * 记录 HTTP 请求持续时间（内置方法）.
      */
     public function recordRequestDuration(string $method, string $route, int $statusCode, float $duration): void
     {
@@ -82,7 +82,7 @@ class MetricsService
     }
 
     /**
-     * 增加 HTTP 请求计数（内置方法）
+     * 增加 HTTP 请求计数（内置方法）.
      */
     public function incrementRequestCount(string $method, string $route, int $statusCode): void
     {
@@ -94,11 +94,12 @@ class MetricsService
     }
 
     /**
-     * 渲染 Prometheus 格式的指标
+     * 渲染 Prometheus 格式的指标.
      */
     public function render(): string
     {
         $renderer = new RenderTextFormat();
+
         return $renderer->render($this->registry->getMetricFamilySamples());
     }
 }

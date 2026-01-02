@@ -66,6 +66,7 @@ class Brand
     public function setName(string $name): static
     {
         $this->name = $name;
+
         return $this;
     }
 
@@ -77,6 +78,7 @@ class Brand
     public function setSlug(string $slug): static
     {
         $this->slug = $slug;
+
         return $this;
     }
 
@@ -88,6 +90,7 @@ class Brand
     public function setLogoUrl(?string $logoUrl): static
     {
         $this->logoUrl = $logoUrl;
+
         return $this;
     }
 
@@ -99,6 +102,7 @@ class Brand
     public function setDescription(?string $description): static
     {
         $this->description = $description;
+
         return $this;
     }
 
@@ -110,6 +114,7 @@ class Brand
     public function setSortOrder(int $sortOrder): static
     {
         $this->sortOrder = $sortOrder;
+
         return $this;
     }
 
@@ -121,6 +126,7 @@ class Brand
     public function setIsActive(bool $isActive): static
     {
         $this->isActive = $isActive;
+
         return $this;
     }
 

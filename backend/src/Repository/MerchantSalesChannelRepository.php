@@ -138,7 +138,7 @@ class MerchantSalesChannelRepository extends ServiceEntityRepository
     }
 
     /**
-     * 分页查询指定商户的渠道申请记录
+     * 分页查询指定商户的渠道申请记录.
      *
      * @return array{data: MerchantSalesChannel[], total: int}
      */

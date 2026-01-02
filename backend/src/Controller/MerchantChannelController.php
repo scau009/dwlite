@@ -21,7 +21,7 @@ use Symfony\Component\Security\Http\Attribute\CurrentUser;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
- * 商户自助服务 - 销售渠道申请与管理
+ * 商户自助服务 - 销售渠道申请与管理.
  */
 #[Route('/api/merchant')]
 class MerchantChannelController extends AbstractController
@@ -35,7 +35,7 @@ class MerchantChannelController extends AbstractController
     }
 
     /**
-     * 获取可申请的销售渠道列表
+     * 获取可申请的销售渠道列表.
      */
     #[Route('/sales-channels', name: 'merchant_available_channels', methods: ['GET'])]
     public function listAvailableChannels(#[CurrentUser] User $user): JsonResponse
@@ -48,18 +48,18 @@ class MerchantChannelController extends AbstractController
         $channels = $this->salesChannelRepository->findAvailableForMerchant($merchant);
 
         return $this->json([
-            'data' => array_map(fn(SalesChannel $c) => $this->serializeSalesChannel($c), $channels),
+            'data' => array_map(fn (SalesChannel $c) => $this->serializeSalesChannel($c), $channels),
         ]);
     }
 
     /**
-     * 获取我的渠道申请/连接列表
+     * 获取我的渠道申请/连接列表.
      */
     #[Route('/my-channels', name: 'merchant_my_channels', methods: ['GET'])]
     public function listMyChannels(
         #[CurrentUser] User $user,
         #[MapQueryString] PaginationQuery $query = new PaginationQuery(),
-        Request $request = null
+        ?Request $request = null
     ): JsonResponse {
         $merchant = $this->merchantRepository->findOneBy(['user' => $user]);
         if (!$merchant) {
@@ -79,7 +79,7 @@ class MerchantChannelController extends AbstractController
         );
 
         return $this->json([
-            'data' => array_map(fn(MerchantSalesChannel $mc) => $this->serializeMerchantChannel($mc), $result['data']),
+            'data' => array_map(fn (MerchantSalesChannel $mc) => $this->serializeMerchantChannel($mc), $result['data']),
             'total' => $result['total'],
             'page' => $query->getPage(),
             'limit' => $query->getLimit(),
@@ -87,7 +87,7 @@ class MerchantChannelController extends AbstractController
     }
 
     /**
-     * 申请销售渠道
+     * 申请销售渠道.
      */
     #[Route('/my-channels', name: 'merchant_apply_channel', methods: ['POST'])]
     public function applyChannel(
@@ -130,7 +130,7 @@ class MerchantChannelController extends AbstractController
     }
 
     /**
-     * 取消申请（pending）或停用渠道（active）
+     * 取消申请（pending）或停用渠道（active）.
      */
     #[Route('/my-channels/{id}', name: 'merchant_channel_cancel', methods: ['DELETE'])]
     public function cancelOrDisable(string $id, #[CurrentUser] User $user): JsonResponse
@@ -148,6 +148,7 @@ class MerchantChannelController extends AbstractController
         if ($mc->isPending()) {
             // 取消待审核的申请 - 直接删除记录
             $this->merchantChannelRepository->remove($mc, true);
+
             return $this->json([
                 'message' => $this->translator->trans('merchant_channel.application_cancelled'),
             ]);
@@ -157,6 +158,7 @@ class MerchantChannelController extends AbstractController
             // 停用已启用的渠道
             $mc->disable();
             $this->merchantChannelRepository->save($mc, true);
+
             return $this->json([
                 'message' => $this->translator->trans('merchant_channel.disabled'),
                 'merchantChannel' => $this->serializeMerchantChannel($mc),
@@ -167,7 +169,7 @@ class MerchantChannelController extends AbstractController
     }
 
     /**
-     * 重新启用已停用的渠道
+     * 重新启用已停用的渠道.
      */
     #[Route('/my-channels/{id}/enable', name: 'merchant_channel_enable', methods: ['POST'])]
     public function enableChannel(string $id, #[CurrentUser] User $user): JsonResponse

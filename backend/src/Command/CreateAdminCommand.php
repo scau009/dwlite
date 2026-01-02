@@ -53,6 +53,7 @@ class CreateAdminCommand extends Command
                 if (!filter_var($value, FILTER_VALIDATE_EMAIL)) {
                     throw new \RuntimeException('Invalid email format');
                 }
+
                 return $value;
             });
             $email = $helper->ask($input, $output, $question);
@@ -63,6 +64,7 @@ class CreateAdminCommand extends Command
         if ($existingUser) {
             if ($existingUser->isAdmin()) {
                 $io->warning(sprintf('Admin user "%s" already exists.', $email));
+
                 return Command::SUCCESS;
             }
 
@@ -74,6 +76,7 @@ class CreateAdminCommand extends Command
             $this->userRepository->save($existingUser, true);
 
             $io->success(sprintf('User "%s" has been upgraded to admin.', $email));
+
             return Command::SUCCESS;
         }
 
@@ -90,6 +93,7 @@ class CreateAdminCommand extends Command
                 if (strlen($value) < 8) {
                     throw new \RuntimeException('Password must be at least 8 characters');
                 }
+
                 return $value;
             });
             $password = $helper->ask($input, $output, $question);
@@ -102,6 +106,7 @@ class CreateAdminCommand extends Command
 
             if ($password !== $confirmPassword) {
                 $io->error('Passwords do not match.');
+
                 return Command::FAILURE;
             }
         }

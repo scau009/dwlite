@@ -58,6 +58,7 @@ class Tag
     public function setName(string $name): static
     {
         $this->name = $name;
+
         return $this;
     }
 
@@ -69,6 +70,7 @@ class Tag
     public function setSlug(string $slug): static
     {
         $this->slug = $slug;
+
         return $this;
     }
 
@@ -80,6 +82,7 @@ class Tag
     public function setColor(?string $color): static
     {
         $this->color = $color;
+
         return $this;
     }
 
@@ -91,6 +94,7 @@ class Tag
     public function setSortOrder(int $sortOrder): static
     {
         $this->sortOrder = $sortOrder;
+
         return $this;
     }
 
@@ -102,6 +106,7 @@ class Tag
     public function setIsActive(bool $isActive): static
     {
         $this->isActive = $isActive;
+
         return $this;
     }
 

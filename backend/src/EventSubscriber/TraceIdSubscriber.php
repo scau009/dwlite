@@ -65,6 +65,7 @@ class TraceIdSubscriber implements EventSubscriberInterface
 
         // W3C Trace Context format: 00-{trace-id}-{parent-id}-{flags}
         $parts = explode('-', $traceparent);
+
         return $parts[1] ?? null;
     }
 }

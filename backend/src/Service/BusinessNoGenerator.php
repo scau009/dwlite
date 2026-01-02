@@ -5,7 +5,7 @@ namespace App\Service;
 use Predis\Client as RedisClient;
 
 /**
- * 业务编号生成器
+ * 业务编号生成器.
  *
  * 生成格式: {前缀}{日期}{序号}
  * 示例: WT2024121900001
@@ -28,16 +28,17 @@ class BusinessNoGenerator
     }
 
     /**
-     * 生成业务编号
+     * 生成业务编号.
      *
      * @param string $prefix 业务前缀 (使用常量)
      * @param string|null $date 日期，默认当天 (Ymd格式)
+     *
      * @return string 生成的业务编号
      */
     public function generate(string $prefix, ?string $date = null): string
     {
         $date = $date ?? date('Ymd');
-        $key = self::KEY_PREFIX . $prefix . ':' . $date;
+        $key = self::KEY_PREFIX.$prefix.':'.$date;
 
         // Redis INCR 原子操作
         $seq = $this->redis->incr($key);
@@ -47,11 +48,11 @@ class BusinessNoGenerator
             $this->redis->expire($key, 86400 * 2);
         }
 
-        return $prefix . $date . str_pad((string) $seq, self::SEQ_PAD_LENGTH, '0', STR_PAD_LEFT);
+        return $prefix.$date.str_pad((string) $seq, self::SEQ_PAD_LENGTH, '0', STR_PAD_LEFT);
     }
 
     /**
-     * 生成钱包流水编号
+     * 生成钱包流水编号.
      */
     public function generateWalletTransactionNo(): string
     {
@@ -59,7 +60,7 @@ class BusinessNoGenerator
     }
 
     /**
-     * 生成订单编号
+     * 生成订单编号.
      */
     public function generateOrderNo(): string
     {
@@ -67,7 +68,7 @@ class BusinessNoGenerator
     }
 
     /**
-     * 生成发货单编号
+     * 生成发货单编号.
      */
     public function generateOutboundNo(): string
     {
@@ -75,7 +76,7 @@ class BusinessNoGenerator
     }
 
     /**
-     * 生成提现单编号
+     * 生成提现单编号.
      */
     public function generateWithdrawNo(): string
     {
@@ -83,7 +84,7 @@ class BusinessNoGenerator
     }
 
     /**
-     * 生成退款单编号
+     * 生成退款单编号.
      */
     public function generateRefundNo(): string
     {

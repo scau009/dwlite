@@ -15,6 +15,7 @@ class RequestIdService
         if ($this->traceId === null) {
             $this->traceId = (string) new Ulid();
         }
+
         return $this->traceId;
     }
 
@@ -23,6 +24,7 @@ class RequestIdService
         if ($this->spanId === null) {
             $this->spanId = substr((string) new Ulid(), -16);
         }
+
         return $this->spanId;
     }
 

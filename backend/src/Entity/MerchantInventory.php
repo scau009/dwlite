@@ -9,7 +9,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Uid\Ulid;
 
 /**
- * 商户库存 - 商户在某仓库的 SKU 库存
+ * 商户库存 - 商户在某仓库的 SKU 库存.
  */
 #[ORM\Entity(repositoryClass: MerchantInventoryRepository::class)]
 #[ORM\Table(name: 'merchant_inventories')]
@@ -106,6 +106,7 @@ class MerchantInventory
     public function setMerchant(Merchant $merchant): static
     {
         $this->merchant = $merchant;
+
         return $this;
     }
 
@@ -117,6 +118,7 @@ class MerchantInventory
     public function setWarehouse(Warehouse $warehouse): static
     {
         $this->warehouse = $warehouse;
+
         return $this;
     }
 
@@ -128,6 +130,7 @@ class MerchantInventory
     public function setProductSku(ProductSku $productSku): static
     {
         $this->productSku = $productSku;
+
         return $this;
     }
 
@@ -139,6 +142,7 @@ class MerchantInventory
     public function setQuantityInTransit(int $quantityInTransit): static
     {
         $this->quantityInTransit = $quantityInTransit;
+
         return $this;
     }
 
@@ -150,6 +154,7 @@ class MerchantInventory
     public function setQuantityAvailable(int $quantityAvailable): static
     {
         $this->quantityAvailable = $quantityAvailable;
+
         return $this;
     }
 
@@ -161,6 +166,7 @@ class MerchantInventory
     public function setQuantityReserved(int $quantityReserved): static
     {
         $this->quantityReserved = $quantityReserved;
+
         return $this;
     }
 
@@ -172,6 +178,7 @@ class MerchantInventory
     public function setQuantityDamaged(int $quantityDamaged): static
     {
         $this->quantityDamaged = $quantityDamaged;
+
         return $this;
     }
 
@@ -183,6 +190,7 @@ class MerchantInventory
     public function setQuantityAllocated(int $quantityAllocated): static
     {
         $this->quantityAllocated = $quantityAllocated;
+
         return $this;
     }
 
@@ -194,6 +202,7 @@ class MerchantInventory
     public function setAverageCost(?string $averageCost): static
     {
         $this->averageCost = $averageCost;
+
         return $this;
     }
 
@@ -205,6 +214,7 @@ class MerchantInventory
     public function setSafetyStock(?int $safetyStock): static
     {
         $this->safetyStock = $safetyStock;
+
         return $this;
     }
 
@@ -216,6 +226,7 @@ class MerchantInventory
     public function setLastInboundAt(?\DateTimeImmutable $lastInboundAt): static
     {
         $this->lastInboundAt = $lastInboundAt;
+
         return $this;
     }
 
@@ -227,6 +238,7 @@ class MerchantInventory
     public function setLastOutboundAt(?\DateTimeImmutable $lastOutboundAt): static
     {
         $this->lastOutboundAt = $lastOutboundAt;
+
         return $this;
     }
 
@@ -238,6 +250,7 @@ class MerchantInventory
     public function setLastSyncedAt(?\DateTimeImmutable $lastSyncedAt): static
     {
         $this->lastSyncedAt = $lastSyncedAt;
+
         return $this;
     }
 
@@ -249,6 +262,7 @@ class MerchantInventory
     public function setExternalSkuId(?string $externalSkuId): static
     {
         $this->externalSkuId = $externalSkuId;
+
         return $this;
     }
 
@@ -279,7 +293,7 @@ class MerchantInventory
     // 便捷方法
 
     /**
-     * 获取总库存（在仓 + 锁定，不含在途和损坏）
+     * 获取总库存（在仓 + 锁定，不含在途和损坏）.
      */
     public function getTotalOnHand(): int
     {
@@ -287,7 +301,7 @@ class MerchantInventory
     }
 
     /**
-     * 获取全部库存（含在途）
+     * 获取全部库存（含在途）.
      */
     public function getTotalQuantity(): int
     {
@@ -295,18 +309,19 @@ class MerchantInventory
     }
 
     /**
-     * 是否低于安全库存
+     * 是否低于安全库存.
      */
     public function isBelowSafetyStock(): bool
     {
         if ($this->safetyStock === null) {
             return false;
         }
+
         return $this->quantityAvailable < $this->safetyStock;
     }
 
     /**
-     * 是否有可用库存
+     * 是否有可用库存.
      */
     public function hasAvailableStock(): bool
     {
@@ -314,7 +329,7 @@ class MerchantInventory
     }
 
     /**
-     * 增加在途库存（发货时调用）
+     * 增加在途库存（发货时调用）.
      */
     public function addInTransit(int $quantity): void
     {
@@ -322,7 +337,7 @@ class MerchantInventory
     }
 
     /**
-     * 减少在途库存（差异/缺货时调用）
+     * 减少在途库存（差异/缺货时调用）.
      */
     public function reduceInTransit(int $quantity): void
     {
@@ -333,7 +348,7 @@ class MerchantInventory
     }
 
     /**
-     * 在途转可用（入库完成时调用）
+     * 在途转可用（入库完成时调用）.
      */
     public function confirmInbound(int $quantity, int $damagedQuantity = 0): void
     {
@@ -349,7 +364,7 @@ class MerchantInventory
     }
 
     /**
-     * 锁定库存（订单占用）
+     * 锁定库存（订单占用）.
      */
     public function reserve(int $quantity): void
     {
@@ -361,7 +376,7 @@ class MerchantInventory
     }
 
     /**
-     * 锁定破损库存（订单占用）
+     * 锁定破损库存（订单占用）.
      */
     public function reserveDamaged(int $quantity): void
     {
@@ -373,7 +388,7 @@ class MerchantInventory
     }
 
     /**
-     * 释放锁定库存（订单取消）
+     * 释放锁定库存（订单取消）.
      */
     public function release(int $quantity): void
     {
@@ -385,7 +400,7 @@ class MerchantInventory
     }
 
     /**
-     * 释放锁定破损库存（订单取消）
+     * 释放锁定破损库存（订单取消）.
      */
     public function releaseDamaged(int $quantity): void
     {
@@ -397,7 +412,7 @@ class MerchantInventory
     }
 
     /**
-     * 确认出库（发货扣减）
+     * 确认出库（发货扣减）.
      */
     public function confirmOutbound(int $quantity): void
     {
@@ -409,7 +424,7 @@ class MerchantInventory
     }
 
     /**
-     * 更新加权平均成本
+     * 更新加权平均成本.
      */
     public function updateAverageCost(int $newQuantity, string $newUnitCost): void
     {
@@ -417,6 +432,7 @@ class MerchantInventory
 
         if ($currentTotal === 0 || $this->averageCost === null) {
             $this->averageCost = $newUnitCost;
+
             return;
         }
 
@@ -431,7 +447,7 @@ class MerchantInventory
     }
 
     /**
-     * 获取可共享库存（可用库存 - 已分配）
+     * 获取可共享库存（可用库存 - 已分配）.
      */
     public function getShareableQuantity(): int
     {
@@ -439,7 +455,7 @@ class MerchantInventory
     }
 
     /**
-     * 分配库存给渠道（全托管模式）
+     * 分配库存给渠道（全托管模式）.
      */
     public function allocate(int $quantity): void
     {
@@ -450,7 +466,7 @@ class MerchantInventory
     }
 
     /**
-     * 释放渠道分配的库存
+     * 释放渠道分配的库存.
      */
     public function deallocate(int $quantity): void
     {
@@ -463,7 +479,7 @@ class MerchantInventory
     // 不送仓模式相关方法
 
     /**
-     * 是否为商家自有库存（不送仓模式）
+     * 是否为商家自有库存（不送仓模式）.
      */
     public function isMerchantOwned(): bool
     {
@@ -471,7 +487,7 @@ class MerchantInventory
     }
 
     /**
-     * 是否为平台仓库存（送仓模式）
+     * 是否为平台仓库存（送仓模式）.
      */
     public function isPlatformWarehouse(): bool
     {
@@ -480,7 +496,7 @@ class MerchantInventory
 
     /**
      * 同步商家自有库存（不送仓模式使用）
-     * 直接更新可用库存数量，不走入库流程
+     * 直接更新可用库存数量，不走入库流程.
      */
     public function syncStock(int $quantity): void
     {

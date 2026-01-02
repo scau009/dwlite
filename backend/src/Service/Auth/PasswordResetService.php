@@ -45,7 +45,7 @@ class PasswordResetService
         $htmlContent = $this->twig->render('emails/password_reset.html.twig', [
             'user' => $user,
             'token' => $token->getToken(),
-            'resetUrl' => $this->appUrl . '/reset-password?token=' . $token->getToken(),
+            'resetUrl' => $this->appUrl.'/reset-password?token='.$token->getToken(),
         ]);
 
         $this->mailService->send(

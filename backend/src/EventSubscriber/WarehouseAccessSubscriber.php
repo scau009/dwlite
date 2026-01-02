@@ -4,8 +4,6 @@ namespace App\EventSubscriber;
 
 use App\Attribute\WarehouseOnly;
 use App\Entity\User;
-use ReflectionClass;
-use ReflectionMethod;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -14,7 +12,7 @@ use Symfony\Component\HttpKernel\Event\ControllerEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 
 /**
- * 检查 #[WarehouseOnly] 属性并拒绝非仓库操作员访问
+ * 检查 #[WarehouseOnly] 属性并拒绝非仓库操作员访问.
  */
 class WarehouseAccessSubscriber implements EventSubscriberInterface
 {
@@ -58,6 +56,7 @@ class WarehouseAccessSubscriber implements EventSubscriberInterface
                     Response::HTTP_UNAUTHORIZED
                 );
             });
+
             return;
         }
 
@@ -68,6 +67,7 @@ class WarehouseAccessSubscriber implements EventSubscriberInterface
                     Response::HTTP_FORBIDDEN
                 );
             });
+
             return;
         }
 
@@ -78,6 +78,7 @@ class WarehouseAccessSubscriber implements EventSubscriberInterface
                     Response::HTTP_FORBIDDEN
                 );
             });
+
             return;
         }
 
@@ -87,7 +88,7 @@ class WarehouseAccessSubscriber implements EventSubscriberInterface
 
     private function hasWarehouseOnlyAttribute(object $controller, string $methodName): bool
     {
-        $reflectionClass = new ReflectionClass($controller);
+        $reflectionClass = new \ReflectionClass($controller);
 
         // 检查类级别的属性
         if ($reflectionClass->getAttributes(WarehouseOnly::class)) {
@@ -96,7 +97,7 @@ class WarehouseAccessSubscriber implements EventSubscriberInterface
 
         // 检查方法级别的属性
         if ($reflectionClass->hasMethod($methodName)) {
-            $reflectionMethod = new ReflectionMethod($controller, $methodName);
+            $reflectionMethod = new \ReflectionMethod($controller, $methodName);
             if ($reflectionMethod->getAttributes(WarehouseOnly::class)) {
                 return true;
             }

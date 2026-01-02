@@ -54,7 +54,7 @@ class ProductRepository extends ServiceEntityRepository
 
         if (!empty($filters['search'])) {
             $qb->andWhere('p.name LIKE :search OR p.styleNumber LIKE :search')
-                ->setParameter('search', $filters['search'] . '%');
+                ->setParameter('search', $filters['search'].'%');
         }
 
         if (!empty($filters['brandId'])) {

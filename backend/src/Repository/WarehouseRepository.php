@@ -17,7 +17,7 @@ class WarehouseRepository extends ServiceEntityRepository
     }
 
     /**
-     * 获取所有正常运营的仓库
+     * 获取所有正常运营的仓库.
      *
      * @return Warehouse[]
      */
@@ -33,7 +33,7 @@ class WarehouseRepository extends ServiceEntityRepository
     }
 
     /**
-     * 获取所有正常运营的平台仓库（用于入库单选择）
+     * 获取所有正常运营的平台仓库（用于入库单选择）.
      *
      * @return Warehouse[]
      */
@@ -51,7 +51,7 @@ class WarehouseRepository extends ServiceEntityRepository
     }
 
     /**
-     * 按国家代码查找仓库
+     * 按国家代码查找仓库.
      *
      * @return Warehouse[]
      */
@@ -68,7 +68,7 @@ class WarehouseRepository extends ServiceEntityRepository
     }
 
     /**
-     * 按类型查找仓库
+     * 按类型查找仓库.
      *
      * @return Warehouse[]
      */
@@ -85,7 +85,7 @@ class WarehouseRepository extends ServiceEntityRepository
     }
 
     /**
-     * 查找支持指定物流公司的仓库
+     * 查找支持指定物流公司的仓库.
      *
      * @return Warehouse[]
      */
@@ -102,7 +102,7 @@ class WarehouseRepository extends ServiceEntityRepository
     }
 
     /**
-     * 查找已启用 API 对接的仓库
+     * 查找已启用 API 对接的仓库.
      *
      * @return Warehouse[]
      */
@@ -119,7 +119,7 @@ class WarehouseRepository extends ServiceEntityRepository
     }
 
     /**
-     * 查找合同即将到期的仓库（30天内）
+     * 查找合同即将到期的仓库（30天内）.
      *
      * @return Warehouse[]
      */
@@ -142,7 +142,7 @@ class WarehouseRepository extends ServiceEntityRepository
     }
 
     /**
-     * 分页查询仓库列表
+     * 分页查询仓库列表.
      *
      * @return array{data: Warehouse[], total: int}
      */
@@ -153,12 +153,12 @@ class WarehouseRepository extends ServiceEntityRepository
         // 搜索条件
         if (!empty($filters['name'])) {
             $qb->andWhere('w.name LIKE :name OR w.code LIKE :name')
-               ->setParameter('name', '%' . $filters['name'] . '%');
+               ->setParameter('name', '%'.$filters['name'].'%');
         }
 
         if (!empty($filters['code'])) {
             $qb->andWhere('w.code LIKE :code')
-               ->setParameter('code', '%' . $filters['code'] . '%');
+               ->setParameter('code', '%'.$filters['code'].'%');
         }
 
         if (!empty($filters['type'])) {
@@ -203,7 +203,7 @@ class WarehouseRepository extends ServiceEntityRepository
     }
 
     /**
-     * 保存仓库
+     * 保存仓库.
      */
     public function save(Warehouse $warehouse, bool $flush = false): void
     {
@@ -214,7 +214,7 @@ class WarehouseRepository extends ServiceEntityRepository
     }
 
     /**
-     * 删除仓库
+     * 删除仓库.
      */
     public function remove(Warehouse $warehouse, bool $flush = false): void
     {

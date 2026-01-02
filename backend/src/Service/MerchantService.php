@@ -18,7 +18,7 @@ class MerchantService
 
     /**
      * 为用户创建商户信息
-     * 在邮箱验证通过后调用
+     * 在邮箱验证通过后调用.
      */
     public function createMerchantForUser(User $user): Merchant
     {

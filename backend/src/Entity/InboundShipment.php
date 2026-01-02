@@ -7,7 +7,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Uid\Ulid;
 
 /**
- * 送仓发货信息 - 商户发货的物流信息
+ * 送仓发货信息 - 商户发货的物流信息.
  */
 #[ORM\Entity(repositoryClass: InboundShipmentRepository::class)]
 #[ORM\Table(name: 'inbound_shipments')]
@@ -116,6 +116,7 @@ class InboundShipment
     public function setInboundOrder(InboundOrder $inboundOrder): static
     {
         $this->inboundOrder = $inboundOrder;
+
         return $this;
     }
 
@@ -127,6 +128,7 @@ class InboundShipment
     public function setCarrierCode(string $carrierCode): static
     {
         $this->carrierCode = $carrierCode;
+
         return $this;
     }
 
@@ -138,6 +140,7 @@ class InboundShipment
     public function setCarrierName(?string $carrierName): static
     {
         $this->carrierName = $carrierName;
+
         return $this;
     }
 
@@ -149,6 +152,7 @@ class InboundShipment
     public function setTrackingNumber(string $trackingNumber): static
     {
         $this->trackingNumber = $trackingNumber;
+
         return $this;
     }
 
@@ -160,6 +164,7 @@ class InboundShipment
     public function setStatus(string $status): static
     {
         $this->status = $status;
+
         return $this;
     }
 
@@ -171,6 +176,7 @@ class InboundShipment
     public function setSenderName(string $senderName): static
     {
         $this->senderName = $senderName;
+
         return $this;
     }
 
@@ -182,6 +188,7 @@ class InboundShipment
     public function setSenderPhone(string $senderPhone): static
     {
         $this->senderPhone = $senderPhone;
+
         return $this;
     }
 
@@ -193,6 +200,7 @@ class InboundShipment
     public function setSenderAddress(string $senderAddress): static
     {
         $this->senderAddress = $senderAddress;
+
         return $this;
     }
 
@@ -204,6 +212,7 @@ class InboundShipment
     public function setSenderProvince(?string $senderProvince): static
     {
         $this->senderProvince = $senderProvince;
+
         return $this;
     }
 
@@ -215,6 +224,7 @@ class InboundShipment
     public function setSenderCity(?string $senderCity): static
     {
         $this->senderCity = $senderCity;
+
         return $this;
     }
 
@@ -226,6 +236,7 @@ class InboundShipment
     public function setBoxCount(int $boxCount): static
     {
         $this->boxCount = $boxCount;
+
         return $this;
     }
 
@@ -237,6 +248,7 @@ class InboundShipment
     public function setTotalWeight(?string $totalWeight): static
     {
         $this->totalWeight = $totalWeight;
+
         return $this;
     }
 
@@ -248,6 +260,7 @@ class InboundShipment
     public function setTotalVolume(?string $totalVolume): static
     {
         $this->totalVolume = $totalVolume;
+
         return $this;
     }
 
@@ -259,6 +272,7 @@ class InboundShipment
     public function setShippedAt(\DateTimeImmutable $shippedAt): static
     {
         $this->shippedAt = $shippedAt;
+
         return $this;
     }
 
@@ -270,6 +284,7 @@ class InboundShipment
     public function setEstimatedArrivalDate(?\DateTimeImmutable $estimatedArrivalDate): static
     {
         $this->estimatedArrivalDate = $estimatedArrivalDate;
+
         return $this;
     }
 
@@ -281,6 +296,7 @@ class InboundShipment
     public function setDeliveredAt(?\DateTimeImmutable $deliveredAt): static
     {
         $this->deliveredAt = $deliveredAt;
+
         return $this;
     }
 
@@ -292,6 +308,7 @@ class InboundShipment
     public function setTrackingHistory(?array $trackingHistory): static
     {
         $this->trackingHistory = $trackingHistory;
+
         return $this;
     }
 
@@ -303,6 +320,7 @@ class InboundShipment
     public function setNotes(?string $notes): static
     {
         $this->notes = $notes;
+
         return $this;
     }
 
@@ -335,7 +353,7 @@ class InboundShipment
     }
 
     /**
-     * 添加物流轨迹
+     * 添加物流轨迹.
      */
     public function addTrackingEvent(string $status, string $description, ?string $location = null): void
     {
@@ -367,6 +385,6 @@ class InboundShipment
      */
     public function getSenderFullAddress(): string
     {
-        return ($this->senderProvince ?? '') . ($this->senderCity ?? '') . $this->senderAddress;
+        return ($this->senderProvince ?? '').($this->senderCity ?? '').$this->senderAddress;
     }
 }

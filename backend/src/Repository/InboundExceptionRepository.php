@@ -18,7 +18,7 @@ class InboundExceptionRepository extends ServiceEntityRepository
     }
 
     /**
-     * 获取商户的异常单列表
+     * 获取商户的异常单列表.
      *
      * @return InboundException[]
      */
@@ -38,7 +38,7 @@ class InboundExceptionRepository extends ServiceEntityRepository
     }
 
     /**
-     * 获取待处理的异常单
+     * 获取待处理的异常单.
      *
      * @return InboundException[]
      */
@@ -58,7 +58,7 @@ class InboundExceptionRepository extends ServiceEntityRepository
     }
 
     /**
-     * 按异常单号查找
+     * 按异常单号查找.
      */
     public function findByExceptionNo(string $exceptionNo): ?InboundException
     {
@@ -66,7 +66,7 @@ class InboundExceptionRepository extends ServiceEntityRepository
     }
 
     /**
-     * 统计商户待处理的异常单数量
+     * 统计商户待处理的异常单数量.
      */
     public function countPendingByMerchant(Merchant $merchant): int
     {
@@ -84,7 +84,7 @@ class InboundExceptionRepository extends ServiceEntityRepository
     }
 
     /**
-     * 分页查询商户异常单
+     * 分页查询商户异常单.
      *
      * @return array{data: InboundException[], meta: array{total: int, page: int, limit: int, totalPages: int}}
      */
@@ -113,7 +113,7 @@ class InboundExceptionRepository extends ServiceEntityRepository
 
         if ($search !== null && $search !== '') {
             $qb->andWhere('e.exceptionNo LIKE :search')
-                ->setParameter('search', '%' . $search . '%');
+                ->setParameter('search', '%'.$search.'%');
         }
 
         // Count total

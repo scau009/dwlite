@@ -133,6 +133,7 @@ class Warehouse
     public function setCode(string $code): static
     {
         $this->code = $code;
+
         return $this;
     }
 
@@ -144,6 +145,7 @@ class Warehouse
     public function setName(string $name): static
     {
         $this->name = $name;
+
         return $this;
     }
 
@@ -155,6 +157,7 @@ class Warehouse
     public function setShortName(?string $shortName): static
     {
         $this->shortName = $shortName;
+
         return $this;
     }
 
@@ -166,6 +169,7 @@ class Warehouse
     public function setType(string $type): static
     {
         $this->type = $type;
+
         return $this;
     }
 
@@ -177,6 +181,7 @@ class Warehouse
     public function setCategory(string $category): static
     {
         $this->category = $category;
+
         return $this;
     }
 
@@ -188,6 +193,7 @@ class Warehouse
     public function setMerchant(?Merchant $merchant): static
     {
         $this->merchant = $merchant;
+
         return $this;
     }
 
@@ -199,6 +205,7 @@ class Warehouse
     public function setDescription(?string $description): static
     {
         $this->description = $description;
+
         return $this;
     }
 
@@ -210,6 +217,7 @@ class Warehouse
     public function setCountryCode(string $countryCode): static
     {
         $this->countryCode = $countryCode;
+
         return $this;
     }
 
@@ -221,6 +229,7 @@ class Warehouse
     public function setTimezone(?string $timezone): static
     {
         $this->timezone = $timezone;
+
         return $this;
     }
 
@@ -232,6 +241,7 @@ class Warehouse
     public function setProvince(?string $province): static
     {
         $this->province = $province;
+
         return $this;
     }
 
@@ -243,6 +253,7 @@ class Warehouse
     public function setCity(?string $city): static
     {
         $this->city = $city;
+
         return $this;
     }
 
@@ -254,6 +265,7 @@ class Warehouse
     public function setDistrict(?string $district): static
     {
         $this->district = $district;
+
         return $this;
     }
 
@@ -265,6 +277,7 @@ class Warehouse
     public function setAddress(?string $address): static
     {
         $this->address = $address;
+
         return $this;
     }
 
@@ -276,6 +289,7 @@ class Warehouse
     public function setPostalCode(?string $postalCode): static
     {
         $this->postalCode = $postalCode;
+
         return $this;
     }
 
@@ -287,6 +301,7 @@ class Warehouse
     public function setLongitude(?string $longitude): static
     {
         $this->longitude = $longitude;
+
         return $this;
     }
 
@@ -298,6 +313,7 @@ class Warehouse
     public function setLatitude(?string $latitude): static
     {
         $this->latitude = $latitude;
+
         return $this;
     }
 
@@ -309,6 +325,7 @@ class Warehouse
     public function setContactName(string $contactName): static
     {
         $this->contactName = $contactName;
+
         return $this;
     }
 
@@ -320,6 +337,7 @@ class Warehouse
     public function setContactPhone(string $contactPhone): static
     {
         $this->contactPhone = $contactPhone;
+
         return $this;
     }
 
@@ -331,6 +349,7 @@ class Warehouse
     public function setContactEmail(?string $contactEmail): static
     {
         $this->contactEmail = $contactEmail;
+
         return $this;
     }
 
@@ -342,6 +361,7 @@ class Warehouse
     public function setInternalNotes(?string $internalNotes): static
     {
         $this->internalNotes = $internalNotes;
+
         return $this;
     }
 
@@ -353,6 +373,7 @@ class Warehouse
     public function setStatus(string $status): static
     {
         $this->status = $status;
+
         return $this;
     }
 
@@ -364,6 +385,7 @@ class Warehouse
     public function setSortOrder(int $sortOrder): static
     {
         $this->sortOrder = $sortOrder;
+
         return $this;
     }
 
@@ -402,7 +424,7 @@ class Warehouse
 
     public function getFullAddress(): string
     {
-        return ($this->province ?? '') . ($this->city ?? '') . ($this->district ?? '') . ($this->address ?? '');
+        return ($this->province ?? '').($this->city ?? '').($this->district ?? '').($this->address ?? '');
     }
 
     public function isSelfOperated(): bool
@@ -448,6 +470,7 @@ class Warehouse
         $warehouse->setCode($code);
         $warehouse->setName($name);
         $warehouse->setType(self::TYPE_SELF);
+
         return $warehouse;
     }
 }

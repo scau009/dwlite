@@ -18,7 +18,7 @@ class InboundExceptionItemRepository extends ServiceEntityRepository
     }
 
     /**
-     * 获取异常单的所有明细
+     * 获取异常单的所有明细.
      *
      * @return InboundExceptionItem[]
      */

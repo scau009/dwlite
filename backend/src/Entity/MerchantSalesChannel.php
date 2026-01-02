@@ -73,6 +73,7 @@ class MerchantSalesChannel
     public function setMerchant(Merchant $merchant): static
     {
         $this->merchant = $merchant;
+
         return $this;
     }
 
@@ -84,6 +85,7 @@ class MerchantSalesChannel
     public function setSalesChannel(SalesChannel $salesChannel): static
     {
         $this->salesChannel = $salesChannel;
+
         return $this;
     }
 
@@ -95,6 +97,7 @@ class MerchantSalesChannel
     public function setConfig(?array $config): static
     {
         $this->config = $config;
+
         return $this;
     }
 
@@ -109,6 +112,7 @@ class MerchantSalesChannel
             $this->config = [];
         }
         $this->config[$key] = $value;
+
         return $this;
     }
 
@@ -120,6 +124,7 @@ class MerchantSalesChannel
     public function setStatus(string $status): static
     {
         $this->status = $status;
+
         return $this;
     }
 
@@ -131,6 +136,7 @@ class MerchantSalesChannel
     public function setApprovedAt(?\DateTimeImmutable $approvedAt): static
     {
         $this->approvedAt = $approvedAt;
+
         return $this;
     }
 
@@ -142,6 +148,7 @@ class MerchantSalesChannel
     public function setApprovedBy(?string $approvedBy): static
     {
         $this->approvedBy = $approvedBy;
+
         return $this;
     }
 
@@ -153,6 +160,7 @@ class MerchantSalesChannel
     public function setRemark(?string $remark): static
     {
         $this->remark = $remark;
+
         return $this;
     }
 
@@ -195,7 +203,7 @@ class MerchantSalesChannel
     }
 
     /**
-     * 是否可用（需同时检查渠道本身是否可用）
+     * 是否可用（需同时检查渠道本身是否可用）.
      */
     public function isAvailable(): bool
     {
@@ -203,7 +211,7 @@ class MerchantSalesChannel
     }
 
     /**
-     * 管理员审核通过
+     * 管理员审核通过.
      */
     public function approve(string $adminId): static
     {
@@ -211,34 +219,38 @@ class MerchantSalesChannel
         $this->approvedAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
         $this->approvedBy = $adminId;
         $this->remark = null;
+
         return $this;
     }
 
     /**
-     * 管理员暂停
+     * 管理员暂停.
      */
     public function suspend(?string $reason = null): static
     {
         $this->status = self::STATUS_SUSPENDED;
         $this->remark = $reason;
+
         return $this;
     }
 
     /**
-     * 商户自行禁用
+     * 商户自行禁用.
      */
     public function disable(): static
     {
         $this->status = self::STATUS_DISABLED;
+
         return $this;
     }
 
     /**
-     * 重新启用
+     * 重新启用.
      */
     public function enable(): static
     {
         $this->status = self::STATUS_ACTIVE;
+
         return $this;
     }
 }

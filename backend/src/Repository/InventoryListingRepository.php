@@ -21,7 +21,7 @@ class InventoryListingRepository extends ServiceEntityRepository
     }
 
     /**
-     * 获取商户的所有上架配置
+     * 获取商户的所有上架配置.
      *
      * @return InventoryListing[]
      */
@@ -37,7 +37,7 @@ class InventoryListingRepository extends ServiceEntityRepository
     }
 
     /**
-     * 获取某库存的所有上架配置
+     * 获取某库存的所有上架配置.
      *
      * @return InventoryListing[]
      */
@@ -52,7 +52,7 @@ class InventoryListingRepository extends ServiceEntityRepository
     }
 
     /**
-     * 获取某渠道的所有上架配置
+     * 获取某渠道的所有上架配置.
      *
      * @return InventoryListing[]
      */
@@ -67,7 +67,7 @@ class InventoryListingRepository extends ServiceEntityRepository
     }
 
     /**
-     * 获取商户在某渠道的所有上架配置
+     * 获取商户在某渠道的所有上架配置.
      *
      * @return InventoryListing[]
      */
@@ -87,7 +87,7 @@ class InventoryListingRepository extends ServiceEntityRepository
     }
 
     /**
-     * 获取已激活的上架配置
+     * 获取已激活的上架配置.
      *
      * @return InventoryListing[]
      */
@@ -105,7 +105,7 @@ class InventoryListingRepository extends ServiceEntityRepository
     }
 
     /**
-     * 获取某库存在指定渠道的上架配置
+     * 获取某库存在指定渠道的上架配置.
      */
     public function findOneByInventoryAndChannel(
         MerchantInventory $inventory,
@@ -118,7 +118,7 @@ class InventoryListingRepository extends ServiceEntityRepository
     }
 
     /**
-     * 获取或创建上架配置
+     * 获取或创建上架配置.
      */
     public function findOrCreate(
         MerchantInventory $inventory,
@@ -136,7 +136,7 @@ class InventoryListingRepository extends ServiceEntityRepository
     }
 
     /**
-     * 统计商户各状态的上架数量
+     * 统计商户各状态的上架数量.
      */
     public function countByMerchantGroupByStatus(Merchant $merchant): array
     {
@@ -158,7 +158,7 @@ class InventoryListingRepository extends ServiceEntityRepository
     }
 
     /**
-     * 获取使用独占模式的上架配置
+     * 获取使用独占模式的上架配置.
      *
      * @return InventoryListing[]
      */
@@ -174,7 +174,7 @@ class InventoryListingRepository extends ServiceEntityRepository
     }
 
     /**
-     * 计算库存已分配的总量
+     * 计算库存已分配的总量.
      */
     public function sumAllocatedByInventory(MerchantInventory $inventory): int
     {

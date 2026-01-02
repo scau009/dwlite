@@ -66,6 +66,7 @@ class ProductSku
     public function setProduct(Product $product): static
     {
         $this->product = $product;
+
         return $this;
     }
 
@@ -77,6 +78,7 @@ class ProductSku
     public function setSizeUnit(?SizeUnit $sizeUnit): static
     {
         $this->sizeUnit = $sizeUnit;
+
         return $this;
     }
 
@@ -88,6 +90,7 @@ class ProductSku
     public function setSizeValue(?string $sizeValue): static
     {
         $this->sizeValue = $sizeValue;
+
         return $this;
     }
 
@@ -99,6 +102,7 @@ class ProductSku
     public function setPrice(string $price): static
     {
         $this->price = $price;
+
         return $this;
     }
 
@@ -110,6 +114,7 @@ class ProductSku
     public function setOriginalPrice(?string $originalPrice): static
     {
         $this->originalPrice = $originalPrice;
+
         return $this;
     }
 
@@ -121,6 +126,7 @@ class ProductSku
     public function setIsActive(bool $isActive): static
     {
         $this->isActive = $isActive;
+
         return $this;
     }
 
@@ -132,6 +138,7 @@ class ProductSku
     public function setSortOrder(int $sortOrder): static
     {
         $this->sortOrder = $sortOrder;
+
         return $this;
     }
 
@@ -152,7 +159,7 @@ class ProductSku
     }
 
     /**
-     * 获取规格描述
+     * 获取规格描述.
      */
     public function getSkuName(): string
     {
@@ -163,6 +170,7 @@ class ProductSku
         if ($this->sizeValue) {
             $parts[] = $this->sizeValue;
         }
+
         return implode(' ', $parts);
     }
 }

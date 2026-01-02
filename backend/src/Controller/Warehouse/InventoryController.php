@@ -9,12 +9,11 @@ use App\Service\CosService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 /**
- * 仓库用户 - 库存查询
+ * 仓库用户 - 库存查询.
  */
 #[Route('/api/warehouse/inventory')]
 #[IsGranted('ROLE_USER')]
@@ -28,7 +27,7 @@ class InventoryController extends AbstractController
     }
 
     /**
-     * 获取本仓库库存列表
+     * 获取本仓库库存列表.
      */
     #[Route('', name: 'warehouse_inventory_list', methods: ['GET'])]
     public function listInventory(
@@ -62,7 +61,7 @@ class InventoryController extends AbstractController
     }
 
     /**
-     * 获取本仓库库存汇总
+     * 获取本仓库库存汇总.
      */
     #[Route('/summary', name: 'warehouse_inventory_summary', methods: ['GET'])]
     public function getSummary(
@@ -87,7 +86,7 @@ class InventoryController extends AbstractController
     }
 
     /**
-     * 序列化库存
+     * 序列化库存.
      */
     private function serializeInventory($inventory): array
     {

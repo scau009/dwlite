@@ -39,7 +39,7 @@ class CategoryController extends AbstractController
         );
 
         return $this->json([
-            'data' => array_map(fn(Category $c) => $this->serializeCategory($c), $result['data']),
+            'data' => array_map(fn (Category $c) => $this->serializeCategory($c), $result['data']),
             'total' => $result['total'],
             'page' => $query->getPage(),
             'limit' => $query->getLimit(),
@@ -253,10 +253,9 @@ class CategoryController extends AbstractController
     }
 
     /**
-     * 构建树形结构
+     * 构建树形结构.
      *
      * @param Category[] $categories
-     * @return array
      */
     private function buildTree(array $categories): array
     {
@@ -289,11 +288,12 @@ class CategoryController extends AbstractController
     private function generateSlug(string $name): string
     {
         $slugger = new AsciiSlugger();
+
         return strtolower($slugger->slug($name)->toString());
     }
 
     /**
-     * 检查设置 parent 是否会造成循环引用
+     * 检查设置 parent 是否会造成循环引用.
      */
     private function wouldCreateCycle(Category $category, Category $newParent): bool
     {
@@ -304,6 +304,7 @@ class CategoryController extends AbstractController
             }
             $current = $current->getParent();
         }
+
         return false;
     }
 }

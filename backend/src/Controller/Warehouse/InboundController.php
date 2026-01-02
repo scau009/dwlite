@@ -21,7 +21,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
- * 仓库用户 - 入库单管理
+ * 仓库用户 - 入库单管理.
  */
 #[Route('/api/warehouse/inbound')]
 #[IsGranted('ROLE_USER')]
@@ -37,7 +37,7 @@ class InboundController extends AbstractController
     }
 
     /**
-     * 获取入库单统计数据
+     * 获取入库单统计数据.
      */
     #[Route('/stats', name: 'warehouse_inbound_stats', methods: ['GET'])]
     public function getStats(Warehouse $warehouse): JsonResponse
@@ -61,7 +61,7 @@ class InboundController extends AbstractController
     }
 
     /**
-     * 获取本仓库入库单列表
+     * 获取本仓库入库单列表.
      */
     #[Route('/orders', name: 'warehouse_inbound_list', methods: ['GET'])]
     public function listOrders(
@@ -95,7 +95,7 @@ class InboundController extends AbstractController
     }
 
     /**
-     * 获取入库单详情
+     * 获取入库单详情.
      */
     #[Route('/orders/{id}', name: 'warehouse_inbound_detail', methods: ['GET'])]
     public function getOrder(
@@ -114,7 +114,7 @@ class InboundController extends AbstractController
     }
 
     /**
-     * 完成收货
+     * 完成收货.
      */
     #[Route('/orders/{id}/receive', name: 'warehouse_inbound_receive', methods: ['POST'])]
     public function receiveOrder(
@@ -141,13 +141,13 @@ class InboundController extends AbstractController
                 'message' => $this->translator->trans('inbound.order.received'),
                 'data' => $this->serializeOrderDetail($order),
             ]);
-        } catch (\LogicException | \InvalidArgumentException $e) {
+        } catch (\LogicException|\InvalidArgumentException $e) {
             return $this->json(['error' => $e->getMessage()], Response::HTTP_BAD_REQUEST);
         }
     }
 
     /**
-     * 创建异常单
+     * 创建异常单.
      */
     #[Route('/orders/{id}/exceptions', name: 'warehouse_inbound_exception', methods: ['POST'])]
     public function createException(
@@ -174,7 +174,7 @@ class InboundController extends AbstractController
     }
 
     /**
-     * 更新仓库备注
+     * 更新仓库备注.
      */
     #[Route('/orders/{id}/notes', name: 'warehouse_inbound_notes', methods: ['PUT'])]
     public function updateNotes(
@@ -204,7 +204,7 @@ class InboundController extends AbstractController
     }
 
     /**
-     * 序列化入库单（列表）
+     * 序列化入库单（列表）.
      */
     private function serializeOrder($order): array
     {
@@ -227,7 +227,7 @@ class InboundController extends AbstractController
     }
 
     /**
-     * 序列化入库单（详情）
+     * 序列化入库单（详情）.
      */
     private function serializeOrderDetail($order): array
     {
@@ -248,7 +248,7 @@ class InboundController extends AbstractController
     }
 
     /**
-     * 序列化入库单明细
+     * 序列化入库单明细.
      */
     private function serializeItem($item): array
     {
@@ -286,7 +286,7 @@ class InboundController extends AbstractController
     }
 
     /**
-     * 序列化物流信息
+     * 序列化物流信息.
      */
     private function serializeShipment($shipment): array
     {
@@ -308,7 +308,7 @@ class InboundController extends AbstractController
     }
 
     /**
-     * 序列化异常单
+     * 序列化异常单.
      */
     private function serializeException($exception): array
     {
@@ -342,7 +342,7 @@ class InboundController extends AbstractController
     }
 
     /**
-     * 序列化异常单明细
+     * 序列化异常单明细.
      */
     private function serializeExceptionItem($item): array
     {
@@ -371,7 +371,7 @@ class InboundController extends AbstractController
     }
 
     /**
-     * 从完整 URL 或 COS key 中提取 COS key
+     * 从完整 URL 或 COS key 中提取 COS key.
      */
     private function extractCosKey(string $imagePathOrUrl): ?string
     {

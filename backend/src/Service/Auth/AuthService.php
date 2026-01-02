@@ -12,12 +12,11 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 class AuthService
 {
     public function __construct(
-        private UserRepository              $userRepository,
+        private UserRepository $userRepository,
         private UserPasswordHasherInterface $passwordHasher,
-        private EmailVerificationService    $emailVerificationService,
-        private TranslatorInterface         $translator,
-    )
-    {
+        private EmailVerificationService $emailVerificationService,
+        private TranslatorInterface $translator,
+    ) {
     }
 
     public function register(RegisterRequest $request): User

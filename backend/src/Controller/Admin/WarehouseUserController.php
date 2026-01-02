@@ -20,7 +20,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
- * 管理员 - 仓库用户管理
+ * 管理员 - 仓库用户管理.
  */
 #[Route('/api/admin/warehouse-users')]
 #[IsGranted('ROLE_USER')]
@@ -37,7 +37,7 @@ class WarehouseUserController extends AbstractController
     }
 
     /**
-     * 获取仓库用户列表
+     * 获取仓库用户列表.
      */
     #[Route('', name: 'admin_warehouse_users_list', methods: ['GET'])]
     public function list(Request $request): JsonResponse
@@ -55,7 +55,7 @@ class WarehouseUserController extends AbstractController
     }
 
     /**
-     * 获取仓库用户详情
+     * 获取仓库用户详情.
      */
     #[Route('/{id}', name: 'admin_warehouse_users_get', methods: ['GET'])]
     public function get(string $id): JsonResponse
@@ -72,7 +72,7 @@ class WarehouseUserController extends AbstractController
     }
 
     /**
-     * 创建仓库用户
+     * 创建仓库用户.
      */
     #[Route('', name: 'admin_warehouse_users_create', methods: ['POST'])]
     public function create(
@@ -108,7 +108,7 @@ class WarehouseUserController extends AbstractController
     }
 
     /**
-     * 更新仓库用户
+     * 更新仓库用户.
      */
     #[Route('/{id}', name: 'admin_warehouse_users_update', methods: ['PUT'])]
     public function update(
@@ -153,7 +153,7 @@ class WarehouseUserController extends AbstractController
     }
 
     /**
-     * 删除仓库用户
+     * 删除仓库用户.
      */
     #[Route('/{id}', name: 'admin_warehouse_users_delete', methods: ['DELETE'])]
     public function delete(string $id): JsonResponse
@@ -173,7 +173,7 @@ class WarehouseUserController extends AbstractController
     }
 
     /**
-     * 分页查询仓库用户
+     * 分页查询仓库用户.
      */
     private function findWarehouseUsersPaginated(int $page, int $limit, ?string $warehouseId): array
     {
@@ -212,7 +212,7 @@ class WarehouseUserController extends AbstractController
     }
 
     /**
-     * 序列化用户
+     * 序列化用户.
      */
     private function serializeUser(User $user): array
     {

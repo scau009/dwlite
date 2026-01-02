@@ -97,6 +97,7 @@ class Product
     public function setBrand(?Brand $brand): static
     {
         $this->brand = $brand;
+
         return $this;
     }
 
@@ -108,6 +109,7 @@ class Product
     public function setCategory(?Category $category): static
     {
         $this->category = $category;
+
         return $this;
     }
 
@@ -119,6 +121,7 @@ class Product
     public function setName(string $name): static
     {
         $this->name = $name;
+
         return $this;
     }
 
@@ -130,6 +133,7 @@ class Product
     public function setSlug(string $slug): static
     {
         $this->slug = $slug;
+
         return $this;
     }
 
@@ -141,6 +145,7 @@ class Product
     public function setStyleNumber(string $styleNumber): static
     {
         $this->styleNumber = $styleNumber;
+
         return $this;
     }
 
@@ -152,6 +157,7 @@ class Product
     public function setSeason(string $season): static
     {
         $this->season = $season;
+
         return $this;
     }
 
@@ -163,6 +169,7 @@ class Product
     public function setColor(?string $color): static
     {
         $this->color = $color;
+
         return $this;
     }
 
@@ -174,6 +181,7 @@ class Product
     public function setDescription(?string $description): static
     {
         $this->description = $description;
+
         return $this;
     }
 
@@ -185,6 +193,7 @@ class Product
     public function setIsActive(bool $isActive): static
     {
         $this->isActive = $isActive;
+
         return $this;
     }
 
@@ -196,6 +205,7 @@ class Product
     public function setStatus(string $status): static
     {
         $this->status = $status;
+
         return $this;
     }
 
@@ -233,18 +243,21 @@ class Product
         if (!$this->tags->contains($tag)) {
             $this->tags->add($tag);
         }
+
         return $this;
     }
 
     public function removeTag(Tag $tag): static
     {
         $this->tags->removeElement($tag);
+
         return $this;
     }
 
     public function clearTags(): static
     {
         $this->tags->clear();
+
         return $this;
     }
 
@@ -262,6 +275,7 @@ class Product
             $this->skus->add($sku);
             $sku->setProduct($this);
         }
+
         return $this;
     }
 
@@ -272,6 +286,7 @@ class Product
                 $sku->setProduct($this);
             }
         }
+
         return $this;
     }
 
@@ -289,12 +304,14 @@ class Product
             $this->images->add($image);
             $image->setProduct($this);
         }
+
         return $this;
     }
 
     public function removeImage(ProductImage $image): static
     {
         $this->images->removeElement($image);
+
         return $this;
     }
 
@@ -323,17 +340,18 @@ class Product
                 return $image;
             }
         }
+
         return $this->images->first() ?: null;
     }
 
     /**
-     * 获取价格区间（最低价 - 最高价）
+     * 获取价格区间（最低价 - 最高价）.
      */
     public function getPriceRange(): array
     {
         $prices = $this->skus
-            ->filter(fn($sku) => $sku->isActive())
-            ->map(fn($sku) => (float) $sku->getPrice())
+            ->filter(fn ($sku) => $sku->isActive())
+            ->map(fn ($sku) => (float) $sku->getPrice())
             ->toArray();
 
         if (empty($prices)) {
@@ -344,10 +362,10 @@ class Product
     }
 
     /**
-     * 获取 SKU 数量
+     * 获取 SKU 数量.
      */
     public function getSkuCount(): int
     {
-        return $this->skus->filter(fn($sku) => $sku->isActive())->count();
+        return $this->skus->filter(fn ($sku) => $sku->isActive())->count();
     }
 }

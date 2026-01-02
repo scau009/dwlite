@@ -7,7 +7,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Uid\Ulid;
 
 /**
- * 渠道商品来源 - 关联平台商品与商家上架配置
+ * 渠道商品来源 - 关联平台商品与商家上架配置.
  *
  * 一个渠道商品可以有多个供货来源（多商家供货）
  */
@@ -73,6 +73,7 @@ class ChannelProductSource
     public function setChannelProduct(ChannelProduct $channelProduct): static
     {
         $this->channelProduct = $channelProduct;
+
         return $this;
     }
 
@@ -84,6 +85,7 @@ class ChannelProductSource
     public function setInventoryListing(InventoryListing $inventoryListing): static
     {
         $this->inventoryListing = $inventoryListing;
+
         return $this;
     }
 
@@ -95,6 +97,7 @@ class ChannelProductSource
     public function setPriority(int $priority): static
     {
         $this->priority = $priority;
+
         return $this;
     }
 
@@ -106,6 +109,7 @@ class ChannelProductSource
     public function setIsActive(bool $isActive): static
     {
         $this->isActive = $isActive;
+
         return $this;
     }
 
@@ -117,6 +121,7 @@ class ChannelProductSource
     public function setSoldQuantity(int $soldQuantity): static
     {
         $this->soldQuantity = $soldQuantity;
+
         return $this;
     }
 
@@ -128,6 +133,7 @@ class ChannelProductSource
     public function setRemark(?string $remark): static
     {
         $this->remark = $remark;
+
         return $this;
     }
 
@@ -150,7 +156,7 @@ class ChannelProductSource
     // 便捷方法
 
     /**
-     * 启用该来源
+     * 启用该来源.
      */
     public function activate(): void
     {
@@ -158,7 +164,7 @@ class ChannelProductSource
     }
 
     /**
-     * 禁用该来源
+     * 禁用该来源.
      */
     public function deactivate(): void
     {
@@ -166,7 +172,7 @@ class ChannelProductSource
     }
 
     /**
-     * 记录销售
+     * 记录销售.
      */
     public function recordSale(int $quantity): void
     {
@@ -176,18 +182,19 @@ class ChannelProductSource
     }
 
     /**
-     * 获取可用库存（来自关联的商家上架配置）
+     * 获取可用库存（来自关联的商家上架配置）.
      */
     public function getAvailableQuantity(): int
     {
         if (!$this->isActive) {
             return 0;
         }
+
         return $this->inventoryListing->getAvailableQuantity();
     }
 
     /**
-     * 获取商家
+     * 获取商家.
      */
     public function getMerchant(): Merchant
     {
@@ -195,7 +202,7 @@ class ChannelProductSource
     }
 
     /**
-     * 获取商家报价
+     * 获取商家报价.
      */
     public function getMerchantPrice(): string
     {

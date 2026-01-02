@@ -18,7 +18,7 @@ class InventoryTransactionRepository extends ServiceEntityRepository
     }
 
     /**
-     * 获取库存的流水记录
+     * 获取库存的流水记录.
      *
      * @return InventoryTransaction[]
      */
@@ -34,7 +34,7 @@ class InventoryTransactionRepository extends ServiceEntityRepository
     }
 
     /**
-     * 按关联单据查找流水
+     * 按关联单据查找流水.
      *
      * @return InventoryTransaction[]
      */
@@ -51,7 +51,7 @@ class InventoryTransactionRepository extends ServiceEntityRepository
     }
 
     /**
-     * 获取某时间段内的流水
+     * 获取某时间段内的流水.
      *
      * @return InventoryTransaction[]
      */

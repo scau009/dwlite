@@ -9,7 +9,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Uid\Ulid;
 
 /**
- * 送仓单/入库单 - 商户向仓库送货的主单据
+ * 送仓单/入库单 - 商户向仓库送货的主单据.
  */
 #[ORM\Entity(repositoryClass: InboundOrderRepository::class)]
 #[ORM\Table(name: 'inbound_orders')]
@@ -126,6 +126,7 @@ class InboundOrder
     public function setOrderNo(string $orderNo): static
     {
         $this->orderNo = $orderNo;
+
         return $this;
     }
 
@@ -137,6 +138,7 @@ class InboundOrder
     public function setMerchant(Merchant $merchant): static
     {
         $this->merchant = $merchant;
+
         return $this;
     }
 
@@ -148,6 +150,7 @@ class InboundOrder
     public function setWarehouse(Warehouse $warehouse): static
     {
         $this->warehouse = $warehouse;
+
         return $this;
     }
 
@@ -159,6 +162,7 @@ class InboundOrder
     public function setStatus(string $status): static
     {
         $this->status = $status;
+
         return $this;
     }
 
@@ -170,6 +174,7 @@ class InboundOrder
     public function setTotalSkuCount(int $totalSkuCount): static
     {
         $this->totalSkuCount = $totalSkuCount;
+
         return $this;
     }
 
@@ -181,6 +186,7 @@ class InboundOrder
     public function setTotalQuantity(int $totalQuantity): static
     {
         $this->totalQuantity = $totalQuantity;
+
         return $this;
     }
 
@@ -192,6 +198,7 @@ class InboundOrder
     public function setReceivedQuantity(int $receivedQuantity): static
     {
         $this->receivedQuantity = $receivedQuantity;
+
         return $this;
     }
 
@@ -203,6 +210,7 @@ class InboundOrder
     public function setExpectedArrivalDate(?\DateTimeImmutable $expectedArrivalDate): static
     {
         $this->expectedArrivalDate = $expectedArrivalDate;
+
         return $this;
     }
 
@@ -214,6 +222,7 @@ class InboundOrder
     public function setSubmittedAt(?\DateTimeImmutable $submittedAt): static
     {
         $this->submittedAt = $submittedAt;
+
         return $this;
     }
 
@@ -225,6 +234,7 @@ class InboundOrder
     public function setShippedAt(?\DateTimeImmutable $shippedAt): static
     {
         $this->shippedAt = $shippedAt;
+
         return $this;
     }
 
@@ -236,6 +246,7 @@ class InboundOrder
     public function setArrivedAt(?\DateTimeImmutable $arrivedAt): static
     {
         $this->arrivedAt = $arrivedAt;
+
         return $this;
     }
 
@@ -247,6 +258,7 @@ class InboundOrder
     public function setCompletedAt(?\DateTimeImmutable $completedAt): static
     {
         $this->completedAt = $completedAt;
+
         return $this;
     }
 
@@ -258,6 +270,7 @@ class InboundOrder
     public function setCancelledAt(?\DateTimeImmutable $cancelledAt): static
     {
         $this->cancelledAt = $cancelledAt;
+
         return $this;
     }
 
@@ -269,6 +282,7 @@ class InboundOrder
     public function setMerchantNotes(?string $merchantNotes): static
     {
         $this->merchantNotes = $merchantNotes;
+
         return $this;
     }
 
@@ -280,6 +294,7 @@ class InboundOrder
     public function setWarehouseNotes(?string $warehouseNotes): static
     {
         $this->warehouseNotes = $warehouseNotes;
+
         return $this;
     }
 
@@ -291,6 +306,7 @@ class InboundOrder
     public function setCancelReason(?string $cancelReason): static
     {
         $this->cancelReason = $cancelReason;
+
         return $this;
     }
 
@@ -308,6 +324,7 @@ class InboundOrder
             $this->items->add($item);
             $item->setInboundOrder($this);
         }
+
         return $this;
     }
 
@@ -318,6 +335,7 @@ class InboundOrder
                 $item->setInboundOrder($this);
             }
         }
+
         return $this;
     }
 
@@ -329,6 +347,7 @@ class InboundOrder
     public function setShipment(?InboundShipment $shipment): static
     {
         $this->shipment = $shipment;
+
         return $this;
     }
 
@@ -389,7 +408,7 @@ class InboundOrder
     }
 
     /**
-     * 计算差异数量（预报 - 实收）
+     * 计算差异数量（预报 - 实收）.
      */
     public function getQuantityDifference(): int
     {
@@ -420,7 +439,7 @@ class InboundOrder
     }
 
     /**
-     * 提交送仓单（草稿 -> 待发货）
+     * 提交送仓单（草稿 -> 待发货）.
      */
     public function submit(): void
     {
@@ -432,7 +451,7 @@ class InboundOrder
     }
 
     /**
-     * 标记为已发货
+     * 标记为已发货.
      */
     public function markAsShipped(): void
     {
@@ -444,7 +463,7 @@ class InboundOrder
     }
 
     /**
-     * 取消送仓单
+     * 取消送仓单.
      */
     public function cancel(string $reason): void
     {
@@ -457,10 +476,10 @@ class InboundOrder
     }
 
     /**
-     * 生成送仓单号
+     * 生成送仓单号.
      */
     public static function generateOrderNo(): string
     {
-        return 'IB' . date('Ymd') . strtoupper(substr((string) new Ulid(), -8));
+        return 'IB'.date('Ymd').strtoupper(substr((string) new Ulid(), -8));
     }
 }

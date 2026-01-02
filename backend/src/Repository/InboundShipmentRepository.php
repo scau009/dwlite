@@ -17,7 +17,7 @@ class InboundShipmentRepository extends ServiceEntityRepository
     }
 
     /**
-     * 按运单号查找
+     * 按运单号查找.
      */
     public function findByTrackingNumber(string $trackingNumber): ?InboundShipment
     {
@@ -25,7 +25,7 @@ class InboundShipmentRepository extends ServiceEntityRepository
     }
 
     /**
-     * 获取在途的物流单
+     * 获取在途的物流单.
      *
      * @return InboundShipment[]
      */

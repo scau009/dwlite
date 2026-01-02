@@ -93,7 +93,7 @@ class FooController extends AbstractController
     {
         // 模拟慢接口，用于测试 P95
         $delay = random_int(100, 500) / 1000; // 100-500ms
-        usleep((int)($delay * 1000000));
+        usleep((int) ($delay * 1000000));
 
         $this->metrics->histogram(
             'foo_slow_request_seconds',
@@ -112,6 +112,7 @@ class FooController extends AbstractController
     {
         // 模拟一些业务逻辑处理
         usleep(random_int(1000, 5000)); // 1-5ms
+
         return random_int(1, 100);
     }
 }

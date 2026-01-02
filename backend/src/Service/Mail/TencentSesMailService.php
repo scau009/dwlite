@@ -77,11 +77,7 @@ class TencentSesMailService implements MailServiceInterface
                 'errorMessage' => $e->getMessage(),
             ]);
 
-            throw new \RuntimeException(
-                sprintf('Failed to send email: %s', $e->getMessage()),
-                (int) $e->getCode(),
-                $e
-            );
+            throw new \RuntimeException(sprintf('Failed to send email: %s', $e->getMessage()), (int) $e->getCode(), $e);
         }
     }
 
@@ -121,11 +117,7 @@ class TencentSesMailService implements MailServiceInterface
                 'errorMessage' => $e->getMessage(),
             ]);
 
-            throw new \RuntimeException(
-                sprintf('Failed to send template email: %s', $e->getMessage()),
-                (int) $e->getCode(),
-                $e
-            );
+            throw new \RuntimeException(sprintf('Failed to send template email: %s', $e->getMessage()), (int) $e->getCode(), $e);
         }
     }
 

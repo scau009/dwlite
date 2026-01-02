@@ -17,7 +17,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
- * 仓库用户 - 出库单管理
+ * 仓库用户 - 出库单管理.
  */
 #[Route('/api/warehouse/outbound')]
 #[IsGranted('ROLE_USER')]
@@ -33,7 +33,7 @@ class OutboundController extends AbstractController
     }
 
     /**
-     * 获取出库单统计数据
+     * 获取出库单统计数据.
      */
     #[Route('/stats', name: 'warehouse_outbound_stats', methods: ['GET'])]
     public function getStats(Warehouse $warehouse): JsonResponse
@@ -52,7 +52,7 @@ class OutboundController extends AbstractController
     }
 
     /**
-     * 获取本仓库出库单列表
+     * 获取本仓库出库单列表.
      */
     #[Route('/orders', name: 'warehouse_outbound_list', methods: ['GET'])]
     public function listOrders(
@@ -72,7 +72,7 @@ class OutboundController extends AbstractController
     }
 
     /**
-     * 获取出库单详情
+     * 获取出库单详情.
      */
     #[Route('/orders/{id}', name: 'warehouse_outbound_detail', methods: ['GET'])]
     public function getOrder(
@@ -91,7 +91,7 @@ class OutboundController extends AbstractController
     }
 
     /**
-     * 开始拣货
+     * 开始拣货.
      */
     #[Route('/orders/{id}/start-picking', name: 'warehouse_outbound_start_picking', methods: ['POST'])]
     public function startPicking(
@@ -118,7 +118,7 @@ class OutboundController extends AbstractController
     }
 
     /**
-     * 完成拣货并开始打包
+     * 完成拣货并开始打包.
      */
     #[Route('/orders/{id}/start-packing', name: 'warehouse_outbound_start_packing', methods: ['POST'])]
     public function startPacking(
@@ -146,7 +146,7 @@ class OutboundController extends AbstractController
     }
 
     /**
-     * 完成打包，准备发货
+     * 完成打包，准备发货.
      */
     #[Route('/orders/{id}/complete-packing', name: 'warehouse_outbound_complete_packing', methods: ['POST'])]
     public function completePacking(
@@ -173,7 +173,7 @@ class OutboundController extends AbstractController
     }
 
     /**
-     * 标记发货
+     * 标记发货.
      */
     #[Route('/orders/{id}/ship', name: 'warehouse_outbound_ship', methods: ['POST'])]
     public function shipOrder(
@@ -209,7 +209,7 @@ class OutboundController extends AbstractController
     }
 
     /**
-     * 按仓库分页查询出库单
+     * 按仓库分页查询出库单.
      */
     private function findByWarehousePaginated($warehouse, int $page, int $limit, ?string $status): array
     {
@@ -247,7 +247,7 @@ class OutboundController extends AbstractController
     }
 
     /**
-     * 序列化出库单（列表）
+     * 序列化出库单（列表）.
      */
     private function serializeOrder(OutboundOrder $order): array
     {
@@ -269,7 +269,7 @@ class OutboundController extends AbstractController
     }
 
     /**
-     * 序列化出库单（详情）
+     * 序列化出库单（详情）.
      */
     private function serializeOrderDetail(OutboundOrder $order): array
     {
@@ -318,7 +318,7 @@ class OutboundController extends AbstractController
     }
 
     /**
-     * 从图片路径或 URL 中提取 COS key
+     * 从图片路径或 URL 中提取 COS key.
      */
     private function extractCosKey(string $imagePathOrUrl): ?string
     {

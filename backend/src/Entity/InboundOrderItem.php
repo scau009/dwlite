@@ -7,7 +7,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Uid\Ulid;
 
 /**
- * 送仓单明细 - 送仓单中的 SKU 明细
+ * 送仓单明细 - 送仓单中的 SKU 明细.
  */
 #[ORM\Entity(repositoryClass: InboundOrderItemRepository::class)]
 #[ORM\Table(name: 'inbound_order_items')]
@@ -102,6 +102,7 @@ class InboundOrderItem
     public function setInboundOrder(InboundOrder $inboundOrder): static
     {
         $this->inboundOrder = $inboundOrder;
+
         return $this;
     }
 
@@ -113,6 +114,7 @@ class InboundOrderItem
     public function setProductSku(?ProductSku $productSku): static
     {
         $this->productSku = $productSku;
+
         return $this;
     }
 
@@ -126,6 +128,7 @@ class InboundOrderItem
     public function setSkuName(?string $skuName): static
     {
         $this->skuName = $skuName;
+
         return $this;
     }
 
@@ -137,6 +140,7 @@ class InboundOrderItem
     public function setStyleNumber(?string $styleNumber): static
     {
         $this->styleNumber = $styleNumber;
+
         return $this;
     }
 
@@ -148,6 +152,7 @@ class InboundOrderItem
     public function setColorName(?string $colorName): static
     {
         $this->colorName = $colorName;
+
         return $this;
     }
 
@@ -159,6 +164,7 @@ class InboundOrderItem
     public function setProductName(?string $productName): static
     {
         $this->productName = $productName;
+
         return $this;
     }
 
@@ -170,11 +176,12 @@ class InboundOrderItem
     public function setProductImage(?string $productImage): static
     {
         $this->productImage = $productImage;
+
         return $this;
     }
 
     /**
-     * 从 SKU 快照关键信息
+     * 从 SKU 快照关键信息.
      */
     public function snapshotFromSku(ProductSku $sku): void
     {
@@ -199,6 +206,7 @@ class InboundOrderItem
     public function setExpectedQuantity(int $expectedQuantity): static
     {
         $this->expectedQuantity = $expectedQuantity;
+
         return $this;
     }
 
@@ -210,6 +218,7 @@ class InboundOrderItem
     public function setReceivedQuantity(int $receivedQuantity): static
     {
         $this->receivedQuantity = $receivedQuantity;
+
         return $this;
     }
 
@@ -221,6 +230,7 @@ class InboundOrderItem
     public function setDamagedQuantity(int $damagedQuantity): static
     {
         $this->damagedQuantity = $damagedQuantity;
+
         return $this;
     }
 
@@ -232,6 +242,7 @@ class InboundOrderItem
     public function setUnitCost(?string $unitCost): static
     {
         $this->unitCost = $unitCost;
+
         return $this;
     }
 
@@ -243,6 +254,7 @@ class InboundOrderItem
     public function setStatus(string $status): static
     {
         $this->status = $status;
+
         return $this;
     }
 
@@ -254,6 +266,7 @@ class InboundOrderItem
     public function setWarehouseRemark(?string $warehouseRemark): static
     {
         $this->warehouseRemark = $warehouseRemark;
+
         return $this;
     }
 
@@ -265,6 +278,7 @@ class InboundOrderItem
     public function setReceivedAt(?\DateTimeImmutable $receivedAt): static
     {
         $this->receivedAt = $receivedAt;
+
         return $this;
     }
 
@@ -287,7 +301,7 @@ class InboundOrderItem
     // 便捷方法
 
     /**
-     * 获取数量差异（预报 - 实收）
+     * 获取数量差异（预报 - 实收）.
      */
     public function getQuantityDifference(): int
     {
@@ -303,7 +317,7 @@ class InboundOrderItem
     }
 
     /**
-     * 获取可用数量（实收 - 损坏）
+     * 获取可用数量（实收 - 损坏）.
      */
     public function getAvailableQuantity(): int
     {
@@ -311,18 +325,19 @@ class InboundOrderItem
     }
 
     /**
-     * 计算总成本
+     * 计算总成本.
      */
     public function getTotalCost(): ?string
     {
         if ($this->unitCost === null) {
             return null;
         }
+
         return bcmul($this->unitCost, (string) $this->receivedQuantity, 2);
     }
 
     /**
-     * 确认收货
+     * 确认收货.
      */
     public function confirmReceived(int $receivedQty, int $damagedQty = 0, ?string $remark = null): void
     {

@@ -48,7 +48,7 @@ class WalletRepository extends ServiceEntityRepository
     }
 
     /**
-     * 为商户创建两个钱包
+     * 为商户创建两个钱包.
      */
     public function createWalletsForMerchant(Merchant $merchant): array
     {

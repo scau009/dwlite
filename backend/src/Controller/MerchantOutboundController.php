@@ -31,20 +31,19 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 class MerchantOutboundController extends AbstractController
 {
     public function __construct(
-        private MerchantRepository          $merchantRepository,
-        private OutboundOrderRepository     $outboundOrderRepository,
-        private WarehouseRepository         $warehouseRepository,
+        private MerchantRepository $merchantRepository,
+        private OutboundOrderRepository $outboundOrderRepository,
+        private WarehouseRepository $warehouseRepository,
         private MerchantInventoryRepository $inventoryRepository,
-        private InventoryService            $inventoryService,
-        private CosService                  $cosService,
-        private EntityManagerInterface      $entityManager,
-        private TranslatorInterface         $translator,
-    )
-    {
+        private InventoryService $inventoryService,
+        private CosService $cosService,
+        private EntityManagerInterface $entityManager,
+        private TranslatorInterface $translator,
+    ) {
     }
 
     /**
-     * 获取当前商户
+     * 获取当前商户.
      */
     private function getCurrentMerchant(User $user)
     {
@@ -52,11 +51,12 @@ class MerchantOutboundController extends AbstractController
         if ($merchant === null) {
             throw $this->createAccessDeniedException('Merchant not found');
         }
+
         return $merchant;
     }
 
     /**
-     * 获取出库类型选项
+     * 获取出库类型选项.
      */
     #[Route('/type-options', name: 'outbound_type_options', methods: ['GET'])]
     public function getTypeOptions(): JsonResponse
@@ -72,7 +72,7 @@ class MerchantOutboundController extends AbstractController
     }
 
     /**
-     * 获取出库状态选项
+     * 获取出库状态选项.
      */
     #[Route('/status-options', name: 'outbound_status_options', methods: ['GET'])]
     public function getStatusOptions(): JsonResponse
@@ -91,14 +91,13 @@ class MerchantOutboundController extends AbstractController
     }
 
     /**
-     * 出库单列表
+     * 出库单列表.
      */
     #[Route('/orders', name: 'outbound_list_orders', methods: ['GET'])]
     public function listOrders(
-        #[CurrentUser] User                       $user,
+        #[CurrentUser] User $user,
         #[MapQueryString] ?OutboundOrderListQuery $query = null
-    ): JsonResponse
-    {
+    ): JsonResponse {
         $query = $query ?? new OutboundOrderListQuery();
         $merchant = $this->getCurrentMerchant($user);
 
@@ -114,25 +113,24 @@ class MerchantOutboundController extends AbstractController
         );
 
         return $this->json([
-            'data' => array_map(fn(OutboundOrder $order) => $this->formatOutboundOrder($order), $result['items']),
+            'data' => array_map(fn (OutboundOrder $order) => $this->formatOutboundOrder($order), $result['items']),
             'meta' => [
                 'total' => $result['total'],
                 'page' => $query->page,
                 'limit' => $query->limit,
-                'totalPages' => (int)ceil($result['total'] / $query->limit),
+                'totalPages' => (int) ceil($result['total'] / $query->limit),
             ],
         ]);
     }
 
     /**
-     * 出库单详情
+     * 出库单详情.
      */
     #[Route('/orders/{id}', name: 'outbound_get_order', methods: ['GET'])]
     public function getOrder(
-        string              $id,
+        string $id,
         #[CurrentUser] User $user
-    ): JsonResponse
-    {
+    ): JsonResponse {
         $merchant = $this->getCurrentMerchant($user);
         $order = $this->outboundOrderRepository->findOneByIdAndMerchant($id, $merchant);
 
@@ -148,14 +146,13 @@ class MerchantOutboundController extends AbstractController
     }
 
     /**
-     * 创建出库单（草稿状态）
+     * 创建出库单（草稿状态）.
      */
     #[Route('/orders', name: 'outbound_create_order', methods: ['POST'])]
     public function createOrder(
-        #[CurrentUser] User                             $user,
+        #[CurrentUser] User $user,
         #[MapRequestPayload] CreateOutboundOrderRequest $request
-    ): JsonResponse
-    {
+    ): JsonResponse {
         $merchant = $this->getCurrentMerchant($user);
 
         // 验证仓库
@@ -187,14 +184,13 @@ class MerchantOutboundController extends AbstractController
     }
 
     /**
-     * 删除出库单（仅草稿状态可删除）
+     * 删除出库单（仅草稿状态可删除）.
      */
     #[Route('/orders/{id}', name: 'outbound_delete_order', methods: ['DELETE'])]
     public function deleteOrder(
-        string              $id,
+        string $id,
         #[CurrentUser] User $user
-    ): JsonResponse
-    {
+    ): JsonResponse {
         $merchant = $this->getCurrentMerchant($user);
         $order = $this->outboundOrderRepository->findOneByIdAndMerchant($id, $merchant);
 
@@ -219,14 +215,13 @@ class MerchantOutboundController extends AbstractController
     }
 
     /**
-     * 提交出库单（草稿 → 待处理）
+     * 提交出库单（草稿 → 待处理）.
      */
     #[Route('/orders/{id}/submit', name: 'outbound_submit_order', methods: ['POST'])]
     public function submitOrder(
-        string              $id,
+        string $id,
         #[CurrentUser] User $user
-    ): JsonResponse
-    {
+    ): JsonResponse {
         $merchant = $this->getCurrentMerchant($user);
         $order = $this->outboundOrderRepository->findOneByIdAndMerchant($id, $merchant);
 
@@ -271,7 +266,7 @@ class MerchantOutboundController extends AbstractController
             if ($availableQuantity < $item->getQuantity()) {
                 return $this->json([
                     'error' => $this->translator->trans('validation.insufficient_stock', [
-                        '%sku%' => $item->getStyleNumber() . '-' . $item->getSkuName(),
+                        '%sku%' => $item->getStyleNumber().'-'.$item->getSkuName(),
                         '%available%' => $availableQuantity,
                         '%requested%' => $item->getQuantity(),
                     ]),
@@ -316,11 +311,10 @@ class MerchantOutboundController extends AbstractController
      */
     #[Route('/orders/{id}/items', name: 'outbound_add_item', methods: ['POST'])]
     public function addItem(
-        string                                      $id,
-        #[CurrentUser] User                         $user,
+        string $id,
+        #[CurrentUser] User $user,
         #[MapRequestPayload] AddOutboundItemRequest $request
-    ): JsonResponse
-    {
+    ): JsonResponse {
         $merchant = $this->getCurrentMerchant($user);
         $order = $this->outboundOrderRepository->findOneByIdAndMerchant($id, $merchant);
 
@@ -357,7 +351,7 @@ class MerchantOutboundController extends AbstractController
 
         $sku = $inventory->getProductSku();
         $product = $sku->getProduct();
-        $skuIdentifier = $product->getStyleNumber() . '-' . $sku->getSizeValue();
+        $skuIdentifier = $product->getStyleNumber().'-'.$sku->getSizeValue();
 
         // 根据库存类型验证可用库存
         $isDamagedStock = $request->stockType === OutboundOrderItem::STOCK_TYPE_DAMAGED;
@@ -378,9 +372,9 @@ class MerchantOutboundController extends AbstractController
         // 检查是否已存在该商品（通过 SKU ID + 库存类型 比较）
         foreach ($order->getItems() as $existingItem) {
             // 比较 styleNumber + skuName + stockType 组合
-            if ($existingItem->getStyleNumber() === $product->getStyleNumber() &&
-                $existingItem->getSkuName() === $sku->getSizeValue() &&
-                $existingItem->getStockType() === $request->stockType) {
+            if ($existingItem->getStyleNumber() === $product->getStyleNumber()
+                && $existingItem->getSkuName() === $sku->getSizeValue()
+                && $existingItem->getStockType() === $request->stockType) {
                 return $this->json([
                     'error' => $this->translator->trans('outbound.item_already_exists'),
                 ], Response::HTTP_BAD_REQUEST);
@@ -412,11 +406,10 @@ class MerchantOutboundController extends AbstractController
      */
     #[Route('/orders/{orderId}/items/{itemId}', name: 'outbound_remove_item', methods: ['DELETE'])]
     public function removeItem(
-        string              $orderId,
-        string              $itemId,
+        string $orderId,
+        string $itemId,
         #[CurrentUser] User $user
-    ): JsonResponse
-    {
+    ): JsonResponse {
         $merchant = $this->getCurrentMerchant($user);
         $order = $this->outboundOrderRepository->findOneByIdAndMerchant($orderId, $merchant);
 
@@ -457,7 +450,7 @@ class MerchantOutboundController extends AbstractController
     }
 
     /**
-     * 格式化出库单（列表）
+     * 格式化出库单（列表）.
      */
     private function formatOutboundOrder(OutboundOrder $order): array
     {
@@ -486,7 +479,7 @@ class MerchantOutboundController extends AbstractController
     }
 
     /**
-     * 格式化出库单（详情）
+     * 格式化出库单（详情）.
      */
     private function formatOutboundOrderDetail(OutboundOrder $order): array
     {
@@ -553,7 +546,7 @@ class MerchantOutboundController extends AbstractController
     }
 
     /**
-     * 从图片路径或 URL 中提取 COS key
+     * 从图片路径或 URL 中提取 COS key.
      */
     private function extractCosKey(string $imagePathOrUrl): ?string
     {
@@ -574,7 +567,7 @@ class MerchantOutboundController extends AbstractController
     }
 
     /**
-     * 获取出库类型标签
+     * 获取出库类型标签.
      */
     private function getTypeLabel(string $type): string
     {
@@ -588,7 +581,7 @@ class MerchantOutboundController extends AbstractController
     }
 
     /**
-     * 获取状态标签
+     * 获取状态标签.
      */
     private function getStatusLabel(string $status): string
     {
