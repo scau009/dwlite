@@ -137,10 +137,15 @@ class MerchantChannelController extends AbstractController
     {
         $merchant = $mc->getMerchant();
         $channel = $mc->getSalesChannel();
+        $warehouse = $mc->getDefaultWarehouse();
 
         $data = [
             'id' => $mc->getId(),
             'status' => $mc->getStatus(),
+            'fulfillmentType' => $mc->getFulfillmentType(),
+            'pricingModel' => $mc->getPricingModel(),
+            'defaultWarehouseId' => $warehouse?->getId(),
+            'defaultWarehouseName' => $warehouse?->getName(),
             'remark' => $mc->getRemark(),
             'approvedAt' => $mc->getApprovedAt()?->format('c'),
             'approvedBy' => $mc->getApprovedBy(),

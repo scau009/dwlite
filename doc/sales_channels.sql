@@ -9,7 +9,6 @@ CREATE TABLE `sales_channels` (
     `description` TEXT NULL,
     `config` JSON NULL COMMENT 'Channel global config',
     `config_schema` JSON NULL COMMENT 'JSON Schema for merchant config fields',
-    `business_type` VARCHAR(20) NOT NULL DEFAULT 'export' COMMENT 'import, export',
     `status` VARCHAR(20) NOT NULL DEFAULT 'active' COMMENT 'active, maintenance, disabled',
     `sort_order` INT NOT NULL DEFAULT 0,
     `created_at` DATETIME NOT NULL,

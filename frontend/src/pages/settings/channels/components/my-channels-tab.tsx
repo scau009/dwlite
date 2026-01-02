@@ -133,6 +133,46 @@ export function MyChannelsTab({ actionRef: externalRef }: Props) {
       ),
     },
     {
+      title: t('merchantChannels.fulfillmentType'),
+      dataIndex: 'fulfillmentType',
+      width: 140,
+      search: false,
+      render: (_, record) => (
+        <div>
+          <div>
+            {record.fulfillmentType === 'consignment'
+              ? t('merchantChannels.fulfillmentConsignment')
+              : t('merchantChannels.fulfillmentSelfFulfillment')}
+          </div>
+          <div className="text-xs text-gray-400">
+            {record.fulfillmentType === 'consignment'
+              ? t('merchantChannels.fulfillmentConsignmentDesc')
+              : t('merchantChannels.fulfillmentSelfFulfillmentDesc')}
+          </div>
+        </div>
+      ),
+    },
+    {
+      title: t('merchantChannels.pricingModel'),
+      dataIndex: 'pricingModel',
+      width: 120,
+      search: false,
+      render: (_, record) => (
+        <Tag color={record.pricingModel === 'self_pricing' ? 'blue' : 'green'}>
+          {record.pricingModel === 'self_pricing'
+            ? t('merchantChannels.pricingSelf')
+            : t('merchantChannels.pricingPlatformManaged')}
+        </Tag>
+      ),
+    },
+    {
+      title: t('merchantChannels.defaultWarehouse'),
+      dataIndex: 'defaultWarehouseName',
+      width: 150,
+      search: false,
+      render: (_, record) => record.defaultWarehouseName || '-',
+    },
+    {
       title: t('myChannels.remark'),
       dataIndex: 'remark',
       width: 200,

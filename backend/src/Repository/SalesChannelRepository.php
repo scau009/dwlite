@@ -81,11 +81,6 @@ class SalesChannelRepository extends ServiceEntityRepository
                 ->setParameter('code', '%'.$filters['code'].'%');
         }
 
-        if (!empty($filters['businessType'])) {
-            $qb->andWhere('c.businessType = :businessType')
-                ->setParameter('businessType', $filters['businessType']);
-        }
-
         if (!empty($filters['status'])) {
             $qb->andWhere('c.status = :status')
                 ->setParameter('status', $filters['status']);

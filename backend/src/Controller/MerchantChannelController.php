@@ -10,6 +10,7 @@ use App\Entity\User;
 use App\Repository\MerchantRepository;
 use App\Repository\MerchantSalesChannelRepository;
 use App\Repository\SalesChannelRepository;
+use App\Repository\WarehouseRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -30,6 +31,7 @@ class MerchantChannelController extends AbstractController
         private MerchantRepository $merchantRepository,
         private SalesChannelRepository $salesChannelRepository,
         private MerchantSalesChannelRepository $merchantChannelRepository,
+        private WarehouseRepository $warehouseRepository,
         private TranslatorInterface $translator,
     ) {
     }
@@ -114,9 +116,35 @@ class MerchantChannelController extends AbstractController
             return $this->json(['error' => $this->translator->trans('merchant_channel.already_applied')], Response::HTTP_CONFLICT);
         }
 
+        // 寄售模式必须指定默认仓库
+        if ($dto->fulfillmentType === 'consignment') {
+            if (!$dto->defaultWarehouseId) {
+                return $this->json(['error' => $this->translator->trans('merchant_channel.warehouse_required_for_consignment')], Response::HTTP_BAD_REQUEST);
+            }
+
+            $warehouse = $this->warehouseRepository->find($dto->defaultWarehouseId);
+            if (!$warehouse) {
+                return $this->json(['error' => $this->translator->trans('merchant_channel.warehouse_not_found')], Response::HTTP_NOT_FOUND);
+            }
+
+            if (!$warehouse->isActive()) {
+                return $this->json(['error' => $this->translator->trans('merchant_channel.warehouse_not_active')], Response::HTTP_BAD_REQUEST);
+            }
+        }
+
         $mc = new MerchantSalesChannel();
         $mc->setMerchant($merchant);
         $mc->setSalesChannel($channel);
+        $mc->setFulfillmentType($dto->fulfillmentType);
+        $mc->setPricingModel($dto->pricingModel);
+
+        if ($dto->defaultWarehouseId) {
+            $warehouse = $this->warehouseRepository->find($dto->defaultWarehouseId);
+            if ($warehouse) {
+                $mc->setDefaultWarehouse($warehouse);
+            }
+        }
+
         if ($dto->remark) {
             $mc->setRemark($dto->remark);
         }
@@ -205,17 +233,21 @@ class MerchantChannelController extends AbstractController
             'name' => $channel->getName(),
             'logoUrl' => $channel->getLogoUrl(),
             'description' => $channel->getDescription(),
-            'businessType' => $channel->getBusinessType(),
         ];
     }
 
     private function serializeMerchantChannel(MerchantSalesChannel $mc): array
     {
         $channel = $mc->getSalesChannel();
+        $warehouse = $mc->getDefaultWarehouse();
 
         return [
             'id' => $mc->getId(),
             'status' => $mc->getStatus(),
+            'fulfillmentType' => $mc->getFulfillmentType(),
+            'pricingModel' => $mc->getPricingModel(),
+            'defaultWarehouseId' => $warehouse?->getId(),
+            'defaultWarehouseName' => $warehouse?->getName(),
             'remark' => $mc->getRemark(),
             'approvedAt' => $mc->getApprovedAt()?->format('c'),
             'createdAt' => $mc->getCreatedAt()->format('c'),
@@ -225,7 +257,6 @@ class MerchantChannelController extends AbstractController
                 'code' => $channel->getCode(),
                 'name' => $channel->getName(),
                 'logoUrl' => $channel->getLogoUrl(),
-                'businessType' => $channel->getBusinessType(),
             ],
         ];
     }

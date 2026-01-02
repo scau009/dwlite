@@ -14,10 +14,6 @@ use Symfony\Component\Uid\Ulid;
 #[ORM\HasLifecycleCallbacks]
 class SalesChannel
 {
-    // 业务类型
-    public const BUSINESS_TYPE_IMPORT = 'import';  // 进口
-    public const BUSINESS_TYPE_EXPORT = 'export';  // 出口
-
     // 渠道状态
     public const STATUS_ACTIVE = 'active';       // 正常
     public const STATUS_MAINTENANCE = 'maintenance'; // 维护中
@@ -44,9 +40,6 @@ class SalesChannel
 
     #[ORM\Column(type: 'json', nullable: true)]
     private ?array $configSchema = null;  // 商户配置的 JSON Schema，定义商户需要填写的字段
-
-    #[ORM\Column(type: 'string', length: 20)]
-    private string $businessType = self::BUSINESS_TYPE_EXPORT;
 
     #[ORM\Column(type: 'string', length: 20)]
     private string $status = self::STATUS_ACTIVE;
@@ -153,18 +146,6 @@ class SalesChannel
         return $this;
     }
 
-    public function getBusinessType(): string
-    {
-        return $this->businessType;
-    }
-
-    public function setBusinessType(string $businessType): static
-    {
-        $this->businessType = $businessType;
-
-        return $this;
-    }
-
     public function getStatus(): string
     {
         return $this->status;
@@ -233,15 +214,5 @@ class SalesChannel
     public function isAvailable(): bool
     {
         return $this->status === self::STATUS_ACTIVE;
-    }
-
-    public function isImport(): bool
-    {
-        return $this->businessType === self::BUSINESS_TYPE_IMPORT;
-    }
-
-    public function isExport(): bool
-    {
-        return $this->businessType === self::BUSINESS_TYPE_EXPORT;
     }
 }

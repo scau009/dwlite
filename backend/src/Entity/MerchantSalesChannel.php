@@ -11,9 +11,18 @@ use Symfony\Component\Uid\Ulid;
 #[ORM\UniqueConstraint(name: 'uk_merchant_channel', columns: ['merchant_id', 'sales_channel_id'])]
 #[ORM\Index(name: 'idx_msc_merchant', columns: ['merchant_id'])]
 #[ORM\Index(name: 'idx_msc_channel', columns: ['sales_channel_id'])]
+#[ORM\Index(name: 'idx_msc_warehouse', columns: ['default_warehouse_id'])]
 #[ORM\HasLifecycleCallbacks]
 class MerchantSalesChannel
 {
+    // 履约模式
+    public const FULFILLMENT_CONSIGNMENT = 'consignment';         // 寄售：送仓实物库存，平台履约
+    public const FULFILLMENT_SELF_FULFILLMENT = 'self_fulfillment'; // 自履约：虚拟库存，商户自己发货
+
+    // 定价模式
+    public const PRICING_SELF = 'self_pricing';           // 自主定价
+    public const PRICING_PLATFORM_MANAGED = 'platform_managed';  // 平台托管定价
+
     // 状态
     public const STATUS_PENDING = 'pending';     // 待审核（管理员需审核开通）
     public const STATUS_ACTIVE = 'active';       // 已启用
@@ -31,6 +40,16 @@ class MerchantSalesChannel
     #[ORM\ManyToOne(targetEntity: SalesChannel::class, inversedBy: 'merchantChannels')]
     #[ORM\JoinColumn(name: 'sales_channel_id', referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]
     private SalesChannel $salesChannel;
+
+    #[ORM\Column(type: 'string', length: 20)]
+    private string $fulfillmentType;  // 履约模式
+
+    #[ORM\Column(type: 'string', length: 20)]
+    private string $pricingModel = self::PRICING_SELF;  // 定价模式
+
+    #[ORM\ManyToOne(targetEntity: Warehouse::class)]
+    #[ORM\JoinColumn(name: 'default_warehouse_id', referencedColumnName: 'id', nullable: true, onDelete: 'SET NULL')]
+    private ?Warehouse $defaultWarehouse = null;  // 默认仓库（仅寄售模式使用）
 
     #[ORM\Column(type: 'json', nullable: true)]
     private ?array $config = null;  // 商户针对该渠道的配置（如店铺ID、API密钥等）
@@ -85,6 +104,42 @@ class MerchantSalesChannel
     public function setSalesChannel(SalesChannel $salesChannel): static
     {
         $this->salesChannel = $salesChannel;
+
+        return $this;
+    }
+
+    public function getFulfillmentType(): string
+    {
+        return $this->fulfillmentType;
+    }
+
+    public function setFulfillmentType(string $fulfillmentType): static
+    {
+        $this->fulfillmentType = $fulfillmentType;
+
+        return $this;
+    }
+
+    public function getPricingModel(): string
+    {
+        return $this->pricingModel;
+    }
+
+    public function setPricingModel(string $pricingModel): static
+    {
+        $this->pricingModel = $pricingModel;
+
+        return $this;
+    }
+
+    public function getDefaultWarehouse(): ?Warehouse
+    {
+        return $this->defaultWarehouse;
+    }
+
+    public function setDefaultWarehouse(?Warehouse $defaultWarehouse): static
+    {
+        $this->defaultWarehouse = $defaultWarehouse;
 
         return $this;
     }
@@ -252,5 +307,37 @@ class MerchantSalesChannel
         $this->status = self::STATUS_ACTIVE;
 
         return $this;
+    }
+
+    /**
+     * 是否寄售模式.
+     */
+    public function isConsignment(): bool
+    {
+        return $this->fulfillmentType === self::FULFILLMENT_CONSIGNMENT;
+    }
+
+    /**
+     * 是否自履约模式.
+     */
+    public function isSelfFulfillment(): bool
+    {
+        return $this->fulfillmentType === self::FULFILLMENT_SELF_FULFILLMENT;
+    }
+
+    /**
+     * 是否自主定价.
+     */
+    public function isSelfPricing(): bool
+    {
+        return $this->pricingModel === self::PRICING_SELF;
+    }
+
+    /**
+     * 是否平台托管定价.
+     */
+    public function isPlatformManaged(): bool
+    {
+        return $this->pricingModel === self::PRICING_PLATFORM_MANAGED;
     }
 }

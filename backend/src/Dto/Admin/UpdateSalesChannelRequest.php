@@ -19,9 +19,6 @@ class UpdateSalesChannelRequest
 
     public ?array $configSchema = null;
 
-    #[Assert\Choice(choices: ['import', 'export'], message: 'validation.business_type_invalid')]
-    public ?string $businessType = null;
-
     #[Assert\PositiveOrZero(message: 'validation.sort_order_positive')]
     public ?int $sortOrder = null;
 }

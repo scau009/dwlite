@@ -25,9 +25,6 @@ class CreateSalesChannelRequest
 
     public ?array $configSchema = null;
 
-    #[Assert\Choice(choices: ['import', 'export'], message: 'validation.business_type_invalid')]
-    public string $businessType = 'export';
-
     #[Assert\Choice(choices: ['active', 'maintenance', 'disabled'], message: 'validation.status_invalid')]
     public string $status = 'active';
 

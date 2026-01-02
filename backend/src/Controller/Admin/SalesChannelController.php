@@ -65,7 +65,6 @@ class SalesChannelController extends AbstractController
         $channel = new SalesChannel();
         $channel->setCode($dto->code);
         $channel->setName($dto->name);
-        $channel->setBusinessType($dto->businessType);
         $channel->setStatus($dto->status);
 
         if ($dto->logoUrl !== null) {
@@ -114,9 +113,6 @@ class SalesChannelController extends AbstractController
         }
         if ($dto->configSchema !== null) {
             $channel->setConfigSchema($dto->configSchema);
-        }
-        if ($dto->businessType !== null) {
-            $channel->setBusinessType($dto->businessType);
         }
         if ($dto->sortOrder !== null) {
             $channel->setSortOrder($dto->sortOrder);
@@ -174,7 +170,6 @@ class SalesChannelController extends AbstractController
             'code' => $channel->getCode(),
             'name' => $channel->getName(),
             'logoUrl' => $channel->getLogoUrl(),
-            'businessType' => $channel->getBusinessType(),
             'status' => $channel->getStatus(),
             'sortOrder' => $channel->getSortOrder(),
             'createdAt' => $channel->getCreatedAt()->format('c'),
