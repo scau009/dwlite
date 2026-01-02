@@ -222,9 +222,11 @@ jobs:
             ${{ steps.ssh.outputs.ssh_user }}@${{ steps.ssh.outputs.ssh_host }}:/opt/dwlite/
 
       - name: Deploy application
+        env:
+          PROD_ENV_CONTENT: ${{ secrets.PROD_ENV_FILE }}
         run: |
           # Encode env file content to base64 to safely pass special characters
-          ENV_ENCODED=$(echo '${{ secrets.PROD_ENV_FILE }}' | base64 -w 0)
+          ENV_ENCODED=$(echo "$PROD_ENV_CONTENT" | base64 -w 0)
 
           ssh -p ${{ steps.ssh.outputs.ssh_port }} -i ~/.ssh/deploy_key \
             ${{ steps.ssh.outputs.ssh_user }}@${{ steps.ssh.outputs.ssh_host }} \
