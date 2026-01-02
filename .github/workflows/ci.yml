@@ -228,7 +228,7 @@ jobs:
     if: github.ref == 'refs/heads/release'
     environment:
       name: production
-      url: https://your-production-url.com
+      url: https://dwlite.taoism.gz.cn
 
     steps:
       - name: Checkout code
