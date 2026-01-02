@@ -6,7 +6,6 @@ use App\Entity\Merchant;
 use App\Entity\Wallet;
 use App\Entity\WalletTransaction;
 use App\Repository\WalletRepository;
-use App\Repository\WalletTransactionRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
@@ -14,7 +13,6 @@ class WalletService
 {
     public function __construct(
         private WalletRepository $walletRepository,
-        private WalletTransactionRepository $transactionRepository,
         private EntityManagerInterface $entityManager,
         private TranslatorInterface $translator,
         private BusinessNoGenerator $businessNoGenerator,

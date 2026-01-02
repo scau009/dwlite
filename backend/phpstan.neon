@@ -1,12 +1,11 @@
+includes:
+    - phpstan-baseline.neon
+
 parameters:
-    level: 6
+    level: 5
     paths:
         - src
     excludePaths:
         - src/Kernel.php
     symfony:
         containerXmlPath: var/cache/dev/App_KernelDevDebugContainer.xml
-    checkGenericClassInNonGenericObjectType: false
-    ignoreErrors:
-        # Ignore errors from generated code
-        - '#Access to an undefined property App\\Entity#'

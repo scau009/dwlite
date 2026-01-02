@@ -89,8 +89,8 @@ class InboundOrderController extends AbstractController
         $search = $request->query->get('search', '');
         $brandId = $request->query->get('brandId');
         $categoryId = $request->query->get('categoryId');
-        $page = max(1, (int) $request->query->get('page', 1));
-        $limit = min((int) $request->query->get('limit', 20), 50);
+        $page = max(1, (int) $request->query->get('page', '1'));
+        $limit = min((int) $request->query->get('limit', '20'), 50);
 
         $filters = [
             'status' => 'active',  // 只查询已上架的商品
@@ -498,8 +498,8 @@ class InboundOrderController extends AbstractController
     ): JsonResponse {
         $merchant = $this->getCurrentMerchant($user);
 
-        $page = max(1, (int) $request->query->get('page', 1));
-        $limit = min((int) $request->query->get('limit', 20), 50);
+        $page = max(1, (int) $request->query->get('page', '1'));
+        $limit = min((int) $request->query->get('limit', '20'), 50);
         $status = $request->query->get('status');
         $type = $request->query->get('type');
         $search = $request->query->get('search');
@@ -568,8 +568,8 @@ class InboundOrderController extends AbstractController
             return $this->json([
                 'message' => $this->translator->trans('inbound.exception.resolved'),
                 'data' => $this->serializeException($exception),
-                'orderStatus' => $order?->getStatus(),
-                'orderCompleted' => $order?->isCompleted(),
+                'orderStatus' => $order->getStatus(),
+                'orderCompleted' => $order->isCompleted(),
             ]);
         } catch (\LogicException $e) {
             return $this->json(['error' => $e->getMessage()], Response::HTTP_BAD_REQUEST);

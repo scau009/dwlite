@@ -59,8 +59,8 @@ class OutboundController extends AbstractController
         Warehouse $warehouse,
         Request $request
     ): JsonResponse {
-        $page = max(1, (int) $request->query->get('page', 1));
-        $limit = min(50, max(1, (int) $request->query->get('limit', 20)));
+        $page = max(1, (int) $request->query->get('page', '1'));
+        $limit = min(50, max(1, (int) $request->query->get('limit', '20')));
         $status = $request->query->get('status');
 
         $result = $this->findByWarehousePaginated($warehouse, $page, $limit, $status);

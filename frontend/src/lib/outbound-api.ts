@@ -1,4 +1,4 @@
-import { apiFetch } from './api-client';
+import {apiFetch} from './api-client';
 
 // ========== Types ==========
 
@@ -171,27 +171,25 @@ export const outboundApi = {
   createOutboundOrder: async (
     params: CreateOutboundOrderParams
   ): Promise<{ message: string; data: OutboundOrder }> => {
-    const response = await apiFetch<{ message: string; data: OutboundOrder }>(
-      '/api/outbound/orders',
-      {
-        method: 'POST',
-        body: JSON.stringify(params),
-      }
+    return await apiFetch<{ message: string; data: OutboundOrder }>(
+        '/api/outbound/orders',
+        {
+          method: 'POST',
+          body: JSON.stringify(params),
+        }
     );
-    return response;
   },
 
   /**
    * Delete outbound order (draft only)
    */
   deleteOutboundOrder: async (id: string): Promise<{ message: string }> => {
-    const response = await apiFetch<{ message: string }>(
-      `/api/outbound/orders/${id}`,
-      {
-        method: 'DELETE',
-      }
+    return await apiFetch<{ message: string }>(
+        `/api/outbound/orders/${id}`,
+        {
+          method: 'DELETE',
+        }
     );
-    return response;
   },
 
   /**
@@ -216,14 +214,13 @@ export const outboundApi = {
     orderId: string,
     params: AddOutboundItemParams
   ): Promise<{ message: string; data: OutboundOrderDetail }> => {
-    const response = await apiFetch<{ message: string; data: OutboundOrderDetail }>(
-      `/api/outbound/orders/${orderId}/items`,
-      {
-        method: 'POST',
-        body: JSON.stringify(params),
-      }
+    return await apiFetch<{ message: string; data: OutboundOrderDetail }>(
+        `/api/outbound/orders/${orderId}/items`,
+        {
+          method: 'POST',
+          body: JSON.stringify(params),
+        }
     );
-    return response;
   },
 
   /**
@@ -233,12 +230,11 @@ export const outboundApi = {
     orderId: string,
     itemId: string
   ): Promise<{ message: string; data: OutboundOrderDetail }> => {
-    const response = await apiFetch<{ message: string; data: OutboundOrderDetail }>(
-      `/api/outbound/orders/${orderId}/items/${itemId}`,
-      {
-        method: 'DELETE',
-      }
+    return await apiFetch<{ message: string; data: OutboundOrderDetail }>(
+        `/api/outbound/orders/${orderId}/items/${itemId}`,
+        {
+          method: 'DELETE',
+        }
     );
-    return response;
   },
 };

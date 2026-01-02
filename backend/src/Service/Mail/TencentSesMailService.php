@@ -16,9 +16,9 @@ class TencentSesMailService implements MailServiceInterface
     private SesClient $client;
 
     public function __construct(
-        private string $secretId,
-        private string $secretKey,
-        private string $region,
+        string $secretId,
+        string $secretKey,
+        string $region,
         private string $fromEmail,
         private string $fromName,
         private LoggerInterface $logger,

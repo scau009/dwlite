@@ -17,7 +17,7 @@ class CreateInboundExceptionRequest
     public string $description = '';
 
     /**
-     * @var array<array{sku_id: string, expected: int, actual: int, issue: string}>
+     * @var array<array{sku_id?: string, expected?: int, actual?: int, issue?: string, order_item_id?: string, sku_name?: string, color_name?: string, product_name?: string, product_image?: string, quantity?: int}>
      */
     #[Assert\NotBlank(message: 'validation.items_required')]
     #[Assert\Type('array')]

@@ -49,7 +49,7 @@ class CategoryController extends AbstractController
     #[Route('/tree', name: 'admin_category_tree', methods: ['GET'])]
     public function tree(Request $request): JsonResponse
     {
-        $activeOnly = filter_var($request->query->get('activeOnly', false), FILTER_VALIDATE_BOOLEAN);
+        $activeOnly = filter_var($request->query->get('activeOnly', 'false'), FILTER_VALIDATE_BOOLEAN);
         $categories = $this->categoryRepository->findAllForTree($activeOnly);
 
         $tree = $this->buildTree($categories);

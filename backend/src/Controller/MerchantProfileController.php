@@ -9,7 +9,6 @@ use App\Entity\User;
 use App\Entity\Wallet;
 use App\Repository\MerchantRepository;
 use App\Repository\WalletTransactionRepository;
-use App\Service\WalletService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -27,7 +26,6 @@ class MerchantProfileController extends AbstractController
 {
     public function __construct(
         private MerchantRepository $merchantRepository,
-        private WalletService $walletService,
         private WalletTransactionRepository $transactionRepository,
         private TranslatorInterface $translator,
     ) {

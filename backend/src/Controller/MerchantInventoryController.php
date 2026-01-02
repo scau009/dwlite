@@ -49,8 +49,8 @@ class MerchantInventoryController extends AbstractController
     {
         $merchant = $this->getCurrentMerchant($user);
 
-        $page = max(1, (int) $request->query->get('page', 1));
-        $limit = min(100, max(1, (int) $request->query->get('limit', 20)));
+        $page = max(1, (int) $request->query->get('page', '1'));
+        $limit = min(100, max(1, (int) $request->query->get('limit', '20')));
 
         $filters = [];
 

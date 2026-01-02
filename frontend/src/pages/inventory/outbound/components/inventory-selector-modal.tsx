@@ -297,7 +297,7 @@ export function InventorySelectorModal({
       okText={t('outbound.addToOrder')}
       okButtonProps={{ disabled: selectedItems.length === 0 }}
       width={800}
-      destroyOnClose
+      destroyOnHidden
     >
       <div className="flex flex-col gap-4">
         {/* Search */}

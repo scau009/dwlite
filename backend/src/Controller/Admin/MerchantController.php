@@ -140,7 +140,7 @@ class MerchantController extends AbstractController
         try {
             $transaction = $this->walletService->chargeDeposit(
                 $merchant,
-                $dto->amount,
+                (string) $dto->amount,
                 $dto->remark,
                 $user->getId()
             );

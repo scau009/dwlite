@@ -42,8 +42,8 @@ class WarehouseUserController extends AbstractController
     #[Route('', name: 'admin_warehouse_users_list', methods: ['GET'])]
     public function list(Request $request): JsonResponse
     {
-        $page = max(1, (int) $request->query->get('page', 1));
-        $limit = min(50, max(1, (int) $request->query->get('limit', 20)));
+        $page = max(1, (int) $request->query->get('page', '1'));
+        $limit = min(50, max(1, (int) $request->query->get('limit', '20')));
         $warehouseId = $request->query->get('warehouseId');
 
         $result = $this->findWarehouseUsersPaginated($page, $limit, $warehouseId);

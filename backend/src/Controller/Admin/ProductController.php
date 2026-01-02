@@ -269,9 +269,6 @@ class ProductController extends AbstractController
         if ($dto->sizeValue !== null) {
             $sku->setSizeValue(trim($dto->sizeValue));
         }
-        if ($dto->specInfo !== null) {
-            $sku->setSpecInfo($dto->specInfo);
-        }
         if ($dto->originalPrice !== null) {
             $sku->setOriginalPrice($dto->originalPrice);
         }
@@ -414,9 +411,6 @@ class ProductController extends AbstractController
         }
         if ($dto->sizeValue !== null) {
             $sku->setSizeValue($dto->sizeValue);
-        }
-        if ($dto->specInfo !== null) {
-            $sku->setSpecInfo($dto->specInfo);
         }
         if ($dto->price !== null) {
             $sku->setPrice($dto->price);

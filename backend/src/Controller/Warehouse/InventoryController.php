@@ -35,8 +35,8 @@ class InventoryController extends AbstractController
         Warehouse $warehouse,
         Request $request
     ): JsonResponse {
-        $page = max(1, (int) $request->query->get('page', 1));
-        $limit = min(50, max(1, (int) $request->query->get('limit', 20)));
+        $page = max(1, (int) $request->query->get('page', '1'));
+        $limit = min(50, max(1, (int) $request->query->get('limit', '20')));
         $search = $request->query->get('search');
         $hasStock = $request->query->getBoolean('hasStock', false);
 
