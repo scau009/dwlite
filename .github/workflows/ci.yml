@@ -51,6 +51,18 @@ jobs:
         run: composer install --prefer-dist --no-progress --no-scripts
         working-directory: backend
 
+      - name: Warm up Symfony cache
+        run: |
+          # Create minimal .env for cache warmup
+          echo "APP_ENV=dev" > .env
+          echo "APP_SECRET=test-secret-for-ci" >> .env
+          echo "DATABASE_URL=mysql://user:pass@localhost:3306/db" >> .env
+          # Warm up cache to generate container XML for PHPStan
+          php bin/console cache:warmup
+        working-directory: backend
+        env:
+          COMPOSER_PROCESS_TIMEOUT: 0
+
       - name: Run PHPStan
         run: vendor/bin/phpstan analyse --error-format=github --no-progress
         working-directory: backend
