@@ -76,7 +76,13 @@ jobs:
           # Query current running version from server
           CURRENT_VERSION=$(ssh -p ${{ secrets.PROD_SSH_PORT }} -i ~/.ssh/deploy_key \
             ${{ secrets.PROD_SSH_USER }}@${{ secrets.PROD_SSH_HOST }} \
-            "cd /opt/dwlite && docker compose -f docker-compose.prod.yml ps -q backend | xargs docker inspect --format='{{.Config.Image}}' 2>/dev/null | cut -d':' -f2 || echo 'unknown'") || echo "unknown"
+            "cd /opt/dwlite && \
+             if docker compose version > /dev/null 2>&1; then \
+               DOCKER_COMPOSE='docker compose'; \
+             else \
+               DOCKER_COMPOSE='docker-compose'; \
+             fi && \
+             \$DOCKER_COMPOSE -f docker-compose.prod.yml ps -q backend | xargs docker inspect --format='{{.Config.Image}}' 2>/dev/null | cut -d':' -f2 || echo 'unknown'") || echo "unknown"
 
           echo "current_version=${CURRENT_VERSION}" >> $GITHUB_OUTPUT
           echo "Current production version: ${CURRENT_VERSION}"
@@ -143,7 +149,13 @@ jobs:
           # Verify services are running
           ssh -p ${{ secrets.PROD_SSH_PORT }} -i ~/.ssh/deploy_key \
             ${{ secrets.PROD_SSH_USER }}@${{ secrets.PROD_SSH_HOST }} \
-            "cd /opt/dwlite && docker compose -f docker-compose.prod.yml ps"
+            "cd /opt/dwlite && \
+             if docker compose version > /dev/null 2>&1; then \
+               DOCKER_COMPOSE='docker compose'; \
+             else \
+               DOCKER_COMPOSE='docker-compose'; \
+             fi && \
+             \$DOCKER_COMPOSE -f docker-compose.prod.yml ps"
 
           echo "Post-deployment verification completed"
 

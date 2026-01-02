@@ -31,6 +31,13 @@ HEALTH_CHECK_URL=${HEALTH_CHECK_URL:-http://localhost:8000/health}
 MAX_HEALTH_RETRIES=30
 HEALTH_RETRY_INTERVAL=2
 
+# Detect Docker Compose command (v1 vs v2)
+if docker compose version > /dev/null 2>&1; then
+    DOCKER_COMPOSE="docker compose"
+else
+    DOCKER_COMPOSE="docker-compose"
+fi
+
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -126,8 +133,9 @@ export TAG
 
 # Get current running container IDs for rollback
 log_section "Preparing Deployment"
-BACKEND_CURRENT=$(docker compose -f docker-compose.prod.yml ps -q backend 2>/dev/null || echo "")
-FRONTEND_CURRENT=$(docker compose -f docker-compose.prod.yml ps -q frontend 2>/dev/null || echo "")
+log_info "Using Docker Compose command: $DOCKER_COMPOSE"
+BACKEND_CURRENT=$($DOCKER_COMPOSE -f docker-compose.prod.yml ps -q backend 2>/dev/null || echo "")
+FRONTEND_CURRENT=$($DOCKER_COMPOSE -f docker-compose.prod.yml ps -q frontend 2>/dev/null || echo "")
 
 if [ -n "$BACKEND_CURRENT" ]; then
     log_info "Current backend container: $BACKEND_CURRENT"
@@ -142,10 +150,10 @@ fi
 # Perform zero-downtime deployment
 log_section "Starting Deployment"
 log_info "Pulling images with docker compose..."
-docker compose -f docker-compose.prod.yml pull
+$DOCKER_COMPOSE -f docker-compose.prod.yml pull
 
 log_info "Starting new containers..."
-docker compose -f docker-compose.prod.yml up -d --no-deps --remove-orphans
+$DOCKER_COMPOSE -f docker-compose.prod.yml up -d --no-deps --remove-orphans
 
 # Wait for services to start
 log_info "Waiting for services to initialize..."
@@ -171,14 +179,14 @@ if [ $RETRY_COUNT -eq $MAX_HEALTH_RETRIES ]; then
 
     # Show logs for debugging
     log_info "Backend logs:"
-    docker compose -f docker-compose.prod.yml logs --tail=50 backend
+    $DOCKER_COMPOSE -f docker-compose.prod.yml logs --tail=50 backend
 
     # Rollback if we have a previous version
     if [ -n "$BACKEND_CURRENT" ]; then
         log_warn "Attempting to rollback to previous version..."
         if docker image inspect "${REGISTRY}dwlite-backend:rollback-${ENVIRONMENT}" > /dev/null 2>&1; then
             export TAG="rollback-${ENVIRONMENT}"
-            docker compose -f docker-compose.prod.yml up -d --no-deps backend
+            $DOCKER_COMPOSE -f docker-compose.prod.yml up -d --no-deps backend
             log_info "Rolled back to previous version"
         fi
     fi
@@ -197,7 +205,7 @@ docker rmi "${REGISTRY}dwlite-frontend:rollback-${ENVIRONMENT}" 2>/dev/null || t
 
 # Show deployment status
 log_section "Deployment Summary"
-docker compose -f docker-compose.prod.yml ps
+$DOCKER_COMPOSE -f docker-compose.prod.yml ps
 
 log_section "Deployment Completed Successfully"
 log_info "Environment: $ENVIRONMENT"

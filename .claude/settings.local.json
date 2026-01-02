@@ -14,7 +14,9 @@
       "Bash(git commit:*)",
       "Bash(npm run build)",
       "Bash(npx tsc:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(vendor/bin/php-cs-fixer fix:*)",
+      "Bash(npm run lint)"
     ]
   }
 }
