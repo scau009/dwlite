@@ -15,6 +15,7 @@ COPY Caddyfile /etc/caddy/Caddyfile
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh && \
+    mkdir -p /app/var/cache /app/var/log && \
     chown -R www-data:www-data /app/var
 
 EXPOSE 8000
