@@ -97,8 +97,14 @@ log_info "Successfully pulled all images"
 # Create/update .env file if content provided
 if [ -n "$ENV_FILE_CONTENT" ]; then
     log_section "Updating Environment Configuration"
-    echo "$ENV_FILE_CONTENT" > .env
-    log_info ".env file updated"
+    # Decode from base64 if ENV_FILE_BASE64 is set, otherwise use content directly
+    if [ -n "$ENV_FILE_BASE64" ]; then
+        echo "$ENV_FILE_CONTENT" | base64 -d > .env
+        log_info ".env file updated (from base64)"
+    else
+        echo "$ENV_FILE_CONTENT" > .env
+        log_info ".env file updated"
+    fi
 else
     log_warn ".env file not provided, using existing configuration"
 fi

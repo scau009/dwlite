@@ -223,6 +223,9 @@ jobs:
 
       - name: Deploy application
         run: |
+          # Encode env file content to base64 to safely pass special characters
+          ENV_ENCODED=$(echo '${{ secrets.PROD_ENV_FILE }}' | base64 -w 0)
+
           ssh -p ${{ steps.ssh.outputs.ssh_port }} -i ~/.ssh/deploy_key \
             ${{ steps.ssh.outputs.ssh_user }}@${{ steps.ssh.outputs.ssh_host }} \
             "cd /opt/dwlite && \
@@ -232,7 +235,8 @@ jobs:
              REGISTRY=${REGISTRY} \
              CCR_USERNAME=${{ secrets.TENCENT_CCR_USERNAME }} \
              CCR_PASSWORD=${{ secrets.TENCENT_CCR_PASSWORD }} \
-             ENV_FILE_CONTENT='${{ secrets.PROD_ENV_FILE }}' \
+             ENV_FILE_CONTENT='${ENV_ENCODED}' \
+             ENV_FILE_BASE64=1 \
              bash scripts/deploy.sh"
 
       - name: Deployment summary

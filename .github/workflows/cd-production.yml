@@ -97,6 +97,9 @@ jobs:
         run: |
           set +e  # Don't exit on error, we want to capture the exit code
 
+          # Encode env file content to base64 to safely pass special characters
+          ENV_ENCODED=$(echo '${{ secrets.PROD_ENV_FILE }}' | base64 -w 0)
+
           ssh -p ${{ secrets.PROD_SSH_PORT }} -i ~/.ssh/deploy_key \
             ${{ secrets.PROD_SSH_USER }}@${{ secrets.PROD_SSH_HOST }} \
             "cd /opt/dwlite && \
@@ -106,7 +109,8 @@ jobs:
              REGISTRY=${{ env.REGISTRY }} \
              CCR_USERNAME=${{ secrets.TENCENT_CCR_USERNAME }} \
              CCR_PASSWORD=${{ secrets.TENCENT_CCR_PASSWORD }} \
-             ENV_FILE_CONTENT='${{ secrets.PROD_ENV_FILE }}' \
+             ENV_FILE_CONTENT='${ENV_ENCODED}' \
+             ENV_FILE_BASE64=1 \
              bash scripts/deploy.sh"
 
           DEPLOY_EXIT_CODE=$?
