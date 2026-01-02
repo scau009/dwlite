@@ -65,6 +65,7 @@ export interface CreateWarehouseRequest {
   sortOrder?: number;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface UpdateWarehouseRequest extends Partial<CreateWarehouseRequest> {}
 
 export interface WarehouseListParams {

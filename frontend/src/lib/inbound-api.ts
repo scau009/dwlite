@@ -446,7 +446,7 @@ export const inboundApi = {
   /**
    * Get inbound shipments list
    */
-  getInboundShipments: async (params: any = {}): Promise<PaginatedResponse<InboundShipment>> => {
+  getInboundShipments: async (params: { limit?: number; page?: number } = {}): Promise<PaginatedResponse<InboundShipment>> => {
     const queryParams = new URLSearchParams();
     if (params.limit) queryParams.append('limit', params.limit.toString());
     if (params.page) queryParams.append('page', params.page.toString());

@@ -25,6 +25,7 @@ export function MerchantChannelDetailModal({ open, merchantChannel, onClose }: M
 
   useEffect(() => {
     if (open && merchantChannel) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLoading(true);
       channelApi.getMerchantChannel(merchantChannel.id)
         .then((data) => {

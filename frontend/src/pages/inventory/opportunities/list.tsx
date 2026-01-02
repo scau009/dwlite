@@ -28,11 +28,6 @@ export function OpportunitiesListPage() {
   const [skuModalOpen, setSkuModalOpen] = useState(false);
   const [viewingProduct, setViewingProduct] = useState<InboundProduct | null>(null);
 
-  // Load brands on mount
-  useEffect(() => {
-    loadBrands();
-  }, []);
-
   const loadBrands = async () => {
     try {
       const response = await fetch('/api/admin/brands?limit=100');
@@ -49,6 +44,12 @@ export function OpportunitiesListPage() {
       console.error('Failed to load brands:', error);
     }
   };
+
+  // Load brands on mount
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadBrands();
+  }, []);
 
   // Single product order
   const handleCreateOrder = (product: InboundProduct) => {

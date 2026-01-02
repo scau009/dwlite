@@ -18,11 +18,12 @@ export function AppLayout() {
   const { user } = useAuth();
   const { isDark } = useTheme();
 
+  // eslint-disable-next-line react-hooks/preserve-manual-memoization
   const menuData = useMemo(() => {
     const allMenus = getMenuData(t);
     if (!user?.accountType) return allMenus;
     return filterMenuByAccess(allMenus, user.accountType);
-  }, [t, i18n.language, user?.accountType]);
+  }, [t, user?.accountType]);
 
   return (
     <ProLayout

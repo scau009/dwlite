@@ -48,6 +48,7 @@ import {
 import { MerchantProfilePage, MerchantWalletPage, MerchantChannelsPage } from '@/pages/settings';
 
 // Placeholder component for pages not yet implemented
+// eslint-disable-next-line react-refresh/only-export-components
 function PlaceholderPage({ title }: { title: string }) {
   return (
     <div className="flex flex-col items-center justify-center h-[50vh]">
@@ -64,6 +65,7 @@ function PlaceholderPage({ title }: { title: string }) {
 }
 
 // Loading component
+// eslint-disable-next-line react-refresh/only-export-components
 function LoadingScreen() {
   return (
     <div className="flex min-h-screen items-center justify-center">
@@ -73,6 +75,7 @@ function LoadingScreen() {
 }
 
 // Protected route component
+// eslint-disable-next-line react-refresh/only-export-components
 function ProtectedRoute() {
   const { isAuthenticated, isLoading } = useAuth();
 
@@ -88,6 +91,7 @@ function ProtectedRoute() {
 }
 
 // Guest route component (redirect to dashboard if authenticated)
+// eslint-disable-next-line react-refresh/only-export-components
 function GuestRoute() {
   const { isAuthenticated, isLoading } = useAuth();
 

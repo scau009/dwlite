@@ -51,6 +51,7 @@ export function MerchantStockListPage() {
   useEffect(() => {
     loadSummary();
     loadWarehouses();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Stock status options

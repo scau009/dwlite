@@ -14,7 +14,6 @@ interface InboundOrderItemModalProps {
 
 export function InboundOrderItemModal({
   open,
-  orderId: _orderId,
   item,
   onClose,
   onSuccess,
