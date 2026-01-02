@@ -39,6 +39,8 @@ export default {
     max: 'Max',
     total: 'Total',
     items: 'items',
+    active: 'Active',
+    inactive: 'Inactive',
   },
 
   // Navigation
@@ -95,6 +97,8 @@ export default {
     // Channels
     channelList: 'Sales Channels',
     merchantChannels: 'Merchant Channels',
+    availableChannels: 'Available Channels',
+    myChannels: 'My Channels',
     // Warehouses
     warehouseList: 'Warehouse List',
     warehouseUsers: 'Warehouse Users',
@@ -107,7 +111,6 @@ export default {
     // Settings
     generalSettings: 'General',
     walletManagement: 'Wallet',
-    myChannels: 'My Channels',
     userManagement: 'Users',
     roleManagement: 'Roles',
     operationLogs: 'Logs',
@@ -547,6 +550,38 @@ export default {
     descriptionPlaceholder: 'Enter channel description (optional)',
     descriptionMaxLength: 'Description cannot exceed 500 characters',
     sortOrderTooltip: 'Lower numbers appear first, default is 0',
+    // Warehouse Configuration
+    warehouses: {
+      configure: 'Configure Warehouses',
+      configTitle: 'Warehouse Configuration - {{name}}',
+      addWarehouse: 'Add Warehouse',
+      batchAdd: 'Batch Add',
+      warehouseName: 'Warehouse',
+      type: 'Type',
+      typeSelf: 'Self',
+      typeThirdParty: '3rd Party',
+      typeBonded: 'Bonded',
+      typeOverseas: 'Overseas',
+      country: 'Country',
+      priority: 'Priority',
+      priorityTooltip: 'Lower number = higher priority',
+      status: 'Status',
+      remark: 'Remark',
+      available: 'Available Warehouses',
+      selectWarehouses: 'Select Warehouses',
+      confirmRemove: 'Confirm Remove',
+      confirmRemoveDesc: 'Are you sure you want to remove warehouse "{{name}}"?',
+      removed: 'Warehouse removed',
+      added: 'Warehouse added',
+      updated: 'Configuration updated',
+      batchAddSuccess: 'Added {{added}} warehouses, skipped {{skipped}}',
+      dragToReorder: 'Drag to reorder',
+      noPriority: 'Auto',
+      warehouseRequired: 'Please select a warehouse',
+      selectWarehouse: 'Select a warehouse',
+      autoPriority: 'Auto assign',
+      manualPriority: 'Manual',
+    },
   },
 
   // Merchant Channels
@@ -567,6 +602,7 @@ export default {
     status: 'Status',
     statusPending: 'Pending',
     statusActive: 'Active',
+    statusRejected: 'Rejected',
     statusSuspended: 'Suspended',
     statusDisabled: 'Disabled',
     remark: 'Remark',
@@ -579,14 +615,29 @@ export default {
     config: 'Configuration',
     // Actions
     approve: 'Approve',
+    reject: 'Reject',
     suspend: 'Suspend',
     enable: 'Enable',
     approved: 'Approved successfully',
+    rejected: 'Rejected successfully',
     suspended: 'Suspended successfully',
     enabled: 'Enabled successfully',
+    // Tabs
+    tabAll: 'All',
+    tabPending: 'Pending',
+    tabActive: 'Active',
+    tabSuspended: 'Suspended',
+    tabDisabled: 'Disabled',
     // Approve
     confirmApprove: 'Confirm Approval',
     confirmApproveDesc: 'Are you sure you want to approve merchant "{{merchant}}" access to channel "{{channel}}"?',
+    // Reject
+    rejectTitle: 'Reject Application',
+    confirmReject: 'Confirm Rejection',
+    confirmRejectDesc: 'Are you sure you want to reject merchant "{{merchant}}" application to channel "{{channel}}"?',
+    rejectReason: 'Rejection Reason',
+    rejectReasonPlaceholder: 'Enter rejection reason',
+    rejectReasonRequired: 'Please enter rejection reason',
     // Suspend
     suspendTitle: 'Suspend Merchant Channel',
     suspendReason: 'Reason',
@@ -1298,7 +1349,9 @@ export default {
     title: 'Sales Channel Management',
     description: 'Apply for and manage your sales channel connections',
     availableChannels: 'Available Channels',
+    availableChannelsDescription: 'Browse and apply for sales channels you want to connect',
     myChannels: 'My Channels',
+    myChannelsDescription: 'View and manage applied or connected sales channels',
     // Available Channels Tab
     noAvailableChannels: 'No channels available for application',
     applyChannel: 'Apply',

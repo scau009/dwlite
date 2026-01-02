@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\WarehouseRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Uid\Ulid;
 
@@ -107,6 +109,9 @@ class Warehouse
     #[ORM\Column(type: 'integer', options: ['default' => 0])]
     private int $sortOrder = 0;
 
+    #[ORM\OneToMany(targetEntity: SalesChannelWarehouse::class, mappedBy: 'warehouse', cascade: ['persist', 'remove'])]
+    private Collection $channelWarehouses;
+
     #[ORM\Column(type: 'datetime_immutable')]
     private \DateTimeImmutable $createdAt;
 
@@ -116,6 +121,7 @@ class Warehouse
     public function __construct()
     {
         $this->id = (string) new Ulid();
+        $this->channelWarehouses = new ArrayCollection();
         $this->createdAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
         $this->updatedAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
     }
@@ -385,6 +391,35 @@ class Warehouse
     public function setSortOrder(int $sortOrder): static
     {
         $this->sortOrder = $sortOrder;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, SalesChannelWarehouse>
+     */
+    public function getChannelWarehouses(): Collection
+    {
+        return $this->channelWarehouses;
+    }
+
+    public function addChannelWarehouse(SalesChannelWarehouse $channelWarehouse): static
+    {
+        if (!$this->channelWarehouses->contains($channelWarehouse)) {
+            $this->channelWarehouses->add($channelWarehouse);
+            $channelWarehouse->setWarehouse($this);
+        }
+
+        return $this;
+    }
+
+    public function removeChannelWarehouse(SalesChannelWarehouse $channelWarehouse): static
+    {
+        if ($this->channelWarehouses->removeElement($channelWarehouse)) {
+            if ($channelWarehouse->getWarehouse() === $this) {
+                $channelWarehouse->setWarehouse(null);
+            }
+        }
 
         return $this;
     }

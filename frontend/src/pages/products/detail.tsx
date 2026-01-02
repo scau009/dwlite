@@ -118,13 +118,12 @@ export function ProductDetailPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Button icon={<ArrowLeftOutlined />} onClick={() => navigate('/products/list')}>
             {t('common.back')}
           </Button>
-          <h1 className="text-xl font-semibold m-0">{product.name}</h1>
+          <span className="text-lg font-semibold">{product.name}</span>
           <Tag color={statusColors[product.status]}>{statusLabel}</Tag>
         </div>
         <Space>

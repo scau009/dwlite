@@ -439,7 +439,7 @@ export function OutboundOrderDetailPage() {
           <Button icon={<ArrowLeftOutlined />} onClick={() => navigate('/inventory/outbound')}>
             {t('common.back')}
           </Button>
-          <h1 className="text-xl font-semibold m-0">{order.outboundNo}</h1>
+          <span className="text-lg font-semibold">{order.outboundNo}</span>
           <Tag color={statusColors[order.status]}>{getStatusLabel(order.status)}</Tag>
           <Tag color={typeColors[order.outboundType]}>
             {order.outboundTypeLabel || getTypeLabel(order.outboundType)}

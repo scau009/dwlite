@@ -95,6 +95,27 @@ class MerchantChannelController extends AbstractController
         ]);
     }
 
+    #[Route('/{id}/reject', name: 'admin_merchant_channel_reject', methods: ['POST'])]
+    public function reject(string $id, #[MapRequestPayload] SuspendMerchantChannelRequest $dto): JsonResponse
+    {
+        $mc = $this->merchantChannelRepository->find($id);
+        if (!$mc) {
+            return $this->json(['error' => $this->translator->trans('admin.merchant_channel.not_found')], Response::HTTP_NOT_FOUND);
+        }
+
+        if (!$mc->isPending()) {
+            return $this->json(['error' => $this->translator->trans('admin.merchant_channel.not_pending')], Response::HTTP_BAD_REQUEST);
+        }
+
+        $mc->reject($dto->reason);
+        $this->merchantChannelRepository->save($mc, true);
+
+        return $this->json([
+            'message' => $this->translator->trans('admin.merchant_channel.rejected'),
+            'merchantChannel' => $this->serializeMerchantChannel($mc),
+        ]);
+    }
+
     #[Route('/{id}/suspend', name: 'admin_merchant_channel_suspend', methods: ['POST'])]
     public function suspend(string $id, #[MapRequestPayload] SuspendMerchantChannelRequest $dto): JsonResponse
     {
@@ -137,15 +158,12 @@ class MerchantChannelController extends AbstractController
     {
         $merchant = $mc->getMerchant();
         $channel = $mc->getSalesChannel();
-        $warehouse = $mc->getDefaultWarehouse();
 
         $data = [
             'id' => $mc->getId(),
             'status' => $mc->getStatus(),
             'fulfillmentType' => $mc->getFulfillmentType(),
             'pricingModel' => $mc->getPricingModel(),
-            'defaultWarehouseId' => $warehouse?->getId(),
-            'defaultWarehouseName' => $warehouse?->getName(),
             'remark' => $mc->getRemark(),
             'approvedAt' => $mc->getApprovedAt()?->format('c'),
             'approvedBy' => $mc->getApprovedBy(),

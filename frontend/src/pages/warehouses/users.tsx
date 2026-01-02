@@ -2,7 +2,7 @@ import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ProTable, type ActionType, type ProColumns } from '@ant-design/pro-components';
 import { Button, Tag, Space, App, Popconfirm, Tooltip } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { PlusOutlined } from '@ant-design/icons';
 
 import {
   warehouseApi,
@@ -102,14 +102,13 @@ export function WarehouseUsersListPage() {
       fixed: 'right',
       render: (_, record) => (
         <Space size="small">
-          <Tooltip title={t('common.edit')}>
-            <Button
-              type="text"
-              size="small"
-              icon={<EditOutlined />}
-              onClick={() => handleEdit(record)}
-            />
-          </Tooltip>
+          <Button
+            type="link"
+            size="small"
+            onClick={() => handleEdit(record)}
+          >
+            {t('common.edit')}
+          </Button>
           <Popconfirm
             title={t('warehouseUsers.confirmDelete')}
             description={t('warehouseUsers.confirmDeleteDesc')}
@@ -117,14 +116,13 @@ export function WarehouseUsersListPage() {
             okText={t('common.confirm')}
             cancelText={t('common.cancel')}
           >
-            <Tooltip title={t('common.delete')}>
-              <Button
-                type="text"
-                size="small"
-                danger
-                icon={<DeleteOutlined />}
-              />
-            </Tooltip>
+            <Button
+              type="link"
+              size="small"
+              danger
+            >
+              {t('common.delete')}
+            </Button>
           </Popconfirm>
         </Space>
       ),
@@ -133,11 +131,6 @@ export function WarehouseUsersListPage() {
 
   return (
     <div className="space-y-4">
-      <div className="mb-4">
-        <h1 className="text-xl font-semibold">{t('warehouseUsers.title')}</h1>
-        <p className="text-gray-500">{t('warehouseUsers.description')}</p>
-      </div>
-
       <ProTable<WarehouseUser>
         actionRef={actionRef}
         columns={columns}

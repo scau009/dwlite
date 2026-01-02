@@ -11,7 +11,6 @@ use Symfony\Component\Uid\Ulid;
 #[ORM\UniqueConstraint(name: 'uk_merchant_channel', columns: ['merchant_id', 'sales_channel_id'])]
 #[ORM\Index(name: 'idx_msc_merchant', columns: ['merchant_id'])]
 #[ORM\Index(name: 'idx_msc_channel', columns: ['sales_channel_id'])]
-#[ORM\Index(name: 'idx_msc_warehouse', columns: ['default_warehouse_id'])]
 #[ORM\HasLifecycleCallbacks]
 class MerchantSalesChannel
 {
@@ -26,6 +25,7 @@ class MerchantSalesChannel
     // 状态
     public const STATUS_PENDING = 'pending';     // 待审核（管理员需审核开通）
     public const STATUS_ACTIVE = 'active';       // 已启用
+    public const STATUS_REJECTED = 'rejected';   // 已拒绝（管理员拒绝申请）
     public const STATUS_SUSPENDED = 'suspended'; // 已暂停（管理员暂停）
     public const STATUS_DISABLED = 'disabled';   // 已禁用（商户自行关闭）
 
@@ -42,14 +42,10 @@ class MerchantSalesChannel
     private SalesChannel $salesChannel;
 
     #[ORM\Column(type: 'string', length: 20)]
-    private string $fulfillmentType;  // 履约模式
+    private string $fulfillmentType = self::FULFILLMENT_CONSIGNMENT;  // 履约模式
 
     #[ORM\Column(type: 'string', length: 20)]
     private string $pricingModel = self::PRICING_SELF;  // 定价模式
-
-    #[ORM\ManyToOne(targetEntity: Warehouse::class)]
-    #[ORM\JoinColumn(name: 'default_warehouse_id', referencedColumnName: 'id', nullable: true, onDelete: 'SET NULL')]
-    private ?Warehouse $defaultWarehouse = null;  // 默认仓库（仅寄售模式使用）
 
     #[ORM\Column(type: 'json', nullable: true)]
     private ?array $config = null;  // 商户针对该渠道的配置（如店铺ID、API密钥等）
@@ -128,18 +124,6 @@ class MerchantSalesChannel
     public function setPricingModel(string $pricingModel): static
     {
         $this->pricingModel = $pricingModel;
-
-        return $this;
-    }
-
-    public function getDefaultWarehouse(): ?Warehouse
-    {
-        return $this->defaultWarehouse;
-    }
-
-    public function setDefaultWarehouse(?Warehouse $defaultWarehouse): static
-    {
-        $this->defaultWarehouse = $defaultWarehouse;
 
         return $this;
     }
@@ -274,6 +258,17 @@ class MerchantSalesChannel
         $this->approvedAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
         $this->approvedBy = $adminId;
         $this->remark = null;
+
+        return $this;
+    }
+
+    /**
+     * 管理员拒绝申请.
+     */
+    public function reject(?string $reason = null): static
+    {
+        $this->status = self::STATUS_REJECTED;
+        $this->remark = $reason;
 
         return $this;
     }

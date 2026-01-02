@@ -127,12 +127,7 @@ export function MerchantProfilePage() {
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-semibold m-0">{t('settings.merchantProfile')}</h1>
-          <p className="text-gray-500 mt-1">{t('settings.merchantProfileDesc')}</p>
-        </div>
+      <div className="flex justify-end">
         {!editing ? (
           <Button type="primary" icon={<EditOutlined />} onClick={handleEdit}>
             {t('common.edit')}

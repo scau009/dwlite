@@ -16,7 +16,6 @@ interface FormValues {
   name: string;
   logoUrl?: string;
   description?: string;
-  businessType: 'import' | 'export';
   status: 'active' | 'maintenance' | 'disabled';
   sortOrder: number;
 }
@@ -41,7 +40,6 @@ export function ChannelFormModal({ open, channel, onClose, onSuccess }: ChannelF
               name: detail.name,
               logoUrl: detail.logoUrl || undefined,
               description: detail.description || undefined,
-              businessType: detail.businessType,
               status: detail.status,
               sortOrder: detail.sortOrder,
             });
@@ -55,7 +53,6 @@ export function ChannelFormModal({ open, channel, onClose, onSuccess }: ChannelF
       } else {
         form.resetFields();
         form.setFieldsValue({
-          businessType: 'import',
           status: 'active',
           sortOrder: 0,
         });
@@ -99,7 +96,7 @@ export function ChannelFormModal({ open, channel, onClose, onSuccess }: ChannelF
       confirmLoading={loading}
       okText={t('common.save')}
       cancelText={t('common.cancel')}
-      destroyOnClose
+      destroyOnHidden
       width={500}
     >
       <Form
@@ -133,19 +130,6 @@ export function ChannelFormModal({ open, channel, onClose, onSuccess }: ChannelF
           ]}
         >
           <Input placeholder={t('channels.namePlaceholder')} />
-        </Form.Item>
-
-        <Form.Item
-          name="businessType"
-          label={t('channels.businessType')}
-          rules={[{ required: true, message: t('channels.businessTypeRequired') }]}
-        >
-          <Select
-            options={[
-              { value: 'import', label: t('channels.businessTypeImport') },
-              { value: 'export', label: t('channels.businessTypeExport') },
-            ]}
-          />
         </Form.Item>
 
         <Form.Item

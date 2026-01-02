@@ -525,7 +525,7 @@ export function WarehouseInboundDetailPage() {
           <Button icon={<ArrowLeftOutlined />} onClick={() => navigate('/warehouse/inbound')}>
             {t('common.back')}
           </Button>
-          <h1 className="text-xl font-semibold m-0">{order.orderNo}</h1>
+          <span className="text-lg font-semibold">{order.orderNo}</span>
           <Tag color={statusColors[order.status]}>{getStatusLabel(order.status)}</Tag>
         </div>
       </div>

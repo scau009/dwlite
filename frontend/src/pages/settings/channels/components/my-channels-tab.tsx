@@ -128,7 +128,7 @@ export function MyChannelsTab({ actionRef: externalRef }: Props) {
       },
       render: (_, record) => (
         <Tag color={statusColorMap[record.status]}>
-          {t(`myChannels.status${record.status.charAt(0).toUpperCase() + record.status.slice(1)}`)}
+          {t(`myChannels.status${record.status?.charAt(0).toUpperCase() + record.status?.slice(1)}`)}
         </Tag>
       ),
     },
@@ -137,40 +137,39 @@ export function MyChannelsTab({ actionRef: externalRef }: Props) {
       dataIndex: 'fulfillmentType',
       width: 140,
       search: false,
-      render: (_, record) => (
-        <div>
+      render: (_, record) => {
+        if (!record.fulfillmentType) return '-';
+        return (
           <div>
-            {record.fulfillmentType === 'consignment'
-              ? t('merchantChannels.fulfillmentConsignment')
-              : t('merchantChannels.fulfillmentSelfFulfillment')}
+            <div>
+              {record.fulfillmentType === 'consignment'
+                ? t('merchantChannels.fulfillmentConsignment')
+                : t('merchantChannels.fulfillmentSelfFulfillment')}
+            </div>
+            <div className="text-xs text-gray-400">
+              {record.fulfillmentType === 'consignment'
+                ? t('merchantChannels.fulfillmentConsignmentDesc')
+                : t('merchantChannels.fulfillmentSelfFulfillmentDesc')}
+            </div>
           </div>
-          <div className="text-xs text-gray-400">
-            {record.fulfillmentType === 'consignment'
-              ? t('merchantChannels.fulfillmentConsignmentDesc')
-              : t('merchantChannels.fulfillmentSelfFulfillmentDesc')}
-          </div>
-        </div>
-      ),
+        );
+      },
     },
     {
       title: t('merchantChannels.pricingModel'),
       dataIndex: 'pricingModel',
       width: 120,
       search: false,
-      render: (_, record) => (
-        <Tag color={record.pricingModel === 'self_pricing' ? 'blue' : 'green'}>
-          {record.pricingModel === 'self_pricing'
-            ? t('merchantChannels.pricingSelf')
-            : t('merchantChannels.pricingPlatformManaged')}
-        </Tag>
-      ),
-    },
-    {
-      title: t('merchantChannels.defaultWarehouse'),
-      dataIndex: 'defaultWarehouseName',
-      width: 150,
-      search: false,
-      render: (_, record) => record.defaultWarehouseName || '-',
+      render: (_, record) => {
+        if (!record.pricingModel) return '-';
+        return (
+          <Tag color={record.pricingModel === 'self_pricing' ? 'blue' : 'green'}>
+            {record.pricingModel === 'self_pricing'
+              ? t('merchantChannels.pricingSelf')
+              : t('merchantChannels.pricingPlatformManaged')}
+          </Tag>
+        );
+      },
     },
     {
       title: t('myChannels.remark'),
@@ -268,6 +267,7 @@ export function MyChannelsTab({ actionRef: externalRef }: Props) {
       actionRef={actionRef}
       columns={columns}
       rowKey="id"
+      scroll={{ x: 1400 }}
       request={async (params) => {
         try {
           const result = await merchantChannelApi.getMyChannels({

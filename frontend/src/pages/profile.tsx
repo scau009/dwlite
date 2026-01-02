@@ -1,4 +1,3 @@
-import { useTranslation } from 'react-i18next';
 import { ProForm, ProFormText } from '@ant-design/pro-components';
 import { Card, Descriptions, Row, Col, App, Tag } from 'antd';
 
@@ -8,7 +7,6 @@ import { validateChangePasswordForm } from '@/lib/validation';
 import type { ApiError } from '@/types/auth';
 
 export function ProfilePage() {
-  const { t } = useTranslation();
   const { user } = useAuth();
   const { message } = App.useApp();
 
@@ -45,8 +43,6 @@ export function ProfilePage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-xl font-semibold">{t('header.profile')}</h1>
-
       <Row gutter={[24, 24]}>
         {/* User Info Card */}
         <Col xs={24} md={12}>

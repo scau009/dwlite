@@ -121,10 +121,12 @@ export function getMenuData(t: TFunction): AccessMenuDataItem[] {
       path: '/channels',
       name: t('nav.channels'),
       icon: <ShopOutlined />,
-      access: 'admin',
+      access: ['admin', 'merchant'],
       children: [
-        { path: '/channels', name: t('menu.channelList') },
-        { path: '/channels/merchants', name: t('menu.merchantChannels') },
+        { path: '/channels/list', name: t('menu.channelList'), access: 'admin' },
+        { path: '/channels/merchants', name: t('menu.merchantChannels'), access: 'admin' },
+        { path: '/channels/available', name: t('menu.availableChannels'), access: 'merchant' },
+        { path: '/channels/my-channels', name: t('menu.myChannels'), access: 'merchant' },
       ],
     },
     {
@@ -133,7 +135,7 @@ export function getMenuData(t: TFunction): AccessMenuDataItem[] {
       icon: <HomeOutlined />,
       access: 'admin',
       children: [
-        { path: '/warehouses', name: t('menu.warehouseList') },
+        { path: '/warehouses/list', name: t('menu.warehouseList') },
         { path: '/warehouses/users', name: t('menu.warehouseUsers'), access: 'admin' },
       ],
     },
@@ -158,7 +160,6 @@ export function getMenuData(t: TFunction): AccessMenuDataItem[] {
       children: [
         { path: '/settings/info', name: t('menu.generalSettings'), access: 'merchant' },
         { path: '/settings/wallet', name: t('menu.walletManagement'), access: 'merchant' },
-        { path: '/settings/channels', name: t('menu.myChannels'), access: 'merchant' },
       ],
     },
   ];

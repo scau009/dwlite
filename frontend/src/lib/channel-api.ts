@@ -6,7 +6,6 @@ export interface SalesChannel {
   code: string;
   name: string;
   logoUrl: string | null;
-  businessType: 'import' | 'export';
   status: 'active' | 'maintenance' | 'disabled';
   sortOrder: number;
   createdAt: string;
@@ -22,7 +21,7 @@ export interface SalesChannelDetail extends SalesChannel {
 
 export interface MerchantChannel {
   id: string;
-  status: 'pending' | 'active' | 'suspended' | 'disabled';
+  status: 'pending' | 'active' | 'rejected' | 'suspended' | 'disabled';
   remark: string | null;
   approvedAt: string | null;
   approvedBy: string | null;
@@ -56,7 +55,6 @@ export interface ChannelListParams {
   limit?: number;
   name?: string;
   code?: string;
-  businessType?: string;
   status?: string;
 }
 
@@ -75,7 +73,6 @@ export interface CreateChannelParams {
   description?: string;
   config?: Record<string, unknown>;
   configSchema?: Record<string, unknown>;
-  businessType: 'import' | 'export';
   status?: 'active' | 'maintenance' | 'disabled';
   sortOrder?: number;
 }
@@ -86,7 +83,6 @@ export interface UpdateChannelParams {
   description?: string;
   config?: Record<string, unknown>;
   configSchema?: Record<string, unknown>;
-  businessType?: 'import' | 'export';
   sortOrder?: number;
 }
 
@@ -102,7 +98,6 @@ export const channelApi = {
     if (params.limit) searchParams.set('limit', String(params.limit));
     if (params.name) searchParams.set('name', params.name);
     if (params.code) searchParams.set('code', params.code);
-    if (params.businessType) searchParams.set('businessType', params.businessType);
     if (params.status) searchParams.set('status', params.status);
 
     const query = searchParams.toString();
@@ -215,6 +210,19 @@ export const channelApi = {
   ): Promise<{ message: string; merchantChannel: MerchantChannel }> => {
     return apiFetch(`/api/admin/merchant-channels/${id}/approve`, {
       method: 'POST',
+    });
+  },
+
+  /**
+   * 拒绝商户渠道申请
+   */
+  rejectChannel: async (
+    id: string,
+    reason: string
+  ): Promise<{ message: string; merchantChannel: MerchantChannel }> => {
+    return apiFetch(`/api/admin/merchant-channels/${id}/reject`, {
+      method: 'POST',
+      body: JSON.stringify({ reason }),
     });
   },
 

@@ -120,6 +120,16 @@ admin:
     updated: 'Warehouse user updated successfully'
     deleted: 'Warehouse user deleted successfully'
 
+  # Admin merchant channel messages
+  merchant_channel:
+    not_found: 'Merchant channel record not found'
+    not_pending: 'This application is not in pending status'
+    not_active: 'This channel is not in active status'
+    approved: 'Approved successfully'
+    rejected: 'Application rejected'
+    suspended: 'Channel suspended'
+    enabled: 'Channel enabled'
+
 # Merchant self-service messages
 merchant:
   not_found: 'Merchant not found'

@@ -213,12 +213,6 @@ export function MerchantWalletPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Header */}
-      <div>
-        <h1 className="text-xl font-semibold m-0">{t('settings.walletManagement')}</h1>
-        <p className="text-gray-500 mt-1">{t('settings.walletManagementDesc')}</p>
-      </div>
-
       {/* Wallet Summary Cards */}
       <Row gutter={16}>
         <Col xs={24} sm={12}>

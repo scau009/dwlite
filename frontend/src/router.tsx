@@ -24,7 +24,7 @@ import { ProfilePage } from '@/pages/profile';
 import { ProductsListPage, ProductDetailPage } from '@/pages/products';
 import { MerchantsListPage } from '@/pages/merchants';
 import { BrandsListPage } from '@/pages/brands';
-import { ChannelsListPage, MerchantChannelsListPage } from '@/pages/channels';
+import { ChannelsListPage, MerchantChannelsListPage, AvailableChannelsPage, MyChannelsPage } from '@/pages/channels';
 import { CategoriesListPage } from '@/pages/categories';
 import { TagsListPage } from '@/pages/tags';
 import {
@@ -45,7 +45,7 @@ import {
   WarehouseOutboundDetailPage,
   WarehouseInventoryListPage,
 } from '@/pages/warehouse-ops';
-import { MerchantProfilePage, MerchantWalletPage, MerchantChannelsPage } from '@/pages/settings';
+import { MerchantProfilePage, MerchantWalletPage } from '@/pages/settings';
 
 // Placeholder component for pages not yet implemented
 // eslint-disable-next-line react-refresh/only-export-components
@@ -176,11 +176,15 @@ export const router = createBrowserRouter([
               { path: '/merchants', element: <MerchantsListPage /> },
 
               // Channels
-              { path: '/channels', element: <ChannelsListPage /> },
+              { path: '/channels', element: <Navigate to="/channels/list" replace /> },
+              { path: '/channels/list', element: <ChannelsListPage /> },
               { path: '/channels/merchants', element: <MerchantChannelsListPage /> },
+              { path: '/channels/available', element: <AvailableChannelsPage /> },
+              { path: '/channels/my-channels', element: <MyChannelsPage /> },
 
               // Warehouses (Admin)
-              { path: '/warehouses', element: <WarehousesListPage /> },
+              { path: '/warehouses', element: <Navigate to="/warehouses/list" replace /> },
+              { path: '/warehouses/list', element: <WarehousesListPage /> },
               { path: '/warehouses/users', element: <WarehouseUsersListPage /> },
 
               // Warehouse Operations (Warehouse users)
@@ -199,7 +203,6 @@ export const router = createBrowserRouter([
               // Settings
               { path: '/settings/info', element: <MerchantProfilePage /> },
               { path: '/settings/wallet', element: <MerchantWalletPage /> },
-              { path: '/settings/channels', element: <MerchantChannelsPage /> },
               { path: '/settings/users', element: <PlaceholderPage title="User Management" /> },
               { path: '/settings/roles', element: <PlaceholderPage title="Role Management" /> },
               { path: '/settings/logs', element: <PlaceholderPage title="Operation Logs" /> },

@@ -2,7 +2,6 @@ import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ProTable, type ActionType, type ProColumns } from '@ant-design/pro-components';
 import { Button, Tag, Space, Switch, App, Popconfirm } from 'antd';
-import { WalletOutlined, HistoryOutlined, AuditOutlined } from '@ant-design/icons';
 
 import { merchantApi, type Merchant } from '@/lib/merchant-api';
 import { ChargeModal } from './components/charge-modal';
@@ -161,7 +160,6 @@ export function MerchantsListPage() {
             <Button
               type="primary"
               size="small"
-              icon={<AuditOutlined />}
               onClick={() => handleOpenReview(record)}
             >
               {t('merchants.review')}
@@ -172,7 +170,6 @@ export function MerchantsListPage() {
               <Button
                 type="link"
                 size="small"
-                icon={<WalletOutlined />}
                 onClick={() => handleOpenCharge(record)}
               >
                 {t('merchants.charge')}
@@ -180,7 +177,6 @@ export function MerchantsListPage() {
               <Button
                 type="link"
                 size="small"
-                icon={<HistoryOutlined />}
                 onClick={() => handleOpenTransactions(record)}
               >
                 {t('merchants.transactions')}
@@ -194,11 +190,6 @@ export function MerchantsListPage() {
 
   return (
     <div className="space-y-4">
-      <div className="mb-4">
-        <h1 className="text-xl font-semibold">{t('merchants.title')}</h1>
-        <p className="text-gray-500">{t('merchants.description')}</p>
-      </div>
-
       <ProTable<Merchant>
         actionRef={actionRef}
         columns={columns}

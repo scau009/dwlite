@@ -172,12 +172,7 @@ export function ProductsListPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-semibold">{t('products.title')}</h1>
-          <p className="text-gray-500">{t('products.description')}</p>
-        </div>
+      <div className="flex justify-end">
         <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateModalOpen(true)}>
           {t('products.addProduct')}
         </Button>

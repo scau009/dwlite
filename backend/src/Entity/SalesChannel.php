@@ -50,6 +50,9 @@ class SalesChannel
     #[ORM\OneToMany(targetEntity: MerchantSalesChannel::class, mappedBy: 'salesChannel', cascade: ['persist', 'remove'])]
     private Collection $merchantChannels;
 
+    #[ORM\OneToMany(targetEntity: SalesChannelWarehouse::class, mappedBy: 'salesChannel', cascade: ['persist', 'remove'])]
+    private Collection $channelWarehouses;
+
     #[ORM\Column(type: 'datetime_immutable')]
     private \DateTimeImmutable $createdAt;
 
@@ -60,6 +63,7 @@ class SalesChannel
     {
         $this->id = (string) new Ulid();
         $this->merchantChannels = new ArrayCollection();
+        $this->channelWarehouses = new ArrayCollection();
         $this->createdAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
         $this->updatedAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
     }
@@ -176,6 +180,35 @@ class SalesChannel
     public function getMerchantChannels(): Collection
     {
         return $this->merchantChannels;
+    }
+
+    /**
+     * @return Collection<int, SalesChannelWarehouse>
+     */
+    public function getChannelWarehouses(): Collection
+    {
+        return $this->channelWarehouses;
+    }
+
+    public function addChannelWarehouse(SalesChannelWarehouse $channelWarehouse): static
+    {
+        if (!$this->channelWarehouses->contains($channelWarehouse)) {
+            $this->channelWarehouses->add($channelWarehouse);
+            $channelWarehouse->setSalesChannel($this);
+        }
+
+        return $this;
+    }
+
+    public function removeChannelWarehouse(SalesChannelWarehouse $channelWarehouse): static
+    {
+        if ($this->channelWarehouses->removeElement($channelWarehouse)) {
+            if ($channelWarehouse->getSalesChannel() === $this) {
+                $channelWarehouse->setSalesChannel(null);
+            }
+        }
+
+        return $this;
     }
 
     public function getCreatedAt(): \DateTimeImmutable

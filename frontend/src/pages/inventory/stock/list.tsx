@@ -213,11 +213,6 @@ export function MerchantStockListPage() {
 
   return (
     <div className="space-y-4">
-      <div className="mb-4">
-        <h1 className="text-xl font-semibold">{t('merchantStock.title')}</h1>
-        <p className="text-gray-500">{t('merchantStock.description')}</p>
-      </div>
-
       {/* Summary Cards */}
       <Row gutter={16} className="mb-4">
         <Col xs={12} sm={6} lg={4}>

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ProTable, type ActionType, type ProColumns } from '@ant-design/pro-components';
 import { Button, Avatar, Tag, Modal, Table } from 'antd';
-import { ShoppingCartOutlined, ShoppingOutlined } from '@ant-design/icons';
+import { ShoppingOutlined } from '@ant-design/icons';
 
 import {
   inboundApi,
@@ -196,13 +196,12 @@ export function OpportunitiesListPage() {
     {
       title: t('common.actions'),
       valueType: 'option',
-      width: 120,
+      width: 100,
       fixed: 'right',
       render: (_, record) => (
         <Button
           type="primary"
           size="small"
-          icon={<ShoppingCartOutlined />}
           onClick={() => handleCreateOrder(record)}
         >
           {t('opportunities.createOrder')}
@@ -213,11 +212,6 @@ export function OpportunitiesListPage() {
 
   return (
     <div className="space-y-4">
-      <div className="mb-4">
-        <h1 className="text-xl font-semibold">{t('opportunities.title')}</h1>
-        <p className="text-gray-500">{t('opportunities.description')}</p>
-      </div>
-
       <ProTable<InboundProduct>
         actionRef={actionRef}
         columns={columns}
@@ -232,7 +226,6 @@ export function OpportunitiesListPage() {
         tableAlertOptionRender={() => (
           <Button
             type="primary"
-            icon={<ShoppingCartOutlined />}
             onClick={handleBatchCreateOrder}
           >
             {t('opportunities.batchCreateOrder')}

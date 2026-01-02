@@ -120,6 +120,16 @@ admin:
     updated: '仓库用户更新成功'
     deleted: '仓库用户删除成功'
 
+  # Admin merchant channel messages
+  merchant_channel:
+    not_found: '商户渠道记录不存在'
+    not_pending: '该申请不是待审核状态'
+    not_active: '该渠道不是启用状态'
+    approved: '审核通过'
+    rejected: '已拒绝申请'
+    suspended: '已暂停'
+    enabled: '已启用'
+
 # Merchant self-service messages
 merchant:
   not_found: '未找到商户信息'

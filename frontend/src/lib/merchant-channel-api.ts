@@ -16,8 +16,6 @@ export interface MyMerchantChannel {
   id: string;
   fulfillmentType: FulfillmentType;
   pricingModel: PricingModel;
-  defaultWarehouseId: string | null;
-  defaultWarehouseName: string | null;
   status: 'pending' | 'active' | 'suspended' | 'disabled';
   remark: string | null;
   approvedAt: string | null;
@@ -74,7 +72,6 @@ export const merchantChannelApi = {
     salesChannelId: string;
     fulfillmentType: FulfillmentType;
     pricingModel?: PricingModel;
-    defaultWarehouseId?: string;
     remark?: string;
   }): Promise<{ message: string; merchantChannel: MyMerchantChannel }> => {
     return apiFetch('/api/merchant/my-channels', {
