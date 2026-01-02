@@ -121,16 +121,18 @@ if [ ! -f "docker-compose.prod.yml" ]; then
     error_exit "docker-compose.prod.yml not found in $PROJECT_DIR"
 fi
 
-# Verify observability configs exist
+# Check observability configs
+SKIP_OBSERVABILITY=0
 if [ ! -f "observability/loki/loki-config.yaml" ]; then
-    log_error "Observability configs not found!"
-    log_error "Required files:"
-    log_error "  - observability/loki/loki-config.yaml"
-    log_error "  - observability/promtail/promtail-config.yaml"
-    log_error "  - observability/tempo/tempo-config.yaml"
-    log_error "  - observability/prometheus/prometheus.yml"
-    log_error "Please ensure these files are copied to the server before deployment."
-    error_exit "Missing observability configuration files"
+    log_warn "Observability configs not found, will skip observability stack"
+    log_warn "Missing files:"
+    log_warn "  - observability/loki/loki-config.yaml"
+    log_warn "  - observability/promtail/promtail-config.yaml"
+    log_warn "  - observability/tempo/tempo-config.yaml"
+    log_warn "  - observability/prometheus/prometheus.yml"
+    SKIP_OBSERVABILITY=1
+else
+    log_info "Observability configs found"
 fi
 
 # Export environment variables for docker-compose
@@ -159,7 +161,17 @@ log_info "Pulling images with docker compose..."
 $DOCKER_COMPOSE -f docker-compose.prod.yml pull
 
 log_info "Starting new containers..."
-$DOCKER_COMPOSE -f docker-compose.prod.yml up -d --no-deps --remove-orphans
+if [ $SKIP_OBSERVABILITY -eq 1 ]; then
+    log_warn "Skipping observability stack (loki, promtail, tempo, prometheus, grafana)"
+    $DOCKER_COMPOSE -f docker-compose.prod.yml up -d --no-deps --remove-orphans \
+        --scale loki=0 \
+        --scale promtail=0 \
+        --scale tempo=0 \
+        --scale prometheus=0 \
+        --scale grafana=0
+else
+    $DOCKER_COMPOSE -f docker-compose.prod.yml up -d --no-deps --remove-orphans
+fi
 
 # Wait for services to start
 log_info "Waiting for services to initialize..."

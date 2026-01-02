@@ -149,6 +149,18 @@ jobs:
 
           echo "All deployment files and configs copied successfully"
 
+          # Verify files were copied
+          echo "Verifying copied files..."
+          ssh -p ${{ secrets.PROD_SSH_PORT }} -i ~/.ssh/deploy_key \
+            ${{ secrets.PROD_SSH_USER }}@${{ secrets.PROD_SSH_HOST }} \
+            "cd /opt/dwlite && \
+             ls -lh docker-compose.prod.yml scripts/deploy.sh && \
+             echo 'Checking observability configs...' && \
+             ls -lh observability/loki/loki-config.yaml \
+                    observability/promtail/promtail-config.yaml \
+                    observability/tempo/tempo-config.yaml \
+                    observability/prometheus/prometheus.yml 2>&1 || echo 'Warning: Some observability configs missing'"
+
       - name: Deploy application
         id: deploy
         env:
