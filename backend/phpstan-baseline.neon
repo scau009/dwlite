@@ -1,0 +1,41 @@
+parameters:
+	ignoreErrors:
+		-
+			message: "#^If condition is always true\\.$#"
+			count: 1
+			path: src/Controller/MerchantInventoryController.php
+
+		-
+			message: "#^Method App\\\\Controller\\\\MerchantInventoryController\\:\\:formatInventory\\(\\) is unused\\.$#"
+			count: 1
+			path: src/Controller/MerchantInventoryController.php
+
+		-
+			message: "#^Ternary operator condition is always true\\.$#"
+			count: 1
+			path: src/Controller/MerchantInventoryController.php
+
+		-
+			message: "#^Unsafe usage of new static\\(\\)\\.$#"
+			count: 2
+			path: src/Entity/Fulfillment.php
+
+		-
+			message: "#^Unsafe usage of new static\\(\\)\\.$#"
+			count: 1
+			path: src/Entity/OutboundOrder.php
+
+		-
+			message: "#^Unsafe usage of new static\\(\\)\\.$#"
+			count: 1
+			path: src/Entity/Warehouse.php
+
+		-
+			message: "#^Call to an undefined method Qcloud\\\\Cos\\\\Client\\:\\:deleteObject\\(\\)\\.$#"
+			count: 1
+			path: src/Service/CosService.php
+
+		-
+			message: "#^Parameter \\#1 \\$Simple of method TencentCloud\\\\Ses\\\\V20201002\\\\Models\\\\SendEmailRequest\\:\\:setSimple\\(\\) expects TencentCloud\\\\Ses\\\\V20201002\\\\Models\\\\Simple, array\\<string, string\\> given\\.$#"
+			count: 1
+			path: src/Service/Mail/TencentSesMailService.php
