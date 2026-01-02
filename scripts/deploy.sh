@@ -121,10 +121,16 @@ if [ ! -f "docker-compose.prod.yml" ]; then
     error_exit "docker-compose.prod.yml not found in $PROJECT_DIR"
 fi
 
-# Ensure observability configs exist
-if [ ! -d "observability" ]; then
-    log_warn "observability directory not found, creating minimal structure..."
-    mkdir -p observability/{loki,promtail,tempo,prometheus,grafana/provisioning}
+# Verify observability configs exist
+if [ ! -f "observability/loki/loki-config.yaml" ]; then
+    log_error "Observability configs not found!"
+    log_error "Required files:"
+    log_error "  - observability/loki/loki-config.yaml"
+    log_error "  - observability/promtail/promtail-config.yaml"
+    log_error "  - observability/tempo/tempo-config.yaml"
+    log_error "  - observability/prometheus/prometheus.yml"
+    log_error "Please ensure these files are copied to the server before deployment."
+    error_exit "Missing observability configuration files"
 fi
 
 # Export environment variables for docker-compose

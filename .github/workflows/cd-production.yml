@@ -91,11 +91,29 @@ jobs:
 
       - name: Copy deployment files to server
         run: |
-          # Copy observability configs if they don't exist on server
+          # Clean up any incorrectly created config directories (Docker may have created them as dirs)
           ssh -p ${{ secrets.PROD_SSH_PORT }} -i ~/.ssh/deploy_key \
             ${{ secrets.PROD_SSH_USER }}@${{ secrets.PROD_SSH_HOST }} \
-            "mkdir -p /opt/dwlite/scripts /opt/dwlite/observability"
+            "cd /opt/dwlite && \
+             rm -rf observability/loki/loki-config.yaml \
+                    observability/promtail/promtail-config.yaml \
+                    observability/tempo/tempo-config.yaml \
+                    observability/prometheus/prometheus.yml \
+                    observability/grafana/provisioning/datasources/datasources.yaml \
+                    observability/grafana/provisioning/dashboards/dashboards.yaml 2>/dev/null || true"
 
+          # Create necessary directories on server
+          ssh -p ${{ secrets.PROD_SSH_PORT }} -i ~/.ssh/deploy_key \
+            ${{ secrets.PROD_SSH_USER }}@${{ secrets.PROD_SSH_HOST }} \
+            "mkdir -p /opt/dwlite/scripts \
+                      /opt/dwlite/observability/loki \
+                      /opt/dwlite/observability/promtail \
+                      /opt/dwlite/observability/tempo \
+                      /opt/dwlite/observability/prometheus \
+                      /opt/dwlite/observability/grafana/provisioning/datasources \
+                      /opt/dwlite/observability/grafana/provisioning/dashboards"
+
+          # Copy docker-compose and deployment script
           scp -P ${{ secrets.PROD_SSH_PORT }} -i ~/.ssh/deploy_key \
             docker-compose.prod.yml \
             ${{ secrets.PROD_SSH_USER }}@${{ secrets.PROD_SSH_HOST }}:/opt/dwlite/
@@ -104,10 +122,32 @@ jobs:
             scripts/deploy.sh \
             ${{ secrets.PROD_SSH_USER }}@${{ secrets.PROD_SSH_HOST }}:/opt/dwlite/scripts/
 
-          # Copy observability configs if needed
-          ssh -p ${{ secrets.PROD_SSH_PORT }} -i ~/.ssh/deploy_key \
-            ${{ secrets.PROD_SSH_USER }}@${{ secrets.PROD_SSH_HOST }} \
-            "if [ ! -d '/opt/dwlite/observability/loki' ]; then echo 'Observability configs missing'; fi" || true
+          # Copy observability configs
+          scp -P ${{ secrets.PROD_SSH_PORT }} -i ~/.ssh/deploy_key \
+            observability/loki/loki-config.yaml \
+            ${{ secrets.PROD_SSH_USER }}@${{ secrets.PROD_SSH_HOST }}:/opt/dwlite/observability/loki/
+
+          scp -P ${{ secrets.PROD_SSH_PORT }} -i ~/.ssh/deploy_key \
+            observability/promtail/promtail-config.yaml \
+            ${{ secrets.PROD_SSH_USER }}@${{ secrets.PROD_SSH_HOST }}:/opt/dwlite/observability/promtail/
+
+          scp -P ${{ secrets.PROD_SSH_PORT }} -i ~/.ssh/deploy_key \
+            observability/tempo/tempo-config.yaml \
+            ${{ secrets.PROD_SSH_USER }}@${{ secrets.PROD_SSH_HOST }}:/opt/dwlite/observability/tempo/
+
+          scp -P ${{ secrets.PROD_SSH_PORT }} -i ~/.ssh/deploy_key \
+            observability/prometheus/prometheus.yml \
+            ${{ secrets.PROD_SSH_USER }}@${{ secrets.PROD_SSH_HOST }}:/opt/dwlite/observability/prometheus/
+
+          scp -P ${{ secrets.PROD_SSH_PORT }} -i ~/.ssh/deploy_key \
+            observability/grafana/provisioning/datasources/datasources.yaml \
+            ${{ secrets.PROD_SSH_USER }}@${{ secrets.PROD_SSH_HOST }}:/opt/dwlite/observability/grafana/provisioning/datasources/
+
+          scp -P ${{ secrets.PROD_SSH_PORT }} -i ~/.ssh/deploy_key \
+            observability/grafana/provisioning/dashboards/dashboards.yaml \
+            ${{ secrets.PROD_SSH_USER }}@${{ secrets.PROD_SSH_HOST }}:/opt/dwlite/observability/grafana/provisioning/dashboards/
+
+          echo "All deployment files and configs copied successfully"
 
       - name: Deploy application
         id: deploy
