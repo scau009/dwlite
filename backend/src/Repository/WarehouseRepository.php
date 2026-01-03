@@ -203,6 +203,67 @@ class WarehouseRepository extends ServiceEntityRepository
     }
 
     /**
+     * 分页查询商户的仓库列表.
+     *
+     * @return array{data: Warehouse[], total: int}
+     */
+    public function findByMerchantPaginated(
+        \App\Entity\Merchant $merchant,
+        int $page = 1,
+        int $limit = 20,
+        ?string $name = null,
+        ?string $code = null,
+        ?string $type = null,
+        ?string $status = null,
+    ): array {
+        $qb = $this->createQueryBuilder('w')
+            ->andWhere('w.merchant = :merchant')
+            ->andWhere('w.category = :category')
+            ->setParameter('merchant', $merchant)
+            ->setParameter('category', Warehouse::CATEGORY_MERCHANT);
+
+        // 搜索条件
+        if ($name) {
+            $qb->andWhere('w.name LIKE :name')
+               ->setParameter('name', '%'.$name.'%');
+        }
+
+        if ($code) {
+            $qb->andWhere('w.code LIKE :code')
+               ->setParameter('code', '%'.$code.'%');
+        }
+
+        if ($type) {
+            $qb->andWhere('w.type = :type')
+               ->setParameter('type', $type);
+        }
+
+        if ($status) {
+            $qb->andWhere('w.status = :status')
+               ->setParameter('status', $status);
+        }
+
+        // 计算总数
+        $countQb = clone $qb;
+        $total = $countQb->select('COUNT(w.id)')
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        // 分页和排序
+        $data = $qb
+            ->orderBy('w.createdAt', 'DESC')
+            ->setFirstResult(($page - 1) * $limit)
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+
+        return [
+            'data' => $data,
+            'total' => (int) $total,
+        ];
+    }
+
+    /**
      * 保存仓库.
      */
     public function save(Warehouse $warehouse, bool $flush = false): void

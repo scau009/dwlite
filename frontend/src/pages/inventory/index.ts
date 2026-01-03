@@ -15,3 +15,6 @@ export { MerchantStockListPage } from './stock/list';
 // Outbound Orders
 export { OutboundOrdersListPage } from './outbound/list';
 export { OutboundOrderDetailPage } from './outbound/detail';
+
+// Merchant Warehouses
+export { MerchantWarehousesListPage } from './warehouses/list';

@@ -2,7 +2,7 @@ import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ProTable, type ActionType, type ProColumns } from '@ant-design/pro-components';
 import { Button, Tag, Switch, App, Popconfirm, Space, Tabs, Typography } from 'antd';
-import { PlusOutlined, SettingOutlined } from '@ant-design/icons';
+import { PlusOutlined } from '@ant-design/icons';
 
 import { merchantRuleApi, type MerchantRule } from '@/lib/merchant-rule-api';
 import { RuleFormModal } from './components/rule-form-modal';
@@ -196,7 +196,6 @@ export function MerchantRulesPage() {
           <Button
             type="link"
             size="small"
-            icon={<SettingOutlined />}
             onClick={() => handleManageAssignments(record)}
           >
             {t('rules.assignments')}

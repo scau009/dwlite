@@ -69,6 +69,7 @@ export default {
     productBrands: 'Brands',
     productTags: 'Tags',
     // Inventory
+    merchantWarehouses: 'Warehouses',
     opportunities: 'Opportunities',
     stockQuery: 'Stock Query',
     inboundOrders: 'Inbound Orders',
@@ -448,6 +449,23 @@ export default {
     // Notes
     internalNotes: 'Internal Notes',
     internalNotesPlaceholder: 'Enter internal notes',
+
+    // Merchant owned warehouse
+    merchant: 'Merchant',
+    selectMerchant: 'Select merchant',
+    contact: 'Contact',
+  },
+
+  // Merchant Warehouses (for merchants)
+  merchantWarehouses: {
+    title: 'Warehouse Management',
+    description: 'Manage your warehouses',
+    create: 'Create Warehouse',
+    edit: 'Edit Warehouse',
+    created: 'Warehouse created successfully',
+    updated: 'Warehouse updated successfully',
+    deleted: 'Warehouse deleted successfully',
+    confirmDelete: 'Are you sure you want to delete this warehouse?',
   },
 
   // Warehouse Users

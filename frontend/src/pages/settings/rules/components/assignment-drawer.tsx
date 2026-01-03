@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Drawer, Table, Button, Switch, App, Space, Tag, Empty, Popconfirm, Select, Form, InputNumber } from 'antd';
-import { PlusOutlined, DeleteOutlined } from '@ant-design/icons';
 import type { MerchantRule, MerchantRuleAssignment } from '@/lib/merchant-rule-api';
 import { merchantRuleApi } from '@/lib/merchant-rule-api';
 import { merchantChannelApi, type MyMerchantChannel } from '@/lib/merchant-channel-api';
@@ -152,12 +151,13 @@ export function AssignmentDrawer({ open, rule, onClose }: AssignmentDrawerProps)
           cancelText={t('common.cancel')}
         >
           <Button
-            type="text"
+            type="link"
             danger
             size="small"
-            icon={<DeleteOutlined />}
             loading={deleteLoading === record.id}
-          />
+          >
+            {t('common.delete')}
+          </Button>
         </Popconfirm>
       ),
     },
@@ -178,7 +178,6 @@ export function AssignmentDrawer({ open, rule, onClose }: AssignmentDrawerProps)
           {!showAddForm && unassignedChannels.length > 0 && (
             <Button
               type="primary"
-              icon={<PlusOutlined />}
               onClick={() => setShowAddForm(true)}
             >
               {t('rules.addAssignment')}

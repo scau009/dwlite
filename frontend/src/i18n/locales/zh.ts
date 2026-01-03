@@ -69,6 +69,7 @@ export default {
     productBrands: '品牌管理',
     productTags: '标签管理',
     // Inventory
+    merchantWarehouses: '逻辑仓库',
     opportunities: '商机发现',
     stockQuery: '库存查询',
     inboundOrders: '入库单',
@@ -448,6 +449,23 @@ export default {
     // Notes
     internalNotes: '内部备注',
     internalNotesPlaceholder: '请输入内部备注信息',
+
+    // Merchant owned warehouse
+    merchant: '所属商户',
+    selectMerchant: '请选择商户',
+    contact: '联系方式',
+  },
+
+  // Merchant Warehouses (for merchants)
+  merchantWarehouses: {
+    title: '逻辑仓库管理',
+    description: '管理您的逻辑仓库',
+    create: '新建仓库',
+    edit: '编辑仓库',
+    created: '仓库创建成功',
+    updated: '仓库更新成功',
+    deleted: '仓库已删除',
+    confirmDelete: '确定要删除此仓库吗？',
   },
 
   // Warehouse Users

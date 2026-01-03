@@ -36,6 +36,7 @@ import {
   MerchantStockListPage,
   OutboundOrdersListPage,
   OutboundOrderDetailPage,
+  MerchantWarehousesListPage,
 } from '@/pages/inventory';
 import { WarehousesListPage, WarehouseUsersListPage } from '@/pages/warehouses';
 import {
@@ -166,6 +167,7 @@ export const router = createBrowserRouter([
               { path: '/opportunities', element: <OpportunitiesListPage /> },
 
               // Inventory
+              { path: '/inventory/warehouses', element: <MerchantWarehousesListPage /> },
               { path: '/inventory/stock', element: <MerchantStockListPage /> },
               { path: '/inventory/inbound', element: <InboundOrdersListPage /> },
               { path: '/inventory/inbound/detail/:id', element: <InboundOrderDetailPage /> },
