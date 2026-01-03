@@ -10,6 +10,7 @@ use App\Entity\User;
 use App\Repository\MerchantRepository;
 use App\Repository\MerchantSalesChannelRepository;
 use App\Repository\SalesChannelRepository;
+use App\Repository\SalesChannelWarehouseRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -30,6 +31,7 @@ class MerchantChannelController extends AbstractController
         private MerchantRepository $merchantRepository,
         private SalesChannelRepository $salesChannelRepository,
         private MerchantSalesChannelRepository $merchantChannelRepository,
+        private SalesChannelWarehouseRepository $channelWarehouseRepository,
         private TranslatorInterface $translator,
     ) {
     }
@@ -117,8 +119,7 @@ class MerchantChannelController extends AbstractController
         $mc = new MerchantSalesChannel();
         $mc->setMerchant($merchant);
         $mc->setSalesChannel($channel);
-        $mc->setFulfillmentType($dto->fulfillmentType);
-        $mc->setPricingModel($dto->pricingModel);
+        $mc->setRequestedFulfillmentTypes($dto->fulfillmentTypes);
 
         if ($dto->remark) {
             $mc->setRemark($dto->remark);
@@ -200,6 +201,43 @@ class MerchantChannelController extends AbstractController
         ]);
     }
 
+    /**
+     * 获取渠道的可用仓库列表.
+     */
+    #[Route('/my-channels/{id}/warehouses', name: 'merchant_channel_warehouses', methods: ['GET'])]
+    public function getChannelWarehouses(string $id, #[CurrentUser] User $user): JsonResponse
+    {
+        $merchant = $this->merchantRepository->findOneBy(['user' => $user]);
+        if (!$merchant) {
+            return $this->json(['error' => $this->translator->trans('merchant.not_found')], Response::HTTP_NOT_FOUND);
+        }
+
+        $mc = $this->merchantChannelRepository->find($id);
+        if (!$mc || $mc->getMerchant()->getId() !== $merchant->getId()) {
+            return $this->json(['error' => $this->translator->trans('merchant_channel.not_found')], Response::HTTP_NOT_FOUND);
+        }
+
+        // 只有已激活的渠道才能获取仓库
+        if (!$mc->isActive()) {
+            return $this->json(['error' => $this->translator->trans('merchant_channel.not_active')], Response::HTTP_BAD_REQUEST);
+        }
+
+        $channelWarehouses = $this->channelWarehouseRepository->findByChannel($mc->getSalesChannel(), true);
+
+        return $this->json([
+            'data' => array_map(fn ($scw) => [
+                'id' => $scw->getWarehouse()->getId(),
+                'code' => $scw->getWarehouse()->getCode(),
+                'name' => $scw->getWarehouse()->getName(),
+                'type' => $scw->getWarehouse()->getType(),
+                'countryCode' => $scw->getWarehouse()->getCountryCode(),
+                'fullAddress' => $scw->getWarehouse()->getFullAddress(),
+                'province' => $scw->getWarehouse()->getProvince(),
+                'city' => $scw->getWarehouse()->getCity(),
+            ], $channelWarehouses),
+        ]);
+    }
+
     private function serializeSalesChannel(SalesChannel $channel): array
     {
         return [
@@ -218,8 +256,8 @@ class MerchantChannelController extends AbstractController
         return [
             'id' => $mc->getId(),
             'status' => $mc->getStatus(),
-            'fulfillmentType' => $mc->getFulfillmentType(),
-            'pricingModel' => $mc->getPricingModel(),
+            'requestedFulfillmentTypes' => $mc->getRequestedFulfillmentTypes(),
+            'approvedFulfillmentTypes' => $mc->getApprovedFulfillmentTypes(),
             'remark' => $mc->getRemark(),
             'approvedAt' => $mc->getApprovedAt()?->format('c'),
             'createdAt' => $mc->getCreatedAt()->format('c'),

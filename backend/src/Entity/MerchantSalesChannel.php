@@ -18,9 +18,10 @@ class MerchantSalesChannel
     public const FULFILLMENT_CONSIGNMENT = 'consignment';         // 寄售：送仓实物库存，平台履约
     public const FULFILLMENT_SELF_FULFILLMENT = 'self_fulfillment'; // 自履约：虚拟库存，商户自己发货
 
-    // 定价模式
-    public const PRICING_SELF = 'self_pricing';           // 自主定价
-    public const PRICING_PLATFORM_MANAGED = 'platform_managed';  // 平台托管定价
+    public const FULFILLMENT_TYPES = [
+        self::FULFILLMENT_CONSIGNMENT,
+        self::FULFILLMENT_SELF_FULFILLMENT,
+    ];
 
     // 状态
     public const STATUS_PENDING = 'pending';     // 待审核（管理员需审核开通）
@@ -41,11 +42,13 @@ class MerchantSalesChannel
     #[ORM\JoinColumn(name: 'sales_channel_id', referencedColumnName: 'id', nullable: false, onDelete: 'CASCADE')]
     private SalesChannel $salesChannel;
 
-    #[ORM\Column(type: 'string', length: 20)]
-    private string $fulfillmentType = self::FULFILLMENT_CONSIGNMENT;  // 履约模式
+    /** @var string[] 商户申请的履约模式 */
+    #[ORM\Column(type: 'json')]
+    private array $requestedFulfillmentTypes = [self::FULFILLMENT_CONSIGNMENT];
 
-    #[ORM\Column(type: 'string', length: 20)]
-    private string $pricingModel = self::PRICING_SELF;  // 定价模式
+    /** @var string[]|null 管理员批准的履约模式 */
+    #[ORM\Column(type: 'json', nullable: true)]
+    private ?array $approvedFulfillmentTypes = null;
 
     #[ORM\Column(type: 'json', nullable: true)]
     private ?array $config = null;  // 商户针对该渠道的配置（如店铺ID、API密钥等）
@@ -104,26 +107,43 @@ class MerchantSalesChannel
         return $this;
     }
 
-    public function getFulfillmentType(): string
+    /**
+     * @return string[]
+     */
+    public function getRequestedFulfillmentTypes(): array
     {
-        return $this->fulfillmentType;
+        return $this->requestedFulfillmentTypes;
     }
 
-    public function setFulfillmentType(string $fulfillmentType): static
+    /**
+     * @param string[] $types
+     */
+    public function setRequestedFulfillmentTypes(array $types): static
     {
-        $this->fulfillmentType = $fulfillmentType;
+        // 验证并过滤无效值
+        $this->requestedFulfillmentTypes = array_values(array_intersect($types, self::FULFILLMENT_TYPES));
 
         return $this;
     }
 
-    public function getPricingModel(): string
+    /**
+     * @return string[]|null
+     */
+    public function getApprovedFulfillmentTypes(): ?array
     {
-        return $this->pricingModel;
+        return $this->approvedFulfillmentTypes;
     }
 
-    public function setPricingModel(string $pricingModel): static
+    /**
+     * @param string[]|null $types
+     */
+    public function setApprovedFulfillmentTypes(?array $types): static
     {
-        $this->pricingModel = $pricingModel;
+        if ($types !== null) {
+            // 验证并过滤无效值
+            $types = array_values(array_intersect($types, self::FULFILLMENT_TYPES));
+        }
+        $this->approvedFulfillmentTypes = $types;
 
         return $this;
     }
@@ -219,7 +239,7 @@ class MerchantSalesChannel
         $this->updatedAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
     }
 
-    // 便捷方法
+    // 状态便捷方法
 
     public function isPending(): bool
     {
@@ -229,6 +249,11 @@ class MerchantSalesChannel
     public function isActive(): bool
     {
         return $this->status === self::STATUS_ACTIVE;
+    }
+
+    public function isRejected(): bool
+    {
+        return $this->status === self::STATUS_REJECTED;
     }
 
     public function isSuspended(): bool
@@ -249,15 +274,65 @@ class MerchantSalesChannel
         return $this->isActive() && $this->salesChannel->isAvailable();
     }
 
+    // 履约模式便捷方法
+
+    /**
+     * 检查某个履约模式是否已申请.
+     */
+    public function hasRequestedFulfillmentType(string $type): bool
+    {
+        return in_array($type, $this->requestedFulfillmentTypes, true);
+    }
+
+    /**
+     * 检查某个履约模式是否已批准.
+     */
+    public function hasApprovedFulfillmentType(string $type): bool
+    {
+        return $this->approvedFulfillmentTypes !== null
+            && in_array($type, $this->approvedFulfillmentTypes, true);
+    }
+
+    /**
+     * 检查是否支持寄售模式.
+     */
+    public function supportsConsignment(): bool
+    {
+        return $this->hasApprovedFulfillmentType(self::FULFILLMENT_CONSIGNMENT);
+    }
+
+    /**
+     * 检查是否支持自履约模式.
+     */
+    public function supportsSelfFulfillment(): bool
+    {
+        return $this->hasApprovedFulfillmentType(self::FULFILLMENT_SELF_FULFILLMENT);
+    }
+
+    // 状态操作方法
+
     /**
      * 管理员审核通过.
+     *
+     * @param string        $adminId       审核人ID
+     * @param string[]|null $approvedTypes 批准的履约模式，null 表示全部批准
      */
-    public function approve(string $adminId): static
+    public function approve(string $adminId, ?array $approvedTypes = null): static
     {
         $this->status = self::STATUS_ACTIVE;
         $this->approvedAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
         $this->approvedBy = $adminId;
         $this->remark = null;
+
+        // 如果未指定，则批准所有申请的模式
+        if ($approvedTypes === null) {
+            $this->approvedFulfillmentTypes = $this->requestedFulfillmentTypes;
+        } else {
+            // 只能批准商户申请过的模式
+            $this->approvedFulfillmentTypes = array_values(
+                array_intersect($approvedTypes, $this->requestedFulfillmentTypes)
+            );
+        }
 
         return $this;
     }
@@ -269,6 +344,7 @@ class MerchantSalesChannel
     {
         $this->status = self::STATUS_REJECTED;
         $this->remark = $reason;
+        $this->approvedFulfillmentTypes = null;
 
         return $this;
     }
@@ -305,34 +381,17 @@ class MerchantSalesChannel
     }
 
     /**
-     * 是否寄售模式.
+     * 更新已批准的履约模式（管理员操作）.
+     *
+     * @param string[] $types
      */
-    public function isConsignment(): bool
+    public function updateApprovedFulfillmentTypes(array $types): static
     {
-        return $this->fulfillmentType === self::FULFILLMENT_CONSIGNMENT;
-    }
+        // 只能批准商户申请过的模式
+        $this->approvedFulfillmentTypes = array_values(
+            array_intersect($types, $this->requestedFulfillmentTypes)
+        );
 
-    /**
-     * 是否自履约模式.
-     */
-    public function isSelfFulfillment(): bool
-    {
-        return $this->fulfillmentType === self::FULFILLMENT_SELF_FULFILLMENT;
-    }
-
-    /**
-     * 是否自主定价.
-     */
-    public function isSelfPricing(): bool
-    {
-        return $this->pricingModel === self::PRICING_SELF;
-    }
-
-    /**
-     * 是否平台托管定价.
-     */
-    public function isPlatformManaged(): bool
-    {
-        return $this->pricingModel === self::PRICING_PLATFORM_MANAGED;
+        return $this;
     }
 }

@@ -130,6 +130,25 @@ admin:
     suspended: '已暂停'
     enabled: '已启用'
 
+  # Channel warehouse messages
+  channel_warehouse:
+    not_found: '渠道仓库配置不存在'
+    already_exists: '该仓库已配置在此渠道'
+    only_platform_allowed: '仅支持添加平台仓库到销售渠道'
+    added: '仓库已添加到渠道'
+    updated: '渠道仓库配置已更新'
+    removed: '仓库已从渠道移除'
+    batch_added: '仓库批量添加成功'
+    priorities_updated: '仓库优先级已更新'
+
+  # Channel messages
+  channel:
+    not_found: '销售渠道不存在'
+
+  # Warehouse messages
+  warehouse:
+    not_found: '仓库不存在'
+
 # Merchant self-service messages
 merchant:
   not_found: '未找到商户信息'
@@ -147,6 +166,7 @@ merchant_channel:
   enabled: '渠道已启用'
   cannot_cancel_or_disable: '当前状态下无法取消或停用'
   not_disabled: '该渠道未停用'
+  not_active: '该渠道未激活，无法获取仓库列表'
 
 # Wallet messages
 wallet:

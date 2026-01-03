@@ -14,9 +14,9 @@ export interface AvailableSalesChannel {
 
 export interface MyMerchantChannel {
   id: string;
-  fulfillmentType: FulfillmentType;
-  pricingModel: PricingModel;
-  status: 'pending' | 'active' | 'suspended' | 'disabled';
+  requestedFulfillmentTypes: FulfillmentType[];
+  approvedFulfillmentTypes: FulfillmentType[] | null;
+  status: 'pending' | 'active' | 'suspended' | 'disabled' | 'rejected';
   remark: string | null;
   approvedAt: string | null;
   createdAt: string;
@@ -27,6 +27,17 @@ export interface MyMerchantChannel {
     name: string;
     logoUrl: string | null;
   };
+}
+
+export interface ChannelWarehouse {
+  id: string;
+  code: string;
+  name: string;
+  type: 'self' | 'third_party' | 'bonded' | 'overseas';
+  countryCode: string;
+  fullAddress: string;
+  province: string | null;
+  city: string | null;
 }
 
 export interface MyChannelListParams {
@@ -70,8 +81,7 @@ export const merchantChannelApi = {
    */
   applyChannel: async (data: {
     salesChannelId: string;
-    fulfillmentType: FulfillmentType;
-    pricingModel?: PricingModel;
+    fulfillmentTypes: FulfillmentType[];
     remark?: string;
   }): Promise<{ message: string; merchantChannel: MyMerchantChannel }> => {
     return apiFetch('/api/merchant/my-channels', {
@@ -100,5 +110,14 @@ export const merchantChannelApi = {
     return apiFetch(`/api/merchant/my-channels/${id}/enable`, {
       method: 'POST',
     });
+  },
+
+  /**
+   * 获取渠道的可用仓库列表
+   */
+  getChannelWarehouses: async (
+    channelId: string
+  ): Promise<{ data: ChannelWarehouse[] }> => {
+    return apiFetch(`/api/merchant/my-channels/${channelId}/warehouses`);
   },
 };

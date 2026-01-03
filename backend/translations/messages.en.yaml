@@ -130,6 +130,25 @@ admin:
     suspended: 'Channel suspended'
     enabled: 'Channel enabled'
 
+  # Channel warehouse messages
+  channel_warehouse:
+    not_found: 'Channel warehouse configuration not found'
+    already_exists: 'This warehouse is already configured for the channel'
+    only_platform_allowed: 'Only platform warehouses can be added to sales channels'
+    added: 'Warehouse added to channel'
+    updated: 'Channel warehouse configuration updated'
+    removed: 'Warehouse removed from channel'
+    batch_added: 'Warehouses added to channel'
+    priorities_updated: 'Warehouse priorities updated'
+
+  # Channel messages
+  channel:
+    not_found: 'Sales channel not found'
+
+  # Warehouse messages
+  warehouse:
+    not_found: 'Warehouse not found'
+
 # Merchant self-service messages
 merchant:
   not_found: 'Merchant not found'
@@ -147,6 +166,7 @@ merchant_channel:
   enabled: 'Channel has been enabled'
   cannot_cancel_or_disable: 'Cannot cancel or disable in current status'
   not_disabled: 'This channel is not disabled'
+  not_active: 'This channel is not active, cannot fetch warehouses'
 
 # Wallet messages
 wallet:

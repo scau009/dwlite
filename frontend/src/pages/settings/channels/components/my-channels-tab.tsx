@@ -12,6 +12,7 @@ import {
 const statusColorMap: Record<string, string> = {
   pending: 'processing',
   active: 'success',
+  rejected: 'error',
   suspended: 'warning',
   disabled: 'default',
 };
@@ -118,6 +119,7 @@ export function MyChannelsTab({ actionRef: externalRef }: Props) {
       valueEnum: {
         pending: { text: t('myChannels.statusPending'), status: 'Processing' },
         active: { text: t('myChannels.statusActive'), status: 'Success' },
+        rejected: { text: t('myChannels.statusRejected'), status: 'Error' },
         suspended: { text: t('myChannels.statusSuspended'), status: 'Warning' },
         disabled: { text: t('myChannels.statusDisabled'), status: 'Default' },
       },
@@ -128,41 +130,48 @@ export function MyChannelsTab({ actionRef: externalRef }: Props) {
       ),
     },
     {
-      title: t('merchantChannels.fulfillmentType'),
-      dataIndex: 'fulfillmentType',
-      width: 140,
+      title: t('merchantChannels.requestedFulfillmentTypes'),
+      dataIndex: 'requestedFulfillmentTypes',
+      width: 160,
       search: false,
       render: (_, record) => {
-        if (!record.fulfillmentType) return '-';
+        if (!record.requestedFulfillmentTypes?.length) return '-';
         return (
-          <div>
-            <div>
-              {record.fulfillmentType === 'consignment'
-                ? t('merchantChannels.fulfillmentConsignment')
-                : t('merchantChannels.fulfillmentSelfFulfillment')}
-            </div>
-            <div className="text-xs text-gray-400">
-              {record.fulfillmentType === 'consignment'
-                ? t('merchantChannels.fulfillmentConsignmentDesc')
-                : t('merchantChannels.fulfillmentSelfFulfillmentDesc')}
-            </div>
-          </div>
+          <Space size={[0, 4]} wrap>
+            {record.requestedFulfillmentTypes.map((type) => (
+              <Tag key={type} color="blue">
+                {type === 'consignment'
+                  ? t('merchantChannels.fulfillmentConsignment')
+                  : t('merchantChannels.fulfillmentSelfFulfillment')}
+              </Tag>
+            ))}
+          </Space>
         );
       },
     },
     {
-      title: t('merchantChannels.pricingModel'),
-      dataIndex: 'pricingModel',
-      width: 120,
+      title: t('merchantChannels.approvedFulfillmentTypes'),
+      dataIndex: 'approvedFulfillmentTypes',
+      width: 160,
       search: false,
       render: (_, record) => {
-        if (!record.pricingModel) return '-';
+        if (!record.approvedFulfillmentTypes?.length) {
+          return record.status === 'pending' ? (
+            <Tag color="processing">{t('myChannels.pendingApproval')}</Tag>
+          ) : (
+            '-'
+          );
+        }
         return (
-          <Tag color={record.pricingModel === 'self_pricing' ? 'blue' : 'green'}>
-            {record.pricingModel === 'self_pricing'
-              ? t('merchantChannels.pricingSelf')
-              : t('merchantChannels.pricingPlatformManaged')}
-          </Tag>
+          <Space size={[0, 4]} wrap>
+            {record.approvedFulfillmentTypes.map((type) => (
+              <Tag key={type} color="green">
+                {type === 'consignment'
+                  ? t('merchantChannels.fulfillmentConsignment')
+                  : t('merchantChannels.fulfillmentSelfFulfillment')}
+              </Tag>
+            ))}
+          </Space>
         );
       },
     },

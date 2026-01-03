@@ -24,6 +24,14 @@ class InventoryListing
     public const MODE_SHARED = 'shared';       // 半托管：共享库存，多渠道共用
     public const MODE_DEDICATED = 'dedicated'; // 全托管：独占库存，预先锁定
 
+    // 履约模式
+    public const FULFILLMENT_CONSIGNMENT = 'consignment';         // 寄售：送仓实物库存，平台履约
+    public const FULFILLMENT_SELF_FULFILLMENT = 'self_fulfillment'; // 自履约：虚拟库存，商户自己发货
+
+    // 定价模式
+    public const PRICING_SELF = 'self_pricing';           // 自主定价
+    public const PRICING_PLATFORM_MANAGED = 'platform_managed';  // 平台托管定价
+
     // 上架状态
     public const STATUS_DRAFT = 'draft';       // 草稿
     public const STATUS_ACTIVE = 'active';     // 已上架
@@ -51,6 +59,14 @@ class InventoryListing
 
     #[ORM\Column(type: 'integer', options: ['default' => 0])]
     private int $soldQuantity = 0;  // 该渠道已售数量
+
+    // 履约模式
+    #[ORM\Column(type: 'string', length: 20)]
+    private string $fulfillmentType = self::FULFILLMENT_CONSIGNMENT;
+
+    // 定价模式
+    #[ORM\Column(type: 'string', length: 20)]
+    private string $pricingModel = self::PRICING_SELF;
 
     // 定价
     #[ORM\Column(type: 'decimal', precision: 10, scale: 2)]
@@ -141,6 +157,30 @@ class InventoryListing
     public function setSoldQuantity(int $soldQuantity): static
     {
         $this->soldQuantity = $soldQuantity;
+
+        return $this;
+    }
+
+    public function getFulfillmentType(): string
+    {
+        return $this->fulfillmentType;
+    }
+
+    public function setFulfillmentType(string $fulfillmentType): static
+    {
+        $this->fulfillmentType = $fulfillmentType;
+
+        return $this;
+    }
+
+    public function getPricingModel(): string
+    {
+        return $this->pricingModel;
+    }
+
+    public function setPricingModel(string $pricingModel): static
+    {
+        $this->pricingModel = $pricingModel;
 
         return $this;
     }
@@ -349,5 +389,49 @@ class InventoryListing
         }
 
         $this->allocatedQuantity = $newQuantity;
+    }
+
+    // 履约模式便捷方法
+
+    /**
+     * 是否寄售模式.
+     */
+    public function isConsignment(): bool
+    {
+        return $this->fulfillmentType === self::FULFILLMENT_CONSIGNMENT;
+    }
+
+    /**
+     * 是否自履约模式.
+     */
+    public function isSelfFulfillment(): bool
+    {
+        return $this->fulfillmentType === self::FULFILLMENT_SELF_FULFILLMENT;
+    }
+
+    // 定价模式便捷方法
+
+    /**
+     * 是否自主定价.
+     */
+    public function isSelfPricing(): bool
+    {
+        return $this->pricingModel === self::PRICING_SELF;
+    }
+
+    /**
+     * 是否平台托管定价.
+     */
+    public function isPlatformManaged(): bool
+    {
+        return $this->pricingModel === self::PRICING_PLATFORM_MANAGED;
+    }
+
+    /**
+     * 验证履约模式是否在渠道允许范围内.
+     */
+    public function validateFulfillmentType(): bool
+    {
+        return $this->merchantSalesChannel->hasApprovedFulfillmentType($this->fulfillmentType);
     }
 }

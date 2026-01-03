@@ -3,6 +3,7 @@
 namespace App\Controller\Admin;
 
 use App\Attribute\AdminOnly;
+use App\Dto\Admin\ApproveMerchantChannelRequest;
 use App\Dto\Admin\Query\MerchantChannelListQuery;
 use App\Dto\Admin\SuspendMerchantChannelRequest;
 use App\Entity\MerchantSalesChannel;
@@ -75,8 +76,11 @@ class MerchantChannelController extends AbstractController
     }
 
     #[Route('/{id}/approve', name: 'admin_merchant_channel_approve', methods: ['POST'])]
-    public function approve(string $id, #[CurrentUser] User $user): JsonResponse
-    {
+    public function approve(
+        string $id,
+        #[CurrentUser] User $user,
+        #[MapRequestPayload] ?ApproveMerchantChannelRequest $dto = null
+    ): JsonResponse {
         $mc = $this->merchantChannelRepository->find($id);
         if (!$mc) {
             return $this->json(['error' => $this->translator->trans('admin.merchant_channel.not_found')], Response::HTTP_NOT_FOUND);
@@ -86,7 +90,26 @@ class MerchantChannelController extends AbstractController
             return $this->json(['error' => $this->translator->trans('admin.merchant_channel.not_pending')], Response::HTTP_BAD_REQUEST);
         }
 
-        $mc->approve($user->getId());
+        $approvedTypes = $dto?->approvedFulfillmentTypes;
+
+        // 验证批准的模式必须是商户申请的模式
+        if ($approvedTypes !== null) {
+            $requestedTypes = $mc->getRequestedFulfillmentTypes();
+            $invalidTypes = array_diff($approvedTypes, $requestedTypes);
+            if (!empty($invalidTypes)) {
+                return $this->json([
+                    'error' => $this->translator->trans('admin.merchant_channel.invalid_fulfillment_types'),
+                ], Response::HTTP_BAD_REQUEST);
+            }
+
+            if (empty($approvedTypes)) {
+                return $this->json([
+                    'error' => $this->translator->trans('admin.merchant_channel.at_least_one_fulfillment_type'),
+                ], Response::HTTP_BAD_REQUEST);
+            }
+        }
+
+        $mc->approve($user->getId(), $approvedTypes);
         $this->merchantChannelRepository->save($mc, true);
 
         return $this->json([
@@ -162,8 +185,8 @@ class MerchantChannelController extends AbstractController
         $data = [
             'id' => $mc->getId(),
             'status' => $mc->getStatus(),
-            'fulfillmentType' => $mc->getFulfillmentType(),
-            'pricingModel' => $mc->getPricingModel(),
+            'requestedFulfillmentTypes' => $mc->getRequestedFulfillmentTypes(),
+            'approvedFulfillmentTypes' => $mc->getApprovedFulfillmentTypes(),
             'remark' => $mc->getRemark(),
             'approvedAt' => $mc->getApprovedAt()?->format('c'),
             'approvedBy' => $mc->getApprovedBy(),

@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Modal, Form, Input, Avatar, Space, Descriptions, App, Radio } from 'antd';
+import { Modal, Form, Input, Avatar, Space, Descriptions, App, Checkbox, Alert } from 'antd';
 import { ShopOutlined } from '@ant-design/icons';
 
 import {
   merchantChannelApi,
-  type AvailableSalesChannel
+  type AvailableSalesChannel,
+  type FulfillmentType
 } from '@/lib/merchant-channel-api';
 
 const { TextArea } = Input;
@@ -17,6 +18,19 @@ interface Props {
   onSuccess: () => void;
 }
 
+const fulfillmentOptions: { value: FulfillmentType; labelKey: string; descKey: string }[] = [
+  {
+    value: 'consignment',
+    labelKey: 'merchantChannels.fulfillmentConsignment',
+    descKey: 'merchantChannels.fulfillmentConsignmentDesc',
+  },
+  {
+    value: 'self_fulfillment',
+    labelKey: 'merchantChannels.fulfillmentSelfFulfillment',
+    descKey: 'merchantChannels.fulfillmentSelfFulfillmentDesc',
+  },
+];
+
 export function ApplyChannelModal({ open, channel, onClose, onSuccess }: Props) {
   const { t } = useTranslation();
   const { message } = App.useApp();
@@ -25,7 +39,6 @@ export function ApplyChannelModal({ open, channel, onClose, onSuccess }: Props) 
 
   useEffect(() => {
     if (open) {
-      // Reset form and state
       form.resetFields();
     }
   }, [open, form]);
@@ -39,8 +52,7 @@ export function ApplyChannelModal({ open, channel, onClose, onSuccess }: Props) 
 
       await merchantChannelApi.applyChannel({
         salesChannelId: channel.id,
-        fulfillmentType: values.fulfillmentType,
-        pricingModel: values.pricingModel,
+        fulfillmentTypes: values.fulfillmentTypes,
         remark: values.remark,
       });
       message.success(t('myChannels.applicationSubmitted'));
@@ -94,41 +106,47 @@ export function ApplyChannelModal({ open, channel, onClose, onSuccess }: Props) 
         </Descriptions>
       </div>
 
+      <Alert
+        message={t('myChannels.fulfillmentTypesHint')}
+        type="info"
+        showIcon
+        className="mb-4"
+      />
+
       <Form
         form={form}
         layout="vertical"
         initialValues={{
-          fulfillmentType: 'consignment',
-          pricingModel: 'self_pricing',
+          fulfillmentTypes: ['consignment'],
         }}
       >
         <Form.Item
-          name="fulfillmentType"
+          name="fulfillmentTypes"
           label={t('merchantChannels.fulfillmentType')}
-          rules={[{ required: true, message: t('merchantChannels.fulfillmentTypeRequired') }]}
+          rules={[
+            {
+              required: true,
+              message: t('merchantChannels.fulfillmentTypeRequired'),
+            },
+            {
+              type: 'array',
+              min: 1,
+              message: t('merchantChannels.fulfillmentTypeRequired'),
+            },
+          ]}
         >
-          <Radio.Group>
-            <Radio.Button value="consignment">
-              {t('merchantChannels.fulfillmentConsignment')}
-            </Radio.Button>
-            <Radio.Button value="self_fulfillment">
-              {t('merchantChannels.fulfillmentSelfFulfillment')}
-            </Radio.Button>
-          </Radio.Group>
-        </Form.Item>
-
-        <Form.Item
-          name="pricingModel"
-          label={t('merchantChannels.pricingModel')}
-        >
-          <Radio.Group>
-            <Radio.Button value="self_pricing">
-              {t('merchantChannels.pricingSelf')}
-            </Radio.Button>
-            <Radio.Button value="platform_managed">
-              {t('merchantChannels.pricingPlatformManaged')}
-            </Radio.Button>
-          </Radio.Group>
+          <Checkbox.Group className="w-full">
+            <div className="flex flex-col gap-3">
+              {fulfillmentOptions.map((option) => (
+                <Checkbox key={option.value} value={option.value}>
+                  <div>
+                    <div className="font-medium">{t(option.labelKey)}</div>
+                    <div className="text-xs text-gray-500">{t(option.descKey)}</div>
+                  </div>
+                </Checkbox>
+              ))}
+            </div>
+          </Checkbox.Group>
         </Form.Item>
 
         <Form.Item

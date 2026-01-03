@@ -19,9 +19,13 @@ export interface SalesChannelDetail extends SalesChannel {
   merchantCount: number;
 }
 
+export type FulfillmentType = 'consignment' | 'self_fulfillment';
+
 export interface MerchantChannel {
   id: string;
   status: 'pending' | 'active' | 'rejected' | 'suspended' | 'disabled';
+  requestedFulfillmentTypes: FulfillmentType[];
+  approvedFulfillmentTypes: FulfillmentType[] | null;
   remark: string | null;
   approvedAt: string | null;
   approvedBy: string | null;
@@ -204,12 +208,18 @@ export const channelApi = {
 
   /**
    * 审批通过商户渠道申请
+   * @param id 商户渠道ID
+   * @param approvedFulfillmentTypes 批准的履约模式，不传则批准所有申请的模式
    */
   approveChannel: async (
-    id: string
+    id: string,
+    approvedFulfillmentTypes?: FulfillmentType[]
   ): Promise<{ message: string; merchantChannel: MerchantChannel }> => {
     return apiFetch(`/api/admin/merchant-channels/${id}/approve`, {
       method: 'POST',
+      body: JSON.stringify(
+        approvedFulfillmentTypes ? { approvedFulfillmentTypes } : {}
+      ),
     });
   },
 

@@ -615,6 +615,9 @@ export default {
     fulfillmentSelfFulfillment: 'Self-Fulfillment',
     fulfillmentConsignmentDesc: 'Send to warehouse, platform fulfills',
     fulfillmentSelfFulfillmentDesc: 'Virtual inventory, merchant fulfills',
+    fulfillmentTypeRequired: 'Please select at least one fulfillment type',
+    requestedFulfillmentTypes: 'Requested Fulfillment Types',
+    approvedFulfillmentTypes: 'Approved Fulfillment Types',
     pricingModel: 'Pricing Model',
     pricingSelf: 'Self Pricing',
     pricingPlatformManaged: 'Platform Managed',
@@ -628,6 +631,7 @@ export default {
     remark: 'Remark',
     approvedAt: 'Approved At',
     pendingApprovals: 'Pending Approvals',
+    pendingApproval: 'Pending',
     // Detail Modal
     detailTitle: 'Merchant Channel Details',
     contactName: 'Contact Name',
@@ -649,6 +653,10 @@ export default {
     tabSuspended: 'Suspended',
     tabDisabled: 'Disabled',
     // Approve
+    approveApplication: 'Approve Application',
+    approveHint: 'Select the fulfillment types to approve. The merchant can only use the approved types.',
+    selectApprovedFulfillmentTypes: 'Select Fulfillment Types to Approve',
+    atLeastOneFulfillmentType: 'Please select at least one fulfillment type',
     confirmApprove: 'Confirm Approval',
     confirmApproveDesc: 'Are you sure you want to approve merchant "{{merchant}}" access to channel "{{channel}}"?',
     // Reject
@@ -880,6 +888,19 @@ export default {
     confirmRemoveItemDesc: 'Are you sure you want to remove this item?',
     confirmDeleteItem: 'Confirm Delete',
     confirmDeleteItemDesc: 'Are you sure you want to delete this item?',
+    // Sales Channel
+    salesChannel: 'Sales Channel',
+    salesChannelRequired: 'Please select a sales channel',
+    selectSalesChannel: 'Select sales channel',
+    selectChannelFirst: 'Please select a sales channel first',
+    noActiveChannels: 'No active sales channels',
+    noActiveChannelsDesc: 'You need to apply for and get approved for a sales channel before creating inbound orders',
+    goToApplyChannels: 'Go to apply for channels',
+    noWarehousesForChannel: 'No warehouses available for this channel',
+    noWarehousesForChannelError: 'Cannot create inbound order',
+    noWarehousesForChannelDesc: 'This sales channel has no configured warehouses. Please contact the platform administrator',
+    noWarehousesAvailable: 'No warehouses available',
+
     // Form Validation
     warehouseRequired: 'Please select warehouse',
     quantityRequired: 'Please enter quantity',
@@ -1376,11 +1397,16 @@ export default {
     myChannelsDescription: 'View and manage applied or connected sales channels',
     // Available Channels Tab
     noAvailableChannels: 'No channels available for application',
-    applyChannel: 'Apply',
-    businessType: {
-      import: 'Import',
-      export: 'Export',
-    },
+    noDescription: 'No description',
+    apply: 'Apply',
+    applyForChannel: 'Apply for Channel',
+    submitApplication: 'Submit',
+    applicationSubmitted: 'Application submitted',
+    applicationRemark: 'Remark',
+    applicationRemarkHint: 'Optional remarks for the administrator',
+    applicationRemarkPlaceholder: 'Enter application remark...',
+    fulfillmentTypesHint: 'Select the fulfillment modes you want to apply for. Your application will be reviewed by the platform.',
+    pendingApproval: 'Pending Approval',
     // My Channels Tab
     channel: 'Channel',
     status: 'Status',
@@ -1391,34 +1417,22 @@ export default {
     // Status
     statusPending: 'Pending',
     statusActive: 'Active',
+    statusRejected: 'Rejected',
     statusSuspended: 'Suspended',
     statusDisabled: 'Disabled',
     // Actions
     disable: 'Disable',
     enable: 'Enable',
-    cancelApplication: 'Cancel Application',
-    // Apply Modal
-    applyTitle: 'Apply for Channel',
-    channelInfo: 'Channel Information',
-    channelName: 'Channel Name',
-    remarkLabel: 'Remark',
-    remarkPlaceholder: 'Enter application remark (optional)',
-    remarkHint: 'You can describe your intention or relevant information',
-    submitApplication: 'Submit Application',
-    // Messages
-    applySuccess: 'Application submitted successfully, awaiting review',
-    cancelSuccess: 'Application cancelled',
-    disableSuccess: 'Channel disabled',
-    enableSuccess: 'Channel enabled',
+    cancelApplication: 'Cancel',
     // Confirm
     confirmCancel: 'Confirm Cancel',
-    confirmCancelDesc: 'Are you sure you want to cancel this channel application?',
+    confirmCancelDesc: 'Are you sure you want to cancel the application for "{{name}}"?',
+    applicationCancelled: 'Application cancelled',
     confirmDisable: 'Confirm Disable',
-    confirmDisableDesc: 'After disabling, you will not be able to use this channel. Are you sure?',
-    confirmEnable: 'Confirm Enable',
-    confirmEnableDesc: 'Are you sure you want to re-enable this channel?',
+    confirmDisableDesc: 'Are you sure you want to disable channel "{{name}}"? You can re-enable it later.',
+    channelDisabled: 'Channel disabled',
+    channelEnabled: 'Channel enabled',
     // Status Description
-    pendingDesc: 'Awaiting platform review',
     suspendedByAdmin: 'Suspended by admin',
   },
 

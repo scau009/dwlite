@@ -6,6 +6,7 @@ import { Button, App, Space, Tag } from 'antd';
 import { channelApi, type MerchantChannel } from '@/lib/channel-api';
 import { SuspendModal } from './components/suspend-modal';
 import { RejectModal } from './components/reject-modal';
+import { ApproveModal } from './components/approve-modal';
 import { MerchantChannelDetailModal } from './components/detail-modal';
 
 export function MerchantChannelsListPage() {
@@ -21,32 +22,15 @@ export function MerchantChannelsListPage() {
   const [rejectModalOpen, setRejectModalOpen] = useState(false);
   const [rejectingChannel, setRejectingChannel] = useState<MerchantChannel | null>(null);
 
+  const [approveModalOpen, setApproveModalOpen] = useState(false);
+  const [approvingChannel, setApprovingChannel] = useState<MerchantChannel | null>(null);
+
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [viewingChannel, setViewingChannel] = useState<MerchantChannel | null>(null);
 
-  const handleApprove = async (mc: MerchantChannel) => {
-    modal.confirm({
-      title: t('merchantChannels.confirmApprove'),
-      content: t('merchantChannels.confirmApproveDesc', {
-        merchant: mc.merchant.name,
-        channel: mc.salesChannel.name,
-      }),
-      okText: t('common.confirm'),
-      cancelText: t('common.cancel'),
-      onOk: async () => {
-        setActionLoading(mc.id);
-        try {
-          await channelApi.approveChannel(mc.id);
-          message.success(t('merchantChannels.approved'));
-          actionRef.current?.reload();
-        } catch (error) {
-          const err = error as { error?: string };
-          message.error(err.error || t('common.error'));
-        } finally {
-          setActionLoading(null);
-        }
-      },
-    });
+  const handleApprove = (mc: MerchantChannel) => {
+    setApprovingChannel(mc);
+    setApproveModalOpen(true);
   };
 
   const handleReject = (mc: MerchantChannel) => {
@@ -146,23 +130,49 @@ export function MerchantChannelsListPage() {
       ),
     },
     {
-      title: t('merchantChannels.pricingModel'),
-      dataIndex: 'pricingModel',
-      width: 120,
-      valueType: 'select',
-      valueEnum: {
-        self_pricing: { text: t('merchantChannels.pricingSelf') },
-        platform_managed: { text: t('merchantChannels.pricingPlatformManaged') },
+      title: t('merchantChannels.requestedFulfillmentTypes'),
+      dataIndex: 'requestedFulfillmentTypes',
+      width: 160,
+      search: false,
+      render: (_, record) => {
+        if (!record.requestedFulfillmentTypes?.length) return '-';
+        return (
+          <Space size={[0, 4]} wrap>
+            {record.requestedFulfillmentTypes.map((type) => (
+              <Tag key={type} color="blue">
+                {type === 'consignment'
+                  ? t('merchantChannels.fulfillmentConsignment')
+                  : t('merchantChannels.fulfillmentSelfFulfillment')}
+              </Tag>
+            ))}
+          </Space>
+        );
       },
     },
     {
-      title: t('merchantChannels.fulfillmentType'),
-      dataIndex: 'fulfillmentType',
-      width: 120,
-      valueType: 'select',
-      valueEnum: {
-        consignment: { text: t('merchantChannels.fulfillmentConsignment') },
-        self_fulfillment: { text: t('merchantChannels.fulfillmentSelfFulfillment') },
+      title: t('merchantChannels.approvedFulfillmentTypes'),
+      dataIndex: 'approvedFulfillmentTypes',
+      width: 160,
+      search: false,
+      render: (_, record) => {
+        if (!record.approvedFulfillmentTypes?.length) {
+          return record.status === 'pending' ? (
+            <Tag color="processing">{t('merchantChannels.pendingApproval')}</Tag>
+          ) : (
+            '-'
+          );
+        }
+        return (
+          <Space size={[0, 4]} wrap>
+            {record.approvedFulfillmentTypes.map((type) => (
+              <Tag key={type} color="green">
+                {type === 'consignment'
+                  ? t('merchantChannels.fulfillmentConsignment')
+                  : t('merchantChannels.fulfillmentSelfFulfillment')}
+              </Tag>
+            ))}
+          </Space>
+        );
       },
     },
     {
@@ -334,6 +344,20 @@ export function MerchantChannelsListPage() {
         onSuccess={() => {
           setSuspendModalOpen(false);
           setSuspendingChannel(null);
+          actionRef.current?.reload();
+        }}
+      />
+
+      <ApproveModal
+        open={approveModalOpen}
+        merchantChannel={approvingChannel}
+        onClose={() => {
+          setApproveModalOpen(false);
+          setApprovingChannel(null);
+        }}
+        onSuccess={() => {
+          setApproveModalOpen(false);
+          setApprovingChannel(null);
           actionRef.current?.reload();
         }}
       />

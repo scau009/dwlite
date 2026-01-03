@@ -62,8 +62,8 @@ class SalesChannelWarehouseController extends AbstractController
             );
         }
 
-        // Get all active warehouses
-        $allWarehouses = $this->warehouseRepository->findBy(['status' => 'active'], ['name' => 'ASC']);
+        // Get all active platform warehouses (only platform warehouses can be added to sales channels)
+        $allWarehouses = $this->warehouseRepository->findActivePlatformWarehouses();
 
         // Get configured warehouse IDs for this channel
         $configuredWarehouses = $this->channelWarehouseRepository->findByChannel($channel, false);
@@ -106,6 +106,14 @@ class SalesChannelWarehouseController extends AbstractController
             return $this->json(
                 ['error' => $this->translator->trans('admin.warehouse.not_found')],
                 Response::HTTP_NOT_FOUND
+            );
+        }
+
+        // Only platform warehouses can be added to sales channels
+        if (!$warehouse->isPlatformWarehouse()) {
+            return $this->json(
+                ['error' => $this->translator->trans('admin.channel_warehouse.only_platform_allowed')],
+                Response::HTTP_BAD_REQUEST
             );
         }
 
@@ -221,6 +229,12 @@ class SalesChannelWarehouseController extends AbstractController
         foreach ($dto->warehouseIds as $warehouseId) {
             $warehouse = $this->warehouseRepository->find($warehouseId);
             if (!$warehouse) {
+                ++$skipped;
+                continue;
+            }
+
+            // Only platform warehouses can be added to sales channels
+            if (!$warehouse->isPlatformWarehouse()) {
                 ++$skipped;
                 continue;
             }
