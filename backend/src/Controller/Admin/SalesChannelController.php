@@ -82,6 +82,9 @@ class SalesChannelController extends AbstractController
         if ($dto->sortOrder !== null) {
             $channel->setSortOrder($dto->sortOrder);
         }
+        if ($dto->currency !== null) {
+            $channel->setCurrency($dto->currency);
+        }
 
         $this->salesChannelRepository->save($channel, true);
 
@@ -116,6 +119,9 @@ class SalesChannelController extends AbstractController
         }
         if ($dto->sortOrder !== null) {
             $channel->setSortOrder($dto->sortOrder);
+        }
+        if ($dto->currency !== null) {
+            $channel->setCurrency($dto->currency);
         }
 
         $this->salesChannelRepository->save($channel, true);
@@ -172,6 +178,7 @@ class SalesChannelController extends AbstractController
             'logoUrl' => $channel->getLogoUrl(),
             'status' => $channel->getStatus(),
             'sortOrder' => $channel->getSortOrder(),
+            'currency' => $channel->getCurrency(),
             'createdAt' => $channel->getCreatedAt()->format('c'),
             'updatedAt' => $channel->getUpdatedAt()->format('c'),
         ];

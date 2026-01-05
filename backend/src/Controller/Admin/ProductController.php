@@ -272,6 +272,10 @@ class ProductController extends AbstractController
         if ($dto->originalPrice !== null) {
             $sku->setOriginalPrice($dto->originalPrice);
         }
+        $sku->setCurrency($dto->currency);
+        if ($dto->barcode !== null) {
+            $sku->setBarcode($dto->barcode);
+        }
 
         $this->skuRepository->save($sku, true);
 
@@ -418,6 +422,12 @@ class ProductController extends AbstractController
         }
         if ($dto->originalPrice !== null) {
             $sku->setOriginalPrice($dto->originalPrice);
+        }
+        if ($dto->currency !== null) {
+            $sku->setCurrency($dto->currency);
+        }
+        if ($dto->barcode !== null) {
+            $sku->setBarcode($dto->barcode);
         }
         if ($dto->isActive !== null) {
             $sku->setIsActive($dto->isActive);
@@ -718,6 +728,8 @@ class ProductController extends AbstractController
             'skuName' => $sku->getSkuName(),
             'price' => $sku->getPrice(),
             'originalPrice' => $sku->getOriginalPrice(),
+            'currency' => $sku->getCurrency(),
+            'barcode' => $sku->getBarcode(),
             'isActive' => $sku->isActive(),
             'sortOrder' => $sku->getSortOrder(),
             'createdAt' => $sku->getCreatedAt()->format('c'),

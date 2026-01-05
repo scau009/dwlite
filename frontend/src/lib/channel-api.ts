@@ -8,6 +8,7 @@ export interface SalesChannel {
   logoUrl: string | null;
   status: 'active' | 'maintenance' | 'disabled';
   sortOrder: number;
+  currency: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -79,6 +80,7 @@ export interface CreateChannelParams {
   configSchema?: Record<string, unknown>;
   status?: 'active' | 'maintenance' | 'disabled';
   sortOrder?: number;
+  currency?: string;
 }
 
 export interface UpdateChannelParams {
@@ -88,6 +90,7 @@ export interface UpdateChannelParams {
   config?: Record<string, unknown>;
   configSchema?: Record<string, unknown>;
   sortOrder?: number;
+  currency?: string;
 }
 
 export const channelApi = {

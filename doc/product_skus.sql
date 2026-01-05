@@ -9,6 +9,8 @@ CREATE TABLE `product_skus` (
     `spec_info` JSON NULL COMMENT 'Spec summary, e.g. {"颜色": "红色", "尺码": "S"}',
     `price` DECIMAL(10,2) NOT NULL COMMENT 'Reference price (参考价)',
     `original_price` DECIMAL(10,2) NULL COMMENT 'Release price (发售价)',
+    `currency` VARCHAR(3) NOT NULL DEFAULT 'USD' COMMENT 'Currency code (ISO 4217)',
+    `barcode` VARCHAR(50) NULL COMMENT 'Barcode (UPC/EAN)',
     `is_active` TINYINT(1) NOT NULL DEFAULT 1,
     `sort_order` INT NOT NULL DEFAULT 0 COMMENT 'Display order',
     `created_at` DATETIME NOT NULL,
@@ -17,3 +19,7 @@ CREATE TABLE `product_skus` (
     INDEX `idx_sku_active` (`is_active`),
     CONSTRAINT `fk_sku_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Product SKUs';
+
+ALTER TABLE product_skus
+    ADD COLUMN currency VARCHAR(3) NOT NULL DEFAULT 'USD' COMMENT 'Currency code (ISO 4217)' AFTER original_price,
+    ADD COLUMN barcode VARCHAR(50) NULL COMMENT 'Barcode (UPC/EAN)' AFTER currency;

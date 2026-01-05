@@ -11,7 +11,12 @@ CREATE TABLE `sales_channels` (
     `config_schema` JSON NULL COMMENT 'JSON Schema for merchant config fields',
     `status` VARCHAR(20) NOT NULL DEFAULT 'active' COMMENT 'active, maintenance, disabled',
     `sort_order` INT NOT NULL DEFAULT 0,
+    `currency` VARCHAR(3) NOT NULL DEFAULT 'CNY' COMMENT 'Currency code (ISO 4217)',
     `created_at` DATETIME NOT NULL,
     `updated_at` DATETIME NOT NULL,
     INDEX `idx_channel_code` (`code`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Sales channels';
+
+ALTER TABLE `sales_channels`
+    ADD COLUMN `currency` VARCHAR(3) NOT NULL DEFAULT 'CNY' COMMENT 'Currency code (ISO 4217)'
+        AFTER `sort_order`;

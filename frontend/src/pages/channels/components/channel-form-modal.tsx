@@ -18,7 +18,19 @@ interface FormValues {
   description?: string;
   status: 'active' | 'maintenance' | 'disabled';
   sortOrder: number;
+  currency: string;
 }
+
+const CURRENCY_OPTIONS = [
+  { value: 'CNY', label: 'CNY' },
+  { value: 'USD', label: 'USD' },
+  { value: 'EUR', label: 'EUR' },
+  { value: 'GBP', label: 'GBP' },
+  { value: 'JPY', label: 'JPY' },
+  { value: 'HKD', label: 'HKD' },
+  { value: 'KRW', label: 'KRW' },
+  { value: 'SGD', label: 'SGD' },
+];
 
 export function ChannelFormModal({ open, channel, onClose, onSuccess }: ChannelFormModalProps) {
   const { t } = useTranslation();
@@ -42,6 +54,7 @@ export function ChannelFormModal({ open, channel, onClose, onSuccess }: ChannelF
               description: detail.description || undefined,
               status: detail.status,
               sortOrder: detail.sortOrder,
+              currency: detail.currency,
             });
           })
           .catch((err) => {
@@ -55,6 +68,7 @@ export function ChannelFormModal({ open, channel, onClose, onSuccess }: ChannelF
         form.setFieldsValue({
           status: 'active',
           sortOrder: 0,
+          currency: 'CNY',
         });
       }
     }
@@ -174,6 +188,28 @@ export function ChannelFormModal({ open, channel, onClose, onSuccess }: ChannelF
           tooltip={t('channels.sortOrderTooltip')}
         >
           <InputNumber min={0} max={9999} style={{ width: '100%' }} />
+        </Form.Item>
+
+        <Form.Item
+          name="currency"
+          label={t('channels.currency')}
+          rules={[
+            { required: true, message: t('channels.currencyRequired') },
+          ]}
+          tooltip={t('channels.currencyTooltip')}
+        >
+          <Select
+            placeholder={t('channels.currencyPlaceholder')}
+            options={CURRENCY_OPTIONS.map(opt => ({
+              value: opt.value,
+              label: t(`channels.currency${opt.value}`, opt.label),
+            }))}
+            showSearch
+            filterOption={(input, option) =>
+              (option?.label ?? '').toString().toLowerCase().includes(input.toLowerCase()) ||
+              (option?.value ?? '').toString().toLowerCase().includes(input.toLowerCase())
+            }
+          />
         </Form.Item>
       </Form>
     </Modal>

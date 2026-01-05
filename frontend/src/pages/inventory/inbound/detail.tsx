@@ -641,7 +641,7 @@ export function InboundOrderDetailPage() {
         {isDraft && selectedRowKeys.length > 0 && (
           <div className="mb-3 p-3 bg-blue-50 rounded flex items-center justify-between">
             <span className="text-blue-600">
-              {t('common.selected', { count: selectedRowKeys.length })}
+              {t('common.selectedCount', { count: selectedRowKeys.length })}
             </span>
             <Space>
               <Button onClick={() => setBatchQuantityModalOpen(true)}>

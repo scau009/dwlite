@@ -12,6 +12,9 @@ export default {
     cancel: '取消',
     confirm: '确认',
     back: '返回',
+    next: '下一步',
+    previous: '上一步',
+    select: '选择',
     export: '导出',
     import: '导入',
     batchExport: '批量导出',
@@ -19,7 +22,8 @@ export default {
     moreFilters: '更多筛选',
     lessFilters: '收起筛选',
     filters: '个筛选条件',
-    selected: '已选择 {{count}} 项',
+    selected: '已选择',
+    selectedCount: '已选择 {{count}} 项',
     operation: '操作',
     status: '状态',
     createdAt: '创建时间',
@@ -110,6 +114,8 @@ export default {
     warehouseInventory: '库存查询',
     // Merchant Outbound
     outboundOrders: '出库单',
+    // Listings
+    listingManagement: '上架管理',
     // Settings
     generalSettings: '基本设置',
     walletManagement: '电子钱包',
@@ -190,6 +196,9 @@ export default {
     skuCodeRequired: '请输入SKU编码',
     priceRequired: '请输入参考价',
     originalPrice: '发售价',
+    currency: '币种',
+    currencyRequired: '请选择币种',
+    barcode: '条码',
     sortOrder: '排序',
     active: '启用',
     inactive: '停用',
@@ -551,6 +560,8 @@ export default {
     fulfillmentTypesHint: '请选择您希望开通的履约模式，您的申请将由平台审核',
     pendingApproval: '待审批',
     channel: '渠道',
+    columnDescription: '描述',
+    currency: '币种',
     status: '状态',
     statusPending: '待审核',
     statusActive: '已启用',
@@ -612,6 +623,19 @@ export default {
     descriptionPlaceholder: '输入渠道描述（选填）',
     descriptionMaxLength: '渠道描述最多500个字符',
     sortOrderTooltip: '数字越小越靠前，默认为0',
+    // Currency
+    currency: '币种',
+    currencyRequired: '请选择币种',
+    currencyTooltip: '该渠道使用的价格币种',
+    currencyPlaceholder: '选择币种',
+    currencyCNY: 'CNY - 人民币',
+    currencyUSD: 'USD - 美元',
+    currencyEUR: 'EUR - 欧元',
+    currencyGBP: 'GBP - 英镑',
+    currencyJPY: 'JPY - 日元',
+    currencyHKD: 'HKD - 港币',
+    currencyKRW: 'KRW - 韩元',
+    currencySGD: 'SGD - 新加坡元',
     // Warehouse Configuration
     warehouses: {
       configure: '配置仓库',
@@ -1550,5 +1574,117 @@ export default {
     channelProductIdInvalid: '渠道商品ID格式无效',
     channelProductIdPlaceholder: '输入26位渠道商品ID',
     priorityOverridePlaceholder: '留空则使用默认优先级',
+  },
+
+  // Listing Management
+  listingManagement: {
+    // List page
+    product: '商品',
+    barcode: '条码',
+    channel: '渠道',
+    fulfillmentType: '履约方式',
+    pricingModel: '定价模式',
+    price: '售价',
+    compareAtPrice: '原价',
+    availableQuantity: '可售数量',
+    allocatedQuantity: '分配数量',
+    soldQuantity: '已售数量',
+    status: '状态',
+    remark: '备注',
+    warehouse: '仓库',
+    platformWarehouse: '平台仓',
+    shareableQuantity: '可分配数量',
+
+    // Status
+    statusDraft: '草稿',
+    statusActive: '销售中',
+    statusPaused: '已暂停',
+    statusSoldOut: '已售罄',
+
+    // Pricing models
+    selfPricing: '自主定价',
+    platformManaged: '平台托管',
+
+    // Allocation modes
+    allocationMode: '库存分配',
+    allocationModeShared: '共享库存',
+    allocationModeDedicated: '独占库存',
+
+    // Actions
+    createListing: '创建上架',
+    editListing: '编辑上架',
+    activate: '上架',
+    pause: '暂停',
+
+    // Create wizard steps
+    stepSelectChannel: '选择渠道',
+    stepSelectInventory: '选择库存',
+    stepConfigureListing: '配置上架',
+
+    // Messages
+    selectChannelDesc: '选择您想要上架的销售渠道',
+    selectInventoryDesc: '选择需要上架的库存商品',
+    selectChannelRequired: '请选择销售渠道',
+    selectInventoryRequired: '请选择库存商品',
+    noAvailableChannels: '暂无可用渠道，请先申请销售渠道',
+    noAvailableInventory: '暂无可上架库存',
+
+    // Form validation
+    fulfillmentTypeRequired: '请选择履约方式',
+    pricingModelRequired: '请选择定价模式',
+    allocationModeRequired: '请选择库存分配方式',
+    allocatedQuantityRequired: '请输入分配数量',
+    allocatedQuantityExceeded: '分配数量不能超过可分配数量',
+    priceRequired: '请输入售价',
+    priceInvalid: '价格必须大于0',
+    selectInventoryDescMulti: '选择要上架的库存（支持多选）',
+    selectedCount: '已选择 {{count}} 项',
+    searchPlaceholder: '搜索商品名称或款号...',
+    batchCreatedSuccess: '成功创建 {{count}} 个上架',
+    batchCreatedPartial: '成功创建 {{success}} 个，失败 {{failed}} 个',
+    batchCreatedFailed: '创建上架失败',
+    priceRequiredForAll: '请为所有商品输入价格',
+    allocatedQuantityRequiredForDedicated: '专属模式的商品请输入分配数量',
+    batchResultTitle: '批量创建结果',
+    batchPartialSuccess: '部分上架成功',
+    batchAllFailed: '上架失败',
+    batchResultSummary: '成功 {{success}} 个，失败 {{failed}} 个',
+    batchSuccessItems: '成功上架',
+    batchFailedItems: '上架失败',
+    backToList: '返回列表',
+    continueOperation: '继续操作',
+
+    // Rule defaults
+    appliedRules: '应用的规则',
+    noRulesConfigured: '未配置规则',
+    ruleExpression: '表达式',
+    inputValue: '输入值',
+    outputValue: '输出值',
+    calculatedFromRules: '由规则计算',
+    manualEntry: '需手动输入',
+    baseCost: '基础成本',
+    calculatedPrice: '计算价格',
+    calculatedQuantity: '计算数量',
+
+    // Edit page
+    listingInfo: '上架信息',
+    editableFields: '可编辑字段',
+    cannotEditFulfillmentType: '创建后不可修改',
+    cannotEditPricingModel: '创建后不可修改',
+    inventoryQuantity: '库存数量',
+    available: '可用',
+    allocated: '已分配',
+    maxAllocatable: '最大可分配',
+
+    // Success messages
+    created: '上架创建成功',
+    updated: '上架更新成功',
+    activated: '上架成功',
+    paused: '已暂停上架',
+    deleted: '上架已删除',
+
+    // Confirm dialogs
+    confirmDelete: '确认删除',
+    confirmDeleteDesc: '确定要删除此上架记录吗？此操作不可撤销。',
   },
 }

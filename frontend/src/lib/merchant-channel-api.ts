@@ -10,6 +10,7 @@ export interface AvailableSalesChannel {
   name: string;
   logoUrl: string | null;
   description: string | null;
+  currency: string;
 }
 
 export interface MyMerchantChannel {

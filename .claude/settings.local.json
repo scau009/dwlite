@@ -16,7 +16,9 @@
       "Bash(npx tsc:*)",
       "Bash(cat:*)",
       "Bash(vendor/bin/php-cs-fixer fix:*)",
-      "Bash(npm run lint)"
+      "Bash(npm run lint)",
+      "WebSearch",
+      "WebFetch(domain:docs.kicks.dev)"
     ]
   }
 }

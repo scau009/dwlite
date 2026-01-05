@@ -19,6 +19,9 @@ class SalesChannel
     public const STATUS_MAINTENANCE = 'maintenance'; // 维护中
     public const STATUS_DISABLED = 'disabled';   // 已禁用
 
+    // 支持的币种
+    public const SUPPORTED_CURRENCIES = ['CNY', 'USD', 'EUR', 'GBP', 'JPY', 'HKD', 'KRW', 'SGD'];
+
     #[ORM\Id]
     #[ORM\Column(type: 'string', length: 26)]
     private string $id;
@@ -46,6 +49,9 @@ class SalesChannel
 
     #[ORM\Column(type: 'integer', options: ['default' => 0])]
     private int $sortOrder = 0;
+
+    #[ORM\Column(type: 'string', length: 3, options: ['default' => 'CNY'])]
+    private string $currency = 'CNY';
 
     #[ORM\OneToMany(targetEntity: MerchantSalesChannel::class, mappedBy: 'salesChannel', cascade: ['persist', 'remove'])]
     private Collection $merchantChannels;
@@ -170,6 +176,18 @@ class SalesChannel
     public function setSortOrder(int $sortOrder): static
     {
         $this->sortOrder = $sortOrder;
+
+        return $this;
+    }
+
+    public function getCurrency(): string
+    {
+        return $this->currency;
+    }
+
+    public function setCurrency(string $currency): static
+    {
+        $this->currency = $currency;
 
         return $this;
     }

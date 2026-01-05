@@ -3,6 +3,8 @@
 namespace App\Scheduler;
 
 use App\Message\CleanupMessage;
+use App\Message\StartProductSyncMessage;
+use App\Service\ProductSync\Provider\KicksDbProvider;
 use Symfony\Component\Scheduler\Attribute\AsSchedule;
 use Symfony\Component\Scheduler\RecurringMessage;
 use Symfony\Component\Scheduler\Schedule;
@@ -24,6 +26,12 @@ class MainSchedule implements ScheduleProviderInterface
                 // Run cleanup every minute (for demo purposes)
                 // In production, use '1 hour', '1 day', or cron expressions
                 RecurringMessage::every('1 minute', new CleanupMessage(new \DateTimeImmutable('now', new \DateTimeZone('UTC')))),
+
+                // KicksDB product sync - runs daily at 02:00 UTC
+                RecurringMessage::cron('0 2 * * *', new StartProductSyncMessage(
+                    KicksDbProvider::PROVIDER_NAME,
+                    new \DateTimeImmutable('now', new \DateTimeZone('UTC'))
+                )),
 
                 // Examples of other schedule patterns:
                 // RecurringMessage::every('1 hour', new HourlyTaskMessage()),

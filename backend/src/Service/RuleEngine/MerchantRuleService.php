@@ -25,6 +25,175 @@ class MerchantRuleService
     }
 
     /**
+     * 计算商户定价并返回应用的规则详情.
+     *
+     * @return array{price: string, baseCost: string, hasRules: bool, rules: array}
+     */
+    public function calculatePriceWithDetails(
+        MerchantSalesChannel $merchantChannel,
+        MerchantInventory $inventory,
+        float $baseCost,
+    ): array {
+        $salesChannel = $merchantChannel->getSalesChannel();
+        $sku = $inventory->getProductSku();
+
+        // 构建上下文
+        $context = [
+            'cost' => $baseCost,
+            'referencePrice' => (float) $sku->getPrice(),
+            'originalPrice' => (float) ($sku->getOriginalPrice() ?? $sku->getPrice()),
+            'channelCode' => $salesChannel->getCode(),
+            'sizeValue' => $sku->getSizeValue(),
+            'sizeUnit' => $sku->getSizeUnit()?->value,
+        ];
+
+        // 获取适用的定价规则
+        $assignments = $this->assignmentRepository->findActiveByMerchantSalesChannelAndType(
+            $merchantChannel,
+            MerchantRule::TYPE_PRICING
+        );
+
+        if (empty($assignments)) {
+            return [
+                'price' => '',
+                'baseCost' => bcmul((string) $baseCost, '1', 2),
+                'hasRules' => false,
+                'rules' => [],
+            ];
+        }
+
+        // 转换为规则数组（带详情）
+        $rulesWithDetails = $this->convertAssignmentsToRulesWithDetails($assignments);
+
+        // 执行规则链并记录每步结果
+        $currentValue = $baseCost;
+        $ruleResults = [];
+
+        foreach ($rulesWithDetails as $ruleInfo) {
+            $inputValue = $currentValue;
+            $context['value'] = $currentValue;
+            $context['config'] = $ruleInfo['config'];
+
+            // 检查条件表达式
+            if ($ruleInfo['conditionExpression']) {
+                $conditionResult = $this->ruleEngine->safeEvaluate(
+                    $ruleInfo['conditionExpression'],
+                    $context
+                );
+                if (!$conditionResult) {
+                    continue; // 条件不满足，跳过此规则
+                }
+            }
+
+            // 执行表达式
+            $result = $this->ruleEngine->safeEvaluate($ruleInfo['expression'], $context);
+            if ($result !== null) {
+                $currentValue = (float) $result;
+            }
+
+            $ruleResults[] = [
+                'id' => $ruleInfo['ruleId'],
+                'name' => $ruleInfo['name'],
+                'expression' => $ruleInfo['expression'],
+                'conditionExpression' => $ruleInfo['conditionExpression'],
+                'inputValue' => round($inputValue, 2),
+                'outputValue' => round($currentValue, 2),
+            ];
+        }
+
+        return [
+            'price' => bcmul((string) max(0, $currentValue), '1', 2),
+            'baseCost' => bcmul((string) $baseCost, '1', 2),
+            'hasRules' => true,
+            'rules' => $ruleResults,
+        ];
+    }
+
+    /**
+     * 计算库存分配并返回应用的规则详情.
+     *
+     * @return array{allocation: int, availableQuantity: int, hasRules: bool, rules: array}
+     */
+    public function calculateStockAllocationWithDetails(
+        MerchantSalesChannel $merchantChannel,
+        MerchantInventory $inventory,
+    ): array {
+        $salesChannel = $merchantChannel->getSalesChannel();
+        $availableStock = $inventory->getShareableQuantity();
+
+        // 构建上下文
+        $context = [
+            'availableStock' => $availableStock,
+            'totalStock' => $inventory->getTotalOnHand(),
+            'reservedStock' => $inventory->getQuantityReserved(),
+            'channelCode' => $salesChannel->getCode(),
+        ];
+
+        // 获取适用的库存分配规则
+        $assignments = $this->assignmentRepository->findActiveByMerchantSalesChannelAndType(
+            $merchantChannel,
+            MerchantRule::TYPE_STOCK_ALLOCATION
+        );
+
+        if (empty($assignments)) {
+            return [
+                'allocation' => 0,
+                'availableQuantity' => $availableStock,
+                'hasRules' => false,
+                'rules' => [],
+            ];
+        }
+
+        // 转换为规则数组（带详情）
+        $rulesWithDetails = $this->convertAssignmentsToRulesWithDetails($assignments);
+
+        // 执行规则链并记录每步结果
+        $currentValue = $availableStock;
+        $ruleResults = [];
+
+        foreach ($rulesWithDetails as $ruleInfo) {
+            $inputValue = $currentValue;
+            $context['value'] = $currentValue;
+            $context['config'] = $ruleInfo['config'];
+
+            // 检查条件表达式
+            if ($ruleInfo['conditionExpression']) {
+                $conditionResult = $this->ruleEngine->safeEvaluate(
+                    $ruleInfo['conditionExpression'],
+                    $context
+                );
+                if (!$conditionResult) {
+                    continue;
+                }
+            }
+
+            // 执行表达式
+            $result = $this->ruleEngine->safeEvaluate($ruleInfo['expression'], $context);
+            if ($result !== null) {
+                $currentValue = (int) $result;
+            }
+
+            $ruleResults[] = [
+                'id' => $ruleInfo['ruleId'],
+                'name' => $ruleInfo['name'],
+                'expression' => $ruleInfo['expression'],
+                'conditionExpression' => $ruleInfo['conditionExpression'],
+                'inputValue' => $inputValue,
+                'outputValue' => $currentValue,
+            ];
+        }
+
+        $finalAllocation = max(0, min($currentValue, $availableStock));
+
+        return [
+            'allocation' => $finalAllocation,
+            'availableQuantity' => $availableStock,
+            'hasRules' => true,
+            'rules' => $ruleResults,
+        ];
+    }
+
+    /**
      * 计算商户定价.
      *
      * 根据商户配置的定价规则计算报价
@@ -211,6 +380,33 @@ class MerchantRuleService
             $rules[] = [
                 'ruleId' => $rule->getId(),
                 'ruleType' => RuleExecutionLog::RULE_TYPE_MERCHANT,
+                'expression' => $rule->getExpression(),
+                'conditionExpression' => $rule->getConditionExpression(),
+                'config' => $assignment->getMergedConfig(),
+                'priority' => $assignment->getEffectivePriority(),
+            ];
+        }
+
+        // 按优先级排序
+        usort($rules, fn ($a, $b) => $a['priority'] <=> $b['priority']);
+
+        return $rules;
+    }
+
+    /**
+     * 将分配转换为带详情的规则数组.
+     *
+     * @param MerchantRuleAssignment[] $assignments
+     */
+    private function convertAssignmentsToRulesWithDetails(array $assignments): array
+    {
+        $rules = [];
+
+        foreach ($assignments as $assignment) {
+            $rule = $assignment->getMerchantRule();
+            $rules[] = [
+                'ruleId' => $rule->getId(),
+                'name' => $rule->getName(),
                 'expression' => $rule->getExpression(),
                 'conditionExpression' => $rule->getConditionExpression(),
                 'config' => $assignment->getMergedConfig(),

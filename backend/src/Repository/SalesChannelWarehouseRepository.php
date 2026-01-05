@@ -37,7 +37,7 @@ class SalesChannelWarehouseRepository extends ServiceEntityRepository
     }
 
     /**
-     * 获取销售渠道的所有履约仓库（按优先级排序）
+     * 获取销售渠道的所有履约仓库（按优先级排序）.
      *
      * @return SalesChannelWarehouse[]
      */
@@ -62,7 +62,7 @@ class SalesChannelWarehouseRepository extends ServiceEntityRepository
     }
 
     /**
-     * 获取仓库关联的所有销售渠道
+     * 获取仓库关联的所有销售渠道.
      *
      * @return SalesChannelWarehouse[]
      */
@@ -86,7 +86,7 @@ class SalesChannelWarehouseRepository extends ServiceEntityRepository
     }
 
     /**
-     * 查找特定销售渠道和仓库的关联记录
+     * 查找特定销售渠道和仓库的关联记录.
      */
     public function findOneByChannelAndWarehouse(SalesChannel $channel, Warehouse $warehouse): ?SalesChannelWarehouse
     {
@@ -100,7 +100,7 @@ class SalesChannelWarehouseRepository extends ServiceEntityRepository
     }
 
     /**
-     * 获取销售渠道的可用仓库列表（仅返回 Warehouse 实体）
+     * 获取销售渠道的可用仓库列表（仅返回 Warehouse 实体）.
      *
      * @return Warehouse[]
      */
@@ -115,7 +115,7 @@ class SalesChannelWarehouseRepository extends ServiceEntityRepository
     }
 
     /**
-     * 检查销售渠道是否配置了某个仓库
+     * 检查销售渠道是否配置了某个仓库.
      */
     public function hasWarehouse(SalesChannel $channel, Warehouse $warehouse): bool
     {
@@ -134,7 +134,7 @@ class SalesChannelWarehouseRepository extends ServiceEntityRepository
     }
 
     /**
-     * 获取下一个优先级值（用于添加新仓库时）
+     * 获取下一个优先级值（用于添加新仓库时）.
      */
     public function getNextPriority(SalesChannel $channel): int
     {

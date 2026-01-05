@@ -12,6 +12,9 @@ export default {
     cancel: 'Cancel',
     confirm: 'Confirm',
     back: 'Back',
+    next: 'Next',
+    previous: 'Previous',
+    select: 'Select',
     export: 'Export',
     import: 'Import',
     batchExport: 'Batch Export',
@@ -19,7 +22,8 @@ export default {
     moreFilters: 'More Filters',
     lessFilters: 'Less Filters',
     filters: 'filters',
-    selected: '{{count}} items selected',
+    selected: 'Selected',
+    selectedCount: '{{count}} items selected',
     operation: 'Operation',
     status: 'Status',
     createdAt: 'Created At',
@@ -110,6 +114,8 @@ export default {
     warehouseInventory: 'Inventory',
     // Merchant Outbound
     outboundOrders: 'Outbound Orders',
+    // Listings
+    listingManagement: 'Listing Management',
     // Settings
     generalSettings: 'General',
     walletManagement: 'Wallet',
@@ -190,6 +196,9 @@ export default {
     skuCodeRequired: 'SKU code is required',
     priceRequired: 'Reference price is required',
     originalPrice: 'Release Price',
+    currency: 'Currency',
+    currencyRequired: 'Currency is required',
+    barcode: 'Barcode',
     sortOrder: 'Sort Order',
     active: 'Active',
     inactive: 'Inactive',
@@ -570,6 +579,19 @@ export default {
     descriptionPlaceholder: 'Enter channel description (optional)',
     descriptionMaxLength: 'Description cannot exceed 500 characters',
     sortOrderTooltip: 'Lower numbers appear first, default is 0',
+    // Currency
+    currency: 'Currency',
+    currencyRequired: 'Please select a currency',
+    currencyTooltip: 'The currency used for prices in this channel',
+    currencyPlaceholder: 'Select currency',
+    currencyCNY: 'CNY - Chinese Yuan',
+    currencyUSD: 'USD - US Dollar',
+    currencyEUR: 'EUR - Euro',
+    currencyGBP: 'GBP - British Pound',
+    currencyJPY: 'JPY - Japanese Yen',
+    currencyHKD: 'HKD - Hong Kong Dollar',
+    currencyKRW: 'KRW - South Korean Won',
+    currencySGD: 'SGD - Singapore Dollar',
     // Warehouse Configuration
     warehouses: {
       configure: 'Configure Warehouses',
@@ -1409,6 +1431,8 @@ export default {
     pendingApproval: 'Pending Approval',
     // My Channels Tab
     channel: 'Channel',
+    columnDescription: 'Description',
+    currency: 'Currency',
     status: 'Status',
     remark: 'Remark',
     appliedAt: 'Applied At',
@@ -1551,5 +1575,117 @@ export default {
     channelProductIdInvalid: 'Invalid channel product ID',
     channelProductIdPlaceholder: 'Enter 26-character channel product ID',
     priorityOverridePlaceholder: 'Leave empty to use default priority',
+  },
+
+  // Listing Management
+  listingManagement: {
+    // List page
+    product: 'Product',
+    barcode: 'Barcode',
+    channel: 'Channel',
+    fulfillmentType: 'Fulfillment Type',
+    pricingModel: 'Pricing Model',
+    price: 'Price',
+    compareAtPrice: 'Compare at Price',
+    availableQuantity: 'Available Qty',
+    allocatedQuantity: 'Allocated Qty',
+    soldQuantity: 'Sold Qty',
+    status: 'Status',
+    remark: 'Remark',
+    warehouse: 'Warehouse',
+    platformWarehouse: 'Platform',
+    shareableQuantity: 'Shareable Qty',
+
+    // Status
+    statusDraft: 'Draft',
+    statusActive: 'Active',
+    statusPaused: 'Paused',
+    statusSoldOut: 'Sold Out',
+
+    // Pricing models
+    selfPricing: 'Self Pricing',
+    platformManaged: 'Platform Managed',
+
+    // Allocation modes
+    allocationMode: 'Allocation Mode',
+    allocationModeShared: 'Shared Inventory',
+    allocationModeDedicated: 'Dedicated Inventory',
+
+    // Actions
+    createListing: 'Create Listing',
+    editListing: 'Edit Listing',
+    activate: 'Activate',
+    pause: 'Pause',
+
+    // Create wizard steps
+    stepSelectChannel: 'Select Channel',
+    stepSelectInventory: 'Select Inventory',
+    stepConfigureListing: 'Configure Listing',
+
+    // Messages
+    selectChannelDesc: 'Select the sales channel you want to list on',
+    selectInventoryDesc: 'Select inventory to list',
+    selectChannelRequired: 'Please select a channel',
+    selectInventoryRequired: 'Please select inventory',
+    noAvailableChannels: 'No available channels. Please apply for a channel first.',
+    noAvailableInventory: 'No available inventory for listing',
+
+    // Form validation
+    fulfillmentTypeRequired: 'Please select fulfillment type',
+    pricingModelRequired: 'Please select pricing model',
+    allocationModeRequired: 'Please select allocation mode',
+    allocatedQuantityRequired: 'Please enter allocated quantity',
+    allocatedQuantityExceeded: 'Allocated quantity cannot exceed shareable quantity',
+    priceRequired: 'Please enter price',
+    priceInvalid: 'Price must be greater than 0',
+    selectInventoryDescMulti: 'Select inventory items to list (multiple selection)',
+    selectedCount: '{{count}} items selected',
+    searchPlaceholder: 'Search by product name or style number...',
+    batchCreatedSuccess: 'Successfully created {{count}} listings',
+    batchCreatedPartial: 'Created {{success}} listings, {{failed}} failed',
+    batchCreatedFailed: 'Failed to create listings',
+    priceRequiredForAll: 'Please enter price for all items',
+    allocatedQuantityRequiredForDedicated: 'Please enter allocated quantity for dedicated mode items',
+    batchResultTitle: 'Batch Create Results',
+    batchPartialSuccess: 'Partially Succeeded',
+    batchAllFailed: 'All Failed',
+    batchResultSummary: '{{success}} succeeded, {{failed}} failed',
+    batchSuccessItems: 'Succeeded',
+    batchFailedItems: 'Failed',
+    backToList: 'Back to List',
+    continueOperation: 'Continue',
+
+    // Rule defaults
+    appliedRules: 'Applied Rules',
+    noRulesConfigured: 'No rules configured',
+    ruleExpression: 'Expression',
+    inputValue: 'Input',
+    outputValue: 'Output',
+    calculatedFromRules: 'Calculated from rules',
+    manualEntry: 'Manual entry required',
+    baseCost: 'Base Cost',
+    calculatedPrice: 'Calculated Price',
+    calculatedQuantity: 'Calculated Quantity',
+
+    // Edit page
+    listingInfo: 'Listing Information',
+    editableFields: 'Editable Fields',
+    cannotEditFulfillmentType: 'Cannot change after creation',
+    cannotEditPricingModel: 'Cannot change after creation',
+    inventoryQuantity: 'Inventory Quantity',
+    available: 'Available',
+    allocated: 'Allocated',
+    maxAllocatable: 'Max Allocatable',
+
+    // Success messages
+    created: 'Listing created successfully',
+    updated: 'Listing updated successfully',
+    activated: 'Listing activated',
+    paused: 'Listing paused',
+    deleted: 'Listing deleted',
+
+    // Confirm dialogs
+    confirmDelete: 'Confirm Delete',
+    confirmDeleteDesc: 'Are you sure you want to delete this listing? This action cannot be undone.',
   },
 }

@@ -25,6 +25,7 @@ import { ProductsListPage, ProductDetailPage } from '@/pages/products';
 import { MerchantsListPage } from '@/pages/merchants';
 import { BrandsListPage } from '@/pages/brands';
 import { ChannelsListPage, MerchantChannelsListPage, AvailableChannelsPage, MyChannelsPage } from '@/pages/channels';
+import { ListingsListPage, CreateListingPage, EditListingPage } from '@/pages/listings';
 import { CategoriesListPage } from '@/pages/categories';
 import { TagsListPage } from '@/pages/tags';
 import {
@@ -185,6 +186,9 @@ export const router = createBrowserRouter([
               { path: '/channels/merchants', element: <MerchantChannelsListPage /> },
               { path: '/channels/available', element: <AvailableChannelsPage /> },
               { path: '/channels/my-channels', element: <MyChannelsPage /> },
+              { path: '/channels/listings', element: <ListingsListPage /> },
+              { path: '/channels/listings/create', element: <CreateListingPage /> },
+              { path: '/channels/listings/:id/edit', element: <EditListingPage /> },
               { path: '/channels/rules', element: <MerchantRulesPage /> },
 
               // Warehouses (Admin)

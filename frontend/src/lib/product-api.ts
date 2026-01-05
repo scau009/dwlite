@@ -11,6 +11,16 @@ export const SIZE_UNITS: { value: SizeUnit; label: string }[] = [
   { value: 'CM', label: 'CM (厘米)' },
 ];
 
+export type Currency = 'USD' | 'CNY' | 'EUR' | 'GBP' | 'JPY';
+
+export const CURRENCIES: { value: Currency; label: string; symbol: string }[] = [
+  { value: 'USD', label: 'USD ($)', symbol: '$' },
+  { value: 'CNY', label: 'CNY (¥)', symbol: '¥' },
+  { value: 'EUR', label: 'EUR (€)', symbol: '€' },
+  { value: 'GBP', label: 'GBP (£)', symbol: '£' },
+  { value: 'JPY', label: 'JPY (¥)', symbol: '¥' },
+];
+
 export interface Product {
   id: string;
   name: string;
@@ -47,6 +57,8 @@ export interface ProductSku {
   specDescription: string;
   price: string;  // 参考价
   originalPrice: string | null;  // 发售价
+  currency: Currency;  // 币种
+  barcode: string | null;  // 条码 (UPC/EAN)
   isActive: boolean;
   sortOrder: number;
   createdAt: string;
@@ -121,6 +133,8 @@ export interface CreateSkuParams {
   specInfo?: Record<string, string>;
   price: string;  // 参考价
   originalPrice?: string;  // 发售价
+  currency?: Currency;  // 币种，默认 USD
+  barcode?: string;  // 条码 (UPC/EAN)
   isActive?: boolean;
   sortOrder?: number;
 }
@@ -131,6 +145,8 @@ export interface UpdateSkuParams {
   specInfo?: Record<string, string>;
   price?: string;  // 参考价
   originalPrice?: string;  // 发售价
+  currency?: Currency;  // 币种
+  barcode?: string;  // 条码 (UPC/EAN)
   isActive?: boolean;
   sortOrder?: number;
 }

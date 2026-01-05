@@ -300,6 +300,84 @@ class MerchantInventoryRepository extends ServiceEntityRepository
     }
 
     /**
+     * 获取可用于在某渠道上架的库存（未在该渠道上架过的）.
+     *
+     * @return MerchantInventory[]
+     */
+    public function findAvailableForListing(
+        Merchant $merchant,
+        \App\Entity\MerchantSalesChannel $channel,
+        int $page = 1,
+        int $limit = 20,
+        ?string $search = null
+    ): array {
+        $qb = $this->createQueryBuilder('i')
+            ->leftJoin('i.productSku', 'sku')
+            ->leftJoin('sku.product', 'p')
+            ->leftJoin('i.warehouse', 'w')
+            ->andWhere('i.merchant = :merchant')
+            ->andWhere('i.quantityAvailable > 0')
+            ->setParameter('merchant', $merchant);
+
+        // Exclude inventory already listed on this channel
+        $subQuery = $this->getEntityManager()->createQueryBuilder()
+            ->select('IDENTITY(il.merchantInventory)')
+            ->from(\App\Entity\InventoryListing::class, 'il')
+            ->where('il.merchantSalesChannel = :channel');
+
+        $qb->andWhere(
+            $qb->expr()->notIn('i.id', $subQuery->getDQL())
+        )->setParameter('channel', $channel);
+
+        // Search filter
+        if ($search !== null && $search !== '') {
+            $qb->andWhere('p.name LIKE :search OR p.styleNumber LIKE :search OR sku.sizeValue LIKE :search')
+                ->setParameter('search', '%'.$search.'%');
+        }
+
+        return $qb->orderBy('i.updatedAt', 'DESC')
+            ->setFirstResult(($page - 1) * $limit)
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * 统计可用于在某渠道上架的库存数量.
+     */
+    public function countAvailableForListing(
+        Merchant $merchant,
+        \App\Entity\MerchantSalesChannel $channel,
+        ?string $search = null
+    ): int {
+        $qb = $this->createQueryBuilder('i')
+            ->select('COUNT(i.id)')
+            ->leftJoin('i.productSku', 'sku')
+            ->leftJoin('sku.product', 'p')
+            ->andWhere('i.merchant = :merchant')
+            ->andWhere('i.quantityAvailable > 0')
+            ->setParameter('merchant', $merchant);
+
+        // Exclude inventory already listed on this channel
+        $subQuery = $this->getEntityManager()->createQueryBuilder()
+            ->select('IDENTITY(il.merchantInventory)')
+            ->from(\App\Entity\InventoryListing::class, 'il')
+            ->where('il.merchantSalesChannel = :channel');
+
+        $qb->andWhere(
+            $qb->expr()->notIn('i.id', $subQuery->getDQL())
+        )->setParameter('channel', $channel);
+
+        // Search filter
+        if ($search !== null && $search !== '') {
+            $qb->andWhere('p.name LIKE :search OR p.styleNumber LIKE :search OR sku.sizeValue LIKE :search')
+                ->setParameter('search', '%'.$search.'%');
+        }
+
+        return (int) $qb->getQuery()->getSingleScalarResult();
+    }
+
+    /**
      * 按商户分页查询库存（按 styleNumber + sizeValue 分组）.
      *
      * @return array{data: array[], meta: array{total: int, page: int, limit: int, pages: int}}

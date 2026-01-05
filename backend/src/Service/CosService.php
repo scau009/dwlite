@@ -145,4 +145,108 @@ class CosService
             'Key' => $cosKey,
         ], '+'.$expires.' seconds');
     }
+
+    /**
+     * Download an image from URL and upload to COS.
+     *
+     * @param string $url       The source image URL
+     * @param string $directory Directory path in COS (e.g., 'products/images')
+     *
+     * @return array{cosKey: string, url: string, thumbnailUrl: string|null, fileSize: int, width: int|null, height: int|null}|null
+     *               Returns null if download or upload fails
+     */
+    public function uploadFromUrl(string $url, string $directory = 'products/images'): ?array
+    {
+        // Create temp file
+        $tempFile = tempnam(sys_get_temp_dir(), 'cos_upload_');
+        if ($tempFile === false) {
+            return null;
+        }
+
+        try {
+            // Download image with timeout and size limit
+            $context = stream_context_create([
+                'http' => [
+                    'timeout' => 30,
+                    'user_agent' => 'DWLite/1.0',
+                    'follow_location' => true,
+                    'max_redirects' => 3,
+                ],
+                'ssl' => [
+                    'verify_peer' => true,
+                    'verify_peer_name' => true,
+                ],
+            ]);
+
+            $imageData = @file_get_contents($url, false, $context);
+            if ($imageData === false) {
+                return null;
+            }
+
+            // Check file size (max 10MB)
+            $fileSize = strlen($imageData);
+            if ($fileSize > 10 * 1024 * 1024) {
+                return null;
+            }
+
+            // Write to temp file
+            if (file_put_contents($tempFile, $imageData) === false) {
+                return null;
+            }
+
+            // Detect image type and get dimensions
+            $imageInfo = @getimagesize($tempFile);
+            if ($imageInfo === false) {
+                // Not a valid image
+                return null;
+            }
+
+            $width = $imageInfo[0];
+            $height = $imageInfo[1];
+            $mimeType = $imageInfo['mime'] ?? null;
+
+            // Determine extension from mime type
+            $extension = match ($mimeType) {
+                'image/jpeg' => 'jpg',
+                'image/png' => 'png',
+                'image/gif' => 'gif',
+                'image/webp' => 'webp',
+                'image/avif' => 'avif',
+                default => 'jpg',
+            };
+
+            // Generate COS key
+            $filename = (string) new Ulid().'.'.$extension;
+            $date = date('Y/m');
+            $cosKey = trim($directory, '/').'/'.$date.'/'.$filename;
+
+            // Upload to COS
+            $this->client->upload(
+                $this->bucket,
+                $cosKey,
+                fopen($tempFile, 'rb')
+            );
+
+            // Build URLs
+            $cosUrl = $this->getUrl($cosKey);
+            $thumbnailUrl = $cosUrl.'?imageMogr2/thumbnail/300x300>';
+
+            return [
+                'cosKey' => $cosKey,
+                'url' => $cosUrl,
+                'thumbnailUrl' => $thumbnailUrl,
+                'fileSize' => $fileSize,
+                'width' => $width,
+                'height' => $height,
+            ];
+        } catch (\Exception $e) {
+            // Log error but return null
+            return null;
+        } finally {
+            // Clean up temp file
+            if (file_exists($tempFile)) {
+                @unlink($tempFile);
+            }
+        }
+    }
 }

@@ -246,6 +246,7 @@ class MerchantChannelController extends AbstractController
             'name' => $channel->getName(),
             'logoUrl' => $channel->getLogoUrl(),
             'description' => $channel->getDescription(),
+            'currency' => $channel->getCurrency(),
         ];
     }
 

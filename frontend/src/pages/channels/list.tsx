@@ -163,6 +163,15 @@ export function ChannelsListPage() {
       sorter: true,
     },
     {
+      title: t('channels.currency'),
+      dataIndex: 'currency',
+      width: 80,
+      search: false,
+      render: (_, record) => (
+        <Tag>{record.currency}</Tag>
+      ),
+    },
+    {
       title: t('common.createdAt'),
       dataIndex: 'createdAt',
       width: 160,
