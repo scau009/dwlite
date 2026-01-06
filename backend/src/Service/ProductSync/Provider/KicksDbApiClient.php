@@ -18,11 +18,10 @@ class KicksDbApiClient
 
     public function __construct(
         private HttpClientInterface $httpClient,
-        private RateLimiterFactory  $kicksdbApiLimiter,
-        private LoggerInterface     $logger,
-        private string              $apiKey,
-    )
-    {
+        private RateLimiterFactory $kicksdbApiLimiter,
+        private LoggerInterface $logger,
+        private string $apiKey,
+    ) {
     }
 
     /**
@@ -45,7 +44,7 @@ class KicksDbApiClient
             'display[prices]' => true,
         ], $filters);
 
-        $response = $this->httpClient->request('GET', self::BASE_URL . '/stockx/products', [
+        $response = $this->httpClient->request('GET', self::BASE_URL.'/stockx/products', [
             'headers' => [
                 'Authorization' => $this->apiKey,
                 'Accept' => 'application/json',
@@ -63,6 +62,7 @@ class KicksDbApiClient
 
         $data = $response->toArray();
         $this->logger->debug('KicksDB API returned data', $data);
+
         return [
             'products' => $data['data'] ?? [],
             'hasNextPage' => count($data['data']) < $pageSize,
@@ -82,7 +82,7 @@ class KicksDbApiClient
         $this->waitForRateLimit();
 
         try {
-            $response = $this->httpClient->request('GET', self::BASE_URL . '/stockx/products/' . $productId, [
+            $response = $this->httpClient->request('GET', self::BASE_URL.'/stockx/products/'.$productId, [
                 'headers' => [
                     'Authorization' => $this->apiKey,
                     'Accept' => 'application/json',

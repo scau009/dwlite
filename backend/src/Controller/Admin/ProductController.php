@@ -3,11 +3,11 @@
 namespace App\Controller\Admin;
 
 use App\Attribute\AdminOnly;
+use App\Dto\Admin\BatchDeleteSkuRequest;
+use App\Dto\Admin\BatchUpdateSkuRequest;
 use App\Dto\Admin\CreateProductRequest;
 use App\Dto\Admin\CreateProductSkuRequest;
 use App\Dto\Admin\Query\ProductListQuery;
-use App\Dto\Admin\BatchDeleteSkuRequest;
-use App\Dto\Admin\BatchUpdateSkuRequest;
 use App\Dto\Admin\UpdateProductCurrencyRequest;
 use App\Dto\Admin\UpdateProductRequest;
 use App\Dto\Admin\UpdateProductSkuRequest;

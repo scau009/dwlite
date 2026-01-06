@@ -97,10 +97,7 @@ class PushChannelProductMessageHandler
                 ]);
 
                 // Throw exception to trigger retry
-                throw new ChannelGatewayException(
-                    $syncLog->getErrorMessage() ?? 'Push to channel failed',
-                    $syncLog->getErrorCode() ?? 'PUSH_FAILED'
-                );
+                throw new ChannelGatewayException($syncLog->getErrorMessage() ?? 'Push to channel failed', $syncLog->getErrorCode() ?? 'PUSH_FAILED');
             }
         } catch (ChannelGatewayException $e) {
             $this->logger->error('Channel gateway error during push', [
