@@ -56,8 +56,8 @@ class PlatformRuleService
             'categorySlug' => $product->getCategory()?->getSlug(),
             'merchantId' => $merchant->getId(),
             'channelCode' => $salesChannel->getCode(),
-            'fulfillmentType' => $merchantChannel->getFulfillmentType(),
-            'pricingModel' => $merchantChannel->getPricingModel(),
+            'fulfillmentType' => $listing->getFulfillmentType(),
+            'pricingModel' => $listing->getPricingModel(),
         ];
 
         // 收集适用的规则（商户级别 + 商品级别）

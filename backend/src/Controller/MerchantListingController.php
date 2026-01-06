@@ -395,7 +395,7 @@ class MerchantListingController extends AbstractController
             return $this->json(['error' => $this->translator->trans('listing.channelNotFound')], Response::HTTP_NOT_FOUND);
         }
 
-        $search = $request?->query->get('search');
+        $search = $request->query->get('search');
 
         $data = $this->listingService->getAvailableInventoryForChannel(
             $merchant,

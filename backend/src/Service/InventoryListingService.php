@@ -249,7 +249,7 @@ class InventoryListingService
         }
 
         // Capture data for sync trigger before deletion
-        $merchantId = $listing->getMerchant()->getId();
+        $merchantId = $listing->getMerchantInventory()->getMerchant()->getId();
 
         // Log the delete operation before actually deleting
         $this->logService->logDelete($listing, $operator);

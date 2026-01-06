@@ -110,7 +110,9 @@ class PlatformRuleController extends AbstractController
         $rule->setPriority($dto->priority);
         $rule->setConfig($dto->config);
         $rule->setIsActive($dto->isActive);
-        $rule->setCreatedBy($this->getUser()->getId());
+        /** @var \App\Entity\User $user */
+        $user = $this->getUser();
+        $rule->setCreatedBy($user->getId());
 
         $this->ruleRepository->save($rule, true);
 
@@ -433,7 +435,7 @@ class PlatformRuleController extends AbstractController
             if ($assignment->getScopeType() === PlatformRuleAssignment::SCOPE_MERCHANT) {
                 $merchant = $this->merchantRepository->find($assignment->getScopeId());
 
-                return $merchant ? $merchant->getCompanyName() : 'Unknown Merchant';
+                return $merchant ? $merchant->getName() : 'Unknown Merchant';
             }
 
             $product = $this->channelProductRepository->find($assignment->getScopeId());

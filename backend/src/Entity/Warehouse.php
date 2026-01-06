@@ -415,11 +415,7 @@ class Warehouse
 
     public function removeChannelWarehouse(SalesChannelWarehouse $channelWarehouse): static
     {
-        if ($this->channelWarehouses->removeElement($channelWarehouse)) {
-            if ($channelWarehouse->getWarehouse() === $this) {
-                $channelWarehouse->setWarehouse(null);
-            }
-        }
+        $this->channelWarehouses->removeElement($channelWarehouse);
 
         return $this;
     }

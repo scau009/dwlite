@@ -52,7 +52,7 @@ class MockGateway extends AbstractChannelGateway
         PushProductRequest $request
     ): PushProductResponse {
         $this->logOperationStart('pushProduct', [
-            'productId' => $request->productId,
+            'productId' => $request->internalId,
             'title' => $request->title,
         ]);
 
@@ -60,7 +60,7 @@ class MockGateway extends AbstractChannelGateway
             $this->handleApiError(500, 'MOCK_ERROR', 'Simulated push product failure');
         }
 
-        $externalId = 'MOCK_'.$request->productId.'_'.time();
+        $externalId = 'MOCK_'.$request->internalId.'_'.time();
 
         $this->logOperationSuccess('pushProduct', ['externalId' => $externalId]);
 
@@ -79,7 +79,7 @@ class MockGateway extends AbstractChannelGateway
         UpdateStockPriceRequest $request
     ): UpdateStockPriceResponse {
         $this->logOperationStart('updateStockPrice', [
-            'updates' => count($request->updates),
+            'updates' => count($request->items),
         ]);
 
         if ($this->shouldSimulateFailure($context, 'updateStockPrice')) {
@@ -87,12 +87,8 @@ class MockGateway extends AbstractChannelGateway
         }
 
         $results = [];
-        foreach ($request->updates as $update) {
-            $results[] = [
-                'externalId' => $update->externalId,
-                'success' => true,
-                'message' => 'Updated successfully',
-            ];
+        foreach ($request->items as $update) {
+            $results[$update->externalId] = true;
         }
 
         $this->logOperationSuccess('updateStockPrice', ['updatedCount' => count($results)]);
@@ -222,35 +218,41 @@ class MockGateway extends AbstractChannelGateway
 
         $orders = [];
         for ($i = 1; $i <= $orderCount; ++$i) {
+            $placedAt = $this->createUtcDateTime('-'.$i.' hours');
             $orders[] = new PulledOrderDto(
                 externalOrderId: 'MOCK_ORDER_'.time().'_'.$i,
                 externalOrderNo: 'MO'.date('YmdHis').str_pad((string) $i, 3, '0', STR_PAD_LEFT),
                 status: 'paid',
+                paymentStatus: 'paid',
                 receiver: new ReceiverDto(
                     name: 'Mock Receiver '.$i,
                     phone: '1380000000'.$i,
+                    address: 'Mock Address '.$i,
                     province: 'Mock Province',
                     city: 'Mock City',
                     district: 'Mock District',
-                    address: 'Mock Address '.$i,
                     postalCode: '10000'.$i,
                 ),
                 totalAmount: (string) (100 * $i),
+                productAmount: (string) (100 * $i),
+                shippingAmount: '0.00',
+                discountAmount: '0.00',
                 currency: $context->getCurrency(),
+                placedAt: $placedAt,
+                paidAt: $placedAt,
                 items: [
                     new PulledOrderItemDto(
-                        externalItemId: 'MOCK_ITEM_'.$i.'_1',
                         externalProductId: 'MOCK_PRODUCT_'.$i,
                         externalSkuId: 'MOCK_SKU_'.$i,
-                        title: 'Mock Product '.$i,
-                        skuName: 'Mock SKU '.$i,
+                        productName: 'Mock Product '.$i,
+                        productImage: null,
                         quantity: $i,
                         unitPrice: '100.00',
                         totalPrice: (string) (100 * $i),
+                        skuCode: 'MOCK_SKU_CODE_'.$i,
+                        sizeValue: '42',
                     ),
                 ],
-                orderTime: $this->createUtcDateTime('-'.$i.' hours'),
-                payTime: $this->createUtcDateTime('-'.$i.' hours'),
                 rawData: [
                     'mock' => true,
                     'generated_at' => $this->createUtcDateTime()->format(\DateTimeInterface::ATOM),

@@ -220,11 +220,7 @@ class SalesChannel
 
     public function removeChannelWarehouse(SalesChannelWarehouse $channelWarehouse): static
     {
-        if ($this->channelWarehouses->removeElement($channelWarehouse)) {
-            if ($channelWarehouse->getSalesChannel() === $this) {
-                $channelWarehouse->setSalesChannel(null);
-            }
-        }
+        $this->channelWarehouses->removeElement($channelWarehouse);
 
         return $this;
     }

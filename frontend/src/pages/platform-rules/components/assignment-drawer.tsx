@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Drawer, Table, Button, Switch, App, Space, Tag, Empty, Popconfirm, Select, Form, InputNumber, Radio } from 'antd';
+import { Drawer, Table, Button, Switch, App, Space, Tag, Empty, Popconfirm, Select, Form, InputNumber, Radio, Input } from 'antd';
 import { PlusOutlined, DeleteOutlined } from '@ant-design/icons';
 import type { PlatformRule, PlatformRuleAssignment } from '@/lib/platform-rule-api';
 import { platformRuleApi } from '@/lib/platform-rule-api';
@@ -231,7 +231,7 @@ export function AssignmentDrawer({ open, rule, onClose }: AssignmentDrawerProps)
                     optionFilterProp="label"
                     options={unassignedMerchants.map((m) => ({
                       value: m.id,
-                      label: m.companyName,
+                      label: m.name,
                     }))}
                   />
                 </Form.Item>

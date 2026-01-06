@@ -91,7 +91,7 @@ export function RuleFormModal({ open, rule, ruleType, onClose, onSuccess }: Rule
     }
   }, [open, rule, form, message, t, ruleType]);
 
-  const getDefaultCategory = (type: PlatformRuleType): string => {
+  const getDefaultCategory = (type: PlatformRuleType): FormValues['category'] => {
     switch (type) {
       case 'pricing':
         return 'markup';

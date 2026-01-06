@@ -17,4 +17,14 @@ class ChannelGatewayException extends \RuntimeException
     ) {
         parent::__construct($message, 0, $previous);
     }
+
+    public function getErrorCode(): ?string
+    {
+        return $this->errorCode;
+    }
+
+    public function getHttpStatus(): ?int
+    {
+        return $this->httpStatus;
+    }
 }

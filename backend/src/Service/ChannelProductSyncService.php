@@ -74,7 +74,7 @@ class ChannelProductSyncService
             $channelProduct,
             $triggerSource,
             $listing->getId(),
-            $listing->getMerchant()->getId(),
+            $listing->getMerchantInventory()->getMerchant()->getId(),
             null,
         );
     }
@@ -107,7 +107,7 @@ class ChannelProductSyncService
                 $channelProduct,
                 $triggerSource,
                 $listing->getId(),
-                $listing->getMerchant()->getId(),
+                $listing->getMerchantInventory()->getMerchant()->getId(),
                 $inventory->getId(),
             );
         }
@@ -449,22 +449,18 @@ class ChannelProductSyncService
     private function doPushProduct($gateway, ChannelGatewayContext $context, ChannelProduct $channelProduct): array
     {
         $sku = $channelProduct->getProductSku();
-        $skc = $sku->getProductSkc();
-        $spu = $skc->getProductSpu();
+        $product = $sku->getProduct();
 
         $request = new PushProductRequest(
-            productId: $channelProduct->getId(),
-            title: $spu->getName(),
-            description: $spu->getDescription() ?? '',
-            price: $channelProduct->getPlatformPrice(),
-            compareAtPrice: $channelProduct->getPlatformCompareAtPrice(),
-            stock: $channelProduct->getStockQuantity(),
-            skuCode: $sku->getSkuCode(),
-            barcode: $sku->getBarcode(),
+            internalId: $channelProduct->getId(),
+            externalId: $channelProduct->getExternalId(),
+            title: $product->getName(),
+            description: $product->getDescription() ?? '',
+            brand: $product->getBrand()?->getName() ?? '',
+            categoryCode: $product->getCategory()?->getSlug() ?? null,
             images: [], // TODO: Add image support
             skus: [],   // TODO: Add multi-SKU support
-            categoryId: null,
-            brandId: null,
+            currency: $sku->getCurrency(),
             attributes: [],
         );
 
@@ -475,7 +471,7 @@ class ChannelProductSyncService
             'externalId' => $response->externalId,
             'externalUrl' => $response->externalUrl ?? null,
             'message' => $response->message,
-            'data' => $response->data,
+            'data' => $response->data ?? [],
         ];
     }
 
@@ -488,8 +484,7 @@ class ChannelProductSyncService
     {
         $request = new UpdateStockPriceRequest([
             new StockPriceUpdateDto(
-                externalId: $channelProduct->getExternalId(),
-                skuCode: $channelProduct->getProductSku()->getSkuCode(),
+                externalId: $channelProduct->getExternalId() ?? '',
                 stock: $channelProduct->getStockQuantity(),
                 price: $channelProduct->getPlatformPrice(),
                 compareAtPrice: $channelProduct->getPlatformCompareAtPrice(),
@@ -501,7 +496,7 @@ class ChannelProductSyncService
         return [
             'success' => $response->success,
             'message' => $response->message,
-            'data' => $response->data,
+            'data' => $response->data ?? [],
         ];
     }
 }

@@ -28,7 +28,7 @@ class TestProductSyncCommand extends Command
     protected function configure(): void
     {
         $this
-            ->addArgument('page', InputArgument::OPTIONAL, 'Page number to sync', 1)
+            ->addArgument('page', InputArgument::OPTIONAL, 'Page number to sync', '1')
             ->addOption('provider', 'p', InputOption::VALUE_OPTIONAL, 'Provider name', 'kicksdb')
             ->addOption('limit', 'l', InputOption::VALUE_OPTIONAL, 'Products per page', 10)
             ->addOption('dry-run', null, InputOption::VALUE_NONE, 'Only fetch, do not save');

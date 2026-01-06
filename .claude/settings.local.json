@@ -22,7 +22,8 @@
       "Bash(grep:*)",
       "Bash(ls:*)",
       "Bash(npm run lint:*)",
-      "Bash(php bin/console debug:messenger:*)"
+      "Bash(php bin/console debug:messenger:*)",
+      "Bash(vendor/bin/phpstan analyse:*)"
     ]
   }
 }

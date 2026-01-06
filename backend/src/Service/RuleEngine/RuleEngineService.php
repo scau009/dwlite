@@ -172,7 +172,7 @@ class RuleEngineService
     /**
      * 测试执行单个规则.
      *
-     * @return array{success: bool, result: mixed, error: ?string, executionTimeMs: int}
+     * @return array{success: bool, result: mixed, error: ?string, executionTimeMs: int, conditionMet: bool}
      */
     public function testRule(
         string $expression,
