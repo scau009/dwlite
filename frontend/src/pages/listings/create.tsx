@@ -644,7 +644,7 @@ export function CreateListingPage() {
 
   const renderStepContent = () => {
     switch (currentStep) {
-      case 0:
+      case 0: {
         // Check if channel is disabled (only consignment but no platform warehouse)
         const isChannelDisabled = (channel: AvailableChannel) => {
           const onlyConsignment = channel.approvedFulfillmentTypes.length === 1 &&
@@ -717,6 +717,7 @@ export function CreateListingPage() {
             )}
           </div>
         );
+      }
 
       case 1:
         return (
