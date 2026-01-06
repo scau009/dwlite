@@ -121,11 +121,6 @@ export function WarehouseInventoryListPage() {
 
   return (
     <div className="space-y-4">
-      <div className="mb-4">
-        <h1 className="text-xl font-semibold">{t('warehouseOps.inventoryTitle')}</h1>
-        <p className="text-gray-500">{t('warehouseOps.inventoryDescription')}</p>
-      </div>
-
       <ProTable<WarehouseInventoryItem>
         actionRef={actionRef}
         columns={columns}

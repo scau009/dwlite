@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {Table, Button, Tag, Switch, App, Popconfirm, Space, Card} from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { PlusOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 
 import { categoryApi, type CategoryTreeNode } from '@/lib/category-api';
@@ -164,7 +164,6 @@ export function CategoriesListPage() {
             <Button
               type="link"
               size="small"
-              icon={<PlusOutlined />}
               onClick={() => handleAdd(record)}
             >
               {t('categories.addChild')}
@@ -173,7 +172,6 @@ export function CategoriesListPage() {
           <Button
             type="link"
             size="small"
-            icon={<EditOutlined />}
             onClick={() => handleEdit(record)}
           >
             {t('common.edit')}
@@ -182,7 +180,6 @@ export function CategoriesListPage() {
             type="link"
             size="small"
             danger
-            icon={<DeleteOutlined />}
             onClick={() => handleDelete(record)}
           >
             {t('common.delete')}
@@ -194,11 +191,7 @@ export function CategoriesListPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-start mb-4">
-        <div>
-          <h1 className="text-xl font-semibold">{t('categories.title')}</h1>
-          <p className="text-gray-500">{t('categories.description')}</p>
-        </div>
+      <div className="flex justify-end">
         <Button
           type="primary"
           icon={<PlusOutlined />}

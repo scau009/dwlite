@@ -18,15 +18,18 @@ import {
   DeleteOutlined,
   PlusOutlined,
   ThunderboltOutlined,
+  DollarOutlined,
 } from '@ant-design/icons';
 import {
   productApi,
   type ProductDetail,
   type ProductStatus,
+  type Currency,
 } from '@/lib/product-api';
 import { ProductImages } from './components/product-images';
 import { ProductSkus, type ProductSkusRef } from './components/product-skus';
 import { ProductBasicInfoModal } from './components/product-basic-info-modal';
+import { ChangeCurrencyModal } from './components/change-currency-modal';
 
 // Status color mapping
 const statusColors: Record<ProductStatus, string> = {
@@ -44,6 +47,7 @@ export function ProductDetailPage() {
   const [product, setProduct] = useState<ProductDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [editModalOpen, setEditModalOpen] = useState(false);
+  const [currencyModalOpen, setCurrencyModalOpen] = useState(false);
   const skusRef = useRef<ProductSkusRef>(null);
 
   const loadProduct = async () => {
@@ -118,13 +122,12 @@ export function ProductDetailPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Button icon={<ArrowLeftOutlined />} onClick={() => navigate('/products/list')}>
             {t('common.back')}
           </Button>
-          <h1 className="text-xl font-semibold m-0">{product.name}</h1>
+          <span className="text-lg font-semibold">{product.name}</span>
           <Tag color={statusColors[product.status]}>{statusLabel}</Tag>
         </div>
         <Space>
@@ -209,6 +212,14 @@ export function ProductDetailPage() {
         title={`${t('products.skuManagement')} (${product.skus.length})`}
         extra={
           <Space>
+            {product.status === 'draft' && product.skus.length > 0 && (
+              <Button
+                icon={<DollarOutlined />}
+                onClick={() => setCurrencyModalOpen(true)}
+              >
+                {t('products.changeCurrency')}
+              </Button>
+            )}
             <Button
               icon={<ThunderboltOutlined />}
               onClick={() => skusRef.current?.openQuickAddModal()}
@@ -240,6 +251,19 @@ export function ProductDetailPage() {
         onClose={() => setEditModalOpen(false)}
         onSuccess={() => {
           setEditModalOpen(false);
+          loadProduct();
+        }}
+      />
+
+      {/* Change Currency Modal */}
+      <ChangeCurrencyModal
+        open={currencyModalOpen}
+        productId={id!}
+        currentCurrency={(product.skus[0]?.currency as Currency) || 'USD'}
+        skuCount={product.skus.length}
+        onClose={() => setCurrencyModalOpen(false)}
+        onSuccess={() => {
+          setCurrencyModalOpen(false);
           loadProduct();
         }}
       />

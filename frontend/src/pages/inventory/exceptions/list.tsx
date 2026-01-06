@@ -2,8 +2,7 @@ import { useRef } from 'react';
 import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { ProTable, type ActionType, type ProColumns } from '@ant-design/pro-components';
-import { Button, Tag, Tooltip, Space } from 'antd';
-import { EyeOutlined, CheckCircleOutlined } from '@ant-design/icons';
+import { Button, Tag, Space } from 'antd';
 
 import {
   inboundApi,
@@ -152,27 +151,25 @@ export function InboundExceptionsListPage() {
     {
       title: t('common.actions'),
       valueType: 'option',
-      width: 100,
+      width: 140,
       fixed: 'right',
       render: (_, record) => (
         <Space size="small">
-          <Tooltip title={t('common.view')}>
-            <Button
-              type="text"
-              size="small"
-              icon={<EyeOutlined />}
-              onClick={() => handleView(record)}
-            />
-          </Tooltip>
+          <Button
+            type="link"
+            size="small"
+            onClick={() => handleView(record)}
+          >
+            {t('common.view')}
+          </Button>
           {record.status === 'pending' && (
-            <Tooltip title={t('inventory.resolveException')}>
-              <Button
-                type="text"
-                size="small"
-                icon={<CheckCircleOutlined />}
-                onClick={() => handleView(record)}
-              />
-            </Tooltip>
+            <Button
+              type="link"
+              size="small"
+              onClick={() => handleView(record)}
+            >
+              {t('inventory.resolveException')}
+            </Button>
           )}
         </Space>
       ),
@@ -181,11 +178,6 @@ export function InboundExceptionsListPage() {
 
   return (
     <div className="space-y-4">
-      <div className="mb-4">
-        <h1 className="text-xl font-semibold">{t('inventory.exceptionsTitle')}</h1>
-        <p className="text-gray-500">{t('inventory.exceptionsDescription')}</p>
-      </div>
-
       <ProTable<InboundException>
         actionRef={actionRef}
         columns={columns}

@@ -60,3 +60,32 @@ services:
 
     App\Service\Mail\MailServiceInterface:
         alias: App\Service\Mail\TencentSesMailService
+
+    # Product Sync Providers
+    App\Service\ProductSync\Provider\KicksDbApiClient:
+        arguments:
+            $httpClient: '@kicksdb.client'
+            $apiKey: '%env(KICKSDB_API_KEY)%'
+
+    App\Service\ProductSync\Provider\KicksDbProvider:
+        tags:
+            - { name: 'app.product_data_provider', key: 'kicksdb' }
+
+    # Provider Registry with tagged service locator
+    App\Service\ProductSync\ProductDataProviderRegistry:
+        arguments:
+            $providers: !tagged_locator
+                tag: 'app.product_data_provider'
+                index_by: 'key'
+
+    # Channel Gateway Providers
+    App\Service\ChannelGateway\Provider\Mock\MockGateway:
+        tags:
+            - { name: 'app.channel_gateway', key: 'MOCK' }
+
+    # Channel Gateway Registry with tagged service locator
+    App\Service\ChannelGateway\ChannelGatewayRegistry:
+        arguments:
+            $gateways: !tagged_locator
+                tag: 'app.channel_gateway'
+                index_by: 'key'

@@ -1,13 +1,8 @@
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ProTable, type ActionType, type ProColumns } from '@ant-design/pro-components';
-import { Button, Tag, App, Space, Tooltip, Avatar } from 'antd';
-import {
-  StopOutlined,
-  PlayCircleOutlined,
-  CloseCircleOutlined,
-  ShopOutlined,
-} from '@ant-design/icons';
+import { Button, Tag, App, Space, Avatar } from 'antd';
+import { ShopOutlined } from '@ant-design/icons';
 
 import {
   merchantChannelApi,
@@ -17,6 +12,7 @@ import {
 const statusColorMap: Record<string, string> = {
   pending: 'processing',
   active: 'success',
+  rejected: 'error',
   suspended: 'warning',
   disabled: 'default',
 };
@@ -123,14 +119,61 @@ export function MyChannelsTab({ actionRef: externalRef }: Props) {
       valueEnum: {
         pending: { text: t('myChannels.statusPending'), status: 'Processing' },
         active: { text: t('myChannels.statusActive'), status: 'Success' },
+        rejected: { text: t('myChannels.statusRejected'), status: 'Error' },
         suspended: { text: t('myChannels.statusSuspended'), status: 'Warning' },
         disabled: { text: t('myChannels.statusDisabled'), status: 'Default' },
       },
       render: (_, record) => (
         <Tag color={statusColorMap[record.status]}>
-          {t(`myChannels.status${record.status.charAt(0).toUpperCase() + record.status.slice(1)}`)}
+          {t(`myChannels.status${record.status?.charAt(0).toUpperCase() + record.status?.slice(1)}`)}
         </Tag>
       ),
+    },
+    {
+      title: t('merchantChannels.requestedFulfillmentTypes'),
+      dataIndex: 'requestedFulfillmentTypes',
+      width: 160,
+      search: false,
+      render: (_, record) => {
+        if (!record.requestedFulfillmentTypes?.length) return '-';
+        return (
+          <Space size={[0, 4]} wrap>
+            {record.requestedFulfillmentTypes.map((type) => (
+              <Tag key={type} color="blue">
+                {type === 'consignment'
+                  ? t('merchantChannels.fulfillmentConsignment')
+                  : t('merchantChannels.fulfillmentSelfFulfillment')}
+              </Tag>
+            ))}
+          </Space>
+        );
+      },
+    },
+    {
+      title: t('merchantChannels.approvedFulfillmentTypes'),
+      dataIndex: 'approvedFulfillmentTypes',
+      width: 160,
+      search: false,
+      render: (_, record) => {
+        if (!record.approvedFulfillmentTypes?.length) {
+          return record.status === 'pending' ? (
+            <Tag color="processing">{t('myChannels.pendingApproval')}</Tag>
+          ) : (
+            '-'
+          );
+        }
+        return (
+          <Space size={[0, 4]} wrap>
+            {record.approvedFulfillmentTypes.map((type) => (
+              <Tag key={type} color="green">
+                {type === 'consignment'
+                  ? t('merchantChannels.fulfillmentConsignment')
+                  : t('merchantChannels.fulfillmentSelfFulfillment')}
+              </Tag>
+            ))}
+          </Space>
+        );
+      },
     },
     {
       title: t('myChannels.remark'),
@@ -166,46 +209,46 @@ export function MyChannelsTab({ actionRef: externalRef }: Props) {
 
         if (record.status === 'pending') {
           actions.push(
-            <Tooltip key="cancel" title={t('myChannels.cancelApplication')}>
-              <Button
-                type="text"
-                size="small"
-                danger
-                icon={<CloseCircleOutlined />}
-                loading={isLoading}
-                onClick={() => handleCancelApplication(record)}
-              />
-            </Tooltip>
+            <Button
+              key="cancel"
+              type="link"
+              size="small"
+              danger
+              loading={isLoading}
+              onClick={() => handleCancelApplication(record)}
+            >
+              {t('myChannels.cancelApplication')}
+            </Button>
           );
         }
 
         if (record.status === 'active') {
           actions.push(
-            <Tooltip key="disable" title={t('myChannels.disable')}>
-              <Button
-                type="text"
-                size="small"
-                danger
-                icon={<StopOutlined />}
-                loading={isLoading}
-                onClick={() => handleDisable(record)}
-              />
-            </Tooltip>
+            <Button
+              key="disable"
+              type="link"
+              size="small"
+              danger
+              loading={isLoading}
+              onClick={() => handleDisable(record)}
+            >
+              {t('myChannels.disable')}
+            </Button>
           );
         }
 
         if (record.status === 'disabled') {
           actions.push(
-            <Tooltip key="enable" title={t('myChannels.enable')}>
-              <Button
-                type="text"
-                size="small"
-                icon={<PlayCircleOutlined />}
-                loading={isLoading}
-                onClick={() => handleEnable(record)}
-                style={{ color: '#52c41a' }}
-              />
-            </Tooltip>
+            <Button
+              key="enable"
+              type="link"
+              size="small"
+              loading={isLoading}
+              onClick={() => handleEnable(record)}
+              style={{ color: '#52c41a' }}
+            >
+              {t('myChannels.enable')}
+            </Button>
           );
         }
 
@@ -228,6 +271,7 @@ export function MyChannelsTab({ actionRef: externalRef }: Props) {
       actionRef={actionRef}
       columns={columns}
       rowKey="id"
+      scroll={{ x: 1400 }}
       request={async (params) => {
         try {
           const result = await merchantChannelApi.getMyChannels({

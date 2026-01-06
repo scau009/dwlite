@@ -1,18 +1,23 @@
 import { apiFetch } from './api-client';
 
 // Types
+export type FulfillmentType = 'consignment' | 'self_fulfillment';
+export type PricingModel = 'self_pricing' | 'platform_managed';
+
 export interface AvailableSalesChannel {
   id: string;
   code: string;
   name: string;
   logoUrl: string | null;
   description: string | null;
-  businessType: 'import' | 'export';
+  currency: string;
 }
 
 export interface MyMerchantChannel {
   id: string;
-  status: 'pending' | 'active' | 'suspended' | 'disabled';
+  requestedFulfillmentTypes: FulfillmentType[];
+  approvedFulfillmentTypes: FulfillmentType[] | null;
+  status: 'pending' | 'active' | 'suspended' | 'disabled' | 'rejected';
   remark: string | null;
   approvedAt: string | null;
   createdAt: string;
@@ -22,8 +27,18 @@ export interface MyMerchantChannel {
     code: string;
     name: string;
     logoUrl: string | null;
-    businessType: 'import' | 'export';
   };
+}
+
+export interface ChannelWarehouse {
+  id: string;
+  code: string;
+  name: string;
+  type: 'self' | 'third_party' | 'bonded' | 'overseas';
+  countryCode: string;
+  fullAddress: string;
+  province: string | null;
+  city: string | null;
 }
 
 export interface MyChannelListParams {
@@ -65,13 +80,14 @@ export const merchantChannelApi = {
   /**
    * 申请销售渠道
    */
-  applyChannel: async (
-    salesChannelId: string,
-    remark?: string
-  ): Promise<{ message: string; merchantChannel: MyMerchantChannel }> => {
+  applyChannel: async (data: {
+    salesChannelId: string;
+    fulfillmentTypes: FulfillmentType[];
+    remark?: string;
+  }): Promise<{ message: string; merchantChannel: MyMerchantChannel }> => {
     return apiFetch('/api/merchant/my-channels', {
       method: 'POST',
-      body: JSON.stringify({ salesChannelId, remark }),
+      body: JSON.stringify(data),
     });
   },
 
@@ -95,5 +111,14 @@ export const merchantChannelApi = {
     return apiFetch(`/api/merchant/my-channels/${id}/enable`, {
       method: 'POST',
     });
+  },
+
+  /**
+   * 获取渠道的可用仓库列表
+   */
+  getChannelWarehouses: async (
+    channelId: string
+  ): Promise<{ data: ChannelWarehouse[] }> => {
+    return apiFetch(`/api/merchant/my-channels/${channelId}/warehouses`);
   },
 };

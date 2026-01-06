@@ -10,6 +10,8 @@ use App\Dto\Inbound\Query\InboundOrderListQuery;
 use App\Dto\Inbound\ResolveInboundExceptionRequest;
 use App\Dto\Inbound\ShipInboundOrderRequest;
 use App\Dto\Inbound\UpdateInboundOrderItemRequest;
+use App\Dto\Inbound\UpdateInboundOrderRequest;
+use App\Dto\Inbound\UpdateItemCostRequest;
 use App\Entity\InboundException;
 use App\Entity\Product;
 use App\Entity\User;
@@ -144,6 +146,7 @@ class InboundOrderController extends AbstractController
                 'sizeUnit' => $sku->getSizeUnit()?->value,
                 'sizeValue' => $sku->getSizeValue(),
                 'price' => $sku->getPrice(),
+                'currency' => $sku->getCurrency(),
                 'isActive' => $sku->isActive(),
             ], $product->getSkus()->filter(fn ($s) => $s->isActive())->toArray()),
         ];
@@ -211,6 +214,34 @@ class InboundOrderController extends AbstractController
         return $this->json([
             'data' => $this->serializeOrderDetail($order),
         ]);
+    }
+
+    /**
+     * 更新入库单.
+     */
+    #[Route('/orders/{id}', name: 'inbound_update_order', methods: ['PUT'])]
+    public function updateOrder(
+        #[CurrentUser] User $user,
+        string $id,
+        #[MapRequestPayload] UpdateInboundOrderRequest $dto
+    ): JsonResponse {
+        $merchant = $this->getCurrentMerchant($user);
+        $order = $this->inboundOrderService->getOrderById($id);
+
+        if ($order === null || $order->getMerchant()->getId() !== $merchant->getId()) {
+            return $this->json(['error' => 'Order not found'], Response::HTTP_NOT_FOUND);
+        }
+
+        try {
+            $order = $this->inboundOrderService->updateOrder($order, $dto);
+
+            return $this->json([
+                'message' => $this->translator->trans('inbound.order.updated'),
+                'data' => $this->serializeOrder($order),
+            ]);
+        } catch (\LogicException $e) {
+            return $this->json(['error' => $e->getMessage()], Response::HTTP_BAD_REQUEST);
+        }
     }
 
     /**
@@ -315,6 +346,34 @@ class InboundOrderController extends AbstractController
 
             return $this->json([
                 'message' => $this->translator->trans('inbound.item.removed'),
+            ]);
+        } catch (\LogicException $e) {
+            return $this->json(['error' => $e->getMessage()], Response::HTTP_BAD_REQUEST);
+        }
+    }
+
+    /**
+     * 更新入库单明细的单件成本（入库完成前可用）.
+     */
+    #[Route('/orders/items/{id}/cost', name: 'inbound_update_item_cost', methods: ['PATCH'])]
+    public function updateItemCost(
+        #[CurrentUser] User $user,
+        string $id,
+        #[MapRequestPayload] UpdateItemCostRequest $dto
+    ): JsonResponse {
+        $merchant = $this->getCurrentMerchant($user);
+        $item = $this->inboundOrderService->getItemById($id);
+
+        if ($item === null || $item->getInboundOrder()->getMerchant()->getId() !== $merchant->getId()) {
+            return $this->json(['error' => 'Item not found'], Response::HTTP_NOT_FOUND);
+        }
+
+        try {
+            $item = $this->inboundOrderService->updateItemCost($item, $dto);
+
+            return $this->json([
+                'message' => $this->translator->trans('inbound.item.cost_updated'),
+                'data' => $this->serializeItem($item),
             ]);
         } catch (\LogicException $e) {
             return $this->json(['error' => $e->getMessage()], Response::HTTP_BAD_REQUEST);

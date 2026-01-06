@@ -32,11 +32,6 @@ export function MerchantChannelsPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div>
-        <h1 className="text-xl font-semibold m-0">{t('myChannels.title')}</h1>
-        <p className="text-gray-500 mt-1">{t('myChannels.description')}</p>
-      </div>
-
       <Card>
         <Tabs activeKey={activeTab} onChange={setActiveTab} items={items} />
       </Card>

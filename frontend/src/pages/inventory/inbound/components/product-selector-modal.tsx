@@ -5,6 +5,7 @@ import { SearchOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 
 import { inboundApi, type InboundProduct } from '@/lib/inbound-api';
+import { getCurrencySymbol } from '@/lib/merchant-listing-api';
 import { SkuSelectorModal } from './sku-selector-modal';
 
 interface ProductSelectorModalProps {
@@ -126,17 +127,18 @@ export function ProductSelectorModal({
     {
       title: t('inventory.referencePrice'),
       dataIndex: 'skus',
-      width: 100,
+      width: 120,
       render: (skus: InboundProduct['skus']) => {
         if (!skus || skus.length === 0) return '-';
         const prices = skus.map(s => parseFloat(s.price)).filter(p => p > 0);
         if (prices.length === 0) return '-';
         const minPrice = Math.min(...prices);
         const maxPrice = Math.max(...prices);
+        const currencySymbol = getCurrencySymbol(skus[0].currency);
         if (minPrice === maxPrice) {
-          return `¥${minPrice}`;
+          return `${currencySymbol}${minPrice}`;
         }
-        return `¥${minPrice} - ¥${maxPrice}`;
+        return `${currencySymbol}${minPrice} - ${currencySymbol}${maxPrice}`;
       },
     },
     {

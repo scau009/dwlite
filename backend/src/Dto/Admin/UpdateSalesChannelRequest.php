@@ -19,9 +19,12 @@ class UpdateSalesChannelRequest
 
     public ?array $configSchema = null;
 
-    #[Assert\Choice(choices: ['import', 'export'], message: 'validation.business_type_invalid')]
-    public ?string $businessType = null;
-
     #[Assert\PositiveOrZero(message: 'validation.sort_order_positive')]
     public ?int $sortOrder = null;
+
+    #[Assert\Choice(
+        choices: ['CNY', 'USD', 'EUR', 'GBP', 'JPY', 'HKD', 'KRW', 'SGD'],
+        message: 'validation.currency_invalid'
+    )]
+    public ?string $currency = null;
 }

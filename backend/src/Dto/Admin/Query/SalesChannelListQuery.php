@@ -8,8 +8,6 @@ class SalesChannelListQuery extends PaginationQuery
 
     public ?string $code = null;
 
-    public ?string $businessType = null;
-
     public ?string $status = null;
 
     public function toFilters(): array
@@ -22,10 +20,6 @@ class SalesChannelListQuery extends PaginationQuery
 
         if ($this->code !== null && $this->code !== '') {
             $filters['code'] = $this->code;
-        }
-
-        if ($this->businessType !== null && $this->businessType !== '') {
-            $filters['businessType'] = $this->businessType;
         }
 
         if ($this->status !== null && $this->status !== '') {

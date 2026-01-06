@@ -1,11 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Modal, Form, Input, Avatar, Space, Tag, Descriptions, App } from 'antd';
+import { Modal, Form, Input, Avatar, Space, Descriptions, App, Checkbox, Alert } from 'antd';
 import { ShopOutlined } from '@ant-design/icons';
 
 import {
   merchantChannelApi,
   type AvailableSalesChannel,
+  type FulfillmentType
 } from '@/lib/merchant-channel-api';
 
 const { TextArea } = Input;
@@ -17,16 +18,30 @@ interface Props {
   onSuccess: () => void;
 }
 
-const businessTypeColorMap: Record<string, string> = {
-  import: 'blue',
-  export: 'green',
-};
+const fulfillmentOptions: { value: FulfillmentType; labelKey: string; descKey: string }[] = [
+  {
+    value: 'consignment',
+    labelKey: 'merchantChannels.fulfillmentConsignment',
+    descKey: 'merchantChannels.fulfillmentConsignmentDesc',
+  },
+  {
+    value: 'self_fulfillment',
+    labelKey: 'merchantChannels.fulfillmentSelfFulfillment',
+    descKey: 'merchantChannels.fulfillmentSelfFulfillmentDesc',
+  },
+];
 
 export function ApplyChannelModal({ open, channel, onClose, onSuccess }: Props) {
   const { t } = useTranslation();
   const { message } = App.useApp();
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (open) {
+      form.resetFields();
+    }
+  }, [open, form]);
 
   const handleSubmit = async () => {
     if (!channel) return;
@@ -35,7 +50,11 @@ export function ApplyChannelModal({ open, channel, onClose, onSuccess }: Props) 
       const values = await form.validateFields();
       setLoading(true);
 
-      await merchantChannelApi.applyChannel(channel.id, values.remark);
+      await merchantChannelApi.applyChannel({
+        salesChannelId: channel.id,
+        fulfillmentTypes: values.fulfillmentTypes,
+        remark: values.remark,
+      });
       message.success(t('myChannels.applicationSubmitted'));
       form.resetFields();
       onSuccess();
@@ -77,15 +96,7 @@ export function ApplyChannelModal({ open, channel, onClose, onSuccess }: Props) 
                 <Avatar icon={<ShopOutlined />} size={24} shape="square" />
               )}
               <span>{channel.name}</span>
-              <code className="text-xs bg-gray-100 px-1 rounded">
-                {channel.code}
-              </code>
             </Space>
-          </Descriptions.Item>
-          <Descriptions.Item label={t('channels.businessType.label')}>
-            <Tag color={businessTypeColorMap[channel.businessType]}>
-              {t(`channels.businessType.${channel.businessType}`)}
-            </Tag>
           </Descriptions.Item>
           {channel.description && (
             <Descriptions.Item label={t('channels.description')}>
@@ -95,11 +106,52 @@ export function ApplyChannelModal({ open, channel, onClose, onSuccess }: Props) 
         </Descriptions>
       </div>
 
-      <Form form={form} layout="vertical">
+      <Alert
+        message={t('myChannels.fulfillmentTypesHint')}
+        type="info"
+        showIcon
+        className="mb-4"
+      />
+
+      <Form
+        form={form}
+        layout="vertical"
+        initialValues={{
+          fulfillmentTypes: ['consignment'],
+        }}
+      >
+        <Form.Item
+          name="fulfillmentTypes"
+          label={t('merchantChannels.fulfillmentType')}
+          rules={[
+            {
+              required: true,
+              message: t('merchantChannels.fulfillmentTypeRequired'),
+            },
+            {
+              type: 'array',
+              min: 1,
+              message: t('merchantChannels.fulfillmentTypeRequired'),
+            },
+          ]}
+        >
+          <Checkbox.Group className="w-full">
+            <div className="flex flex-col gap-3">
+              {fulfillmentOptions.map((option) => (
+                <Checkbox key={option.value} value={option.value}>
+                  <div>
+                    <div className="font-medium">{t(option.labelKey)}</div>
+                    <div className="text-xs text-gray-500">{t(option.descKey)}</div>
+                  </div>
+                </Checkbox>
+              ))}
+            </div>
+          </Checkbox.Group>
+        </Form.Item>
+
         <Form.Item
           name="remark"
           label={t('myChannels.applicationRemark')}
-          extra={t('myChannels.applicationRemarkHint')}
         >
           <TextArea
             rows={3}

@@ -71,14 +71,6 @@ class InventoryService
             $inventory->addInTransit($item->getExpectedQuantity());
             $balanceAfter = $inventory->getQuantityInTransit();
 
-            // 更新平均成本
-            if ($item->getUnitCost() !== null) {
-                $inventory->updateAverageCost(
-                    $item->getExpectedQuantity(),
-                    $item->getUnitCost()
-                );
-            }
-
             // 记录流水
             $this->recordTransaction(
                 $inventory,
@@ -122,6 +114,11 @@ class InventoryService
 
             $receivedQty = $item->getReceivedQuantity();
             $damagedQty = $item->getDamagedQuantity();
+
+            // 更新平均成本（必须在 confirmInbound 之前调用，因为 updateAverageCost 使用当前库存数量计算加权平均）
+            if ($item->getUnitCost() !== null && $receivedQty > 0) {
+                $inventory->updateAverageCost($receivedQty, $item->getUnitCost());
+            }
 
             // 在途转可用/损坏
             $inventory->confirmInbound($receivedQty, $damagedQty);

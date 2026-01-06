@@ -9,6 +9,8 @@ use App\Dto\Inbound\CreateInboundOrderRequest;
 use App\Dto\Inbound\ResolveInboundExceptionRequest;
 use App\Dto\Inbound\ShipInboundOrderRequest;
 use App\Dto\Inbound\UpdateInboundOrderItemRequest;
+use App\Dto\Inbound\UpdateInboundOrderRequest;
+use App\Dto\Inbound\UpdateItemCostRequest;
 use App\Entity\InboundException;
 use App\Entity\InboundExceptionItem;
 use App\Entity\InboundOrder;
@@ -69,6 +71,35 @@ class InboundOrderService
             'order_id' => $order->getId(),
             'order_no' => $order->getOrderNo(),
             'merchant_id' => $merchant->getId(),
+        ]);
+
+        return $order;
+    }
+
+    /**
+     * 更新入库单（仅草稿状态可更新）.
+     */
+    public function updateOrder(
+        InboundOrder $order,
+        UpdateInboundOrderRequest $dto
+    ): InboundOrder {
+        if (!$order->isDraft()) {
+            throw new \LogicException('Can only update draft orders');
+        }
+
+        if ($dto->merchantNotes !== null) {
+            $order->setMerchantNotes($dto->merchantNotes);
+        }
+
+        if ($dto->expectedArrivalDate !== null) {
+            $order->setExpectedArrivalDate(\DateTimeImmutable::createFromInterface($dto->expectedArrivalDate));
+        }
+
+        $this->entityManager->flush();
+
+        $this->logger->info('Updated inbound order', [
+            'order_id' => $order->getId(),
+            'order_no' => $order->getOrderNo(),
         ]);
 
         return $order;
@@ -153,6 +184,38 @@ class InboundOrderService
         $this->logger->info('Updated inbound order item', [
             'item_id' => $item->getId(),
             'order_id' => $order->getId(),
+        ]);
+
+        return $item;
+    }
+
+    /**
+     * 更新入库单明细的单件成本（入库完成前可用）.
+     */
+    public function updateItemCost(
+        InboundOrderItem $item,
+        UpdateItemCostRequest $dto
+    ): InboundOrderItem {
+        $order = $item->getInboundOrder();
+
+        // 仅完成/取消状态不可编辑
+        if (in_array($order->getStatus(), [
+            InboundOrder::STATUS_COMPLETED,
+            InboundOrder::STATUS_PARTIAL_COMPLETED,
+            InboundOrder::STATUS_CANCELLED,
+        ], true)) {
+            throw new \LogicException('Cannot update item cost after order completion');
+        }
+
+        $item->setUnitCost($dto->unitCost);
+        $order->recalculateTotals();
+
+        $this->entityManager->flush();
+
+        $this->logger->info('Updated inbound order item cost', [
+            'item_id' => $item->getId(),
+            'order_id' => $order->getId(),
+            'unit_cost' => $dto->unitCost,
         ]);
 
         return $item;

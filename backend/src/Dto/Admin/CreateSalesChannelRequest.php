@@ -25,12 +25,16 @@ class CreateSalesChannelRequest
 
     public ?array $configSchema = null;
 
-    #[Assert\Choice(choices: ['import', 'export'], message: 'validation.business_type_invalid')]
-    public string $businessType = 'export';
-
     #[Assert\Choice(choices: ['active', 'maintenance', 'disabled'], message: 'validation.status_invalid')]
     public string $status = 'active';
 
     #[Assert\PositiveOrZero(message: 'validation.sort_order_positive')]
     public ?int $sortOrder = null;
+
+    #[Assert\NotBlank(message: 'validation.currency_required')]
+    #[Assert\Choice(
+        choices: ['CNY', 'USD', 'EUR', 'GBP', 'JPY', 'HKD', 'KRW', 'SGD'],
+        message: 'validation.currency_invalid'
+    )]
+    public string $currency = 'CNY';
 }

@@ -28,7 +28,7 @@ export function AppLayout() {
   return (
     <ProLayout
       title="DWLite"
-      logo={<ShopOutlined style={{ fontSize: 28, color: '#6366f1' }} />}
+      logo={<ShopOutlined style={{ fontSize: 18}} />}
       layout="mix"
       fixedHeader
       fixSiderbar

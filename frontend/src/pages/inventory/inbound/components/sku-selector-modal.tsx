@@ -15,6 +15,7 @@ import { ThunderboltOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 
 import { inboundApi, type InboundProduct, type InboundProductSku } from '@/lib/inbound-api';
+import { getCurrencySymbol } from '@/lib/merchant-listing-api';
 
 interface SkuSelectorModalProps {
   open: boolean;
@@ -26,6 +27,7 @@ interface SkuSelectorModalProps {
 
 interface SkuRow extends InboundProductSku {
   quantity: number;
+  unitCost?: number;
 }
 
 export function SkuSelectorModal({
@@ -40,11 +42,15 @@ export function SkuSelectorModal({
   const [loading, setLoading] = useState(false);
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
 
-  // SKU data with quantity
+  // Custom batch fill values
+  const [customQuantity, setCustomQuantity] = useState<number | null>(null);
+  const [customCost, setCustomCost] = useState<number | null>(null);
+
+  // SKU data with quantity and unitCost
   const [skuData, setSkuData] = useState<SkuRow[]>(() =>
     product.skus
       .filter(sku => sku.isActive)
-      .map(sku => ({ ...sku, quantity: 0 }))
+      .map(sku => ({ ...sku, quantity: 0, unitCost: undefined }))
   );
 
   // Get selected SKUs with quantity > 0
@@ -61,11 +67,29 @@ export function SkuSelectorModal({
     );
   };
 
+  // Update unit cost for a SKU
+  const handleUnitCostChange = (skuId: string, cost: number | null) => {
+    setSkuData(prev =>
+      prev.map(sku =>
+        sku.id === skuId ? { ...sku, unitCost: cost ?? undefined } : sku
+      )
+    );
+  };
+
   // Batch fill quantity
   const handleBatchFill = (quantity: number) => {
     setSkuData(prev =>
       prev.map(sku =>
         selectedRowKeys.includes(sku.id) ? { ...sku, quantity } : sku
+      )
+    );
+  };
+
+  // Batch fill unit cost
+  const handleBatchFillCost = (cost: number) => {
+    setSkuData(prev =>
+      prev.map(sku =>
+        selectedRowKeys.includes(sku.id) ? { ...sku, unitCost: cost } : sku
       )
     );
   };
@@ -82,6 +106,13 @@ export function SkuSelectorModal({
       return;
     }
 
+    // Check if all selected SKUs have unitCost filled
+    const missingCost = selectedSkus.some(sku => sku.unitCost === undefined || sku.unitCost === null);
+    if (missingCost) {
+      message.warning(t('inventory.unitCostRequired'));
+      return;
+    }
+
     setLoading(true);
     try {
       // Add items one by one (backend will handle duplicate SKU)
@@ -89,6 +120,7 @@ export function SkuSelectorModal({
         await inboundApi.addInboundOrderItem(orderId, {
           productSkuId: sku.id,
           expectedQuantity: sku.quantity,
+          unitCost: sku.unitCost!.toString(),
         });
       }
       message.success(t('inventory.itemsAdded'));
@@ -103,10 +135,12 @@ export function SkuSelectorModal({
 
   const handleClose = () => {
     setSelectedRowKeys([]);
+    setCustomQuantity(null);
+    setCustomCost(null);
     setSkuData(
       product.skus
         .filter(sku => sku.isActive)
-        .map(sku => ({ ...sku, quantity: 0 }))
+        .map(sku => ({ ...sku, quantity: 0, unitCost: undefined }))
     );
     onClose();
   };
@@ -115,7 +149,7 @@ export function SkuSelectorModal({
     {
       title: t('inventory.size'),
       dataIndex: 'sizeValue',
-      width: 120,
+      width: 100,
       render: (value: string | null, record) => (
         <span className="font-medium">{record.skuName || value || '-'}</span>
       ),
@@ -123,13 +157,13 @@ export function SkuSelectorModal({
     {
       title: t('inventory.price'),
       dataIndex: 'price',
-      width: 100,
-      render: (price: string) => (price ? `¥${price}` : '-'),
+      width: 80,
+      render: (price: string, record) => (price ? `${getCurrencySymbol(record.currency)}${price}` : '-'),
     },
     {
       title: t('inventory.quantity'),
       dataIndex: 'quantity',
-      width: 120,
+      width: 100,
       render: (_, record) => (
         <InputNumber
           min={0}
@@ -141,6 +175,33 @@ export function SkuSelectorModal({
         />
       ),
     },
+    {
+      title: (
+        <span>
+          {t('inventory.unitCost')} ({getCurrencySymbol(product.skus[0]?.currency || 'CNY')})
+          <span className="text-red-500 ml-0.5">*</span>
+        </span>
+      ),
+      dataIndex: 'unitCost',
+      width: 130,
+      render: (_, record) => {
+        const isSelected = selectedRowKeys.includes(record.id);
+        const isEmpty = record.unitCost === undefined || record.unitCost === null;
+        return (
+          <InputNumber
+            min={0}
+            precision={2}
+            value={record.unitCost}
+            onChange={(value) => handleUnitCostChange(record.id, value)}
+            style={{ width: '100%' }}
+            disabled={!isSelected}
+            prefix={getCurrencySymbol(record.currency)}
+            placeholder="0.00"
+            status={isSelected && isEmpty ? 'error' : undefined}
+          />
+        );
+      },
+    },
   ];
 
   const rowSelection = {
@@ -150,18 +211,65 @@ export function SkuSelectorModal({
 
   // Batch fill popover content
   const batchFillContent = (
-    <div className="flex flex-col gap-2 p-1">
-      <div className="text-sm text-gray-500 mb-1">{t('inventory.quickFill')}</div>
-      <div className="flex gap-2 flex-wrap">
-        {[1, 2, 3, 5, 10, 20, 50].map(num => (
-          <Button
-            key={num}
+    <div className="flex flex-col gap-3 p-1" style={{ width: 280 }}>
+      {/* Quantity batch fill */}
+      <div>
+        <div className="text-sm text-gray-500 dark:text-gray-400 mb-2">{t('inventory.batchFillQuantity')}</div>
+        <div className="flex gap-2 flex-wrap mb-2">
+          {[1, 2, 3, 5, 10, 20].map(num => (
+            <Button
+              key={num}
+              size="small"
+              onClick={() => handleBatchFill(num)}
+            >
+              {num}
+            </Button>
+          ))}
+        </div>
+        <Space.Compact style={{ width: '100%' }}>
+          <InputNumber
             size="small"
-            onClick={() => handleBatchFill(num)}
+            min={1}
+            precision={0}
+            value={customQuantity}
+            onChange={setCustomQuantity}
+            placeholder={t('inventory.customQuantity')}
+            style={{ flex: 1 }}
+          />
+          <Button
+            size="small"
+            type="primary"
+            disabled={!customQuantity || customQuantity <= 0}
+            onClick={() => customQuantity && handleBatchFill(customQuantity)}
           >
-            {num}
+            {t('common.apply')}
           </Button>
-        ))}
+        </Space.Compact>
+      </div>
+
+      {/* Cost batch fill */}
+      <div>
+        <div className="text-sm text-gray-500 dark:text-gray-400 mb-2">{t('inventory.batchFillCost')}</div>
+        <Space.Compact style={{ width: '100%' }}>
+          <InputNumber
+            size="small"
+            min={0}
+            precision={2}
+            value={customCost}
+            onChange={setCustomCost}
+            placeholder={t('inventory.customCost')}
+            prefix={getCurrencySymbol(product.skus[0]?.currency || 'CNY')}
+            style={{ flex: 1 }}
+          />
+          <Button
+            size="small"
+            type="primary"
+            disabled={customCost === null || customCost === undefined || customCost < 0}
+            onClick={() => customCost !== null && customCost !== undefined && handleBatchFillCost(customCost)}
+          >
+            {t('common.apply')}
+          </Button>
+        </Space.Compact>
       </div>
     </div>
   );
@@ -175,12 +283,12 @@ export function SkuSelectorModal({
       confirmLoading={loading}
       okText={t('inventory.addToOrder')}
       okButtonProps={{ disabled: selectedSkus.length === 0 }}
-      width={600}
+      width={680}
       destroyOnClose
     >
       <div className="flex flex-col gap-4">
         {/* Product info */}
-        <div className="flex gap-4 p-3 bg-gray-50 rounded-lg">
+        <div className="flex gap-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
           {product.primaryImageUrl ? (
             <Image
               src={product.primaryImageUrl}

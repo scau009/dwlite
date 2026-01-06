@@ -1,21 +1,18 @@
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ProTable, type ActionType, type ProColumns } from '@ant-design/pro-components';
-import { Button, Tag, App, Popconfirm, Space, Avatar, Tooltip, Select } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { Button, Tag, App, Popconfirm, Space, Avatar, Select } from 'antd';
+import { PlusOutlined } from '@ant-design/icons';
 
 import { channelApi, type SalesChannel } from '@/lib/channel-api';
 import { ChannelFormModal } from './components/channel-form-modal';
+import { WarehouseConfigDrawer } from './components/warehouse-config-drawer';
+import { ChannelConfigModal } from './components/channel-config-modal';
 
 const statusColorMap: Record<string, string> = {
   active: 'success',
   maintenance: 'warning',
   disabled: 'default',
-};
-
-const businessTypeColorMap: Record<string, string> = {
-  import: 'blue',
-  export: 'green',
 };
 
 export function ChannelsListPage() {
@@ -26,6 +23,10 @@ export function ChannelsListPage() {
   const [formModalOpen, setFormModalOpen] = useState(false);
   const [editingChannel, setEditingChannel] = useState<SalesChannel | null>(null);
   const [statusLoading, setStatusLoading] = useState<string | null>(null);
+  const [warehouseConfigOpen, setWarehouseConfigOpen] = useState(false);
+  const [selectedChannel, setSelectedChannel] = useState<SalesChannel | null>(null);
+  const [apiConfigOpen, setApiConfigOpen] = useState(false);
+  const [apiConfigChannel, setApiConfigChannel] = useState<SalesChannel | null>(null);
 
   const handleStatusChange = async (channel: SalesChannel, newStatus: 'active' | 'maintenance' | 'disabled') => {
     setStatusLoading(channel.id);
@@ -107,21 +108,6 @@ export function ChannelsListPage() {
       ),
     },
     {
-      title: t('channels.businessType'),
-      dataIndex: 'businessType',
-      width: 100,
-      valueType: 'select',
-      valueEnum: {
-        import: { text: t('channels.businessTypeImport') },
-        export: { text: t('channels.businessTypeExport') },
-      },
-      render: (_, record) => (
-        <Tag color={businessTypeColorMap[record.businessType]}>
-          {t(`channels.businessType${record.businessType.charAt(0).toUpperCase() + record.businessType.slice(1)}`)}
-        </Tag>
-      ),
-    },
-    {
       title: t('channels.status'),
       dataIndex: 'status',
       width: 100,
@@ -180,6 +166,15 @@ export function ChannelsListPage() {
       sorter: true,
     },
     {
+      title: t('channels.currency'),
+      dataIndex: 'currency',
+      width: 80,
+      search: false,
+      render: (_, record) => (
+        <Tag>{record.currency}</Tag>
+      ),
+    },
+    {
       title: t('common.createdAt'),
       dataIndex: 'createdAt',
       width: 160,
@@ -189,27 +184,45 @@ export function ChannelsListPage() {
     {
       title: t('common.actions'),
       valueType: 'option',
-      width: 80,
+      width: 280,
       fixed: 'right',
       render: (_, record) => (
         <Space size="small">
-          <Tooltip title={t('common.edit')}>
-            <Button
-              type="text"
-              size="small"
-              icon={<EditOutlined />}
-              onClick={() => handleEdit(record)}
-            />
-          </Tooltip>
-          <Tooltip title={t('common.delete')}>
-            <Button
-              type="text"
-              size="small"
-              danger
-              icon={<DeleteOutlined />}
-              onClick={() => handleDelete(record)}
-            />
-          </Tooltip>
+          <Button
+            type="link"
+            size="small"
+            onClick={() => {
+              setApiConfigChannel(record);
+              setApiConfigOpen(true);
+            }}
+          >
+            {t('channels.config.configure')}
+          </Button>
+          <Button
+            type="link"
+            size="small"
+            onClick={() => {
+              setSelectedChannel(record);
+              setWarehouseConfigOpen(true);
+            }}
+          >
+            {t('channels.warehouses.configure')}
+          </Button>
+          <Button
+            type="link"
+            size="small"
+            onClick={() => handleEdit(record)}
+          >
+            {t('common.edit')}
+          </Button>
+          <Button
+            type="link"
+            size="small"
+            danger
+            onClick={() => handleDelete(record)}
+          >
+            {t('common.delete')}
+          </Button>
         </Space>
       ),
     },
@@ -217,11 +230,6 @@ export function ChannelsListPage() {
 
   return (
     <div className="space-y-4">
-      <div className="mb-4">
-        <h1 className="text-xl font-semibold">{t('channels.title')}</h1>
-        <p className="text-gray-500">{t('channels.description')}</p>
-      </div>
-
       <ProTable<SalesChannel>
         actionRef={actionRef}
         columns={columns}
@@ -233,7 +241,6 @@ export function ChannelsListPage() {
               limit: params.pageSize,
               name: params.name,
               code: params.code,
-              businessType: params.businessType,
               status: params.status,
             });
             return {
@@ -287,6 +294,28 @@ export function ChannelsListPage() {
           setFormModalOpen(false);
           setEditingChannel(null);
           actionRef.current?.reload();
+        }}
+      />
+
+      <WarehouseConfigDrawer
+        open={warehouseConfigOpen}
+        channel={selectedChannel}
+        onClose={() => {
+          setWarehouseConfigOpen(false);
+          setSelectedChannel(null);
+        }}
+      />
+
+      <ChannelConfigModal
+        open={apiConfigOpen}
+        channel={apiConfigChannel}
+        onClose={() => {
+          setApiConfigOpen(false);
+          setApiConfigChannel(null);
+        }}
+        onSuccess={() => {
+          setApiConfigOpen(false);
+          setApiConfigChannel(null);
         }}
       />
     </div>

@@ -18,6 +18,7 @@ import {
   type WarehouseDetail,
   type CreateWarehouseRequest,
 } from '@/lib/warehouse-api';
+import { merchantApi, type Merchant } from '@/lib/merchant-api';
 
 interface WarehouseFormModalProps {
   open: boolean;
@@ -37,8 +38,38 @@ export function WarehouseFormModal({
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [detailLoading, setDetailLoading] = useState(false);
+  const [merchants, setMerchants] = useState<Merchant[]>([]);
+  const [merchantsLoading, setMerchantsLoading] = useState(false);
 
   const isEdit = !!warehouse;
+
+  // Watch category field to show/hide merchant select
+  const category = Form.useWatch('category', form);
+
+  // Load merchants when modal opens
+  useEffect(() => {
+    if (open) {
+      setMerchantsLoading(true);
+      merchantApi
+        .getMerchants({ limit: 100, status: 'approved' })
+        .then((response) => {
+          setMerchants(response.data);
+        })
+        .catch(() => {
+          // Silently fail, merchants will show empty
+        })
+        .finally(() => {
+          setMerchantsLoading(false);
+        });
+    }
+  }, [open]);
+
+  // Clear merchantId when category changes from 'merchant' to 'platform'
+  useEffect(() => {
+    if (category === 'platform') {
+      form.setFieldValue('merchantId', undefined);
+    }
+  }, [category, form]);
 
   // Load warehouse detail when editing
   useEffect(() => {
@@ -49,6 +80,8 @@ export function WarehouseFormModal({
         .then((detail: WarehouseDetail) => {
           form.setFieldsValue({
             ...detail,
+            // Extract merchantId from nested merchant object
+            merchantId: detail.merchant?.id,
           });
         })
         .catch(() => {
@@ -153,6 +186,26 @@ export function WarehouseFormModal({
               </Select>
             </Form.Item>
           </Col>
+          {category === 'merchant' && (
+            <Col span={12}>
+              <Form.Item
+                name="merchantId"
+                label={t('warehouses.merchant')}
+                rules={[{ required: true, message: t('validation.required') }]}
+              >
+                <Select
+                  showSearch
+                  loading={merchantsLoading}
+                  placeholder={t('warehouses.selectMerchant')}
+                  optionFilterProp="label"
+                  options={merchants.map((m) => ({
+                    value: m.id,
+                    label: m.name,
+                  }))}
+                />
+              </Form.Item>
+            </Col>
+          )}
           <Col span={12}>
             <Form.Item
               name="status"

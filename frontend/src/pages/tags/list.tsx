@@ -1,8 +1,8 @@
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ProTable, type ActionType, type ProColumns } from '@ant-design/pro-components';
-import { Button, Tag, Switch, App, Popconfirm, Space, Tooltip } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { Button, Tag, Switch, App, Popconfirm, Space } from 'antd';
+import { PlusOutlined } from '@ant-design/icons';
 
 import { tagApi, type Tag as TagType } from '@/lib/tag-api';
 import { TagFormModal } from './components/tag-form-modal';
@@ -161,27 +161,25 @@ export function TagsListPage() {
     {
       title: t('common.actions'),
       valueType: 'option',
-      width: 80,
+      width: 120,
       fixed: 'right',
       render: (_, record) => (
         <Space size="small">
-          <Tooltip title={t('common.edit')}>
-            <Button
-              type="text"
-              size="small"
-              icon={<EditOutlined />}
-              onClick={() => handleEdit(record)}
-            />
-          </Tooltip>
-          <Tooltip title={t('common.delete')}>
-            <Button
-              type="text"
-              size="small"
-              danger
-              icon={<DeleteOutlined />}
-              onClick={() => handleDelete(record)}
-            />
-          </Tooltip>
+          <Button
+            type="link"
+            size="small"
+            onClick={() => handleEdit(record)}
+          >
+            {t('common.edit')}
+          </Button>
+          <Button
+            type="link"
+            size="small"
+            danger
+            onClick={() => handleDelete(record)}
+          >
+            {t('common.delete')}
+          </Button>
         </Space>
       ),
     },
@@ -189,11 +187,6 @@ export function TagsListPage() {
 
   return (
     <div className="space-y-4">
-      <div className="mb-4">
-        <h1 className="text-xl font-semibold">{t('tags.title')}</h1>
-        <p className="text-gray-500">{t('tags.description')}</p>
-      </div>
-
       <ProTable<TagType>
         actionRef={actionRef}
         columns={columns}

@@ -17,6 +17,21 @@ framework:
     php_errors:
         log: true
 
+    http_client:
+        default_options:
+            timeout: 30
+            max_redirects: 5
+        scoped_clients:
+            kicksdb.client:
+                base_uri: 'https://api.kicks.dev/v3'
+                timeout: 60
+                max_redirects: 3
+                retry_failed:
+                    max_retries: 3
+                    delay: 1000
+                    multiplier: 2
+                    jitter: 0.5
+
 when@test:
     framework:
         test: true

@@ -91,6 +91,13 @@ admin:
     image_ids_required: '图片ID列表不能为空'
     images_sorted: '图片排序已更新'
     upload_failed: '图片上传失败'
+    # Currency
+    currency_change_only_in_draft: '币种只能在草稿状态下修改'
+    currency_updated: '已更新 %count% 个SKU的币种'
+    # Batch operations
+    skus_batch_deleted: '已删除 %count% 个SKU'
+    skus_batch_updated: '已更新 %count% 个SKU'
+    batch_update_no_fields: '批量更新至少需要提供一个字段'
 
   # Category management messages
   category:
@@ -120,6 +127,41 @@ admin:
     updated: '仓库用户更新成功'
     deleted: '仓库用户删除成功'
 
+  # Admin merchant channel messages
+  merchant_channel:
+    not_found: '商户渠道记录不存在'
+    not_pending: '该申请不是待审核状态'
+    not_active: '该渠道不是启用状态'
+    approved: '审核通过'
+    rejected: '已拒绝申请'
+    suspended: '已暂停'
+    enabled: '已启用'
+
+  # Channel warehouse messages
+  channel_warehouse:
+    not_found: '渠道仓库配置不存在'
+    already_exists: '该仓库已配置在此渠道'
+    only_platform_allowed: '仅支持添加平台仓库到销售渠道'
+    added: '仓库已添加到渠道'
+    updated: '渠道仓库配置已更新'
+    removed: '仓库已从渠道移除'
+    batch_added: '仓库批量添加成功'
+    priorities_updated: '仓库优先级已更新'
+
+  # Channel messages
+  channel:
+    not_found: '销售渠道不存在'
+    code_exists: '渠道编码已存在'
+    created: '销售渠道创建成功'
+    updated: '销售渠道更新成功'
+    deleted: '销售渠道删除成功'
+    has_merchants: '无法删除已关联商户的渠道'
+    status_updated: '渠道状态已更新'
+
+  # Warehouse messages
+  warehouse:
+    not_found: '仓库不存在'
+
 # Merchant self-service messages
 merchant:
   not_found: '未找到商户信息'
@@ -137,6 +179,7 @@ merchant_channel:
   enabled: '渠道已启用'
   cannot_cancel_or_disable: '当前状态下无法取消或停用'
   not_disabled: '该渠道未停用'
+  not_active: '该渠道未激活，无法获取仓库列表'
 
 # Wallet messages
 wallet:
@@ -211,15 +254,18 @@ validation:
 inbound:
   order:
     created: '入库单创建成功'
+    updated: '入库单更新成功'
     submitted: '入库单已提交'
     shipped: '已发货'
     received: '收货完成'
     cancelled: '入库单已取消'
     deleted: '入库单已删除'
+    notes_updated: '备注更新成功'
   item:
     added: '商品添加成功'
     updated: '商品更新成功'
     removed: '商品删除成功'
+    cost_updated: '成本更新成功'
   exception:
     created: '异常单创建成功'
     resolved: '异常单处理完成'
@@ -261,3 +307,20 @@ outbound:
     ready: '待发货'
     shipped: '已发货'
     cancelled: '已取消'
+
+# Listing messages
+listing:
+  notFound: '上架记录不存在'
+  channelNotFound: '销售渠道不存在'
+  channelIdRequired: '渠道ID不能为空'
+  channelNotActive: '销售渠道未激活'
+  inventoryNotFound: '库存记录不存在'
+  fulfillmentTypeNotApproved: '该履约方式未获渠道授权'
+  noAvailableStock: '无可用库存'
+  alreadyExists: '该库存已在此渠道上架'
+  allocatedQuantityRequired: '寄售模式需要指定分配数量'
+  insufficientShareableStock: '可共享库存不足，可用 %available%，请求 %requested%'
+  canOnlyDeleteDraft: '只能删除草稿状态的上架记录'
+  consignmentRequiresPlatformWarehouse: '寄售履约需要平台仓库'
+  warehouseNotConfiguredForChannel: '该仓库未配置在此渠道'
+  batchCreated: '成功创建 %created% 条上架记录，失败 %failed% 条'

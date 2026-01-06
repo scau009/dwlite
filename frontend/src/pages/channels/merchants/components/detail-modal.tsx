@@ -59,16 +59,12 @@ export function MerchantChannelDetailModal({ open, merchantChannel, onClose }: M
           <Descriptions.Item label={t('merchantChannels.merchant')}>
             {detail.merchant.name}
           </Descriptions.Item>
-          {detail.merchant.contactName && (
-            <Descriptions.Item label={t('merchantChannels.contactName')}>
-              {detail.merchant.contactName}
-            </Descriptions.Item>
-          )}
-          {detail.merchant.contactPhone && (
-            <Descriptions.Item label={t('merchantChannels.contactPhone')}>
-              {detail.merchant.contactPhone}
-            </Descriptions.Item>
-          )}
+          <Descriptions.Item label={t('merchantChannels.contactName')}>
+            {detail.merchant.contactName}
+          </Descriptions.Item>
+          <Descriptions.Item label={t('merchantChannels.contactPhone')}>
+            {detail.merchant.contactPhone}
+          </Descriptions.Item>
           <Descriptions.Item label={t('merchantChannels.channel')}>
             {detail.salesChannel.name} ({detail.salesChannel.code})
           </Descriptions.Item>

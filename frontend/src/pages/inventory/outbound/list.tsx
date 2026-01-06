@@ -2,8 +2,8 @@ import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { ProTable, type ActionType, type ProColumns } from '@ant-design/pro-components';
-import { Button, Tag, Space, Tooltip } from 'antd';
-import { PlusOutlined, EyeOutlined } from '@ant-design/icons';
+import { Button, Tag, Space } from 'antd';
+import { PlusOutlined } from '@ant-design/icons';
 
 import {
   outboundApi,
@@ -182,14 +182,13 @@ export function OutboundOrdersListPage() {
       fixed: 'right',
       render: (_, record) => (
         <Space size="small">
-          <Tooltip title={t('common.view')}>
-            <Button
-              type="text"
-              size="small"
-              icon={<EyeOutlined />}
-              onClick={() => handleView(record)}
-            />
-          </Tooltip>
+          <Button
+            type="link"
+            size="small"
+            onClick={() => handleView(record)}
+          >
+            {t('common.view')}
+          </Button>
         </Space>
       ),
     },
@@ -197,11 +196,6 @@ export function OutboundOrdersListPage() {
 
   return (
     <div className="space-y-4">
-      <div className="mb-4">
-        <h1 className="text-xl font-semibold">{t('outbound.title')}</h1>
-        <p className="text-gray-500">{t('outbound.description')}</p>
-      </div>
-
       <ProTable<OutboundOrder>
         actionRef={actionRef}
         columns={columns}

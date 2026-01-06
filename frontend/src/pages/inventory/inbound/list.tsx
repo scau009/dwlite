@@ -2,14 +2,9 @@ import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { ProTable, type ActionType, type ProColumns } from '@ant-design/pro-components';
-import { Button, Tag, App, Space, Tooltip, Dropdown } from 'antd';
+import { Button, Tag, App, Space, Dropdown } from 'antd';
 import {
   PlusOutlined,
-  EyeOutlined,
-  EditOutlined,
-  DeleteOutlined,
-  SendOutlined,
-  CloseCircleOutlined,
   MoreOutlined,
 } from '@ant-design/icons';
 
@@ -133,7 +128,6 @@ export function InboundOrdersListPage() {
     // View is always available
     items.push({
       key: 'view',
-      icon: <EyeOutlined />,
       label: t('common.view'),
       onClick: () => handleView(order),
     });
@@ -142,7 +136,6 @@ export function InboundOrdersListPage() {
     if (order.status === 'draft') {
       items.push({
         key: 'edit',
-        icon: <EditOutlined />,
         label: t('common.edit'),
         onClick: () => handleEdit(order),
       });
@@ -152,7 +145,6 @@ export function InboundOrdersListPage() {
     if (order.status === 'draft') {
       items.push({
         key: 'submit',
-        icon: <SendOutlined />,
         label: t('inventory.submitOrder'),
         onClick: () => handleSubmit(order),
       });
@@ -162,7 +154,6 @@ export function InboundOrdersListPage() {
     if (['draft', 'pending', 'shipped'].includes(order.status)) {
       items.push({
         key: 'cancel',
-        icon: <CloseCircleOutlined />,
         label: t('inventory.cancelOrder'),
         danger: true,
         onClick: () => handleCancel(order),
@@ -176,7 +167,6 @@ export function InboundOrdersListPage() {
       });
       items.push({
         key: 'delete',
-        icon: <DeleteOutlined />,
         label: t('common.delete'),
         danger: true,
         onClick: () => handleDelete(order),
@@ -290,27 +280,26 @@ export function InboundOrdersListPage() {
     {
       title: t('common.actions'),
       valueType: 'option',
-      width: 100,
+      width: 120,
       fixed: 'right',
       render: (_, record) => {
         const isLoading = actionLoading === record.id;
         return (
           <Space size="small">
-            <Tooltip title={t('common.view')}>
-              <Button
-                type="text"
-                size="small"
-                icon={<EyeOutlined />}
-                onClick={() => handleView(record)}
-              />
-            </Tooltip>
+            <Button
+              type="link"
+              size="small"
+              onClick={() => handleView(record)}
+            >
+              {t('common.view')}
+            </Button>
             <Dropdown
               menu={{ items: getActionMenuItems(record) }}
               trigger={['click']}
               disabled={isLoading}
             >
               <Button
-                type="text"
+                type="link"
                 size="small"
                 icon={<MoreOutlined />}
                 loading={isLoading}
@@ -324,11 +313,6 @@ export function InboundOrdersListPage() {
 
   return (
     <div className="space-y-4">
-      <div className="mb-4">
-        <h1 className="text-xl font-semibold">{t('inventory.title')}</h1>
-        <p className="text-gray-500">{t('inventory.description')}</p>
-      </div>
-
       <ProTable<InboundOrder>
         actionRef={actionRef}
         columns={columns}

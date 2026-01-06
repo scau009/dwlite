@@ -65,7 +65,6 @@ class SalesChannelController extends AbstractController
         $channel = new SalesChannel();
         $channel->setCode($dto->code);
         $channel->setName($dto->name);
-        $channel->setBusinessType($dto->businessType);
         $channel->setStatus($dto->status);
 
         if ($dto->logoUrl !== null) {
@@ -82,6 +81,9 @@ class SalesChannelController extends AbstractController
         }
         if ($dto->sortOrder !== null) {
             $channel->setSortOrder($dto->sortOrder);
+        }
+        if ($dto->currency !== null) {
+            $channel->setCurrency($dto->currency);
         }
 
         $this->salesChannelRepository->save($channel, true);
@@ -115,11 +117,11 @@ class SalesChannelController extends AbstractController
         if ($dto->configSchema !== null) {
             $channel->setConfigSchema($dto->configSchema);
         }
-        if ($dto->businessType !== null) {
-            $channel->setBusinessType($dto->businessType);
-        }
         if ($dto->sortOrder !== null) {
             $channel->setSortOrder($dto->sortOrder);
+        }
+        if ($dto->currency !== null) {
+            $channel->setCurrency($dto->currency);
         }
 
         $this->salesChannelRepository->save($channel, true);
@@ -174,9 +176,9 @@ class SalesChannelController extends AbstractController
             'code' => $channel->getCode(),
             'name' => $channel->getName(),
             'logoUrl' => $channel->getLogoUrl(),
-            'businessType' => $channel->getBusinessType(),
             'status' => $channel->getStatus(),
             'sortOrder' => $channel->getSortOrder(),
+            'currency' => $channel->getCurrency(),
             'createdAt' => $channel->getCreatedAt()->format('c'),
             'updatedAt' => $channel->getUpdatedAt()->format('c'),
         ];

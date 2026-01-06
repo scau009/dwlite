@@ -189,4 +189,73 @@ class InventoryListingRepository extends ServiceEntityRepository
 
         return (int) ($result ?? 0);
     }
+
+    /**
+     * 按商户分页查询上架记录.
+     *
+     * @return array{data: InventoryListing[], total: int}
+     */
+    public function findByMerchantPaginated(
+        Merchant $merchant,
+        int $page = 1,
+        int $limit = 20,
+        array $filters = []
+    ): array {
+        $qb = $this->createQueryBuilder('l')
+            ->leftJoin('l.merchantInventory', 'i')
+            ->leftJoin('i.productSku', 'sku')
+            ->leftJoin('sku.product', 'p')
+            ->leftJoin('l.merchantSalesChannel', 'mc')
+            ->leftJoin('mc.salesChannel', 'sc')
+            ->andWhere('i.merchant = :merchant')
+            ->setParameter('merchant', $merchant)
+            ->orderBy('l.updatedAt', 'DESC');
+
+        // 搜索商品名或货号
+        if (!empty($filters['search'])) {
+            $qb->andWhere('p.name LIKE :search OR p.styleNumber LIKE :search OR sku.sizeValue LIKE :search')
+                ->setParameter('search', '%'.$filters['search'].'%');
+        }
+
+        // 按渠道筛选
+        if (!empty($filters['channelId'])) {
+            $qb->andWhere('mc.id = :channelId')
+                ->setParameter('channelId', $filters['channelId']);
+        }
+
+        // 按状态筛选
+        if (!empty($filters['status'])) {
+            $qb->andWhere('l.status = :status')
+                ->setParameter('status', $filters['status']);
+        }
+
+        // 按履约模式筛选
+        if (!empty($filters['fulfillmentType'])) {
+            $qb->andWhere('l.fulfillmentType = :fulfillmentType')
+                ->setParameter('fulfillmentType', $filters['fulfillmentType']);
+        }
+
+        // 按定价模式筛选
+        if (!empty($filters['pricingModel'])) {
+            $qb->andWhere('l.pricingModel = :pricingModel')
+                ->setParameter('pricingModel', $filters['pricingModel']);
+        }
+
+        // 计算总数
+        $countQb = clone $qb;
+        $total = (int) $countQb->select('COUNT(l.id)')
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        // 分页
+        $data = $qb->setFirstResult(($page - 1) * $limit)
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+
+        return [
+            'data' => $data,
+            'total' => $total,
+        ];
+    }
 }

@@ -208,7 +208,7 @@ export function InboundExceptionDetailPage() {
           </Button>
           <Space>
             <ExclamationCircleOutlined className="text-xl text-orange-500" />
-            <h1 className="text-xl font-semibold m-0">{exception.exceptionNo}</h1>
+            <span className="text-lg font-semibold">{exception.exceptionNo}</span>
           </Space>
           <Tag color={statusColors[exception.status]}>{getStatusLabel(exception.status)}</Tag>
         </div>

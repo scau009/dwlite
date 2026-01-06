@@ -27,6 +27,7 @@ export function InboundOrderItemModal({
     if (open && item) {
       form.setFieldsValue({
         expectedQuantity: item.expectedQuantity,
+        unitCost: item.unitCost ? parseFloat(item.unitCost) : undefined,
       });
     }
   }, [open, item, form]);
@@ -40,6 +41,9 @@ export function InboundOrderItemModal({
 
       await inboundApi.updateInboundOrderItem(item.id, {
         expectedQuantity: values.expectedQuantity,
+        unitCost: values.unitCost !== undefined && values.unitCost !== null
+          ? values.unitCost.toString()
+          : undefined,
       });
       message.success(t('inventory.itemUpdated'));
       onSuccess();
@@ -73,7 +77,7 @@ export function InboundOrderItemModal({
     >
       <div className="flex flex-col gap-4 mt-4">
         {/* Product info display */}
-        <div className="flex gap-4 p-3 bg-gray-50 rounded-lg">
+        <div className="flex gap-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
           {item.productImage ? (
             <Image
               src={item.productImage}
@@ -105,7 +109,7 @@ export function InboundOrderItemModal({
           </Descriptions>
         </div>
 
-        {/* Quantity input */}
+        {/* Form inputs */}
         <Form form={form} layout="vertical">
           <Form.Item
             name="expectedQuantity"
@@ -116,6 +120,18 @@ export function InboundOrderItemModal({
             ]}
           >
             <InputNumber min={1} precision={0} style={{ width: '100%' }} />
+          </Form.Item>
+          <Form.Item
+            name="unitCost"
+            label={t('inventory.unitCost')}
+          >
+            <InputNumber
+              min={0}
+              precision={2}
+              style={{ width: '100%' }}
+              prefix="¥"
+              placeholder="0.00"
+            />
           </Form.Item>
         </Form>
       </div>

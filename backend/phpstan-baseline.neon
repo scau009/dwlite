@@ -6,7 +6,7 @@ parameters:
 			path: src/Controller/MerchantInventoryController.php
 
 		-
-			message: "#^Method App\\\\Controller\\\\MerchantInventoryController\\:\\:formatInventory\\(\\) is unused\\.$#"
+			message: "#^Method App\\\\Controller\\\\MerchantInventoryController\\:\\:formatGroupedInventory\\(\\) is unused\\.$#"
 			count: 1
 			path: src/Controller/MerchantInventoryController.php
 
@@ -39,3 +39,38 @@ parameters:
 			message: "#^Parameter \\#1 \\$Simple of method TencentCloud\\\\Ses\\\\V20201002\\\\Models\\\\SendEmailRequest\\:\\:setSimple\\(\\) expects TencentCloud\\\\Ses\\\\V20201002\\\\Models\\\\Simple, array\\<string, string\\> given\\.$#"
 			count: 1
 			path: src/Service/Mail/TencentSesMailService.php
+
+		-
+			message: "#^Negated boolean expression is always false\\.$#"
+			count: 2
+			path: src/Service/RuleEngine/MerchantRuleService.php
+
+		-
+			message: "#^Call to protected method getEntityManager\\(\\) of class Doctrine\\\\ORM\\\\EntityRepository\\<App\\\\Entity\\\\MerchantRule\\>\\.$#"
+			count: 1
+			path: src/Service/RuleEngine/MerchantRuleService.php
+
+		-
+			message: "#^Offset 'mime' on array\\{0\\: int\\<0, max\\>, 1\\: int\\<0, max\\>, 2\\: int, 3\\: string, mime\\: string, channels\\?\\: int, bits\\?\\: int\\} on left side of \\?\\? always exists and is not nullable\\.$#"
+			count: 1
+			path: src/Service/CosService.php
+
+		-
+			message: "#^Method App\\\\Service\\\\ProductSync\\\\ProductSyncService\\:\\:mapSizeUnit\\(\\) never returns null so it can be removed from the return type\\.$#"
+			count: 1
+			path: src/Service/ProductSync/ProductSyncService.php
+
+		-
+			message: "#^Ternary operator condition is always true\\.$#"
+			count: 1
+			path: src/Service/ProductSync/Provider/KicksDbApiClient.php
+
+		-
+			message: "#^Property App\\\\Service\\\\ChannelProductSyncService\\:\\:\\$syncLogRepo is never read, only written\\.$#"
+			count: 1
+			path: src/Service/ChannelProductSyncService.php
+
+		-
+			message: "#^Strict comparison using \\=\\=\\= between App\\\\Entity\\\\MerchantSalesChannel and null will always evaluate to false\\.$#"
+			count: 2
+			path: src/Service/ChannelProductSyncService.php

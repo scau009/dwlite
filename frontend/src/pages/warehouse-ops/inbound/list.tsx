@@ -2,8 +2,7 @@ import { useRef } from 'react';
 import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { ProTable, type ActionType, type ProColumns } from '@ant-design/pro-components';
-import { Button, Tag, Space, Tooltip } from 'antd';
-import { EyeOutlined } from '@ant-design/icons';
+import { Button, Tag, Space } from 'antd';
 
 import {
   warehouseOpsApi,
@@ -138,14 +137,13 @@ export function WarehouseInboundListPage() {
       fixed: 'right',
       render: (_, record) => (
         <Space size="small">
-          <Tooltip title={t('common.view')}>
-            <Button
-              type="text"
-              size="small"
-              icon={<EyeOutlined />}
-              onClick={() => handleView(record)}
-            />
-          </Tooltip>
+          <Button
+            type="link"
+            size="small"
+            onClick={() => handleView(record)}
+          >
+            {t('common.view')}
+          </Button>
         </Space>
       ),
     },
@@ -153,11 +151,6 @@ export function WarehouseInboundListPage() {
 
   return (
     <div className="space-y-4">
-      <div className="mb-4">
-        <h1 className="text-xl font-semibold">{t('warehouseOps.inboundTitle')}</h1>
-        <p className="text-gray-500">{t('warehouseOps.inboundDescription')}</p>
-      </div>
-
       <ProTable<WarehouseInboundOrder>
         actionRef={actionRef}
         columns={columns}

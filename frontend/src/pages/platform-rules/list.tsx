@@ -1,0 +1,346 @@
+import { useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { ProTable, type ActionType, type ProColumns } from '@ant-design/pro-components';
+import { Button, Tag, Switch, App, Popconfirm, Space, Tabs, Typography, Tooltip } from 'antd';
+import { PlusOutlined, SettingOutlined, LockOutlined } from '@ant-design/icons';
+
+import { platformRuleApi, type PlatformRule } from '@/lib/platform-rule-api';
+import { RuleFormModal } from './components/rule-form-modal';
+import { AssignmentDrawer } from './components/assignment-drawer';
+
+const { Paragraph } = Typography;
+
+type PlatformRuleType = 'pricing' | 'stock_priority' | 'settlement_fee';
+
+export function PlatformRulesListPage() {
+  const { t } = useTranslation();
+  const actionRef = useRef<ActionType>(null);
+  const { message, modal } = App.useApp();
+
+  const [ruleType, setRuleType] = useState<PlatformRuleType>('pricing');
+  const [formModalOpen, setFormModalOpen] = useState(false);
+  const [editingRule, setEditingRule] = useState<PlatformRule | null>(null);
+  const [assignmentDrawerOpen, setAssignmentDrawerOpen] = useState(false);
+  const [selectedRule, setSelectedRule] = useState<PlatformRule | null>(null);
+  const [statusLoading, setStatusLoading] = useState<string | null>(null);
+
+  const handleStatusChange = async (rule: PlatformRule, isActive: boolean) => {
+    if (rule.isSystem) {
+      message.warning(t('rules.cannotModifySystem'));
+      return;
+    }
+    setStatusLoading(rule.id);
+    try {
+      await platformRuleApi.updateRule(rule.id, { isActive });
+      message.success(isActive ? t('rules.activated') : t('rules.deactivated'));
+      actionRef.current?.reload();
+    } catch (error) {
+      const err = error as { error?: string };
+      message.error(err.error || t('common.error'));
+    } finally {
+      setStatusLoading(null);
+    }
+  };
+
+  const handleAdd = () => {
+    setEditingRule(null);
+    setFormModalOpen(true);
+  };
+
+  const handleEdit = (rule: PlatformRule) => {
+    setEditingRule(rule);
+    setFormModalOpen(true);
+  };
+
+  const handleManageAssignments = (rule: PlatformRule) => {
+    setSelectedRule(rule);
+    setAssignmentDrawerOpen(true);
+  };
+
+  const handleDelete = async (rule: PlatformRule) => {
+    if (rule.isSystem) {
+      message.warning(t('rules.cannotDeleteSystem'));
+      return;
+    }
+
+    modal.confirm({
+      title: t('rules.confirmDelete'),
+      content: t('rules.confirmDeleteDesc', { name: rule.name }),
+      okText: t('common.confirm'),
+      cancelText: t('common.cancel'),
+      okButtonProps: { danger: true },
+      onOk: async () => {
+        try {
+          await platformRuleApi.deleteRule(rule.id);
+          message.success(t('rules.deleted'));
+          actionRef.current?.reload();
+        } catch (error) {
+          const err = error as { error?: string };
+          message.error(err.error || t('common.error'));
+        }
+      },
+    });
+  };
+
+  const getCategoryColor = (category: string) => {
+    switch (category) {
+      case 'markup':
+        return 'blue';
+      case 'discount':
+        return 'green';
+      case 'priority':
+        return 'purple';
+      case 'fee_rate':
+        return 'orange';
+      default:
+        return 'default';
+    }
+  };
+
+  const columns: ProColumns<PlatformRule>[] = [
+    {
+      title: t('rules.code'),
+      dataIndex: 'code',
+      width: 150,
+      ellipsis: true,
+      render: (_, record) => (
+        <Space>
+          <code className="text-xs bg-gray-100 px-2 py-1 rounded">{record.code}</code>
+          {record.isSystem && (
+            <Tooltip title={t('rules.systemRule')}>
+              <LockOutlined className="text-gray-400" />
+            </Tooltip>
+          )}
+        </Space>
+      ),
+    },
+    {
+      title: t('rules.name'),
+      dataIndex: 'name',
+      width: 200,
+      ellipsis: true,
+      fieldProps: {
+        placeholder: t('common.search') + '...',
+      },
+    },
+    {
+      title: t('rules.category'),
+      dataIndex: 'category',
+      width: 100,
+      search: false,
+      render: (_, record) => (
+        <Tag color={getCategoryColor(record.category)}>
+          {t(`rules.category${record.category.charAt(0).toUpperCase() + record.category.slice(1).replace('_', '')}`)}
+        </Tag>
+      ),
+    },
+    {
+      title: t('rules.expression'),
+      dataIndex: 'expression',
+      width: 250,
+      search: false,
+      ellipsis: true,
+      render: (_, record) => (
+        <Paragraph
+          className="mb-0 font-mono text-xs"
+          ellipsis={{ rows: 2, tooltip: record.expression }}
+        >
+          {record.expression}
+        </Paragraph>
+      ),
+    },
+    {
+      title: t('rules.priority'),
+      dataIndex: 'priority',
+      width: 80,
+      search: false,
+      sorter: true,
+    },
+    {
+      title: t('rules.status'),
+      dataIndex: 'isActive',
+      width: 100,
+      valueType: 'select',
+      valueEnum: {
+        true: { text: t('rules.statusActive'), status: 'Success' },
+        false: { text: t('rules.statusInactive'), status: 'Default' },
+      },
+      render: (_, record) => (
+        <Tag color={record.isActive ? 'success' : 'default'}>
+          {record.isActive ? t('rules.statusActive') : t('rules.statusInactive')}
+        </Tag>
+      ),
+    },
+    {
+      title: t('rules.enableSwitch'),
+      dataIndex: 'enabled',
+      width: 80,
+      search: false,
+      render: (_, record) => {
+        const isLoading = statusLoading === record.id;
+        return (
+          <Popconfirm
+            title={record.isActive ? t('rules.confirmDeactivate') : t('rules.confirmActivate')}
+            onConfirm={() => handleStatusChange(record, !record.isActive)}
+            okText={t('common.confirm')}
+            cancelText={t('common.cancel')}
+            disabled={isLoading || record.isSystem}
+          >
+            <Switch
+              checked={record.isActive}
+              loading={isLoading}
+              size="small"
+              disabled={record.isSystem}
+            />
+          </Popconfirm>
+        );
+      },
+    },
+    {
+      title: t('common.createdAt'),
+      dataIndex: 'createdAt',
+      width: 160,
+      search: false,
+      render: (_, record) => new Date(record.createdAt).toLocaleString(),
+    },
+    {
+      title: t('common.actions'),
+      valueType: 'option',
+      width: 180,
+      fixed: 'right',
+      render: (_, record) => (
+        <Space size="small">
+          <Button
+            type="link"
+            size="small"
+            icon={<SettingOutlined />}
+            onClick={() => handleManageAssignments(record)}
+          >
+            {t('rules.assignments')}
+          </Button>
+          <Button
+            type="link"
+            size="small"
+            onClick={() => handleEdit(record)}
+          >
+            {record.isSystem ? t('common.view') : t('common.edit')}
+          </Button>
+          {!record.isSystem && (
+            <Button
+              type="link"
+              size="small"
+              danger
+              onClick={() => handleDelete(record)}
+            >
+              {t('common.delete')}
+            </Button>
+          )}
+        </Space>
+      ),
+    },
+  ];
+
+  const tabItems = [
+    {
+      key: 'pricing',
+      label: t('rules.platformPricingRules'),
+    },
+    {
+      key: 'stock_priority',
+      label: t('rules.stockPriorityRules'),
+    },
+    {
+      key: 'settlement_fee',
+      label: t('rules.settlementFeeRules'),
+    },
+  ];
+
+  return (
+    <div className="space-y-4">
+      <Tabs
+        activeKey={ruleType}
+        onChange={(key) => {
+          setRuleType(key as PlatformRuleType);
+          actionRef.current?.reload();
+        }}
+        items={tabItems}
+      />
+
+      <ProTable<PlatformRule>
+        actionRef={actionRef}
+        columns={columns}
+        rowKey="id"
+        request={async (params) => {
+          try {
+            const result = await platformRuleApi.getRules({
+              page: params.current,
+              limit: params.pageSize,
+              type: ruleType,
+              search: params.name,
+            });
+            return {
+              data: result.data,
+              success: true,
+              total: result.total,
+            };
+          } catch (error) {
+            console.error('Failed to fetch rules:', error);
+            return {
+              data: [],
+              success: false,
+              total: 0,
+            };
+          }
+        }}
+        toolBarRender={() => [
+          <Button
+            key="add"
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={handleAdd}
+          >
+            {t('rules.addRule')}
+          </Button>,
+        ]}
+        search={{
+          labelWidth: 'auto',
+          defaultCollapsed: true,
+        }}
+        options={{
+          density: true,
+          fullScreen: true,
+          reload: true,
+        }}
+        pagination={{
+          defaultPageSize: 20,
+          showSizeChanger: true,
+        }}
+        scroll={{ x: 1300 }}
+      />
+
+      <RuleFormModal
+        open={formModalOpen}
+        rule={editingRule}
+        ruleType={ruleType}
+        onClose={() => {
+          setFormModalOpen(false);
+          setEditingRule(null);
+        }}
+        onSuccess={() => {
+          setFormModalOpen(false);
+          setEditingRule(null);
+          actionRef.current?.reload();
+        }}
+      />
+
+      <AssignmentDrawer
+        open={assignmentDrawerOpen}
+        rule={selectedRule}
+        onClose={() => {
+          setAssignmentDrawerOpen(false);
+          setSelectedRule(null);
+        }}
+      />
+    </div>
+  );
+}

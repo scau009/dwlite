@@ -1,11 +1,12 @@
 import { useState, forwardRef, useImperativeHandle } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Table, Button, Tag, Switch, App, Space, Tooltip, Empty } from 'antd';
-import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { Table, Button, Tag, Switch, App, Space, Empty } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
-import { productApi, type ProductSku } from '@/lib/product-api';
+import type { TableRowSelection } from 'antd/es/table/interface';
+import { productApi, CURRENCIES, type ProductSku, type Currency } from '@/lib/product-api';
 import { SkuFormModal } from './sku-form-modal';
 import { QuickAddSizeModal } from './quick-add-size-modal';
+import { BatchEditSkuModal } from './batch-edit-sku-modal';
 
 interface ProductSkusProps {
   productId: string;
@@ -27,8 +28,11 @@ export const ProductSkus = forwardRef<ProductSkusRef, ProductSkusProps>(function
   const { message, modal } = App.useApp();
   const [formModalOpen, setFormModalOpen] = useState(false);
   const [quickAddModalOpen, setQuickAddModalOpen] = useState(false);
+  const [batchEditModalOpen, setBatchEditModalOpen] = useState(false);
   const [editingSku, setEditingSku] = useState<ProductSku | null>(null);
   const [statusLoading, setStatusLoading] = useState<string | null>(null);
+  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+  const [batchDeleteLoading, setBatchDeleteLoading] = useState(false);
 
   const handleAdd = () => {
     setEditingSku(null);
@@ -83,34 +87,83 @@ export const ProductSkus = forwardRef<ProductSkusRef, ProductSkusProps>(function
     }
   };
 
+  const handleBatchDelete = () => {
+    modal.confirm({
+      title: t('products.confirmBatchDelete'),
+      content: t('products.confirmBatchDeleteDesc', { count: selectedRowKeys.length }),
+      okText: t('common.confirm'),
+      cancelText: t('common.cancel'),
+      okButtonProps: { danger: true },
+      onOk: async () => {
+        setBatchDeleteLoading(true);
+        try {
+          const result = await productApi.batchDeleteSkus(productId, selectedRowKeys as string[]);
+          message.success(t('products.batchDeleted', { count: result.deletedCount }));
+          setSelectedRowKeys([]);
+          onUpdate();
+        } catch (error) {
+          const err = error as { error?: string };
+          message.error(err.error || t('common.error'));
+        } finally {
+          setBatchDeleteLoading(false);
+        }
+      },
+    });
+  };
+
+  const handleBatchEdit = () => {
+    setBatchEditModalOpen(true);
+  };
+
+  const rowSelection: TableRowSelection<ProductSku> = {
+    selectedRowKeys,
+    onChange: (keys: React.Key[]) => setSelectedRowKeys(keys),
+  };
+
+  const getCurrencySymbol = (currency: string) => {
+    const found = CURRENCIES.find((c) => c.value === currency);
+    return found ? found.symbol : '$';
+  };
+
   const columns: ColumnsType<ProductSku> = [
     {
-      title: t('products.sizeUnit'),
-      dataIndex: 'sizeUnit',
-      key: 'sizeUnit',
-      width: 100,
-      render: (unit: string | null) => unit || '-',
-    },
-    {
-      title: t('products.sizeValue'),
-      dataIndex: 'sizeValue',
-      key: 'sizeValue',
-      width: 100,
-      render: (value: string | null) => value || '-',
+      title: t('products.size'),
+      key: 'size',
+      width: 120,
+      render: (_, record) => {
+        if (record.sizeUnit && record.sizeValue) {
+          return `${record.sizeUnit} ${record.sizeValue}`;
+        }
+        return '-';
+      },
     },
     {
       title: t('products.price'),
       dataIndex: 'price',
       key: 'price',
-      width: 100,
-      render: (price: string) => `¥${parseFloat(price).toFixed(2)}`,
+      width: 120,
+      render: (price: string, record) => {
+        const symbol = getCurrencySymbol(record.currency);
+        return `${symbol}${parseFloat(price).toFixed(2)}`;
+      },
     },
     {
       title: t('products.originalPrice'),
       dataIndex: 'originalPrice',
       key: 'originalPrice',
-      width: 100,
-      render: (price: string | null) => price ? `¥${parseFloat(price).toFixed(2)}` : '-',
+      width: 120,
+      render: (price: string | null, record) => {
+        if (!price) return '-';
+        const symbol = getCurrencySymbol(record.currency);
+        return `${symbol}${parseFloat(price).toFixed(2)}`;
+      },
+    },
+    {
+      title: t('products.barcode'),
+      dataIndex: 'barcode',
+      key: 'barcode',
+      width: 150,
+      render: (barcode: string | null) => barcode || '-',
     },
     {
       title: t('products.status'),
@@ -135,27 +188,25 @@ export const ProductSkus = forwardRef<ProductSkusRef, ProductSkusProps>(function
     {
       title: t('common.actions'),
       key: 'actions',
-      width: 100,
+      width: 120,
       render: (_, record) => (
         disabled ? null : (
           <Space size="small">
-            <Tooltip title={t('common.edit')}>
-              <Button
-                type="text"
-                size="small"
-                icon={<EditOutlined />}
-                onClick={() => handleEdit(record)}
-              />
-            </Tooltip>
-            <Tooltip title={t('common.delete')}>
-              <Button
-                type="text"
-                size="small"
-                danger
-                icon={<DeleteOutlined />}
-                onClick={() => handleDelete(record)}
-              />
-            </Tooltip>
+            <Button
+              type="link"
+              size="small"
+              onClick={() => handleEdit(record)}
+            >
+              {t('common.edit')}
+            </Button>
+            <Button
+              type="link"
+              size="small"
+              danger
+              onClick={() => handleDelete(record)}
+            >
+              {t('common.delete')}
+            </Button>
           </Space>
         )
       ),
@@ -164,6 +215,26 @@ export const ProductSkus = forwardRef<ProductSkusRef, ProductSkusProps>(function
 
   return (
     <div>
+      {!disabled && selectedRowKeys.length > 0 && (
+        <div style={{ marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span>{t('products.selectedCount', { count: selectedRowKeys.length })}</span>
+          <Button
+            size="small"
+            onClick={handleBatchEdit}
+          >
+            {t('products.batchEdit')}
+          </Button>
+          <Button
+            size="small"
+            danger
+            loading={batchDeleteLoading}
+            onClick={handleBatchDelete}
+          >
+            {t('products.batchDelete')}
+          </Button>
+        </div>
+      )}
+
       {skus.length > 0 ? (
         <Table
           columns={columns}
@@ -171,6 +242,7 @@ export const ProductSkus = forwardRef<ProductSkusRef, ProductSkusProps>(function
           rowKey="id"
           pagination={false}
           size="small"
+          rowSelection={disabled ? undefined : rowSelection}
         />
       ) : (
         <Empty description={t('products.noSkus')} />
@@ -180,6 +252,7 @@ export const ProductSkus = forwardRef<ProductSkusRef, ProductSkusProps>(function
         open={formModalOpen}
         productId={productId}
         sku={editingSku}
+        existingCurrency={skus.length > 0 ? (skus[0].currency as Currency) : undefined}
         onClose={() => {
           setFormModalOpen(false);
           setEditingSku(null);
@@ -194,9 +267,24 @@ export const ProductSkus = forwardRef<ProductSkusRef, ProductSkusProps>(function
       <QuickAddSizeModal
         open={quickAddModalOpen}
         productId={productId}
+        existingCurrency={skus.length > 0 ? (skus[0].currency as Currency) : undefined}
         onClose={() => setQuickAddModalOpen(false)}
         onSuccess={() => {
           setQuickAddModalOpen(false);
+          onUpdate();
+        }}
+      />
+
+      <BatchEditSkuModal
+        open={batchEditModalOpen}
+        productId={productId}
+        selectedCount={selectedRowKeys.length}
+        skuIds={selectedRowKeys as string[]}
+        currency={skus.length > 0 ? (skus[0].currency as Currency) : undefined}
+        onClose={() => setBatchEditModalOpen(false)}
+        onSuccess={() => {
+          setBatchEditModalOpen(false);
+          setSelectedRowKeys([]);
           onUpdate();
         }}
       />

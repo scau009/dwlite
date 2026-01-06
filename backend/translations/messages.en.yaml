@@ -91,6 +91,13 @@ admin:
     image_ids_required: 'Image IDs are required'
     images_sorted: 'Images order updated'
     upload_failed: 'Image upload failed'
+    # Currency
+    currency_change_only_in_draft: 'Currency can only be changed when product is in draft status'
+    currency_updated: 'Currency updated for %count% SKU(s)'
+    # Batch operations
+    skus_batch_deleted: 'Deleted %count% SKU(s)'
+    skus_batch_updated: 'Updated %count% SKU(s)'
+    batch_update_no_fields: 'At least one field must be provided for batch update'
 
   # Category management messages
   category:
@@ -120,6 +127,41 @@ admin:
     updated: 'Warehouse user updated successfully'
     deleted: 'Warehouse user deleted successfully'
 
+  # Admin merchant channel messages
+  merchant_channel:
+    not_found: 'Merchant channel record not found'
+    not_pending: 'This application is not in pending status'
+    not_active: 'This channel is not in active status'
+    approved: 'Approved successfully'
+    rejected: 'Application rejected'
+    suspended: 'Channel suspended'
+    enabled: 'Channel enabled'
+
+  # Channel warehouse messages
+  channel_warehouse:
+    not_found: 'Channel warehouse configuration not found'
+    already_exists: 'This warehouse is already configured for the channel'
+    only_platform_allowed: 'Only platform warehouses can be added to sales channels'
+    added: 'Warehouse added to channel'
+    updated: 'Channel warehouse configuration updated'
+    removed: 'Warehouse removed from channel'
+    batch_added: 'Warehouses added to channel'
+    priorities_updated: 'Warehouse priorities updated'
+
+  # Channel messages
+  channel:
+    not_found: 'Sales channel not found'
+    code_exists: 'Channel code already exists'
+    created: 'Sales channel created successfully'
+    updated: 'Sales channel updated successfully'
+    deleted: 'Sales channel deleted successfully'
+    has_merchants: 'Cannot delete channel with associated merchants'
+    status_updated: 'Channel status updated'
+
+  # Warehouse messages
+  warehouse:
+    not_found: 'Warehouse not found'
+
 # Merchant self-service messages
 merchant:
   not_found: 'Merchant not found'
@@ -137,6 +179,7 @@ merchant_channel:
   enabled: 'Channel has been enabled'
   cannot_cancel_or_disable: 'Cannot cancel or disable in current status'
   not_disabled: 'This channel is not disabled'
+  not_active: 'This channel is not active, cannot fetch warehouses'
 
 # Wallet messages
 wallet:
@@ -211,15 +254,18 @@ validation:
 inbound:
   order:
     created: 'Inbound order created successfully'
+    updated: 'Inbound order updated successfully'
     submitted: 'Inbound order submitted'
     shipped: 'Order shipped'
     received: 'Receiving completed'
     cancelled: 'Inbound order cancelled'
     deleted: 'Inbound order deleted'
+    notes_updated: 'Notes updated successfully'
   item:
     added: 'Item added successfully'
     updated: 'Item updated successfully'
     removed: 'Item removed successfully'
+    cost_updated: 'Item cost updated successfully'
   exception:
     created: 'Exception created successfully'
     resolved: 'Exception resolved'
@@ -261,3 +307,20 @@ outbound:
     ready: 'Ready to Ship'
     shipped: 'Shipped'
     cancelled: 'Cancelled'
+
+# Listing messages
+listing:
+  notFound: 'Listing not found'
+  channelNotFound: 'Sales channel not found'
+  channelIdRequired: 'Channel ID is required'
+  channelNotActive: 'Sales channel is not active'
+  inventoryNotFound: 'Inventory not found'
+  fulfillmentTypeNotApproved: 'Fulfillment type not approved for this channel'
+  noAvailableStock: 'No available stock'
+  alreadyExists: 'Listing already exists for this inventory and channel'
+  allocatedQuantityRequired: 'Allocated quantity is required for consignment'
+  insufficientShareableStock: 'Insufficient shareable stock, available %available%, requested %requested%'
+  canOnlyDeleteDraft: 'Only draft listings can be deleted'
+  consignmentRequiresPlatformWarehouse: 'Consignment fulfillment requires platform warehouse'
+  warehouseNotConfiguredForChannel: 'Warehouse is not configured for this channel'
+  batchCreated: 'Successfully created %created% listing(s), failed %failed%'

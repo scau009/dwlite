@@ -14,14 +14,13 @@ use Symfony\Component\Uid\Ulid;
 #[ORM\HasLifecycleCallbacks]
 class SalesChannel
 {
-    // 业务类型
-    public const BUSINESS_TYPE_IMPORT = 'import';  // 进口
-    public const BUSINESS_TYPE_EXPORT = 'export';  // 出口
-
     // 渠道状态
     public const STATUS_ACTIVE = 'active';       // 正常
     public const STATUS_MAINTENANCE = 'maintenance'; // 维护中
     public const STATUS_DISABLED = 'disabled';   // 已禁用
+
+    // 支持的币种
+    public const SUPPORTED_CURRENCIES = ['CNY', 'USD', 'EUR', 'GBP', 'JPY', 'HKD', 'KRW', 'SGD'];
 
     #[ORM\Id]
     #[ORM\Column(type: 'string', length: 26)]
@@ -46,16 +45,19 @@ class SalesChannel
     private ?array $configSchema = null;  // 商户配置的 JSON Schema，定义商户需要填写的字段
 
     #[ORM\Column(type: 'string', length: 20)]
-    private string $businessType = self::BUSINESS_TYPE_EXPORT;
-
-    #[ORM\Column(type: 'string', length: 20)]
     private string $status = self::STATUS_ACTIVE;
 
     #[ORM\Column(type: 'integer', options: ['default' => 0])]
     private int $sortOrder = 0;
 
+    #[ORM\Column(type: 'string', length: 3, options: ['default' => 'CNY'])]
+    private string $currency = 'CNY';
+
     #[ORM\OneToMany(targetEntity: MerchantSalesChannel::class, mappedBy: 'salesChannel', cascade: ['persist', 'remove'])]
     private Collection $merchantChannels;
+
+    #[ORM\OneToMany(targetEntity: SalesChannelWarehouse::class, mappedBy: 'salesChannel', cascade: ['persist', 'remove'])]
+    private Collection $channelWarehouses;
 
     #[ORM\Column(type: 'datetime_immutable')]
     private \DateTimeImmutable $createdAt;
@@ -67,6 +69,7 @@ class SalesChannel
     {
         $this->id = (string) new Ulid();
         $this->merchantChannels = new ArrayCollection();
+        $this->channelWarehouses = new ArrayCollection();
         $this->createdAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
         $this->updatedAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
     }
@@ -153,18 +156,6 @@ class SalesChannel
         return $this;
     }
 
-    public function getBusinessType(): string
-    {
-        return $this->businessType;
-    }
-
-    public function setBusinessType(string $businessType): static
-    {
-        $this->businessType = $businessType;
-
-        return $this;
-    }
-
     public function getStatus(): string
     {
         return $this->status;
@@ -189,12 +180,49 @@ class SalesChannel
         return $this;
     }
 
+    public function getCurrency(): string
+    {
+        return $this->currency;
+    }
+
+    public function setCurrency(string $currency): static
+    {
+        $this->currency = $currency;
+
+        return $this;
+    }
+
     /**
      * @return Collection<int, MerchantSalesChannel>
      */
     public function getMerchantChannels(): Collection
     {
         return $this->merchantChannels;
+    }
+
+    /**
+     * @return Collection<int, SalesChannelWarehouse>
+     */
+    public function getChannelWarehouses(): Collection
+    {
+        return $this->channelWarehouses;
+    }
+
+    public function addChannelWarehouse(SalesChannelWarehouse $channelWarehouse): static
+    {
+        if (!$this->channelWarehouses->contains($channelWarehouse)) {
+            $this->channelWarehouses->add($channelWarehouse);
+            $channelWarehouse->setSalesChannel($this);
+        }
+
+        return $this;
+    }
+
+    public function removeChannelWarehouse(SalesChannelWarehouse $channelWarehouse): static
+    {
+        $this->channelWarehouses->removeElement($channelWarehouse);
+
+        return $this;
     }
 
     public function getCreatedAt(): \DateTimeImmutable
@@ -233,15 +261,5 @@ class SalesChannel
     public function isAvailable(): bool
     {
         return $this->status === self::STATUS_ACTIVE;
-    }
-
-    public function isImport(): bool
-    {
-        return $this->businessType === self::BUSINESS_TYPE_IMPORT;
-    }
-
-    public function isExport(): bool
-    {
-        return $this->businessType === self::BUSINESS_TYPE_EXPORT;
     }
 }

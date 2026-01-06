@@ -1,56 +1,41 @@
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ProTable, type ActionType, type ProColumns } from '@ant-design/pro-components';
-import { Button, Tag, App, Space, Tooltip, Badge, Card, Statistic } from 'antd';
-import { CheckOutlined, PauseOutlined, PlayCircleOutlined, EyeOutlined } from '@ant-design/icons';
+import { Button, App, Space, Tag } from 'antd';
 
 import { channelApi, type MerchantChannel } from '@/lib/channel-api';
 import { SuspendModal } from './components/suspend-modal';
+import { RejectModal } from './components/reject-modal';
+import { ApproveModal } from './components/approve-modal';
 import { MerchantChannelDetailModal } from './components/detail-modal';
-
-const statusColorMap: Record<string, string> = {
-  pending: 'processing',
-  active: 'success',
-  suspended: 'warning',
-  disabled: 'default',
-};
 
 export function MerchantChannelsListPage() {
   const { t } = useTranslation();
   const actionRef = useRef<ActionType>(null);
   const { message, modal } = App.useApp();
 
-  const [pendingCount, setPendingCount] = useState(0);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+
   const [suspendModalOpen, setSuspendModalOpen] = useState(false);
   const [suspendingChannel, setSuspendingChannel] = useState<MerchantChannel | null>(null);
+
+  const [rejectModalOpen, setRejectModalOpen] = useState(false);
+  const [rejectingChannel, setRejectingChannel] = useState<MerchantChannel | null>(null);
+
+  const [approveModalOpen, setApproveModalOpen] = useState(false);
+  const [approvingChannel, setApprovingChannel] = useState<MerchantChannel | null>(null);
+
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [viewingChannel, setViewingChannel] = useState<MerchantChannel | null>(null);
 
-  const handleApprove = async (mc: MerchantChannel) => {
-    modal.confirm({
-      title: t('merchantChannels.confirmApprove'),
-      content: t('merchantChannels.confirmApproveDesc', {
-        merchant: mc.merchant.name,
-        channel: mc.salesChannel.name,
-      }),
-      okText: t('common.confirm'),
-      cancelText: t('common.cancel'),
-      onOk: async () => {
-        setActionLoading(mc.id);
-        try {
-          await channelApi.approveChannel(mc.id);
-          message.success(t('merchantChannels.approved'));
-          actionRef.current?.reload();
-          loadPendingCount();
-        } catch (error) {
-          const err = error as { error?: string };
-          message.error(err.error || t('common.error'));
-        } finally {
-          setActionLoading(null);
-        }
-      },
-    });
+  const handleApprove = (mc: MerchantChannel) => {
+    setApprovingChannel(mc);
+    setApproveModalOpen(true);
+  };
+
+  const handleReject = (mc: MerchantChannel) => {
+    setRejectingChannel(mc);
+    setRejectModalOpen(true);
   };
 
   const handleSuspend = (mc: MerchantChannel) => {
@@ -88,13 +73,15 @@ export function MerchantChannelsListPage() {
     setDetailModalOpen(true);
   };
 
-  const loadPendingCount = async () => {
-    try {
-      const result = await channelApi.getPendingCount();
-      setPendingCount(result.count);
-    } catch (error) {
-      console.error('Failed to load pending count:', error);
-    }
+  const getStatusColor = (status: string) => {
+    const colors: Record<string, string> = {
+      pending: 'warning',
+      active: 'success',
+      rejected: 'error',
+      suspended: 'default',
+      disabled: 'default',
+    };
+    return colors[status] || 'default';
   };
 
   const columns: ProColumns<MerchantChannel>[] = [
@@ -108,7 +95,7 @@ export function MerchantChannelsListPage() {
     {
       title: t('merchantChannels.channel'),
       dataIndex: ['salesChannel', 'name'],
-      width: 150,
+      width: 180,
       search: false,
       render: (_, record) => (
         <Space size="small">
@@ -127,19 +114,66 @@ export function MerchantChannelsListPage() {
     {
       title: t('merchantChannels.status'),
       dataIndex: 'status',
-      width: 100,
+      width: 120,
       valueType: 'select',
       valueEnum: {
-        pending: { text: t('merchantChannels.statusPending'), status: 'Processing' },
-        active: { text: t('merchantChannels.statusActive'), status: 'Success' },
-        suspended: { text: t('merchantChannels.statusSuspended'), status: 'Warning' },
-        disabled: { text: t('merchantChannels.statusDisabled'), status: 'Default' },
+        pending: { text: t('merchantChannels.statusPending') },
+        active: { text: t('merchantChannels.statusActive') },
+        rejected: { text: t('merchantChannels.statusRejected') },
+        suspended: { text: t('merchantChannels.statusSuspended') },
+        disabled: { text: t('merchantChannels.statusDisabled') },
       },
       render: (_, record) => (
-        <Tag color={statusColorMap[record.status]}>
+        <Tag color={getStatusColor(record.status)}>
           {t(`merchantChannels.status${record.status.charAt(0).toUpperCase() + record.status.slice(1)}`)}
         </Tag>
       ),
+    },
+    {
+      title: t('merchantChannels.requestedFulfillmentTypes'),
+      dataIndex: 'requestedFulfillmentTypes',
+      width: 160,
+      search: false,
+      render: (_, record) => {
+        if (!record.requestedFulfillmentTypes?.length) return '-';
+        return (
+          <Space size={[0, 4]} wrap>
+            {record.requestedFulfillmentTypes.map((type) => (
+              <Tag key={type} color="blue">
+                {type === 'consignment'
+                  ? t('merchantChannels.fulfillmentConsignment')
+                  : t('merchantChannels.fulfillmentSelfFulfillment')}
+              </Tag>
+            ))}
+          </Space>
+        );
+      },
+    },
+    {
+      title: t('merchantChannels.approvedFulfillmentTypes'),
+      dataIndex: 'approvedFulfillmentTypes',
+      width: 160,
+      search: false,
+      render: (_, record) => {
+        if (!record.approvedFulfillmentTypes?.length) {
+          return record.status === 'pending' ? (
+            <Tag color="processing">{t('merchantChannels.pendingApproval')}</Tag>
+          ) : (
+            '-'
+          );
+        }
+        return (
+          <Space size={[0, 4]} wrap>
+            {record.approvedFulfillmentTypes.map((type) => (
+              <Tag key={type} color="green">
+                {type === 'consignment'
+                  ? t('merchantChannels.fulfillmentConsignment')
+                  : t('merchantChannels.fulfillmentSelfFulfillment')}
+              </Tag>
+            ))}
+          </Space>
+        );
+      },
     },
     {
       title: t('merchantChannels.remark'),
@@ -166,65 +200,75 @@ export function MerchantChannelsListPage() {
     {
       title: t('common.actions'),
       valueType: 'option',
-      width: 150,
+      width: 220,
       fixed: 'right',
       render: (_, record) => {
         const isLoading = actionLoading === record.id;
         const actions = [];
 
         actions.push(
-          <Tooltip key="view" title={t('common.view')}>
-            <Button
-              type="text"
-              size="small"
-              icon={<EyeOutlined />}
-              onClick={() => handleViewDetail(record)}
-            />
-          </Tooltip>
+          <Button
+            key="view"
+            type="link"
+            size="small"
+            onClick={() => handleViewDetail(record)}
+          >
+            {t('common.view')}
+          </Button>
         );
 
         if (record.status === 'pending') {
           actions.push(
-            <Tooltip key="approve" title={t('merchantChannels.approve')}>
-              <Button
-                type="text"
-                size="small"
-                icon={<CheckOutlined />}
-                loading={isLoading}
-                onClick={() => handleApprove(record)}
-                style={{ color: '#52c41a' }}
-              />
-            </Tooltip>
+            <Button
+              key="approve"
+              type="link"
+              size="small"
+              loading={isLoading}
+              onClick={() => handleApprove(record)}
+              style={{ color: '#52c41a' }}
+            >
+              {t('merchantChannels.approve')}
+            </Button>,
+            <Button
+              key="reject"
+              type="link"
+              size="small"
+              danger
+              loading={isLoading}
+              onClick={() => handleReject(record)}
+            >
+              {t('merchantChannels.reject')}
+            </Button>
           );
         }
 
         if (record.status === 'active') {
           actions.push(
-            <Tooltip key="suspend" title={t('merchantChannels.suspend')}>
-              <Button
-                type="text"
-                size="small"
-                icon={<PauseOutlined />}
-                loading={isLoading}
-                onClick={() => handleSuspend(record)}
-                style={{ color: '#faad14' }}
-              />
-            </Tooltip>
+            <Button
+              key="suspend"
+              type="link"
+              size="small"
+              loading={isLoading}
+              onClick={() => handleSuspend(record)}
+              style={{ color: '#faad14' }}
+            >
+              {t('merchantChannels.suspend')}
+            </Button>
           );
         }
 
         if (record.status === 'suspended' || record.status === 'disabled') {
           actions.push(
-            <Tooltip key="enable" title={t('merchantChannels.enable')}>
-              <Button
-                type="text"
-                size="small"
-                icon={<PlayCircleOutlined />}
-                loading={isLoading}
-                onClick={() => handleEnable(record)}
-                style={{ color: '#1890ff' }}
-              />
-            </Tooltip>
+            <Button
+              key="enable"
+              type="link"
+              size="small"
+              loading={isLoading}
+              onClick={() => handleEnable(record)}
+              style={{ color: '#1890ff' }}
+            >
+              {t('merchantChannels.enable')}
+            </Button>
           );
         }
 
@@ -235,25 +279,11 @@ export function MerchantChannelsListPage() {
 
   return (
     <div className="space-y-4">
-      <div className="mb-4">
-        <h1 className="text-xl font-semibold">{t('merchantChannels.title')}</h1>
-        <p className="text-gray-500">{t('merchantChannels.description')}</p>
-      </div>
-
-      <Card className="mb-4">
-        <Space size="large">
-          <Statistic
-            title={t('merchantChannels.pendingApprovals')}
-            value={pendingCount}
-            prefix={<Badge status="processing" />}
-          />
-        </Space>
-      </Card>
-
       <ProTable<MerchantChannel>
         actionRef={actionRef}
         columns={columns}
         rowKey="id"
+        scroll={{ x: 1200 }}
         request={async (params) => {
           try {
             const result = await channelApi.getMerchantChannels({
@@ -261,7 +291,6 @@ export function MerchantChannelsListPage() {
               limit: params.pageSize,
               status: params.status,
             });
-            loadPendingCount();
             return {
               data: result.data,
               success: true,
@@ -291,6 +320,20 @@ export function MerchantChannelsListPage() {
         }}
       />
 
+      <RejectModal
+        open={rejectModalOpen}
+        merchantChannel={rejectingChannel}
+        onClose={() => {
+          setRejectModalOpen(false);
+          setRejectingChannel(null);
+        }}
+        onSuccess={() => {
+          setRejectModalOpen(false);
+          setRejectingChannel(null);
+          actionRef.current?.reload();
+        }}
+      />
+
       <SuspendModal
         open={suspendModalOpen}
         merchantChannel={suspendingChannel}
@@ -301,6 +344,20 @@ export function MerchantChannelsListPage() {
         onSuccess={() => {
           setSuspendModalOpen(false);
           setSuspendingChannel(null);
+          actionRef.current?.reload();
+        }}
+      />
+
+      <ApproveModal
+        open={approveModalOpen}
+        merchantChannel={approvingChannel}
+        onClose={() => {
+          setApproveModalOpen(false);
+          setApprovingChannel(null);
+        }}
+        onSuccess={() => {
+          setApproveModalOpen(false);
+          setApprovingChannel(null);
           actionRef.current?.reload();
         }}
       />

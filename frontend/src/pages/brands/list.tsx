@@ -1,8 +1,8 @@
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ProTable, type ActionType, type ProColumns } from '@ant-design/pro-components';
-import { Button, Tag, Switch, App, Popconfirm, Space, Avatar, Tooltip } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { Button, Tag, Switch, App, Popconfirm, Space, Avatar } from 'antd';
+import { PlusOutlined } from '@ant-design/icons';
 
 import { brandApi, type Brand } from '@/lib/brand-api';
 import { BrandFormModal } from './components/brand-form-modal';
@@ -152,27 +152,25 @@ export function BrandsListPage() {
     {
       title: t('common.actions'),
       valueType: 'option',
-      width: 80,
+      width: 120,
       fixed: 'right',
       render: (_, record) => (
         <Space size="small">
-          <Tooltip title={t('common.edit')}>
-            <Button
-              type="text"
-              size="small"
-              icon={<EditOutlined />}
-              onClick={() => handleEdit(record)}
-            />
-          </Tooltip>
-          <Tooltip title={t('common.delete')}>
-            <Button
-              type="text"
-              size="small"
-              danger
-              icon={<DeleteOutlined />}
-              onClick={() => handleDelete(record)}
-            />
-          </Tooltip>
+          <Button
+            type="link"
+            size="small"
+            onClick={() => handleEdit(record)}
+          >
+            {t('common.edit')}
+          </Button>
+          <Button
+            type="link"
+            size="small"
+            danger
+            onClick={() => handleDelete(record)}
+          >
+            {t('common.delete')}
+          </Button>
         </Space>
       ),
     },
@@ -180,11 +178,6 @@ export function BrandsListPage() {
 
   return (
     <div className="space-y-4">
-      <div className="mb-4">
-        <h1 className="text-xl font-semibold">{t('brands.title')}</h1>
-        <p className="text-gray-500">{t('brands.description')}</p>
-      </div>
-
       <ProTable<Brand>
         actionRef={actionRef}
         columns={columns}

@@ -27,3 +27,10 @@ framework:
             limit: 3
             interval: '1 hour'
             cache_pool: cache.app
+
+        # KicksDB API rate limiter (below 640 limit for safety margin)
+        kicksdb_api:
+            policy: 'sliding_window'
+            limit: 600
+            interval: '1 minute'
+            cache_pool: cache.app

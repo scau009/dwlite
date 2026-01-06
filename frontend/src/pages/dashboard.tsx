@@ -107,12 +107,6 @@ export function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      {/* Page Header */}
-      <div>
-        <h1 className="text-xl font-semibold">{t('dashboard.title')}</h1>
-        <p className="text-gray-500">{t('dashboard.description')}</p>
-      </div>
-
       {/* Stats Grid */}
       <Row gutter={[16, 16]}>
         <Col xs={24} sm={12} lg={6}>

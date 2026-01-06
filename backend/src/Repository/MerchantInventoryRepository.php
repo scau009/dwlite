@@ -147,9 +147,9 @@ class MerchantInventoryRepository extends ServiceEntityRepository
             ->setParameter('warehouse', $warehouse)
             ->orderBy('i.updatedAt', 'DESC');
 
-        // 搜索商品名或 SKU 名
+        // 搜索商品名或货号或尺码
         if (!empty($filters['search'])) {
-            $qb->andWhere('sku.skuName LIKE :search OR p.name LIKE :search OR p.styleNumber LIKE :search')
+            $qb->andWhere('p.name LIKE :search OR p.styleNumber LIKE :search OR sku.sizeValue LIKE :search')
                 ->setParameter('search', '%'.$filters['search'].'%');
         }
 
@@ -217,9 +217,9 @@ class MerchantInventoryRepository extends ServiceEntityRepository
             ->setParameter('merchant', $merchant)
             ->orderBy('i.updatedAt', 'DESC');
 
-        // 搜索商品名或 SKU 名
+        // 搜索商品名或货号或尺码
         if (!empty($filters['search'])) {
-            $qb->andWhere('sku.skuName LIKE :search OR p.name LIKE :search OR p.styleNumber LIKE :search')
+            $qb->andWhere('p.name LIKE :search OR p.styleNumber LIKE :search OR sku.sizeValue LIKE :search')
                 ->setParameter('search', '%'.$filters['search'].'%');
         }
 
@@ -300,6 +300,84 @@ class MerchantInventoryRepository extends ServiceEntityRepository
     }
 
     /**
+     * 获取可用于在某渠道上架的库存（未在该渠道上架过的）.
+     *
+     * @return MerchantInventory[]
+     */
+    public function findAvailableForListing(
+        Merchant $merchant,
+        \App\Entity\MerchantSalesChannel $channel,
+        int $page = 1,
+        int $limit = 20,
+        ?string $search = null
+    ): array {
+        $qb = $this->createQueryBuilder('i')
+            ->leftJoin('i.productSku', 'sku')
+            ->leftJoin('sku.product', 'p')
+            ->leftJoin('i.warehouse', 'w')
+            ->andWhere('i.merchant = :merchant')
+            ->andWhere('i.quantityAvailable > 0')
+            ->setParameter('merchant', $merchant);
+
+        // Exclude inventory already listed on this channel
+        $subQuery = $this->getEntityManager()->createQueryBuilder()
+            ->select('IDENTITY(il.merchantInventory)')
+            ->from(\App\Entity\InventoryListing::class, 'il')
+            ->where('il.merchantSalesChannel = :channel');
+
+        $qb->andWhere(
+            $qb->expr()->notIn('i.id', $subQuery->getDQL())
+        )->setParameter('channel', $channel);
+
+        // Search filter
+        if ($search !== null && $search !== '') {
+            $qb->andWhere('p.name LIKE :search OR p.styleNumber LIKE :search OR sku.sizeValue LIKE :search')
+                ->setParameter('search', '%'.$search.'%');
+        }
+
+        return $qb->orderBy('i.updatedAt', 'DESC')
+            ->setFirstResult(($page - 1) * $limit)
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * 统计可用于在某渠道上架的库存数量.
+     */
+    public function countAvailableForListing(
+        Merchant $merchant,
+        \App\Entity\MerchantSalesChannel $channel,
+        ?string $search = null
+    ): int {
+        $qb = $this->createQueryBuilder('i')
+            ->select('COUNT(i.id)')
+            ->leftJoin('i.productSku', 'sku')
+            ->leftJoin('sku.product', 'p')
+            ->andWhere('i.merchant = :merchant')
+            ->andWhere('i.quantityAvailable > 0')
+            ->setParameter('merchant', $merchant);
+
+        // Exclude inventory already listed on this channel
+        $subQuery = $this->getEntityManager()->createQueryBuilder()
+            ->select('IDENTITY(il.merchantInventory)')
+            ->from(\App\Entity\InventoryListing::class, 'il')
+            ->where('il.merchantSalesChannel = :channel');
+
+        $qb->andWhere(
+            $qb->expr()->notIn('i.id', $subQuery->getDQL())
+        )->setParameter('channel', $channel);
+
+        // Search filter
+        if ($search !== null && $search !== '') {
+            $qb->andWhere('p.name LIKE :search OR p.styleNumber LIKE :search OR sku.sizeValue LIKE :search')
+                ->setParameter('search', '%'.$search.'%');
+        }
+
+        return (int) $qb->getQuery()->getSingleScalarResult();
+    }
+
+    /**
      * 按商户分页查询库存（按 styleNumber + sizeValue 分组）.
      *
      * @return array{data: array[], meta: array{total: int, page: int, limit: int, pages: int}}
@@ -316,7 +394,6 @@ class MerchantInventoryRepository extends ServiceEntityRepository
             ->addSelect('p.color as colorName')
             ->addSelect('sku.sizeUnit')
             ->addSelect('sku.sizeValue')
-            ->addSelect('sku.skuName')
             ->addSelect('SUM(i.quantityInTransit) as quantityInTransit')
             ->addSelect('SUM(i.quantityAvailable) as quantityAvailable')
             ->addSelect('SUM(i.quantityReserved) as quantityReserved')
@@ -330,12 +407,12 @@ class MerchantInventoryRepository extends ServiceEntityRepository
             ->leftJoin('sku.product', 'p')
             ->andWhere('i.merchant = :merchant')
             ->setParameter('merchant', $merchant)
-            ->groupBy('p.styleNumber, sku.sizeValue, sku.sizeUnit, p.name, p.color, sku.skuName')
+            ->groupBy('p.styleNumber, sku.sizeValue, sku.sizeUnit, p.name, p.color')
             ->orderBy('MAX(i.updatedAt)', 'DESC');
 
-        // 搜索商品名或 SKU 名或货号
+        // 搜索商品名或货号或尺码
         if (!empty($filters['search'])) {
-            $qb->andWhere('sku.skuName LIKE :search OR p.name LIKE :search OR p.styleNumber LIKE :search')
+            $qb->andWhere('p.name LIKE :search OR p.styleNumber LIKE :search OR sku.sizeValue LIKE :search')
                 ->setParameter('search', '%'.$filters['search'].'%');
         }
 
@@ -382,7 +459,7 @@ class MerchantInventoryRepository extends ServiceEntityRepository
             ->setParameter('merchant', $merchant);
 
         if (!empty($filters['search'])) {
-            $countQb->andWhere('sku2.skuName LIKE :search OR p2.name LIKE :search OR p2.styleNumber LIKE :search')
+            $countQb->andWhere('p2.name LIKE :search OR p2.styleNumber LIKE :search OR sku2.sizeValue LIKE :search')
                 ->setParameter('search', '%'.$filters['search'].'%');
         }
 

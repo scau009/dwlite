@@ -11,6 +11,16 @@ export const SIZE_UNITS: { value: SizeUnit; label: string }[] = [
   { value: 'CM', label: 'CM (厘米)' },
 ];
 
+export type Currency = 'USD' | 'CNY' | 'EUR' | 'GBP' | 'JPY';
+
+export const CURRENCIES: { value: Currency; label: string; symbol: string }[] = [
+  { value: 'USD', label: 'USD ($)', symbol: '$' },
+  { value: 'CNY', label: 'CNY (¥)', symbol: '¥' },
+  { value: 'EUR', label: 'EUR (€)', symbol: '€' },
+  { value: 'GBP', label: 'GBP (£)', symbol: '£' },
+  { value: 'JPY', label: 'JPY (¥)', symbol: '¥' },
+];
+
 export interface Product {
   id: string;
   name: string;
@@ -47,6 +57,8 @@ export interface ProductSku {
   specDescription: string;
   price: string;  // 参考价
   originalPrice: string | null;  // 发售价
+  currency: Currency;  // 币种
+  barcode: string | null;  // 条码 (UPC/EAN)
   isActive: boolean;
   sortOrder: number;
   createdAt: string;
@@ -121,6 +133,8 @@ export interface CreateSkuParams {
   specInfo?: Record<string, string>;
   price: string;  // 参考价
   originalPrice?: string;  // 发售价
+  currency?: Currency;  // 币种，默认 USD
+  barcode?: string;  // 条码 (UPC/EAN)
   isActive?: boolean;
   sortOrder?: number;
 }
@@ -131,6 +145,8 @@ export interface UpdateSkuParams {
   specInfo?: Record<string, string>;
   price?: string;  // 参考价
   originalPrice?: string;  // 发售价
+  currency?: Currency;  // 币种
+  barcode?: string;  // 条码 (UPC/EAN)
   isActive?: boolean;
   sortOrder?: number;
 }
@@ -139,6 +155,7 @@ export interface BatchCreateSkuParams {
   sizeUnit: 'US' | 'EU' | 'UK';  // CM is not allowed for quick add
   price: string;  // 参考价
   originalPrice?: string;  // 发售价
+  currency?: Currency;  // 币种
 }
 
 export interface BatchCreateSkuResult {
@@ -147,6 +164,14 @@ export interface BatchCreateSkuResult {
   skippedCount: number;
   skippedSizes: string[];
   skus: ProductSku[];
+}
+
+export interface BatchUpdateSkuParams {
+  skuIds: string[];
+  price?: string;
+  originalPrice?: string;
+  isActive?: boolean;
+  barcode?: string;
 }
 
 export const productApi = {
@@ -224,6 +249,19 @@ export const productApi = {
     });
   },
 
+  /**
+   * 批量更新所有 SKU 的币种（仅草稿状态可用）
+   */
+  updateProductCurrency: async (
+    id: string,
+    currency: Currency
+  ): Promise<{ message: string; updatedCount: number; currency: Currency }> => {
+    return apiFetch(`/api/admin/products/${id}/currency`, {
+      method: 'PUT',
+      body: JSON.stringify({ currency }),
+    });
+  },
+
   // SKU operations
 
   /**
@@ -286,6 +324,32 @@ export const productApi = {
     return apiFetch(`/api/admin/products/${productId}/skus/${skuId}/status`, {
       method: 'PUT',
       body: JSON.stringify({ isActive }),
+    });
+  },
+
+  /**
+   * 批量删除 SKU
+   */
+  batchDeleteSkus: async (
+    productId: string,
+    skuIds: string[]
+  ): Promise<{ message: string; deletedCount: number }> => {
+    return apiFetch(`/api/admin/products/${productId}/skus/batch-delete`, {
+      method: 'POST',
+      body: JSON.stringify({ skuIds }),
+    });
+  },
+
+  /**
+   * 批量更新 SKU
+   */
+  batchUpdateSkus: async (
+    productId: string,
+    data: BatchUpdateSkuParams
+  ): Promise<{ message: string; updatedCount: number }> => {
+    return apiFetch(`/api/admin/products/${productId}/skus/batch-update`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
     });
   },
 

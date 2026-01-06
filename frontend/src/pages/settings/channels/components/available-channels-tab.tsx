@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Card, List, Avatar, Button, Tag, Space, Empty, Spin, App } from 'antd';
+import { Card, List, Avatar, Button, Empty, Spin, App } from 'antd';
 import { ShopOutlined, SendOutlined } from '@ant-design/icons';
 
 import {
@@ -12,11 +12,6 @@ import { ApplyChannelModal } from './apply-channel-modal';
 interface Props {
   onApplySuccess: () => void;
 }
-
-const businessTypeColorMap: Record<string, string> = {
-  import: 'blue',
-  export: 'green',
-};
 
 export function AvailableChannelsTab({ onApplySuccess }: Props) {
   const { t } = useTranslation();
@@ -101,14 +96,7 @@ export function AvailableChannelsTab({ onApplySuccess }: Props) {
                     <Avatar icon={<ShopOutlined />} size={48} shape="square" />
                   )
                 }
-                title={
-                  <Space>
-                    <span>{channel.name}</span>
-                    <Tag color={businessTypeColorMap[channel.businessType]}>
-                      {t(`channels.businessType.${channel.businessType}`)}
-                    </Tag>
-                  </Space>
-                }
+                title={channel.name}
                 description={
                   <div className="text-gray-500 line-clamp-2 h-10">
                     {channel.description || t('myChannels.noDescription')}

@@ -42,8 +42,8 @@ when@prod:
             main:
                 type: stream
                 path: "%kernel.logs_dir%/%kernel.environment%.log"
-                level: debug
-                channels: ["!event", "!doctrine"]
+                level: info
+                channels: ["!event"]
                 formatter: monolog.formatter.json
             console:
                 type: console

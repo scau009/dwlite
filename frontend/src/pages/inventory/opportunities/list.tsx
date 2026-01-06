@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ProTable, type ActionType, type ProColumns } from '@ant-design/pro-components';
 import { Button, Avatar, Tag, Modal, Table } from 'antd';
-import { ShoppingCartOutlined, ShoppingOutlined } from '@ant-design/icons';
+import { ShoppingOutlined } from '@ant-design/icons';
 
 import {
   inboundApi,
@@ -10,6 +10,7 @@ import {
   type InboundProductSku,
   type ProductDiscoveryParams,
 } from '@/lib/inbound-api';
+import { getCurrencySymbol } from '@/lib/merchant-listing-api';
 import { CreateOrderModal } from './components/create-order-modal';
 
 interface BrandOption {
@@ -92,8 +93,10 @@ export function OpportunitiesListPage() {
       key: 'price',
       width: 100,
       align: 'right' as const,
-      render: (price: string) => (
-        <span className="text-orange-600">¥{parseFloat(price).toFixed(2)}</span>
+      render: (price: string, record: InboundProductSku) => (
+        <span className="text-orange-600">
+          {getCurrencySymbol(record.currency)}{parseFloat(price).toFixed(2)}
+        </span>
       ),
     },
   ];
@@ -182,13 +185,14 @@ export function OpportunitiesListPage() {
         const prices = activeSkus.map((s) => parseFloat(s.price));
         const min = Math.min(...prices);
         const max = Math.max(...prices);
+        const currencySymbol = getCurrencySymbol(activeSkus[0].currency);
 
         if (min === max) {
-          return <span className="text-orange-600 font-medium">¥{min.toFixed(2)}</span>;
+          return <span className="text-orange-600 font-medium">{currencySymbol}{min.toFixed(2)}</span>;
         }
         return (
           <span className="text-orange-600 font-medium">
-            ¥{min.toFixed(2)} - ¥{max.toFixed(2)}
+            {currencySymbol}{min.toFixed(2)} - {currencySymbol}{max.toFixed(2)}
           </span>
         );
       },
@@ -196,13 +200,12 @@ export function OpportunitiesListPage() {
     {
       title: t('common.actions'),
       valueType: 'option',
-      width: 120,
+      width: 100,
       fixed: 'right',
       render: (_, record) => (
         <Button
           type="primary"
           size="small"
-          icon={<ShoppingCartOutlined />}
           onClick={() => handleCreateOrder(record)}
         >
           {t('opportunities.createOrder')}
@@ -213,11 +216,6 @@ export function OpportunitiesListPage() {
 
   return (
     <div className="space-y-4">
-      <div className="mb-4">
-        <h1 className="text-xl font-semibold">{t('opportunities.title')}</h1>
-        <p className="text-gray-500">{t('opportunities.description')}</p>
-      </div>
-
       <ProTable<InboundProduct>
         actionRef={actionRef}
         columns={columns}
@@ -232,7 +230,6 @@ export function OpportunitiesListPage() {
         tableAlertOptionRender={() => (
           <Button
             type="primary"
-            icon={<ShoppingCartOutlined />}
             onClick={handleBatchCreateOrder}
           >
             {t('opportunities.batchCreateOrder')}

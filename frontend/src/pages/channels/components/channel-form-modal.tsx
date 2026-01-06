@@ -16,10 +16,21 @@ interface FormValues {
   name: string;
   logoUrl?: string;
   description?: string;
-  businessType: 'import' | 'export';
   status: 'active' | 'maintenance' | 'disabled';
   sortOrder: number;
+  currency: string;
 }
+
+const CURRENCY_OPTIONS = [
+  { value: 'CNY', label: 'CNY' },
+  { value: 'USD', label: 'USD' },
+  { value: 'EUR', label: 'EUR' },
+  { value: 'GBP', label: 'GBP' },
+  { value: 'JPY', label: 'JPY' },
+  { value: 'HKD', label: 'HKD' },
+  { value: 'KRW', label: 'KRW' },
+  { value: 'SGD', label: 'SGD' },
+];
 
 export function ChannelFormModal({ open, channel, onClose, onSuccess }: ChannelFormModalProps) {
   const { t } = useTranslation();
@@ -41,9 +52,9 @@ export function ChannelFormModal({ open, channel, onClose, onSuccess }: ChannelF
               name: detail.name,
               logoUrl: detail.logoUrl || undefined,
               description: detail.description || undefined,
-              businessType: detail.businessType,
               status: detail.status,
               sortOrder: detail.sortOrder,
+              currency: detail.currency,
             });
           })
           .catch((err) => {
@@ -55,9 +66,9 @@ export function ChannelFormModal({ open, channel, onClose, onSuccess }: ChannelF
       } else {
         form.resetFields();
         form.setFieldsValue({
-          businessType: 'import',
           status: 'active',
           sortOrder: 0,
+          currency: 'CNY',
         });
       }
     }
@@ -99,7 +110,7 @@ export function ChannelFormModal({ open, channel, onClose, onSuccess }: ChannelF
       confirmLoading={loading}
       okText={t('common.save')}
       cancelText={t('common.cancel')}
-      destroyOnClose
+      destroyOnHidden
       width={500}
     >
       <Form
@@ -133,19 +144,6 @@ export function ChannelFormModal({ open, channel, onClose, onSuccess }: ChannelF
           ]}
         >
           <Input placeholder={t('channels.namePlaceholder')} />
-        </Form.Item>
-
-        <Form.Item
-          name="businessType"
-          label={t('channels.businessType')}
-          rules={[{ required: true, message: t('channels.businessTypeRequired') }]}
-        >
-          <Select
-            options={[
-              { value: 'import', label: t('channels.businessTypeImport') },
-              { value: 'export', label: t('channels.businessTypeExport') },
-            ]}
-          />
         </Form.Item>
 
         <Form.Item
@@ -190,6 +188,28 @@ export function ChannelFormModal({ open, channel, onClose, onSuccess }: ChannelF
           tooltip={t('channels.sortOrderTooltip')}
         >
           <InputNumber min={0} max={9999} style={{ width: '100%' }} />
+        </Form.Item>
+
+        <Form.Item
+          name="currency"
+          label={t('channels.currency')}
+          rules={[
+            { required: true, message: t('channels.currencyRequired') },
+          ]}
+          tooltip={t('channels.currencyTooltip')}
+        >
+          <Select
+            placeholder={t('channels.currencyPlaceholder')}
+            options={CURRENCY_OPTIONS.map(opt => ({
+              value: opt.value,
+              label: t(`channels.currency${opt.value}`, opt.label),
+            }))}
+            showSearch
+            filterOption={(input, option) =>
+              (option?.label ?? '').toString().toLowerCase().includes(input.toLowerCase()) ||
+              (option?.value ?? '').toString().toLowerCase().includes(input.toLowerCase())
+            }
+          />
         </Form.Item>
       </Form>
     </Modal>

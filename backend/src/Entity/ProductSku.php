@@ -34,6 +34,12 @@ class ProductSku
     #[ORM\Column(name: 'original_price', type: 'decimal', precision: 10, scale: 2, nullable: true)]
     private ?string $originalPrice = null;  // 发售价
 
+    #[ORM\Column(length: 3, options: ['default' => 'USD'])]
+    private string $currency = 'USD';  // 币种 (ISO 4217)
+
+    #[ORM\Column(length: 50, nullable: true)]
+    private ?string $barcode = null;  // 条码 (UPC/EAN)
+
     #[ORM\Column(name: 'is_active', type: 'boolean', options: ['default' => true])]
     private bool $isActive = true;
 
@@ -114,6 +120,30 @@ class ProductSku
     public function setOriginalPrice(?string $originalPrice): static
     {
         $this->originalPrice = $originalPrice;
+
+        return $this;
+    }
+
+    public function getCurrency(): string
+    {
+        return $this->currency;
+    }
+
+    public function setCurrency(string $currency): static
+    {
+        $this->currency = $currency;
+
+        return $this;
+    }
+
+    public function getBarcode(): ?string
+    {
+        return $this->barcode;
+    }
+
+    public function setBarcode(?string $barcode): static
+    {
+        $this->barcode = $barcode;
 
         return $this;
     }
