@@ -7,6 +7,7 @@ interface SkuFormModalProps {
   open: boolean;
   productId: string;
   sku: ProductSku | null;
+  existingCurrency?: Currency; // Currency from existing SKUs
   onClose: () => void;
   onSuccess: () => void;
 }
@@ -20,13 +21,19 @@ interface FormValues {
   barcode?: string;  // 条码 (UPC/EAN)
 }
 
-export function SkuFormModal({ open, productId, sku, onClose, onSuccess }: SkuFormModalProps) {
+export function SkuFormModal({ open, productId, sku, existingCurrency, onClose, onSuccess }: SkuFormModalProps) {
   const { t } = useTranslation();
   const { message } = App.useApp();
   const [form] = Form.useForm<FormValues>();
   const [loading, setLoading] = useState(false);
 
   const isEdit = !!sku;
+  // Currency is locked if editing or if there's an existing currency from other SKUs
+  const currencyLocked = isEdit || !!existingCurrency;
+  const defaultCurrency = existingCurrency || 'USD';
+
+  const selectedCurrency = Form.useWatch('currency', form) || defaultCurrency;
+  const currencySymbol = CURRENCIES.find((c) => c.value === selectedCurrency)?.symbol || '$';
 
   useEffect(() => {
     if (open) {
@@ -41,10 +48,10 @@ export function SkuFormModal({ open, productId, sku, onClose, onSuccess }: SkuFo
         });
       } else {
         form.resetFields();
-        form.setFieldsValue({ currency: 'USD' });
+        form.setFieldsValue({ currency: defaultCurrency });
       }
     }
-  }, [open, sku, form]);
+  }, [open, sku, form, defaultCurrency]);
 
   const handleSubmit = async () => {
     try {
@@ -109,10 +116,10 @@ export function SkuFormModal({ open, productId, sku, onClose, onSuccess }: SkuFo
             label={t('products.price')}
             rules={[{ required: true, message: t('products.priceRequired') }]}
           >
-            <InputNumber min={0} precision={2} style={{ width: '100%' }} />
+            <InputNumber min={0} precision={2} prefix={currencySymbol} style={{ width: '100%' }} />
           </Form.Item>
           <Form.Item name="originalPrice" label={t('products.originalPrice')}>
-            <InputNumber min={0} precision={2} style={{ width: '100%' }} />
+            <InputNumber min={0} precision={2} prefix={currencySymbol} style={{ width: '100%' }} />
           </Form.Item>
         </div>
 
@@ -120,10 +127,12 @@ export function SkuFormModal({ open, productId, sku, onClose, onSuccess }: SkuFo
           <Form.Item
             name="currency"
             label={t('products.currency')}
+            tooltip={currencyLocked ? t('products.currencyLocked') : undefined}
             rules={[{ required: true, message: t('products.currencyRequired') }]}
           >
             <Select
               options={CURRENCIES.map((c) => ({ label: c.label, value: c.value }))}
+              disabled={currencyLocked}
             />
           </Form.Item>
           <Form.Item name="barcode" label={t('products.barcode')}>

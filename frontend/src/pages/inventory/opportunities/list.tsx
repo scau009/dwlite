@@ -10,6 +10,7 @@ import {
   type InboundProductSku,
   type ProductDiscoveryParams,
 } from '@/lib/inbound-api';
+import { getCurrencySymbol } from '@/lib/merchant-listing-api';
 import { CreateOrderModal } from './components/create-order-modal';
 
 interface BrandOption {
@@ -92,8 +93,10 @@ export function OpportunitiesListPage() {
       key: 'price',
       width: 100,
       align: 'right' as const,
-      render: (price: string) => (
-        <span className="text-orange-600">¥{parseFloat(price).toFixed(2)}</span>
+      render: (price: string, record: InboundProductSku) => (
+        <span className="text-orange-600">
+          {getCurrencySymbol(record.currency)}{parseFloat(price).toFixed(2)}
+        </span>
       ),
     },
   ];
@@ -182,13 +185,14 @@ export function OpportunitiesListPage() {
         const prices = activeSkus.map((s) => parseFloat(s.price));
         const min = Math.min(...prices);
         const max = Math.max(...prices);
+        const currencySymbol = getCurrencySymbol(activeSkus[0].currency);
 
         if (min === max) {
-          return <span className="text-orange-600 font-medium">¥{min.toFixed(2)}</span>;
+          return <span className="text-orange-600 font-medium">{currencySymbol}{min.toFixed(2)}</span>;
         }
         return (
           <span className="text-orange-600 font-medium">
-            ¥{min.toFixed(2)} - ¥{max.toFixed(2)}
+            {currencySymbol}{min.toFixed(2)} - {currencySymbol}{max.toFixed(2)}
           </span>
         );
       },

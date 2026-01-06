@@ -16,6 +16,7 @@ import {
   Divider,
   Timeline,
   Input,
+  InputNumber,
 } from 'antd';
 import {
   ArrowLeftOutlined,
@@ -42,6 +43,7 @@ import { InboundOrderItemModal } from './components/inbound-order-item-modal';
 import { ProductSelectorModal } from './components/product-selector-modal';
 import { ShipOrderModal } from './components/ship-order-modal';
 import { BatchUpdateQuantityModal } from './components/batch-update-quantity-modal';
+import { BatchUpdateCostModal } from './components/batch-update-cost-modal';
 import { ResolveExceptionModal } from './components/resolve-exception-modal';
 
 const { Text } = Typography;
@@ -76,6 +78,7 @@ export function InboundOrderDetailPage() {
   const [productSelectorOpen, setProductSelectorOpen] = useState(false);
   const [shipModalOpen, setShipModalOpen] = useState(false);
   const [batchQuantityModalOpen, setBatchQuantityModalOpen] = useState(false);
+  const [batchCostModalOpen, setBatchCostModalOpen] = useState(false);
   const [resolveExceptionModalOpen, setResolveExceptionModalOpen] = useState(false);
   const [selectedExceptionForResolve, setSelectedExceptionForResolve] = useState<InboundException | null>(null);
 
@@ -86,6 +89,10 @@ export function InboundOrderDetailPage() {
   const [itemSearchKeyword, setItemSearchKeyword] = useState('');
   const [itemCurrentPage, setItemCurrentPage] = useState(1);
   const itemPageSize = 10;
+
+  // Unit cost editing state
+  const [editingCostItemId, setEditingCostItemId] = useState<string | null>(null);
+  const [savingCost, setSavingCost] = useState(false);
 
   const loadOrder = async () => {
     if (!id) return;
@@ -215,6 +222,27 @@ export function InboundOrderDetailPage() {
     });
   };
 
+  // Handle unit cost update
+  const handleUpdateItemCost = async (itemId: string, newCost: number | null) => {
+    if (newCost === null || newCost < 0) return;
+
+    setSavingCost(true);
+    try {
+      await inboundApi.updateInboundOrderItemCost(itemId, newCost.toString());
+      message.success(t('inventory.costUpdated'));
+      loadOrder();
+    } catch (error) {
+      const err = error as { error?: string };
+      message.error(err.error || t('common.error'));
+    } finally {
+      setSavingCost(false);
+      setEditingCostItemId(null);
+    }
+  };
+
+  // Check if unit cost is editable (order not completed)
+  const canEditCost = order && !['completed', 'partial_completed', 'cancelled'].includes(order.status);
+
   // Get selected items for batch operations
   const selectedItems = order?.items.filter(item => selectedRowKeys.includes(item.id)) || [];
 
@@ -284,6 +312,60 @@ export function InboundOrderDetailPage() {
       render: (color: string | null) => color || '-',
     },
     {
+      title: t('inventory.unitCost'),
+      dataIndex: 'unitCost',
+      width: 130,
+      align: 'right',
+      render: (cost: string | null, record: InboundOrderItem) => {
+        const isEditing = editingCostItemId === record.id;
+
+        if (canEditCost) {
+          if (isEditing) {
+            return (
+              <InputNumber
+                size="small"
+                min={0}
+                precision={2}
+                defaultValue={cost ? parseFloat(cost) : undefined}
+                onBlur={(e) => {
+                  const value = parseFloat(e.target.value);
+                  if (!isNaN(value) && value >= 0) {
+                    handleUpdateItemCost(record.id, value);
+                  } else {
+                    setEditingCostItemId(null);
+                  }
+                }}
+                onPressEnter={(e) => {
+                  const value = parseFloat((e.target as HTMLInputElement).value);
+                  if (!isNaN(value) && value >= 0) {
+                    handleUpdateItemCost(record.id, value);
+                  } else {
+                    setEditingCostItemId(null);
+                  }
+                }}
+                autoFocus
+                style={{ width: 100 }}
+                prefix="¥"
+                disabled={savingCost}
+              />
+            );
+          }
+
+          return (
+            <span
+              className="cursor-pointer hover:text-blue-500 hover:underline"
+              onClick={() => setEditingCostItemId(record.id)}
+              title={t('common.clickToEdit')}
+            >
+              {cost ? `¥${cost}` : <Text type="secondary">{t('common.clickToEdit')}</Text>}
+            </span>
+          );
+        }
+
+        return cost ? `¥${cost}` : '-';
+      },
+    },
+    {
       title: t('inventory.expectedQuantity'),
       dataIndex: 'expectedQuantity',
       width: 100,
@@ -316,26 +398,24 @@ export function InboundOrderDetailPage() {
     itemColumns.push({
       title: t('common.actions'),
       key: 'actions',
-      width: 120,
+      width: 100,
       fixed: 'right',
       render: (_, record) => (
-        <Space size="small">
-          <Button
-            type="text"
-            size="small"
-            icon={<EditOutlined />}
+        <Space split={<Divider type="vertical" />} size={0}>
+          <Typography.Link
             onClick={() => {
               setEditingItem(record);
               setItemModalOpen(true);
             }}
-          />
-          <Button
-            type="text"
-            size="small"
-            danger
-            icon={<DeleteOutlined />}
+          >
+            {t('common.edit')}
+          </Typography.Link>
+          <Typography.Link
+            type="danger"
             onClick={() => handleDeleteItem(record)}
-          />
+          >
+            {t('common.delete')}
+          </Typography.Link>
         </Space>
       ),
     });
@@ -638,22 +718,31 @@ export function InboundOrderDetailPage() {
           />
         </div>
         {/* Batch operation toolbar */}
-        {isDraft && selectedRowKeys.length > 0 && (
+        {(isDraft || canEditCost) && selectedRowKeys.length > 0 && (
           <div className="mb-3 p-3 bg-blue-50 rounded flex items-center justify-between">
             <span className="text-blue-600">
               {t('common.selectedCount', { count: selectedRowKeys.length })}
             </span>
             <Space>
-              <Button onClick={() => setBatchQuantityModalOpen(true)}>
-                {t('inventory.batchUpdateQuantity')}
-              </Button>
-              <Button
-                danger
-                icon={<DeleteOutlined />}
-                onClick={handleBatchDelete}
-              >
-                {t('inventory.batchDelete')}
-              </Button>
+              {isDraft && (
+                <Button onClick={() => setBatchQuantityModalOpen(true)}>
+                  {t('inventory.batchUpdateQuantity')}
+                </Button>
+              )}
+              {canEditCost && (
+                <Button onClick={() => setBatchCostModalOpen(true)}>
+                  {t('inventory.batchUpdateCost')}
+                </Button>
+              )}
+              {isDraft && (
+                <Button
+                  danger
+                  icon={<DeleteOutlined />}
+                  onClick={handleBatchDelete}
+                >
+                  {t('inventory.batchDelete')}
+                </Button>
+              )}
             </Space>
           </div>
         )}
@@ -673,10 +762,10 @@ export function InboundOrderDetailPage() {
               total,
             }),
           }}
-          scroll={{ x: 1000 }}
+          scroll={{ x: 1100 }}
           size="small"
           rowSelection={
-            isDraft
+            isDraft || canEditCost
               ? {
                   selectedRowKeys,
                   onChange: setSelectedRowKeys,
@@ -885,6 +974,17 @@ export function InboundOrderDetailPage() {
         onClose={() => setBatchQuantityModalOpen(false)}
         onSuccess={() => {
           setBatchQuantityModalOpen(false);
+          setSelectedRowKeys([]);
+          loadOrder();
+        }}
+      />
+
+      <BatchUpdateCostModal
+        open={batchCostModalOpen}
+        items={selectedItems}
+        onClose={() => setBatchCostModalOpen(false)}
+        onSuccess={() => {
+          setBatchCostModalOpen(false);
           setSelectedRowKeys([]);
           loadOrder();
         }}

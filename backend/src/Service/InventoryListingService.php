@@ -8,6 +8,8 @@ use App\Entity\InventoryListing;
 use App\Entity\Merchant;
 use App\Entity\MerchantInventory;
 use App\Entity\MerchantSalesChannel;
+use App\Entity\User;
+use App\Enum\SyncTriggerSource;
 use App\Repository\InventoryListingRepository;
 use App\Repository\MerchantInventoryRepository;
 use App\Repository\MerchantSalesChannelRepository;
@@ -24,13 +26,15 @@ class InventoryListingService
         private MerchantSalesChannelRepository $channelRepository,
         private SalesChannelWarehouseRepository $salesChannelWarehouseRepository,
         private TranslatorInterface $translator,
+        private ListingOperationLogService $logService,
+        private ChannelProductSyncService $syncService,
     ) {
     }
 
     /**
      * Create a new inventory listing.
      */
-    public function createListing(Merchant $merchant, CreateListingRequest $request): InventoryListing
+    public function createListing(Merchant $merchant, CreateListingRequest $request, User $operator): InventoryListing
     {
         // 1. Validate merchantInventory exists and belongs to merchant
         $inventory = $this->inventoryRepository->find($request->merchantInventoryId);
@@ -91,6 +95,8 @@ class InventoryListingService
         $listing->setPrice($request->price);
         $listing->setCompareAtPrice($request->compareAtPrice);
         $listing->setRemark($request->remark);
+        $listing->setPriceRuleExpression($request->priceRuleExpression);
+        $listing->setStockRuleExpression($request->stockRuleExpression);
 
         // Set allocation mode and quantity
         if ($request->allocationMode === InventoryListing::MODE_DEDICATED) {
@@ -102,21 +108,56 @@ class InventoryListingService
         $this->entityManager->persist($listing);
         $this->entityManager->flush();
 
+        // Log the create operation
+        $this->logService->logCreate($listing, $operator);
+
+        // Trigger channel product sync
+        $this->syncService->triggerSyncFromListing($listing, SyncTriggerSource::LISTING_CREATE);
+
         return $listing;
     }
 
     /**
      * Update an existing listing (only price, compareAtPrice, allocatedQuantity can be changed).
      */
-    public function updateListing(InventoryListing $listing, UpdateListingRequest $request): InventoryListing
+    public function updateListing(InventoryListing $listing, UpdateListingRequest $request, User $operator): InventoryListing
     {
+        // Capture before values for logging
+        $beforePrice = $listing->getPrice();
+        $beforeComparePrice = $listing->getCompareAtPrice();
+        $beforeRemark = $listing->getRemark();
+        $beforeAllocation = [
+            'allocationMode' => $listing->getAllocationMode(),
+            'allocatedQuantity' => $listing->getAllocatedQuantity(),
+        ];
         $listing->setPrice($request->price);
         $listing->setCompareAtPrice($request->compareAtPrice);
         $listing->setRemark($request->remark);
+        $listing->setPriceRuleExpression($request->priceRuleExpression);
+        $listing->setStockRuleExpression($request->stockRuleExpression);
 
-        // Update allocated quantity if in dedicated mode
-        if ($listing->isDedicated() && $request->allocatedQuantity !== null) {
-            $inventory = $listing->getMerchantInventory();
+        $inventory = $listing->getMerchantInventory();
+
+        // Handle allocation mode change
+        if ($request->allocationMode !== null && $request->allocationMode !== $listing->getAllocationMode()) {
+            if ($request->allocationMode === InventoryListing::MODE_DEDICATED) {
+                // Shared → Dedicated: need to allocate quantity
+                if ($request->allocatedQuantity === null || $request->allocatedQuantity <= 0) {
+                    throw new \InvalidArgumentException($this->translator->trans('listing.allocatedQuantityRequired', [], 'messages'));
+                }
+
+                $shareableQuantity = $inventory->getShareableQuantity();
+                if ($request->allocatedQuantity > $shareableQuantity) {
+                    throw new \InvalidArgumentException($this->translator->trans('listing.insufficientShareableStock', ['%available%' => $shareableQuantity, '%requested%' => $request->allocatedQuantity], 'messages'));
+                }
+
+                $listing->setDedicatedAllocation($request->allocatedQuantity);
+            } else {
+                // Dedicated → Shared: release allocation
+                $listing->setSharedAllocation();
+            }
+        } elseif ($listing->isDedicated() && $request->allocatedQuantity !== null) {
+            // Same mode (dedicated): adjust quantity if provided
             $currentAllocation = $listing->getAllocatedQuantity() ?? 0;
 
             // Calculate max possible allocation
@@ -135,13 +176,40 @@ class InventoryListingService
 
         $this->entityManager->flush();
 
+        // Log changes
+        $afterPrice = $listing->getPrice();
+        $afterComparePrice = $listing->getCompareAtPrice();
+        $afterRemark = $listing->getRemark();
+        $afterAllocation = [
+            'allocationMode' => $listing->getAllocationMode(),
+            'allocatedQuantity' => $listing->getAllocatedQuantity(),
+        ];
+
+        if ($beforePrice !== $afterPrice) {
+            $this->logService->logPriceUpdate($listing, $operator, $beforePrice, $afterPrice);
+        }
+        if ($beforeComparePrice !== $afterComparePrice) {
+            $this->logService->logComparePriceUpdate($listing, $operator, $beforeComparePrice, $afterComparePrice);
+        }
+        if ($beforeRemark !== $afterRemark) {
+            $this->logService->logRemarkUpdate($listing, $operator, $beforeRemark, $afterRemark);
+        }
+        if ($beforeAllocation !== $afterAllocation) {
+            $this->logService->logAllocationUpdate($listing, $operator, $beforeAllocation, $afterAllocation);
+        }
+
+        // Trigger channel product sync if price or allocation changed
+        if ($beforePrice !== $afterPrice || $beforeAllocation !== $afterAllocation) {
+            $this->syncService->triggerSyncFromListing($listing, SyncTriggerSource::LISTING_UPDATE);
+        }
+
         return $listing;
     }
 
     /**
      * Activate a listing.
      */
-    public function activateListing(InventoryListing $listing): void
+    public function activateListing(InventoryListing $listing, User $operator): void
     {
         if (!$listing->hasAvailableStock()) {
             throw new \InvalidArgumentException($this->translator->trans('listing.noAvailableStock', [], 'messages'));
@@ -149,30 +217,50 @@ class InventoryListingService
 
         $listing->activate();
         $this->entityManager->flush();
+
+        $this->logService->logActivate($listing, $operator);
+
+        // Trigger channel product sync
+        $this->syncService->triggerSyncFromListing($listing, SyncTriggerSource::LISTING_ACTIVATE);
     }
 
     /**
      * Pause a listing.
      */
-    public function pauseListing(InventoryListing $listing): void
+    public function pauseListing(InventoryListing $listing, User $operator): void
     {
+        $previousStatus = $listing->getStatus();
         $listing->pause();
         $this->entityManager->flush();
+
+        $this->logService->logPause($listing, $operator, $previousStatus);
+
+        // Trigger channel product sync
+        $this->syncService->triggerSyncFromListing($listing, SyncTriggerSource::LISTING_PAUSE);
     }
 
     /**
      * Delete a listing (only draft status).
      */
-    public function deleteListing(InventoryListing $listing): void
+    public function deleteListing(InventoryListing $listing, User $operator): void
     {
         if (!$listing->isDraft()) {
             throw new \InvalidArgumentException($this->translator->trans('listing.canOnlyDeleteDraft', [], 'messages'));
         }
 
+        // Capture data for sync trigger before deletion
+        $merchantId = $listing->getMerchant()->getId();
+
+        // Log the delete operation before actually deleting
+        $this->logService->logDelete($listing, $operator);
+
         // If it was dedicated mode, release the allocation
         if ($listing->isDedicated() && $listing->getAllocatedQuantity() !== null) {
             $listing->setSharedAllocation();
         }
+
+        // Trigger channel product sync before deletion (so the sync service can find the ChannelProduct)
+        $this->syncService->triggerSyncFromListing($listing, SyncTriggerSource::LISTING_DELETE);
 
         $this->entityManager->remove($listing);
         $this->entityManager->flush();

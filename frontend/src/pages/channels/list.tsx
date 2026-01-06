@@ -7,6 +7,7 @@ import { PlusOutlined } from '@ant-design/icons';
 import { channelApi, type SalesChannel } from '@/lib/channel-api';
 import { ChannelFormModal } from './components/channel-form-modal';
 import { WarehouseConfigDrawer } from './components/warehouse-config-drawer';
+import { ChannelConfigModal } from './components/channel-config-modal';
 
 const statusColorMap: Record<string, string> = {
   active: 'success',
@@ -24,6 +25,8 @@ export function ChannelsListPage() {
   const [statusLoading, setStatusLoading] = useState<string | null>(null);
   const [warehouseConfigOpen, setWarehouseConfigOpen] = useState(false);
   const [selectedChannel, setSelectedChannel] = useState<SalesChannel | null>(null);
+  const [apiConfigOpen, setApiConfigOpen] = useState(false);
+  const [apiConfigChannel, setApiConfigChannel] = useState<SalesChannel | null>(null);
 
   const handleStatusChange = async (channel: SalesChannel, newStatus: 'active' | 'maintenance' | 'disabled') => {
     setStatusLoading(channel.id);
@@ -181,10 +184,20 @@ export function ChannelsListPage() {
     {
       title: t('common.actions'),
       valueType: 'option',
-      width: 200,
+      width: 280,
       fixed: 'right',
       render: (_, record) => (
         <Space size="small">
+          <Button
+            type="link"
+            size="small"
+            onClick={() => {
+              setApiConfigChannel(record);
+              setApiConfigOpen(true);
+            }}
+          >
+            {t('channels.config.configure')}
+          </Button>
           <Button
             type="link"
             size="small"
@@ -290,6 +303,19 @@ export function ChannelsListPage() {
         onClose={() => {
           setWarehouseConfigOpen(false);
           setSelectedChannel(null);
+        }}
+      />
+
+      <ChannelConfigModal
+        open={apiConfigOpen}
+        channel={apiConfigChannel}
+        onClose={() => {
+          setApiConfigOpen(false);
+          setApiConfigChannel(null);
+        }}
+        onSuccess={() => {
+          setApiConfigOpen(false);
+          setApiConfigChannel(null);
         }}
       />
     </div>

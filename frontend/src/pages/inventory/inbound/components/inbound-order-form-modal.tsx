@@ -216,11 +216,15 @@ export function InboundOrderFormModal({
                   />
                 ) : undefined
               }
-              options={warehouses.map((w) => ({
-                value: w.id,
-                label: w.name,
-                title: w.fullAddress || `${w.province || ''}${w.city || ''}`,
-              }))}
+              options={
+                isEdit
+                  ? [{ value: order!.warehouse.id, label: order!.warehouse.name, title: order!.warehouse.name }]
+                  : warehouses.map((w) => ({
+                      value: w.id,
+                      label: w.name,
+                      title: w.fullAddress || `${w.province || ''}${w.city || ''}`,
+                    }))
+              }
               optionRender={(option) => {
                 const warehouse = warehouses.find((w) => w.id === option.value);
                 return (
@@ -240,7 +244,7 @@ export function InboundOrderFormModal({
             <Alert
               type="error"
               showIcon
-              className="mb-4"
+              style={{ marginBottom: 24 }}
               message={t('inventory.noWarehousesForChannelError')}
               description={t('inventory.noWarehousesForChannelDesc')}
             />

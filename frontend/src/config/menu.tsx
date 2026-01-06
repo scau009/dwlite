@@ -130,6 +130,7 @@ export function getMenuData(t: TFunction): AccessMenuDataItem[] {
         { path: '/channels/available', name: t('menu.availableChannels'), access: 'merchant' },
         { path: '/channels/my-channels', name: t('menu.myChannels'), access: 'merchant' },
         { path: '/channels/listings', name: t('menu.listingManagement'), access: 'merchant' },
+        { path: '/channels/listings-logs', name: t('menu.listingLogs'), access: 'merchant' },
         { path: '/channels/rules', name: t('menu.merchantRules'), access: 'merchant' },
       ],
     },

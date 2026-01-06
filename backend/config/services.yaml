@@ -77,3 +77,15 @@ services:
             $providers: !tagged_locator
                 tag: 'app.product_data_provider'
                 index_by: 'key'
+
+    # Channel Gateway Providers
+    App\Service\ChannelGateway\Provider\Mock\MockGateway:
+        tags:
+            - { name: 'app.channel_gateway', key: 'MOCK' }
+
+    # Channel Gateway Registry with tagged service locator
+    App\Service\ChannelGateway\ChannelGatewayRegistry:
+        arguments:
+            $gateways: !tagged_locator
+                tag: 'app.channel_gateway'
+                index_by: 'key'

@@ -18,7 +18,11 @@
       "Bash(vendor/bin/php-cs-fixer fix:*)",
       "Bash(npm run lint)",
       "WebSearch",
-      "WebFetch(domain:docs.kicks.dev)"
+      "WebFetch(domain:docs.kicks.dev)",
+      "Bash(grep:*)",
+      "Bash(ls:*)",
+      "Bash(npm run lint:*)",
+      "Bash(php bin/console debug:messenger:*)"
     ]
   }
 }

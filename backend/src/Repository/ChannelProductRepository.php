@@ -187,4 +187,35 @@ class ChannelProductRepository extends ServiceEntityRepository
             ->getQuery()
             ->execute();
     }
+
+    /**
+     * Find stale pending products for compensation mechanism.
+     *
+     * Returns products that have been in pending sync status for longer than threshold,
+     * indicating they may have been missed by the normal sync process.
+     *
+     * @return ChannelProduct[]
+     */
+    public function findStalePending(
+        \DateTimeImmutable $threshold,
+        ?string $salesChannelId = null,
+        int $limit = 100,
+    ): array {
+        $qb = $this->createQueryBuilder('cp')
+            ->andWhere('cp.syncStatus = :syncStatus')
+            ->andWhere('cp.status = :activeStatus')
+            ->andWhere('cp.updatedAt < :threshold')
+            ->setParameter('syncStatus', ChannelProduct::SYNC_STATUS_PENDING)
+            ->setParameter('activeStatus', ChannelProduct::STATUS_ACTIVE)
+            ->setParameter('threshold', $threshold)
+            ->setMaxResults($limit)
+            ->orderBy('cp.updatedAt', 'ASC');
+
+        if ($salesChannelId !== null) {
+            $qb->andWhere('cp.salesChannel = :salesChannelId')
+                ->setParameter('salesChannelId', $salesChannelId);
+        }
+
+        return $qb->getQuery()->getResult();
+    }
 }

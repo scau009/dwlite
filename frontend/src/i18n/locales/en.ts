@@ -45,6 +45,8 @@ export default {
     items: 'items',
     active: 'Active',
     inactive: 'Inactive',
+    apply: 'Apply',
+    clickToEdit: 'Click to edit',
   },
 
   // Navigation
@@ -116,6 +118,7 @@ export default {
     outboundOrders: 'Outbound Orders',
     // Listings
     listingManagement: 'Listing Management',
+    listingLogs: 'Operation Logs',
     // Settings
     generalSettings: 'General',
     walletManagement: 'Wallet',
@@ -185,6 +188,7 @@ export default {
     skuCode: 'SKU Code',
     skuList: 'SKU List',
     colorCode: 'Color Code',
+    size: 'Size',
     sizeUnit: 'Size Unit',
     sizeValue: 'Size Value',
     selectSizeUnit: 'Select Size Unit',
@@ -263,6 +267,27 @@ export default {
     quickAddPartialSuccess: 'Added {{created}} sizes, {{skipped}} sizes skipped (already exist)',
     sizeUnitMismatch: 'This product already has {{existing}} sizes. Cannot add {{requested}} sizes.',
     allSizesExist: 'All popular sizes already exist',
+    // Currency
+    changeCurrency: 'Change Currency',
+    changeCurrencyInfo: 'This will update the currency for all {{count}} SKU(s) in this product.',
+    currencyUnchanged: 'Currency unchanged',
+    currencyLocked: 'Currency is locked. Use "Change Currency" button to modify.',
+    // Batch operations
+    selectedCount: '{{count}} items selected',
+    batchEdit: 'Batch Edit',
+    batchDelete: 'Batch Delete',
+    confirmBatchDelete: 'Confirm Batch Delete',
+    confirmBatchDeleteDesc: 'Are you sure you want to delete {{count}} selected SKU(s)? This action cannot be undone.',
+    batchDeleted: 'Deleted {{count}} SKU(s)',
+    batchUpdated: 'Updated {{count}} SKU(s)',
+    batchEditHint: 'You are editing {{count}} selected SKU(s). Only checked fields will be updated.',
+    batchEditNoField: 'Please select at least one field to update',
+    updatePrice: 'Update Reference Price',
+    updateOriginalPrice: 'Update Release Price',
+    updateStatus: 'Update Status',
+    updateBarcode: 'Update Barcode',
+    pricePlaceholder: 'Enter price',
+    originalPricePlaceholder: 'Enter release price',
   },
 
   // Orders
@@ -592,6 +617,23 @@ export default {
     currencyHKD: 'HKD - Hong Kong Dollar',
     currencyKRW: 'KRW - South Korean Won',
     currencySGD: 'SGD - Singapore Dollar',
+    // API Configuration
+    config: {
+      configure: 'API Config',
+      title: 'API Configuration - {{name}}',
+      hint: 'Configure API credentials for this channel. Sensitive fields will be masked.',
+      noConfig: 'No configuration items',
+      addItem: 'Add Config Item',
+      configKey: 'Key',
+      configValue: 'Value',
+      isSecret: 'Secret',
+      keyPlaceholder: 'e.g. apiKey',
+      valuePlaceholder: 'Enter value',
+      keyRequired: 'Config key is required',
+      duplicateKey: 'Duplicate config keys not allowed',
+      saved: 'Configuration saved',
+      confirmRemove: 'Remove this config item?',
+    },
     // Warehouse Configuration
     warehouses: {
       configure: 'Configure Warehouses',
@@ -897,6 +939,7 @@ export default {
     itemUpdated: 'Item updated successfully',
     itemRemoved: 'Item removed',
     itemDeleted: 'Item deleted',
+    costUpdated: 'Unit cost updated',
     shipmentCreated: 'Shipment created successfully',
     exceptionResolved: 'Exception resolved successfully',
     // Confirm Dialogs
@@ -958,15 +1001,24 @@ export default {
     sizeUnit: 'Size Unit',
     price: 'Price',
     batchFill: 'Batch Fill',
+    batchFillQuantity: 'Batch Fill Quantity',
+    batchFillCost: 'Batch Fill Cost',
+    customQuantity: 'Custom quantity',
+    customCost: 'Custom cost',
     quickFill: 'Quick fill quantity',
     addToOrder: 'Add to Order',
     pleaseSelectSku: 'Please select at least one SKU',
+    unitCostRequired: 'Please fill in unit cost for all selected SKUs',
     selectedCount: '{{count}} selected',
     itemsAdded: 'Items added successfully',
     // Batch operations
     batchDelete: 'Batch Delete',
     batchUpdateQuantity: 'Batch Update Quantity',
     batchUpdateQuantityDesc: 'Set the same expected quantity for {{count}} selected items',
+    batchUpdateCost: 'Batch Update Cost',
+    batchUpdateCostDesc: 'Set the same unit cost for {{count}} selected items',
+    batchCostUpdated: 'Updated unit cost for {{count}} items',
+    costMin: 'Cost cannot be negative',
     batchUpdateSuccess: 'Successfully updated {{count}} items',
     batchDeleteSuccess: 'Successfully deleted {{count}} items',
     confirmBatchDelete: 'Confirm Batch Delete',
@@ -1209,6 +1261,7 @@ export default {
     reserved: 'Reserved',
     damaged: 'Damaged',
     averageCost: 'Avg Cost',
+    barcode: 'Barcode',
     safetyStock: 'Safety Stock',
     lastInbound: 'Last Inbound',
     selectWarehouse: 'Select Warehouse',
@@ -1629,6 +1682,7 @@ export default {
     selectInventoryRequired: 'Please select inventory',
     noAvailableChannels: 'No available channels. Please apply for a channel first.',
     noAvailableInventory: 'No available inventory for listing',
+    channelNoPlatformWarehouse: 'Consignment-only channel without platform warehouse',
 
     // Form validation
     fulfillmentTypeRequired: 'Please select fulfillment type',
@@ -1666,6 +1720,19 @@ export default {
     baseCost: 'Base Cost',
     calculatedPrice: 'Calculated Price',
     calculatedQuantity: 'Calculated Quantity',
+    applyPriceRule: 'Apply Price Rule',
+    applyStockRule: 'Apply Stock Rule',
+    configType: 'Config Type',
+    stockConfig: 'Stock',
+    priceConfig: 'Price',
+    applyRule: 'Apply Rule',
+    configValue: 'Config',
+
+    // Tabs
+    tabBasicInfo: 'Basic Info',
+    tabPriceInventory: 'Price & Inventory',
+    tabOperationLogs: 'Operation Logs',
+    inventoryInfo: 'Inventory Info',
 
     // Edit page
     listingInfo: 'Listing Information',
@@ -1687,5 +1754,28 @@ export default {
     // Confirm dialogs
     confirmDelete: 'Confirm Delete',
     confirmDeleteDesc: 'Are you sure you want to delete this listing? This action cannot be undone.',
+
+    // Operation Logs
+    operationLogs: 'Operation Logs',
+    operationLogsTitle: 'Listing Operation Logs',
+    operationLogsDesc: 'View all listing-related operation records',
+    operator: 'Operator',
+    operationType: 'Operation Type',
+    operationTime: 'Operation Time',
+    changeDetails: 'Change Details',
+    beforeChange: 'Before',
+    afterChange: 'After',
+    noLogs: 'No operation records',
+    viewAllLogs: 'View All Logs',
+
+    // Operation Types
+    operationCreate: 'Create Listing',
+    operationUpdatePrice: 'Update Price',
+    operationUpdateComparePrice: 'Update Compare Price',
+    operationUpdateAllocation: 'Update Allocation',
+    operationUpdateRemark: 'Update Remark',
+    operationActivate: 'Activate Listing',
+    operationPause: 'Pause Listing',
+    operationDelete: 'Delete Listing',
   },
 }

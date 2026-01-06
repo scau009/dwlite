@@ -25,7 +25,7 @@ import { ProductsListPage, ProductDetailPage } from '@/pages/products';
 import { MerchantsListPage } from '@/pages/merchants';
 import { BrandsListPage } from '@/pages/brands';
 import { ChannelsListPage, MerchantChannelsListPage, AvailableChannelsPage, MyChannelsPage } from '@/pages/channels';
-import { ListingsListPage, CreateListingPage, EditListingPage } from '@/pages/listings';
+import { ListingsListPage, CreateListingPage, EditListingPage, ListingLogsPage } from '@/pages/listings';
 import { CategoriesListPage } from '@/pages/categories';
 import { TagsListPage } from '@/pages/tags';
 import {
@@ -47,7 +47,7 @@ import {
   WarehouseOutboundDetailPage,
   WarehouseInventoryListPage,
 } from '@/pages/warehouse-ops';
-import { MerchantProfilePage, MerchantWalletPage, MerchantChannelsPage } from '@/pages/settings';
+import { MerchantProfilePage, MerchantWalletPage } from '@/pages/settings';
 import { MerchantRulesPage } from '@/pages/settings/rules';
 import { PlatformRulesListPage } from '@/pages/platform-rules/list';
 
@@ -115,10 +115,12 @@ export const router = createBrowserRouter([
   {
     element: <GuestRoute />,
     children: [
+      // Login page has its own full layout with shoe wall
+      { path: '/login', element: <LoginPage /> },
+      // Other auth pages use the standard AuthLayout
       {
         element: <AuthLayout />,
         children: [
-          { path: '/login', element: <LoginPage /> },
           { path: '/register', element: <RegisterPage /> },
           { path: '/forgot-password', element: <ForgotPasswordPage /> },
           { path: '/reset-password', element: <ResetPasswordPage /> },
@@ -189,6 +191,7 @@ export const router = createBrowserRouter([
               { path: '/channels/listings', element: <ListingsListPage /> },
               { path: '/channels/listings/create', element: <CreateListingPage /> },
               { path: '/channels/listings/:id/edit', element: <EditListingPage /> },
+              { path: '/channels/listings-logs', element: <ListingLogsPage /> },
               { path: '/channels/rules', element: <MerchantRulesPage /> },
 
               // Warehouses (Admin)

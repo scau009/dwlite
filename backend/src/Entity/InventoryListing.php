@@ -83,6 +83,13 @@ class InventoryListing
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $remark = null;
 
+    // 应用的规则表达式
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $priceRuleExpression = null;
+
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $stockRuleExpression = null;
+
     #[ORM\Column(type: 'datetime_immutable')]
     private \DateTimeImmutable $createdAt;
 
@@ -229,6 +236,30 @@ class InventoryListing
     public function setRemark(?string $remark): static
     {
         $this->remark = $remark;
+
+        return $this;
+    }
+
+    public function getPriceRuleExpression(): ?string
+    {
+        return $this->priceRuleExpression;
+    }
+
+    public function setPriceRuleExpression(?string $priceRuleExpression): static
+    {
+        $this->priceRuleExpression = $priceRuleExpression;
+
+        return $this;
+    }
+
+    public function getStockRuleExpression(): ?string
+    {
+        return $this->stockRuleExpression;
+    }
+
+    public function setStockRuleExpression(?string $stockRuleExpression): static
+    {
+        $this->stockRuleExpression = $stockRuleExpression;
 
         return $this;
     }

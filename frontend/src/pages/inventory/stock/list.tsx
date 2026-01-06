@@ -8,7 +8,6 @@ import {
   ExclamationCircleOutlined,
   TruckOutlined,
   LockOutlined,
-  WarningOutlined,
 } from '@ant-design/icons';
 
 import {
@@ -171,6 +170,30 @@ export function MerchantStockListPage() {
       render: (_, record) => (
         <span className={record.quantityDamaged > 0 ? 'text-red-500' : 'text-gray-400'}>
           {record.quantityDamaged}
+        </span>
+      ),
+    },
+    {
+      title: t('merchantStock.averageCost'),
+      dataIndex: 'averageCost',
+      width: 100,
+      search: false,
+      align: 'right',
+      render: (_, record) => (
+        <span className={record.averageCost ? 'font-mono' : 'text-gray-400'}>
+          {record.averageCost ? `¥${record.averageCost}` : '-'}
+        </span>
+      ),
+    },
+    {
+      title: t('merchantStock.barcode'),
+      dataIndex: ['sku', 'barcode'],
+      width: 140,
+      search: false,
+      ellipsis: true,
+      render: (_, record) => (
+        <span className={record.sku?.barcode ? 'font-mono text-xs' : 'text-gray-400'}>
+          {record.sku?.barcode || '-'}
         </span>
       ),
     },

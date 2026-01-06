@@ -13,8 +13,15 @@ class UpdateListingRequest
     #[Assert\Regex(pattern: '/^\d+(\.\d{1,2})?$/', message: 'Compare at price must be a valid decimal number')]
     public ?string $compareAtPrice = null;
 
+    #[Assert\Choice(choices: ['shared', 'dedicated'], message: 'Allocation mode must be shared or dedicated')]
+    public ?string $allocationMode = null;
+
     #[Assert\PositiveOrZero]
     public ?int $allocatedQuantity = null;
 
     public ?string $remark = null;
+
+    public ?string $priceRuleExpression = null;
+
+    public ?string $stockRuleExpression = null;
 }

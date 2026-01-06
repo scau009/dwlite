@@ -37,4 +37,8 @@ class CreateListingRequest
     public ?string $compareAtPrice = null;
 
     public ?string $remark = null;
+
+    public ?string $priceRuleExpression = null;
+
+    public ?string $stockRuleExpression = null;
 }

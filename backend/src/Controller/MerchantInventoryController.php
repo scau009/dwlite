@@ -199,6 +199,7 @@ class MerchantInventoryController extends AbstractController
                 'skuName' => $sku->getSkuName(),
                 'sizeUnit' => $sku->getSizeUnit(),
                 'sizeValue' => $sku->getSizeValue(),
+                'barcode' => $sku->getBarcode(),
             ],
             'quantityInTransit' => $inventory->getQuantityInTransit(),
             'quantityAvailable' => $inventory->getQuantityAvailable(),

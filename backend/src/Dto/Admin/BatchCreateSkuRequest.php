@@ -16,4 +16,8 @@ class BatchCreateSkuRequest
 
     #[Assert\PositiveOrZero(message: 'validation.price_positive_or_zero')]
     public ?string $originalPrice = null;
+
+    #[Assert\Length(exactly: 3, exactMessage: 'validation.currency_length')]
+    #[Assert\Regex(pattern: '/^[A-Z]{3}$/', message: 'validation.currency_format')]
+    public string $currency = 'USD';
 }

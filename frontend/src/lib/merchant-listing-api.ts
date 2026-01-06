@@ -53,6 +53,8 @@ export interface MerchantListing {
   compareAtPrice: string | null;
   status: ListingStatus;
   remark: string | null;
+  priceRuleExpression: string | null;
+  stockRuleExpression: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -93,6 +95,7 @@ export interface AvailableChannel {
   };
   approvedFulfillmentTypes: FulfillmentType[];
   status: string;
+  hasPlatformWarehouse: boolean;
 }
 
 // Currency symbol mapping
@@ -131,13 +134,18 @@ export interface CreateListingRequest {
   price: string;
   compareAtPrice?: string;
   remark?: string;
+  priceRuleExpression?: string;
+  stockRuleExpression?: string;
 }
 
 export interface UpdateListingRequest {
   price: string;
   compareAtPrice?: string;
+  allocationMode?: AllocationMode;
   allocatedQuantity?: number;
   remark?: string;
+  priceRuleExpression?: string;
+  stockRuleExpression?: string;
 }
 
 export interface BatchListingItemRequest {
@@ -149,6 +157,8 @@ export interface BatchListingItemRequest {
   price: string;
   compareAtPrice?: string;
   remark?: string;
+  priceRuleExpression?: string;
+  stockRuleExpression?: string;
 }
 
 export interface BatchCreateListingRequest {
@@ -207,6 +217,38 @@ export interface InventoryDefaults {
 export interface CalculateDefaultsRequest {
   merchantSalesChannelId: string;
   inventoryIds: string[];
+}
+
+// Operation Log Types
+export type OperationType =
+  | 'create'
+  | 'update_price'
+  | 'update_compare_price'
+  | 'update_allocation'
+  | 'update_remark'
+  | 'activate'
+  | 'pause'
+  | 'delete';
+
+export interface ListingOperationLog {
+  id: string;
+  listingId: string;
+  operatorEmail: string;
+  operation: OperationType;
+  changes: {
+    before?: Record<string, unknown>;
+    after?: Record<string, unknown>;
+  } | null;
+  createdAt: string;
+}
+
+export interface OperationLogListParams {
+  page?: number;
+  limit?: number;
+  operation?: OperationType;
+  listingId?: string;
+  startDate?: string;
+  endDate?: string;
 }
 
 export interface PaginatedResponse<T> {
@@ -338,5 +380,36 @@ export const merchantListingApi = {
       method: 'POST',
       body: JSON.stringify(data),
     });
+  },
+
+  /**
+   * 获取单个上架的操作日志
+   */
+  getListingLogs: async (
+    listingId: string,
+    limit?: number
+  ): Promise<{ data: ListingOperationLog[] }> => {
+    const searchParams = new URLSearchParams();
+    if (limit) searchParams.set('limit', String(limit));
+    const query = searchParams.toString();
+    return apiFetch(`/api/merchant/listings/${listingId}/logs${query ? `?${query}` : ''}`);
+  },
+
+  /**
+   * 获取全部操作日志（分页）
+   */
+  getOperationLogs: async (
+    params: OperationLogListParams = {}
+  ): Promise<PaginatedResponse<ListingOperationLog>> => {
+    const searchParams = new URLSearchParams();
+    if (params.page) searchParams.set('page', String(params.page));
+    if (params.limit) searchParams.set('limit', String(params.limit));
+    if (params.operation) searchParams.set('operation', params.operation);
+    if (params.listingId) searchParams.set('listingId', params.listingId);
+    if (params.startDate) searchParams.set('startDate', params.startDate);
+    if (params.endDate) searchParams.set('endDate', params.endDate);
+
+    const query = searchParams.toString();
+    return apiFetch(`/api/merchant/listings-logs${query ? `?${query}` : ''}`);
   },
 };

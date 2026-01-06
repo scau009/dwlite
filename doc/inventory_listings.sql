@@ -14,6 +14,8 @@ CREATE TABLE `inventory_listings` (
     `compare_at_price` DECIMAL(10,2) NULL COMMENT 'Compare at price / original price',
     `status` VARCHAR(20) NOT NULL DEFAULT 'draft' COMMENT 'draft, active, paused, sold_out',
     `remark` TEXT NULL,
+    `price_rule_expression` TEXT NULL COMMENT 'Applied pricing rule expression',
+    `stock_rule_expression` TEXT NULL COMMENT 'Applied stock allocation rule expression',
     `created_at` DATETIME NOT NULL,
     `updated_at` DATETIME NOT NULL,
     UNIQUE INDEX `uniq_inventory_channel` (`merchant_inventory_id`, `merchant_sales_channel_id`),
@@ -37,3 +39,8 @@ ALTER TABLE `inventory_listings`
 ALTER TABLE `inventory_listings`
     ADD INDEX `idx_listing_fulfillment` (`fulfillment_type`),
     ADD INDEX `idx_listing_pricing` (`pricing_model`);
+
+-- 3. Add rule expression columns
+ALTER TABLE `inventory_listings`
+    ADD COLUMN `price_rule_expression` TEXT NULL COMMENT 'Applied pricing rule expression' AFTER `remark`,
+    ADD COLUMN `stock_rule_expression` TEXT NULL COMMENT 'Applied stock allocation rule expression' AFTER `price_rule_expression`;

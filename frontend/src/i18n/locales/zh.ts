@@ -45,6 +45,8 @@ export default {
     items: '项',
     active: '启用',
     inactive: '停用',
+    apply: '应用',
+    clickToEdit: '点击编辑',
   },
 
   // Navigation
@@ -116,6 +118,7 @@ export default {
     outboundOrders: '出库单',
     // Listings
     listingManagement: '上架管理',
+    listingLogs: '操作日志',
     // Settings
     generalSettings: '基本设置',
     walletManagement: '电子钱包',
@@ -185,6 +188,7 @@ export default {
     skuCode: 'SKU编码',
     skuList: 'SKU列表',
     colorCode: '颜色代码',
+    size: '尺码',
     sizeUnit: '尺码单位',
     sizeValue: '尺码值',
     selectSizeUnit: '选择尺码单位',
@@ -263,6 +267,27 @@ export default {
     quickAddPartialSuccess: '成功添加 {{created}} 个尺码，{{skipped}} 个尺码已存在被跳过',
     sizeUnitMismatch: '该商品已有 {{existing}} 尺码，无法添加 {{requested}} 尺码',
     allSizesExist: '所有热门尺码都已存在',
+    // 币种
+    changeCurrency: '修改币种',
+    changeCurrencyInfo: '将更新该商品下所有 {{count}} 个 SKU 的币种。',
+    currencyUnchanged: '币种未改变',
+    currencyLocked: '币种已锁定。请使用「修改币种」按钮进行修改。',
+    // 批量操作
+    selectedCount: '已选择 {{count}} 项',
+    batchEdit: '批量编辑',
+    batchDelete: '批量删除',
+    confirmBatchDelete: '确认批量删除',
+    confirmBatchDeleteDesc: '确定要删除选中的 {{count}} 个 SKU 吗？此操作不可撤销。',
+    batchDeleted: '已删除 {{count}} 个 SKU',
+    batchUpdated: '已更新 {{count}} 个 SKU',
+    batchEditHint: '您正在编辑 {{count}} 个选中的 SKU。仅勾选的字段会被更新。',
+    batchEditNoField: '请至少选择一个要更新的字段',
+    updatePrice: '更新参考价',
+    updateOriginalPrice: '更新发售价',
+    updateStatus: '更新状态',
+    updateBarcode: '更新条码',
+    pricePlaceholder: '请输入价格',
+    originalPricePlaceholder: '请输入发售价',
   },
 
   // Orders
@@ -623,6 +648,23 @@ export default {
     descriptionPlaceholder: '输入渠道描述（选填）',
     descriptionMaxLength: '渠道描述最多500个字符',
     sortOrderTooltip: '数字越小越靠前，默认为0',
+    // API Configuration
+    config: {
+      configure: 'API配置',
+      title: 'API配置 - {{name}}',
+      hint: '配置该渠道的API凭证。敏感字段将被遮盖显示。',
+      noConfig: '暂无配置项',
+      addItem: '添加配置项',
+      configKey: '键名',
+      configValue: '值',
+      isSecret: '敏感',
+      keyPlaceholder: '如：apiKey',
+      valuePlaceholder: '请输入值',
+      keyRequired: '配置键名不能为空',
+      duplicateKey: '不允许重复的配置键名',
+      saved: '配置已保存',
+      confirmRemove: '确定移除此配置项？',
+    },
     // Currency
     currency: '币种',
     currencyRequired: '请选择币种',
@@ -875,7 +917,7 @@ export default {
     itemExpectedQuantity: '预报数量',
     itemReceivedQuantity: '实收数量',
     damagedQuantity: '破损数量',
-    unitCost: '单价',
+    unitCost: '单件成本',
     itemStatus: '状态',
     warehouseRemark: '仓库备注',
     receivedAt: '收货时间',
@@ -944,6 +986,7 @@ export default {
     itemUpdated: '商品更新成功',
     itemRemoved: '商品已移除',
     itemDeleted: '商品已删除',
+    costUpdated: '单件成本已更新',
     shipmentCreated: '物流单创建成功',
     exceptionResolved: '异常单处理成功',
     // 确认对话框
@@ -1005,15 +1048,24 @@ export default {
     sizeUnit: '尺码单位',
     price: '价格',
     batchFill: '批量填充',
+    batchFillQuantity: '批量填充数量',
+    batchFillCost: '批量填充成本',
+    customQuantity: '自定义数量',
+    customCost: '自定义成本',
     quickFill: '快速填充数量',
     addToOrder: '添加到入库单',
     pleaseSelectSku: '请选择至少一个SKU',
+    unitCostRequired: '请填写所有已选SKU的单件成本',
     selectedCount: '已选 {{count}} 项',
     itemsAdded: '商品添加成功',
     // 批量操作
     batchDelete: '批量删除',
     batchUpdateQuantity: '批量修改数量',
     batchUpdateQuantityDesc: '将为选中的 {{count}} 个商品设置相同的预报数量',
+    batchUpdateCost: '批量修改成本',
+    batchUpdateCostDesc: '将为选中的 {{count}} 个商品设置相同的单件成本',
+    batchCostUpdated: '已更新 {{count}} 个商品的单件成本',
+    costMin: '成本不能为负数',
     batchUpdateSuccess: '成功更新 {{count}} 个商品',
     batchDeleteSuccess: '成功删除 {{count}} 个商品',
     confirmBatchDelete: '确认批量删除',
@@ -1088,6 +1140,7 @@ export default {
     reserved: '锁定',
     damaged: '破损',
     averageCost: '平均成本',
+    barcode: '条码',
     safetyStock: '安全库存',
     lastInbound: '最后入库',
     belowSafetyStock: '低于安全库存',
@@ -1628,6 +1681,7 @@ export default {
     selectInventoryRequired: '请选择库存商品',
     noAvailableChannels: '暂无可用渠道，请先申请销售渠道',
     noAvailableInventory: '暂无可上架库存',
+    channelNoPlatformWarehouse: '该渠道仅支持寄售但未配置平台仓库',
 
     // Form validation
     fulfillmentTypeRequired: '请选择履约方式',
@@ -1665,6 +1719,19 @@ export default {
     baseCost: '基础成本',
     calculatedPrice: '计算价格',
     calculatedQuantity: '计算数量',
+    applyPriceRule: '应用价格规则',
+    applyStockRule: '应用库存规则',
+    configType: '配置类型',
+    stockConfig: '库存',
+    priceConfig: '价格',
+    applyRule: '应用规则',
+    configValue: '配置项',
+
+    // Tabs
+    tabBasicInfo: '基础信息',
+    tabPriceInventory: '价格&库存',
+    tabOperationLogs: '操作日志',
+    inventoryInfo: '库存信息',
 
     // Edit page
     listingInfo: '上架信息',
@@ -1686,5 +1753,28 @@ export default {
     // Confirm dialogs
     confirmDelete: '确认删除',
     confirmDeleteDesc: '确定要删除此上架记录吗？此操作不可撤销。',
+
+    // Operation Logs
+    operationLogs: '操作日志',
+    operationLogsTitle: '上架操作日志',
+    operationLogsDesc: '查看所有上架相关的操作记录',
+    operator: '操作人',
+    operationType: '操作类型',
+    operationTime: '操作时间',
+    changeDetails: '变更详情',
+    beforeChange: '变更前',
+    afterChange: '变更后',
+    noLogs: '暂无操作记录',
+    viewAllLogs: '查看全部日志',
+
+    // Operation Types
+    operationCreate: '创建上架',
+    operationUpdatePrice: '修改售价',
+    operationUpdateComparePrice: '修改原价',
+    operationUpdateAllocation: '修改库存分配',
+    operationUpdateRemark: '修改备注',
+    operationActivate: '激活上架',
+    operationPause: '暂停上架',
+    operationDelete: '删除上架',
   },
 }

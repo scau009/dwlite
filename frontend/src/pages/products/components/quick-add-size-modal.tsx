@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Modal, Form, Select, InputNumber, App, Alert } from 'antd';
-import { productApi, type SizeUnit } from '@/lib/product-api';
+import { productApi, CURRENCIES, type SizeUnit, type Currency } from '@/lib/product-api';
 
 // Quick add only supports US, EU, UK (not CM)
 const QUICK_SIZE_UNITS: { value: SizeUnit; label: string }[] = [
@@ -13,6 +13,7 @@ const QUICK_SIZE_UNITS: { value: SizeUnit; label: string }[] = [
 interface QuickAddSizeModalProps {
   open: boolean;
   productId: string;
+  existingCurrency?: Currency;
   onClose: () => void;
   onSuccess: () => void;
 }
@@ -21,11 +22,13 @@ interface FormValues {
   sizeUnit: SizeUnit;
   price: number;
   originalPrice?: number;
+  currency: Currency;
 }
 
 export function QuickAddSizeModal({
   open,
   productId,
+  existingCurrency,
   onClose,
   onSuccess,
 }: QuickAddSizeModalProps) {
@@ -33,6 +36,18 @@ export function QuickAddSizeModal({
   const { message } = App.useApp();
   const [form] = Form.useForm<FormValues>();
   const [loading, setLoading] = useState(false);
+
+  const currencyLocked = !!existingCurrency;
+  const defaultCurrency = existingCurrency || 'USD';
+
+  const selectedCurrency = Form.useWatch('currency', form) || defaultCurrency;
+  const currencySymbol = CURRENCIES.find((c) => c.value === selectedCurrency)?.symbol || '$';
+
+  useEffect(() => {
+    if (open) {
+      form.setFieldsValue({ currency: defaultCurrency });
+    }
+  }, [open, defaultCurrency, form]);
 
   const handleSubmit = async () => {
     try {
@@ -43,6 +58,7 @@ export function QuickAddSizeModal({
         sizeUnit: values.sizeUnit as 'EU' | 'US' | 'UK',
         price: String(values.price),
         originalPrice: values.originalPrice ? String(values.originalPrice) : undefined,
+        currency: values.currency,
       });
 
       // Show success message with details
@@ -115,13 +131,25 @@ export function QuickAddSizeModal({
             label={t('products.price')}
             rules={[{ required: true, message: t('products.priceRequired') }]}
           >
-            <InputNumber min={0} precision={2} prefix="¥" style={{ width: '100%' }} />
+            <InputNumber min={0} precision={2} prefix={currencySymbol} style={{ width: '100%' }} />
           </Form.Item>
 
           <Form.Item name="originalPrice" label={t('products.originalPrice')}>
-            <InputNumber min={0} precision={2} prefix="¥" style={{ width: '100%' }} />
+            <InputNumber min={0} precision={2} prefix={currencySymbol} style={{ width: '100%' }} />
           </Form.Item>
         </div>
+
+        <Form.Item
+          name="currency"
+          label={t('products.currency')}
+          tooltip={currencyLocked ? t('products.currencyLocked') : undefined}
+          rules={[{ required: true, message: t('products.currencyRequired') }]}
+        >
+          <Select
+            options={CURRENCIES.map((c) => ({ label: c.label, value: c.value }))}
+            disabled={currencyLocked}
+          />
+        </Form.Item>
       </Form>
     </Modal>
   );

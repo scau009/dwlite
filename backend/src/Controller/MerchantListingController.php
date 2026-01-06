@@ -8,6 +8,7 @@ use App\Dto\Merchant\CalculateListingDefaultsRequest;
 use App\Dto\Merchant\CreateListingRequest;
 use App\Dto\Merchant\UpdateListingRequest;
 use App\Entity\InventoryListing;
+use App\Entity\ListingOperationLog;
 use App\Entity\MerchantInventory;
 use App\Entity\MerchantSalesChannel;
 use App\Entity\Product;
@@ -16,8 +17,11 @@ use App\Repository\InventoryListingRepository;
 use App\Repository\MerchantInventoryRepository;
 use App\Repository\MerchantRepository;
 use App\Repository\MerchantSalesChannelRepository;
+use App\Repository\SalesChannelWarehouseRepository;
+use App\Repository\UserRepository;
 use App\Service\CosService;
 use App\Service\InventoryListingService;
+use App\Service\ListingOperationLogService;
 use App\Service\RuleEngine\MerchantRuleService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -40,10 +44,13 @@ class MerchantListingController extends AbstractController
         private InventoryListingRepository $listingRepository,
         private MerchantInventoryRepository $inventoryRepository,
         private MerchantSalesChannelRepository $channelRepository,
+        private SalesChannelWarehouseRepository $salesChannelWarehouseRepository,
         private InventoryListingService $listingService,
         private MerchantRuleService $merchantRuleService,
         private TranslatorInterface $translator,
         private CosService $cosService,
+        private ListingOperationLogService $logService,
+        private UserRepository $userRepository,
     ) {
     }
 
@@ -130,7 +137,7 @@ class MerchantListingController extends AbstractController
         }
 
         try {
-            $listing = $this->listingService->createListing($merchant, $dto);
+            $listing = $this->listingService->createListing($merchant, $dto, $user);
 
             return $this->json(['data' => $this->serializeListing($listing)], Response::HTTP_CREATED);
         } catch (\InvalidArgumentException $e) {
@@ -169,7 +176,7 @@ class MerchantListingController extends AbstractController
                 $createDto->compareAtPrice = $item->compareAtPrice;
                 $createDto->remark = $item->remark;
 
-                $listing = $this->listingService->createListing($merchant, $createDto);
+                $listing = $this->listingService->createListing($merchant, $createDto, $user);
                 $results['success'][] = [
                     'index' => $index,
                     'inventoryId' => $item->merchantInventoryId,
@@ -279,7 +286,7 @@ class MerchantListingController extends AbstractController
         }
 
         try {
-            $listing = $this->listingService->updateListing($listing, $dto);
+            $listing = $this->listingService->updateListing($listing, $dto, $user);
 
             return $this->json(['data' => $this->serializeListing($listing)]);
         } catch (\InvalidArgumentException $e) {
@@ -306,7 +313,7 @@ class MerchantListingController extends AbstractController
         }
 
         try {
-            $this->listingService->activateListing($listing);
+            $this->listingService->activateListing($listing, $user);
 
             return $this->json(['data' => $this->serializeListing($listing)]);
         } catch (\InvalidArgumentException|\LogicException $e) {
@@ -332,7 +339,7 @@ class MerchantListingController extends AbstractController
             return $this->json(['error' => $this->translator->trans('listing.notFound')], Response::HTTP_NOT_FOUND);
         }
 
-        $this->listingService->pauseListing($listing);
+        $this->listingService->pauseListing($listing, $user);
 
         return $this->json(['data' => $this->serializeListing($listing)]);
     }
@@ -356,7 +363,7 @@ class MerchantListingController extends AbstractController
         }
 
         try {
-            $this->listingService->deleteListing($listing);
+            $this->listingService->deleteListing($listing, $user);
 
             return $this->json(null, Response::HTTP_NO_CONTENT);
         } catch (\InvalidArgumentException $e) {
@@ -432,6 +439,78 @@ class MerchantListingController extends AbstractController
         ]);
     }
 
+    /**
+     * 获取单个上架的操作日志.
+     */
+    #[Route('/{id}/logs', name: 'merchant_listings_logs', methods: ['GET'])]
+    public function getListingLogs(
+        #[CurrentUser] User $user,
+        string $id,
+        ?Request $request = null
+    ): JsonResponse {
+        $merchant = $this->merchantRepository->findOneBy(['user' => $user]);
+        if (!$merchant) {
+            return $this->json(['error' => $this->translator->trans('merchant.not_found')], Response::HTTP_NOT_FOUND);
+        }
+
+        $listing = $this->listingRepository->find($id);
+        if (!$listing || $listing->getMerchantInventory()->getMerchant()->getId() !== $merchant->getId()) {
+            return $this->json(['error' => $this->translator->trans('listing.notFound')], Response::HTTP_NOT_FOUND);
+        }
+
+        $limit = (int) ($request?->query->get('limit') ?? 50);
+        $logs = $this->logService->getListingLogs($id, $limit);
+
+        return $this->json([
+            'data' => array_map(fn (ListingOperationLog $log) => $this->serializeLog($log), $logs),
+        ]);
+    }
+
+    /**
+     * 获取商户全部上架操作日志（分页）.
+     */
+    #[Route('-logs', name: 'merchant_listing_logs_list', methods: ['GET'])]
+    public function getOperationLogs(
+        #[CurrentUser] User $user,
+        #[MapQueryString] PaginationQuery $query = new PaginationQuery(),
+        ?Request $request = null
+    ): JsonResponse {
+        $merchant = $this->merchantRepository->findOneBy(['user' => $user]);
+        if (!$merchant) {
+            return $this->json(['error' => $this->translator->trans('merchant.not_found')], Response::HTTP_NOT_FOUND);
+        }
+
+        $filters = [];
+        if ($request) {
+            if ($operation = $request->query->get('operation')) {
+                $filters['operation'] = $operation;
+            }
+            if ($listingId = $request->query->get('listingId')) {
+                $filters['listingId'] = $listingId;
+            }
+            if ($startDate = $request->query->get('startDate')) {
+                $filters['startDate'] = $startDate;
+            }
+            if ($endDate = $request->query->get('endDate')) {
+                $filters['endDate'] = $endDate;
+            }
+        }
+
+        $result = $this->logService->getMerchantLogs(
+            $merchant->getId(),
+            $query->getPage(),
+            $query->getLimit(),
+            $filters
+        );
+
+        return $this->json([
+            'data' => array_map(fn (ListingOperationLog $log) => $this->serializeLog($log), $result['data']),
+            'total' => $result['total'],
+            'page' => $query->getPage(),
+            'limit' => $query->getLimit(),
+        ]);
+    }
+
     private function serializeListing(InventoryListing $listing): array
     {
         $inventory = $listing->getMerchantInventory();
@@ -487,6 +566,8 @@ class MerchantListingController extends AbstractController
             'compareAtPrice' => $listing->getCompareAtPrice(),
             'status' => $listing->getStatus(),
             'remark' => $listing->getRemark(),
+            'priceRuleExpression' => $listing->getPriceRuleExpression(),
+            'stockRuleExpression' => $listing->getStockRuleExpression(),
             'createdAt' => $listing->getCreatedAt()->format(\DateTimeInterface::ATOM),
             'updatedAt' => $listing->getUpdatedAt()->format(\DateTimeInterface::ATOM),
         ];
@@ -528,6 +609,10 @@ class MerchantListingController extends AbstractController
     {
         $salesChannel = $channel->getSalesChannel();
 
+        // Check if channel has platform warehouses configured
+        $platformWarehouses = $this->salesChannelWarehouseRepository->findByChannel($salesChannel, true);
+        $hasPlatformWarehouse = count($platformWarehouses) > 0;
+
         return [
             'id' => $channel->getId(),
             'salesChannel' => [
@@ -539,6 +624,23 @@ class MerchantListingController extends AbstractController
             ],
             'approvedFulfillmentTypes' => $channel->getApprovedFulfillmentTypes(),
             'status' => $channel->getStatus(),
+            'hasPlatformWarehouse' => $hasPlatformWarehouse,
+        ];
+    }
+
+    private function serializeLog(ListingOperationLog $log): array
+    {
+        // Get operator email
+        $operator = $this->userRepository->find($log->getOperatorId());
+        $operatorEmail = $operator?->getEmail() ?? 'Unknown';
+
+        return [
+            'id' => $log->getId(),
+            'listingId' => $log->getListingId(),
+            'operatorEmail' => $operatorEmail,
+            'operation' => $log->getOperation(),
+            'changes' => $log->getChanges(),
+            'createdAt' => $log->getCreatedAt()->format(\DateTimeInterface::ATOM),
         ];
     }
 

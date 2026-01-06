@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import {
@@ -20,9 +20,9 @@ import {
   Typography,
   Result,
   Popover,
-  Tooltip,
+  Switch,
 } from 'antd';
-import { ArrowLeftOutlined, ShopOutlined, CheckCircleOutlined, CloseCircleOutlined, InfoCircleOutlined, WarningOutlined } from '@ant-design/icons';
+import { ArrowLeftOutlined, ShopOutlined, CheckCircleOutlined, CloseCircleOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import { ProTable, type ActionType, type ProColumns } from '@ant-design/pro-components';
 
 import {
@@ -49,6 +49,15 @@ interface ListingConfig extends AvailableInventory {
   compareAtPrice?: number;
   pricingDefaults?: PricingDefaults;
   allocationDefaults?: AllocationDefaults;
+  applyPriceRule: boolean;
+  applyStockRule: boolean;
+}
+
+interface ConfigRow {
+  key: string;
+  rowType: 'stock' | 'price';
+  isFirstRow: boolean;
+  config: ListingConfig;
 }
 
 const { Text } = Typography;
@@ -129,6 +138,15 @@ export function CreateListingPage() {
   const [listingConfigs, setListingConfigs] = useState<ListingConfig[]>([]);
   const [loadingDefaults, setLoadingDefaults] = useState(false);
 
+  // Transform listingConfigs to rows for merged table display
+  const configRows = useMemo((): ConfigRow[] =>
+    listingConfigs.flatMap((config) => [
+      { key: `${config.id}-stock`, rowType: 'stock' as const, isFirstRow: true, config },
+      { key: `${config.id}-price`, rowType: 'price' as const, isFirstRow: false, config },
+    ]),
+    [listingConfigs]
+  );
+
   // Load channels on mount
   useEffect(() => {
     loadChannels();
@@ -183,18 +201,22 @@ export function CreateListingPage() {
         const defaultFulfillmentType = selectedChannel.approvedFulfillmentTypes[0] || 'consignment';
         const configs: ListingConfig[] = selectedInventories.map((inv) => {
           const defaults = defaultsMap.get(inv.id);
+          const hasPriceRules = defaults?.pricing.hasRules ?? false;
+          const hasStockRules = defaults?.allocation.hasRules ?? false;
           return {
             ...inv,
             fulfillmentType: defaultFulfillmentType,
             pricingModel: 'self_pricing',
-            allocationMode: defaults?.allocation.hasRules ? 'dedicated' : 'shared',
-            allocatedQuantity: defaults?.allocation.hasRules ? defaults.allocation.calculatedQuantity : undefined,
-            price: defaults?.pricing.hasRules && defaults.pricing.calculatedPrice
+            allocationMode: hasStockRules ? 'dedicated' : 'shared',
+            allocatedQuantity: hasStockRules ? defaults?.allocation.calculatedQuantity : undefined,
+            price: hasPriceRules && defaults?.pricing.calculatedPrice
               ? parseFloat(defaults.pricing.calculatedPrice)
               : undefined,
             compareAtPrice: undefined,
             pricingDefaults: defaults?.pricing,
             allocationDefaults: defaults?.allocation,
+            applyPriceRule: hasPriceRules,
+            applyStockRule: hasStockRules,
           };
         });
         setListingConfigs(configs);
@@ -210,6 +232,8 @@ export function CreateListingPage() {
           allocatedQuantity: undefined,
           price: undefined,
           compareAtPrice: undefined,
+          applyPriceRule: false,
+          applyStockRule: false,
         }));
         setListingConfigs(configs);
       } finally {
@@ -229,6 +253,27 @@ export function CreateListingPage() {
       prev.map((config) => {
         if (config.id === id) {
           const updated = { ...config, [field]: value };
+
+          // Handle price rule switch toggle
+          if (field === 'applyPriceRule') {
+            if (value === true && config.pricingDefaults?.calculatedPrice) {
+              updated.price = parseFloat(config.pricingDefaults.calculatedPrice);
+            } else if (value === false) {
+              updated.price = undefined;
+            }
+          }
+
+          // Handle stock rule switch toggle
+          if (field === 'applyStockRule') {
+            if (value === true && config.allocationDefaults?.hasRules) {
+              updated.allocationMode = 'dedicated';
+              updated.allocatedQuantity = config.allocationDefaults.calculatedQuantity;
+            } else if (value === false) {
+              updated.allocationMode = 'shared';
+              updated.allocatedQuantity = undefined;
+            }
+          }
+
           // Reset allocatedQuantity when switching to shared mode
           if (field === 'allocationMode' && value === 'shared') {
             updated.allocatedQuantity = undefined;
@@ -268,15 +313,28 @@ export function CreateListingPage() {
     try {
       setSubmitting(true);
 
-      const listings: BatchListingItemRequest[] = listingConfigs.map((config) => ({
-        merchantInventoryId: config.id,
-        fulfillmentType: config.fulfillmentType,
-        pricingModel: config.pricingModel,
-        allocationMode: config.allocationMode,
-        allocatedQuantity: config.allocationMode === 'dedicated' ? config.allocatedQuantity : undefined,
-        price: config.price!.toString(),
-        compareAtPrice: config.compareAtPrice ? config.compareAtPrice.toString() : undefined,
-      }));
+      const listings: BatchListingItemRequest[] = listingConfigs.map((config) => {
+        // Build rule expressions only when switch is on
+        const priceRuleExpression = config.applyPriceRule && config.pricingDefaults?.hasRules && config.pricingDefaults.rules.length > 0
+          ? config.pricingDefaults.rules.map(r => r.expression).join('\n')
+          : undefined;
+
+        const stockRuleExpression = config.applyStockRule && config.allocationDefaults?.hasRules && config.allocationDefaults.rules.length > 0
+          ? config.allocationDefaults.rules.map(r => r.expression).join('\n')
+          : undefined;
+
+        return {
+          merchantInventoryId: config.id,
+          fulfillmentType: config.fulfillmentType,
+          pricingModel: config.pricingModel,
+          allocationMode: config.allocationMode,
+          allocatedQuantity: config.allocationMode === 'dedicated' ? config.allocatedQuantity : undefined,
+          price: config.price!.toString(),
+          compareAtPrice: config.compareAtPrice ? config.compareAtPrice.toString() : undefined,
+          priceRuleExpression,
+          stockRuleExpression,
+        };
+      });
 
       const result = await merchantListingApi.batchCreateListings({
         merchantSalesChannelId: selectedChannel.id,
@@ -370,44 +428,49 @@ export function CreateListingPage() {
   const availableFulfillmentTypes = selectedChannel?.approvedFulfillmentTypes || [];
 
   const configColumns = [
+    // Left columns with rowSpan=2 (merged for each inventory item)
     {
       title: t('listingManagement.product'),
-      dataIndex: 'product',
+      dataIndex: ['config', 'product'],
       width: 200,
-      render: (_: unknown, record: ListingConfig) => (
+      onCell: (record: ConfigRow) => ({ rowSpan: record.isFirstRow ? 2 : 0 }),
+      render: (_: unknown, { config }: ConfigRow) => (
         <div>
-          <div className="font-medium text-sm">{record.product.name}</div>
+          <div className="font-medium text-sm">{config.product.name}</div>
           <div className="text-xs text-gray-500">
-            {record.product.styleNumber} / {record.productSku.sizeValue}{record.productSku.sizeUnit}
+            {config.product.styleNumber} / {config.productSku.sizeValue}{config.productSku.sizeUnit}
           </div>
         </div>
       ),
     },
     {
       title: t('listingManagement.warehouse'),
-      dataIndex: 'warehouse',
-      width: 120,
-      render: (_: unknown, record: ListingConfig) => (
-        <div className="text-sm">{record.warehouse.name}</div>
+      dataIndex: ['config', 'warehouse'],
+      width: 100,
+      onCell: (record: ConfigRow) => ({ rowSpan: record.isFirstRow ? 2 : 0 }),
+      render: (_: unknown, { config }: ConfigRow) => (
+        <div className="text-sm">{config.warehouse.name}</div>
       ),
     },
     {
       title: t('listingManagement.shareableQuantity'),
-      dataIndex: 'shareableQuantity',
+      dataIndex: ['config', 'shareableQuantity'],
       width: 80,
-      render: (_: unknown, record: ListingConfig) => (
-        <span className="text-green-600">{record.shareableQuantity}</span>
+      onCell: (record: ConfigRow) => ({ rowSpan: record.isFirstRow ? 2 : 0 }),
+      render: (_: unknown, { config }: ConfigRow) => (
+        <span className="text-green-600">{config.shareableQuantity}</span>
       ),
     },
     {
       title: t('listingManagement.fulfillmentType'),
-      dataIndex: 'fulfillmentType',
+      dataIndex: ['config', 'fulfillmentType'],
       width: 120,
-      render: (_: unknown, record: ListingConfig) => (
+      onCell: (record: ConfigRow) => ({ rowSpan: record.isFirstRow ? 2 : 0 }),
+      render: (_: unknown, { config }: ConfigRow) => (
         <Select
           size="small"
-          value={record.fulfillmentType}
-          onChange={(value) => handleConfigChange(record.id, 'fulfillmentType', value)}
+          value={config.fulfillmentType}
+          onChange={(value) => handleConfigChange(config.id, 'fulfillmentType', value)}
           style={{ width: '100%' }}
           options={availableFulfillmentTypes.map((type) => ({
             value: type,
@@ -420,13 +483,14 @@ export function CreateListingPage() {
     },
     {
       title: t('listingManagement.pricingModel'),
-      dataIndex: 'pricingModel',
+      dataIndex: ['config', 'pricingModel'],
       width: 120,
-      render: (_: unknown, record: ListingConfig) => (
+      onCell: (record: ConfigRow) => ({ rowSpan: record.isFirstRow ? 2 : 0 }),
+      render: (_: unknown, { config }: ConfigRow) => (
         <Select
           size="small"
-          value={record.pricingModel}
-          onChange={(value) => handleConfigChange(record.id, 'pricingModel', value)}
+          value={config.pricingModel}
+          onChange={(value) => handleConfigChange(config.id, 'pricingModel', value)}
           style={{ width: '100%' }}
           options={[
             { value: 'self_pricing', label: t('listingManagement.selfPricing') },
@@ -437,13 +501,14 @@ export function CreateListingPage() {
     },
     {
       title: t('listingManagement.allocationMode'),
-      dataIndex: 'allocationMode',
+      dataIndex: ['config', 'allocationMode'],
       width: 100,
-      render: (_: unknown, record: ListingConfig) => (
+      onCell: (record: ConfigRow) => ({ rowSpan: record.isFirstRow ? 2 : 0 }),
+      render: (_: unknown, { config }: ConfigRow) => (
         <Select
           size="small"
-          value={record.allocationMode}
-          onChange={(value) => handleConfigChange(record.id, 'allocationMode', value)}
+          value={config.allocationMode}
+          onChange={(value) => handleConfigChange(config.id, 'allocationMode', value)}
           style={{ width: '100%' }}
           options={[
             { value: 'shared', label: t('listingManagement.allocationModeShared') },
@@ -452,27 +517,37 @@ export function CreateListingPage() {
         />
       ),
     },
+    // Right columns - different content for stock/price rows
     {
-      title: t('listingManagement.allocatedQuantity'),
-      dataIndex: 'allocatedQuantity',
-      width: 120,
-      render: (_: unknown, record: ListingConfig) => (
-        record.allocationMode === 'dedicated' ? (
-          <Space size={4}>
-            <InputNumber
-              size="small"
-              min={1}
-              max={record.shareableQuantity}
-              value={record.allocatedQuantity}
-              onChange={(value) => handleConfigChange(record.id, 'allocatedQuantity', value)}
-              style={{ width: 70 }}
-            />
-            {record.allocationDefaults?.hasRules && record.allocationDefaults.rules.length > 0 ? (
+      title: t('listingManagement.configType'),
+      dataIndex: 'rowType',
+      width: 80,
+      render: (rowType: 'stock' | 'price') => (
+        <Tag color={rowType === 'stock' ? 'blue' : 'green'}>
+          {rowType === 'stock'
+            ? t('listingManagement.stockConfig')
+            : t('listingManagement.priceConfig')}
+        </Tag>
+      ),
+    },
+    {
+      title: t('listingManagement.applyRule'),
+      dataIndex: 'rowType',
+      width: 80,
+      render: (rowType: 'stock' | 'price', { config }: ConfigRow) => {
+        if (rowType === 'stock') {
+          return config.allocationDefaults?.hasRules ? (
+            <Space size={4}>
+              <Switch
+                size="small"
+                checked={config.applyStockRule}
+                onChange={(checked) => handleConfigChange(config.id, 'applyStockRule', checked)}
+              />
               <Popover
                 content={
                   <RuleDetailsContent
-                    rules={record.allocationDefaults.rules}
-                    finalValue={record.allocationDefaults.calculatedQuantity}
+                    rules={config.allocationDefaults.rules}
+                    finalValue={config.allocationDefaults.calculatedQuantity}
                     currencySymbol={currencySymbol}
                     type="allocation"
                     t={t}
@@ -483,78 +558,100 @@ export function CreateListingPage() {
               >
                 <InfoCircleOutlined className="text-blue-500 cursor-pointer" />
               </Popover>
-            ) : (
-              <Tooltip title={t('listingManagement.noRulesConfigured')}>
-                <WarningOutlined className="text-orange-400" />
-              </Tooltip>
-            )}
-          </Space>
-        ) : (
-          <span className="text-gray-400">-</span>
-        )
-      ),
-    },
-    {
-      title: `${t('listingManagement.price')} (${currencySymbol})`,
-      dataIndex: 'price',
-      width: 140,
-      render: (_: unknown, record: ListingConfig) => (
-        <Space size={4}>
-          <InputNumber
-            size="small"
-            min={0.01}
-            precision={2}
-            value={record.price}
-            onChange={(value) => handleConfigChange(record.id, 'price', value)}
-            style={{ width: 90 }}
-            prefix={currencySymbol}
-          />
-          {record.pricingDefaults?.hasRules && record.pricingDefaults.rules.length > 0 ? (
-            <Popover
-              content={
-                <RuleDetailsContent
-                  rules={record.pricingDefaults.rules}
-                  baseCost={record.pricingDefaults.baseCost}
-                  finalValue={record.pricingDefaults.calculatedPrice}
-                  currencySymbol={currencySymbol}
-                  type="pricing"
-                  t={t}
-                />
-              }
-              title={null}
-              trigger="click"
-            >
-              <InfoCircleOutlined className="text-blue-500 cursor-pointer" />
-            </Popover>
+            </Space>
           ) : (
-            <Tooltip title={t('listingManagement.noRulesConfigured')}>
-              <WarningOutlined className="text-orange-400" />
-            </Tooltip>
-          )}
-        </Space>
-      ),
+            <span className="text-gray-400">-</span>
+          );
+        } else {
+          return config.pricingDefaults?.hasRules ? (
+            <Space size={4}>
+              <Switch
+                size="small"
+                checked={config.applyPriceRule}
+                onChange={(checked) => handleConfigChange(config.id, 'applyPriceRule', checked)}
+              />
+              <Popover
+                content={
+                  <RuleDetailsContent
+                    rules={config.pricingDefaults.rules}
+                    baseCost={config.pricingDefaults.baseCost}
+                    finalValue={config.pricingDefaults.calculatedPrice}
+                    currencySymbol={currencySymbol}
+                    type="pricing"
+                    t={t}
+                  />
+                }
+                title={null}
+                trigger="click"
+              >
+                <InfoCircleOutlined className="text-blue-500 cursor-pointer" />
+              </Popover>
+            </Space>
+          ) : (
+            <span className="text-gray-400">-</span>
+          );
+        }
+      },
     },
     {
-      title: `${t('listingManagement.compareAtPrice')} (${currencySymbol})`,
-      dataIndex: 'compareAtPrice',
-      width: 120,
-      render: (_: unknown, record: ListingConfig) => (
-        <InputNumber
-          size="small"
-          min={0.01}
-          precision={2}
-          value={record.compareAtPrice}
-          onChange={(value) => handleConfigChange(record.id, 'compareAtPrice', value)}
-          style={{ width: '100%' }}
-          prefix={currencySymbol}
-        />
-      ),
+      title: t('listingManagement.configValue'),
+      dataIndex: 'rowType',
+      width: 220,
+      render: (rowType: 'stock' | 'price', { config }: ConfigRow) => {
+        if (rowType === 'stock') {
+          return config.allocationMode === 'dedicated' ? (
+            <InputNumber
+              size="small"
+              min={1}
+              max={config.shareableQuantity}
+              value={config.allocatedQuantity}
+              onChange={(value) => handleConfigChange(config.id, 'allocatedQuantity', value)}
+              addonBefore={t('listingManagement.allocatedQuantity')}
+              style={{ width: '100%' }}
+            />
+          ) : (
+            <span className="text-gray-400">-</span>
+          );
+        } else {
+          return (
+            <Space size={8}>
+              <InputNumber
+                size="small"
+                min={0.01}
+                precision={2}
+                value={config.price}
+                onChange={(value) => handleConfigChange(config.id, 'price', value)}
+                style={{ width: 100 }}
+                prefix={currencySymbol}
+                placeholder={t('listingManagement.price')}
+              />
+              <InputNumber
+                size="small"
+                min={0.01}
+                precision={2}
+                value={config.compareAtPrice}
+                onChange={(value) => handleConfigChange(config.id, 'compareAtPrice', value)}
+                style={{ width: 100 }}
+                prefix={currencySymbol}
+                placeholder={t('listingManagement.compareAtPrice')}
+              />
+            </Space>
+          );
+        }
+      },
     },
   ];
 
   const renderStepContent = () => {
     switch (currentStep) {
       case 0:
+        // Check if channel is disabled (only consignment but no platform warehouse)
+        const isChannelDisabled = (channel: AvailableChannel) => {
+          const onlyConsignment = channel.approvedFulfillmentTypes.length === 1 &&
+            channel.approvedFulfillmentTypes[0] === 'consignment';
+          return onlyConsignment && !channel.hasPlatformWarehouse;
+        };
+
         return (
           <div className="py-4">
             <div className="mb-4 text-gray-500">
@@ -568,42 +665,54 @@ export function CreateListingPage() {
               <Empty description={t('listingManagement.noAvailableChannels')} />
             ) : (
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                {channels.map((channel) => (
-                  <Card
-                    key={channel.id}
-                    hoverable
-                    className="cursor-pointer transition-all"
-                    style={{
-                      border: selectedChannel?.id === channel.id
-                        ? '2px solid #1890ff'
-                        : '1px solid #d9d9d9',
-                    }}
-                    onClick={() => handleChannelSelect(channel)}
-                  >
-                    <div className="flex items-center gap-3">
-                      {channel.salesChannel.logoUrl ? (
-                        <Avatar src={channel.salesChannel.logoUrl} size={48} shape="square" />
-                      ) : (
-                        <Avatar icon={<ShopOutlined />} size={48} shape="square" />
-                      )}
-                      <div>
-                        <div className="font-medium">{channel.salesChannel.name}</div>
-                        <div className="text-xs text-gray-500 mb-1">
-                          {getCurrencySymbol(channel.salesChannel.currency)} {channel.salesChannel.currency}
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          {channel.approvedFulfillmentTypes.map((type) => (
-                            <Tag key={type} className="text-xs">
-                              {type === 'consignment'
-                                ? t('merchantChannels.fulfillmentConsignment')
-                                : t('merchantChannels.fulfillmentSelfFulfillment')}
-                            </Tag>
-                          ))}
+                {channels.map((channel) => {
+                  const disabled = isChannelDisabled(channel);
+                  return (
+                    <Card
+                      key={channel.id}
+                      hoverable={!disabled}
+                      className={
+                        disabled
+                          ? 'cursor-not-allowed opacity-50 grayscale'
+                          : 'cursor-pointer transition-all'
+                      }
+                      style={{
+                        border: selectedChannel?.id === channel.id
+                          ? '2px solid #1890ff'
+                          : '1px solid #d9d9d9',
+                      }}
+                      onClick={() => !disabled && handleChannelSelect(channel)}
+                    >
+                      <div className="flex items-center gap-3">
+                        {channel.salesChannel.logoUrl ? (
+                          <Avatar src={channel.salesChannel.logoUrl} size={48} shape="square" />
+                        ) : (
+                          <Avatar icon={<ShopOutlined />} size={48} shape="square" />
+                        )}
+                        <div>
+                          <div className="font-medium">{channel.salesChannel.name}</div>
+                          <div className="text-xs text-gray-500 mb-1">
+                            {getCurrencySymbol(channel.salesChannel.currency)} {channel.salesChannel.currency}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {channel.approvedFulfillmentTypes.map((type) => (
+                              <Tag key={type} className="text-xs">
+                                {type === 'consignment'
+                                  ? t('merchantChannels.fulfillmentConsignment')
+                                  : t('merchantChannels.fulfillmentSelfFulfillment')}
+                              </Tag>
+                            ))}
+                          </div>
+                          {disabled && (
+                            <div className="text-xs text-orange-500 dark:text-orange-400 mt-1">
+                              {t('listingManagement.channelNoPlatformWarehouse')}
+                            </div>
+                          )}
                         </div>
                       </div>
-                    </div>
-                  </Card>
-                ))}
+                    </Card>
+                  );
+                })}
               </div>
             )}
           </div>
@@ -684,12 +793,13 @@ export function CreateListingPage() {
             </div>
 
             <Table
-              dataSource={listingConfigs}
+              dataSource={configRows}
               columns={configColumns}
-              rowKey="id"
+              rowKey="key"
               pagination={false}
-              scroll={{ x: 1300 }}
+              scroll={{ x: 1100 }}
               size="small"
+              bordered
             />
           </div>
         );

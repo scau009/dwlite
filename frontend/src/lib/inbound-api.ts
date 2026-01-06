@@ -198,6 +198,7 @@ export interface InboundProductSku {
   sizeUnit: string | null;
   sizeValue: string | null;
   price: string;
+  currency: string;
   isActive: boolean;
 }
 
@@ -441,6 +442,22 @@ export const inboundApi = {
     });
   },
 
+  /**
+   * Update inbound order item cost (available until order completion)
+   */
+  updateInboundOrderItemCost: async (
+    itemId: string,
+    unitCost: string
+  ): Promise<{ message: string; data: InboundOrderItem }> => {
+    return await apiFetch<{ message: string; data: InboundOrderItem }>(
+      `/api/inbound/orders/items/${itemId}/cost`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify({ unitCost }),
+      }
+    );
+  },
+
   // ========== Inbound Shipments ==========
 
   /**
@@ -569,6 +586,7 @@ export interface MerchantInventoryItem {
     skuName: string;
     sizeUnit: string | null;
     sizeValue: string | null;
+    barcode: string | null;
   };
   quantityInTransit: number;
   quantityAvailable: number;

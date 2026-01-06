@@ -3,6 +3,7 @@
 namespace App\Scheduler;
 
 use App\Message\CleanupMessage;
+use App\Message\ScanPendingSyncMessage;
 use App\Message\StartProductSyncMessage;
 use App\Service\ProductSync\Provider\KicksDbProvider;
 use Symfony\Component\Scheduler\Attribute\AsSchedule;
@@ -32,6 +33,10 @@ class MainSchedule implements ScheduleProviderInterface
                     KicksDbProvider::PROVIDER_NAME,
                     new \DateTimeImmutable('now', new \DateTimeZone('UTC'))
                 )),
+
+                // Channel product sync compensation - scan for stale pending products every 5 minutes
+                // This catches any products stuck in pending status due to message loss or processing failures
+                RecurringMessage::every('5 minutes', ScanPendingSyncMessage::create()),
 
                 // Examples of other schedule patterns:
                 // RecurringMessage::every('1 hour', new HourlyTaskMessage()),

@@ -6,6 +6,9 @@ use App\Attribute\AdminOnly;
 use App\Dto\Admin\CreateProductRequest;
 use App\Dto\Admin\CreateProductSkuRequest;
 use App\Dto\Admin\Query\ProductListQuery;
+use App\Dto\Admin\BatchDeleteSkuRequest;
+use App\Dto\Admin\BatchUpdateSkuRequest;
+use App\Dto\Admin\UpdateProductCurrencyRequest;
 use App\Dto\Admin\UpdateProductRequest;
 use App\Dto\Admin\UpdateProductSkuRequest;
 use App\Dto\Admin\UpdateProductStatusRequest;
@@ -230,6 +233,44 @@ class ProductController extends AbstractController
         ]);
     }
 
+    #[Route('/{id}/currency', name: 'admin_product_currency', methods: ['PUT'])]
+    public function updateCurrency(string $id, #[MapRequestPayload] UpdateProductCurrencyRequest $dto): JsonResponse
+    {
+        $product = $this->productRepository->find($id);
+        if (!$product) {
+            return $this->json(['error' => $this->translator->trans('admin.product.not_found')], Response::HTTP_NOT_FOUND);
+        }
+
+        // Only allow currency change in draft status
+        if (!$product->isDraft()) {
+            return $this->json([
+                'error' => $this->translator->trans('admin.product.currency_change_only_in_draft'),
+            ], Response::HTTP_FORBIDDEN);
+        }
+
+        // Update currency for all SKUs
+        $skus = $product->getSkus();
+        $updatedCount = 0;
+
+        foreach ($skus as $sku) {
+            $sku->setCurrency($dto->currency);
+            $this->skuRepository->save($sku);
+            ++$updatedCount;
+        }
+
+        if ($updatedCount > 0) {
+            $this->skuRepository->save($skus->first(), true); // Flush all
+        }
+
+        return $this->json([
+            'message' => $this->translator->trans('admin.product.currency_updated', [
+                '%count%' => $updatedCount,
+            ]),
+            'updatedCount' => $updatedCount,
+            'currency' => $dto->currency,
+        ]);
+    }
+
     // SKU endpoints
 
     #[Route('/{id}/skus', name: 'admin_product_sku_create', methods: ['POST'])]
@@ -368,6 +409,7 @@ class ProductController extends AbstractController
             $sku->setSizeUnit($requestedUnit);
             $sku->setSizeValue($sizeValue);
             $sku->setPrice($dto->price);
+            $sku->setCurrency($dto->currency);
             $sku->setIsActive(true);
             $sku->setSortOrder($maxSortOrder + $index + 1);
 
@@ -396,6 +438,83 @@ class ProductController extends AbstractController
             'skippedSizes' => $skippedSizes,
             'skus' => array_map(fn ($s) => $this->serializeSku($s), $allSkus),
         ], Response::HTTP_CREATED);
+    }
+
+    #[Route('/{id}/skus/batch-delete', name: 'admin_product_sku_batch_delete', methods: ['POST'])]
+    public function batchDeleteSkus(string $id, #[MapRequestPayload] BatchDeleteSkuRequest $dto): JsonResponse
+    {
+        $product = $this->productRepository->find($id);
+        if (!$product) {
+            return $this->json(['error' => $this->translator->trans('admin.product.not_found')], Response::HTTP_NOT_FOUND);
+        }
+
+        $deletedCount = 0;
+        foreach ($dto->skuIds as $skuId) {
+            $sku = $this->skuRepository->find($skuId);
+            if ($sku && $sku->getProduct()->getId() === $product->getId()) {
+                $this->skuRepository->remove($sku);
+                ++$deletedCount;
+            }
+        }
+
+        if ($deletedCount > 0) {
+            $this->skuRepository->flush();
+        }
+
+        return $this->json([
+            'message' => $this->translator->trans('admin.product.skus_batch_deleted', [
+                '%count%' => $deletedCount,
+            ]),
+            'deletedCount' => $deletedCount,
+        ]);
+    }
+
+    #[Route('/{id}/skus/batch-update', name: 'admin_product_sku_batch_update', methods: ['PUT'])]
+    public function batchUpdateSkus(string $id, #[MapRequestPayload] BatchUpdateSkuRequest $dto): JsonResponse
+    {
+        $product = $this->productRepository->find($id);
+        if (!$product) {
+            return $this->json(['error' => $this->translator->trans('admin.product.not_found')], Response::HTTP_NOT_FOUND);
+        }
+
+        // Check if at least one field to update is provided
+        if ($dto->price === null && $dto->originalPrice === null && $dto->isActive === null && $dto->barcode === null) {
+            return $this->json([
+                'error' => $this->translator->trans('admin.product.batch_update_no_fields'),
+            ], Response::HTTP_BAD_REQUEST);
+        }
+
+        $updatedCount = 0;
+        foreach ($dto->skuIds as $skuId) {
+            $sku = $this->skuRepository->find($skuId);
+            if ($sku && $sku->getProduct()->getId() === $product->getId()) {
+                if ($dto->price !== null) {
+                    $sku->setPrice($dto->price);
+                }
+                if ($dto->originalPrice !== null) {
+                    $sku->setOriginalPrice($dto->originalPrice);
+                }
+                if ($dto->isActive !== null) {
+                    $sku->setIsActive($dto->isActive);
+                }
+                if ($dto->barcode !== null) {
+                    $sku->setBarcode($dto->barcode);
+                }
+                $this->skuRepository->save($sku);
+                ++$updatedCount;
+            }
+        }
+
+        if ($updatedCount > 0) {
+            $this->skuRepository->flush();
+        }
+
+        return $this->json([
+            'message' => $this->translator->trans('admin.product.skus_batch_updated', [
+                '%count%' => $updatedCount,
+            ]),
+            'updatedCount' => $updatedCount,
+        ]);
     }
 
     #[Route('/{id}/skus/{skuId}', name: 'admin_product_sku_update', methods: ['PUT'])]

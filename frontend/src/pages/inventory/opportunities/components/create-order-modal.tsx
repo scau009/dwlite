@@ -21,6 +21,7 @@ import {
   type InboundProductSku,
   type AvailableWarehouse,
 } from '@/lib/inbound-api';
+import { getCurrencySymbol } from '@/lib/merchant-listing-api';
 
 interface CreateOrderModalProps {
   open: boolean;
@@ -200,8 +201,10 @@ export function CreateOrderModal({
       dataIndex: ['sku', 'price'],
       key: 'price',
       width: 100,
-      render: (price: string) => (
-        <span className="text-orange-600">¥{parseFloat(price).toFixed(2)}</span>
+      render: (_: unknown, record: SkuSelection) => (
+        <span className="text-orange-600">
+          {getCurrencySymbol(record.sku.currency)}{parseFloat(record.sku.price).toFixed(2)}
+        </span>
       ),
     },
     {
