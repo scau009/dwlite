@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Modal, InputNumber, App } from 'antd';
 
 import { inboundApi, type InboundOrderItem } from '@/lib/inbound-api';
+import { getCurrencySymbol } from '@/lib/merchant-listing-api';
 
 interface BatchUpdateCostModalProps {
   open: boolean;
@@ -73,7 +74,7 @@ export function BatchUpdateCostModal({
             value={cost}
             onChange={setCost}
             style={{ width: 150 }}
-            prefix="¥"
+            prefix={getCurrencySymbol(items[0]?.currency || 'CNY')}
             placeholder="0.00"
             autoFocus
           />

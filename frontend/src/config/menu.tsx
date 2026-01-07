@@ -126,6 +126,7 @@ export function getMenuData(t: TFunction): AccessMenuDataItem[] {
       access: ['admin', 'merchant'],
       children: [
         { path: '/channels/list', name: t('menu.channelList'), access: 'admin' },
+        { path: '/channels/products', name: t('menu.channelProducts'), access: 'admin' },
         { path: '/channels/merchants', name: t('menu.merchantChannels'), access: 'admin' },
         { path: '/channels/available', name: t('menu.availableChannels'), access: 'merchant' },
         { path: '/channels/my-channels', name: t('menu.myChannels'), access: 'merchant' },

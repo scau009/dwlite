@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Modal, Form, InputNumber, App, Descriptions, Image } from 'antd';
 
 import { inboundApi, type InboundOrderItem } from '@/lib/inbound-api';
+import { getCurrencySymbol } from '@/lib/merchant-listing-api';
 
 interface InboundOrderItemModalProps {
   open: boolean;
@@ -129,7 +130,7 @@ export function InboundOrderItemModal({
               min={0}
               precision={2}
               style={{ width: '100%' }}
-              prefix="¥"
+              prefix={getCurrencySymbol(item.currency)}
               placeholder="0.00"
             />
           </Form.Item>

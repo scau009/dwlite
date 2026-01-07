@@ -24,6 +24,11 @@ security:
                 success_handler: App\Security\AuthenticationSuccessHandler
                 failure_handler: lexik_jwt_authentication.handler.authentication_failure
 
+        messenger_monitor:
+            pattern: ^/_debug/messenger
+            stateless: true
+            security: false
+
         api:
             pattern: ^/api
             stateless: true

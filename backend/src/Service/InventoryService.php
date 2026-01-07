@@ -40,12 +40,14 @@ class InventoryService
             $inventory->setMerchant($merchant);
             $inventory->setWarehouse($warehouse);
             $inventory->setProductSku($sku);
+            $inventory->setCurrency($sku->getCurrency());
 
             $this->entityManager->persist($inventory);
             $this->logger->info('Created new inventory record', [
                 'merchant_id' => $merchant->getId(),
                 'warehouse_id' => $warehouse->getId(),
                 'sku_id' => $sku->getId(),
+                'currency' => $inventory->getCurrency(),
             ]);
         }
 

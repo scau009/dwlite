@@ -157,9 +157,9 @@ class ChannelProductSyncService
         $this->entityManager->persist($syncLog);
 
         try {
-            // Update source status if this is from a listing operation
-            if ($triggerListing !== null && $triggerSource->isListingOperation()) {
-                $this->updateSourceStatus($channelProduct, $triggerListing, $triggerSource);
+            // Sync source status based on listing's actual status (self-healing)
+            if ($triggerListing !== null) {
+                $this->syncSourceStatus($channelProduct, $triggerListing);
             }
 
             // Recalculate aggregated stock
@@ -193,6 +193,7 @@ class ChannelProductSyncService
 
             return $syncLog;
         } catch (\Throwable $e) {
+            $channelProduct->markSyncFailed($e->getMessage());
             $syncLog->markFailed($e->getMessage());
             $this->entityManager->flush();
 
@@ -353,12 +354,49 @@ class ChannelProductSyncService
     }
 
     /**
-     * Update source status based on listing operation.
+     * Sync all sources for a channel product based on actual listing status.
+     *
+     * Used for compensation/repair scenarios to fix historical data.
+     *
+     * @return int Number of sources that were corrected
      */
-    private function updateSourceStatus(
+    public function syncAllSourceStatuses(ChannelProduct $channelProduct): int
+    {
+        $correctedCount = 0;
+
+        foreach ($channelProduct->getSources() as $source) {
+            $listing = $source->getInventoryListing();
+            $shouldBeActive = $listing->getStatus() === InventoryListing::STATUS_ACTIVE;
+
+            if ($source->isActive() !== $shouldBeActive) {
+                $source->setIsActive($shouldBeActive);
+                $correctedCount++;
+
+                $this->logger->info('Source status corrected in batch sync', [
+                    'sourceId' => $source->getId(),
+                    'listingId' => $listing->getId(),
+                    'listingStatus' => $listing->getStatus(),
+                    'newIsActive' => $shouldBeActive,
+                ]);
+            }
+        }
+
+        if ($correctedCount > 0) {
+            $this->entityManager->flush();
+        }
+
+        return $correctedCount;
+    }
+
+    /**
+     * Sync source status based on listing's actual status.
+     *
+     * This ensures self-healing when previous sync failed.
+     * Instead of relying on trigger source, we always check the actual listing status.
+     */
+    private function syncSourceStatus(
         ChannelProduct $channelProduct,
         InventoryListing $listing,
-        SyncTriggerSource $triggerSource,
     ): void {
         $source = $this->sourceRepo->findOneByProductAndListing($channelProduct, $listing);
 
@@ -366,14 +404,17 @@ class ChannelProductSyncService
             return;
         }
 
-        $newActiveState = match ($triggerSource) {
-            SyncTriggerSource::LISTING_ACTIVATE => true,
-            SyncTriggerSource::LISTING_PAUSE, SyncTriggerSource::LISTING_DELETE => false,
-            default => null,
-        };
+        // Always sync based on listing's actual status
+        $shouldBeActive = $listing->getStatus() === InventoryListing::STATUS_ACTIVE;
 
-        if ($newActiveState !== null && $source->isActive() !== $newActiveState) {
-            $source->setIsActive($newActiveState);
+        if ($source->isActive() !== $shouldBeActive) {
+            $source->setIsActive($shouldBeActive);
+            $this->logger->info('Source status corrected', [
+                'sourceId' => $source->getId(),
+                'listingId' => $listing->getId(),
+                'listingStatus' => $listing->getStatus(),
+                'newIsActive' => $shouldBeActive,
+            ]);
         }
     }
 

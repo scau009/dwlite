@@ -17,6 +17,7 @@ import {
   type StockStatus,
   type InventoryWarehouse,
 } from '@/lib/inbound-api';
+import { getCurrencySymbol } from '@/lib/merchant-listing-api';
 
 export function MerchantStockListPage() {
   const { t } = useTranslation();
@@ -181,7 +182,7 @@ export function MerchantStockListPage() {
       align: 'right',
       render: (_, record) => (
         <span className={record.averageCost ? 'font-mono' : 'text-gray-400'}>
-          {record.averageCost ? `¥${record.averageCost}` : '-'}
+          {record.averageCost ? `${getCurrencySymbol(record.currency)}${record.averageCost}` : '-'}
         </span>
       ),
     },

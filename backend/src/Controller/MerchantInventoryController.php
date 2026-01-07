@@ -207,6 +207,7 @@ class MerchantInventoryController extends AbstractController
             'quantityDamaged' => $inventory->getQuantityDamaged(),
             'quantityAllocated' => $inventory->getQuantityAllocated(),
             'averageCost' => $inventory->getAverageCost(),
+            'currency' => $inventory->getCurrency(),
             'safetyStock' => $inventory->getSafetyStock(),
             'isBelowSafetyStock' => $inventory->isBelowSafetyStock(),
             'lastInboundAt' => $inventory->getLastInboundAt()?->format('c'),

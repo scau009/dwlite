@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { ProTable, type ActionType, type ProColumns } from '@ant-design/pro-components';
 import { Button, Tag, Space, App, Avatar } from 'antd';
-import { PlusOutlined, ShopOutlined } from '@ant-design/icons';
+import { PlusOutlined } from '@ant-design/icons';
 
 import {
   merchantListingApi,
@@ -11,7 +11,7 @@ import {
   type MerchantListing,
   type ListingStatus,
   type FulfillmentType,
-  type PricingModel,
+  type AllocationMode,
 } from '@/lib/merchant-listing-api';
 
 const statusColorMap: Record<ListingStatus, string> = {
@@ -26,9 +26,9 @@ const fulfillmentColorMap: Record<FulfillmentType, string> = {
   self_fulfillment: 'purple',
 };
 
-const pricingColorMap: Record<PricingModel, string> = {
-  self_pricing: 'cyan',
-  platform_managed: 'orange',
+const allocationColorMap: Record<AllocationMode, string> = {
+  shared: 'cyan',
+  dedicated: 'orange',
 };
 
 export function ListingsListPage() {
@@ -129,57 +129,51 @@ export function ListingsListPage() {
       ),
     },
     {
-      title: t('listingManagement.barcode'),
-      dataIndex: 'barcode',
-      width: 140,
-      search: false,
-      render: (_, record) => (
-        <span className="text-xs font-mono">{record.productSku.barcode || '-'}</span>
-      ),
-    },
-    {
       title: t('listingManagement.channel'),
       dataIndex: 'channelId',
-      width: 220,
+      width: 120,
       valueType: 'select',
       valueEnum: channelOptions,
       search: {
         transform: (value) => ({ channelId: value }),
       },
       render: (_, record) => (
-        <div className="space-y-1">
-          <Space size="small">
-            {record.salesChannel.logoUrl ? (
-              <Avatar src={record.salesChannel.logoUrl} size={20} shape="square" />
-            ) : (
-              <Avatar icon={<ShopOutlined />} size={20} shape="square" />
-            )}
-            <span className="text-sm">{record.salesChannel.name}</span>
-          </Space>
-          <div>
-            <Tag color={fulfillmentColorMap[record.fulfillmentType]} className="text-xs mr-1">
-              {record.fulfillmentType === 'consignment'
-                ? t('merchantChannels.fulfillmentConsignment')
-                : t('merchantChannels.fulfillmentSelfFulfillment')}
-            </Tag>
-            <Tag color={pricingColorMap[record.pricingModel]} className="text-xs">
-              {record.pricingModel === 'self_pricing'
-                ? t('listingManagement.selfPricing')
-                : t('listingManagement.platformManaged')}
-            </Tag>
-          </div>
-        </div>
+        <span className="text-sm">{record.salesChannel.name}</span>
       ),
     },
     {
       title: t('listingManagement.fulfillmentType'),
       dataIndex: 'fulfillmentType',
-      hideInTable: true,
+      width: 100,
       valueType: 'select',
       valueEnum: {
         consignment: { text: t('merchantChannels.fulfillmentConsignment') },
         self_fulfillment: { text: t('merchantChannels.fulfillmentSelfFulfillment') },
       },
+      render: (_, record) => (
+        <Tag color={fulfillmentColorMap[record.fulfillmentType]}>
+          {record.fulfillmentType === 'consignment'
+            ? t('merchantChannels.fulfillmentConsignment')
+            : t('merchantChannels.fulfillmentSelfFulfillment')}
+        </Tag>
+      ),
+    },
+    {
+      title: t('listingManagement.allocationMode'),
+      dataIndex: 'allocationMode',
+      width: 100,
+      valueType: 'select',
+      valueEnum: {
+        shared: { text: t('listingManagement.allocationModeShared') },
+        dedicated: { text: t('listingManagement.allocationModeDedicated') },
+      },
+      render: (_, record) => (
+        <Tag color={allocationColorMap[record.allocationMode]}>
+          {record.allocationMode === 'shared'
+            ? t('listingManagement.allocationModeShared')
+            : t('listingManagement.allocationModeDedicated')}
+        </Tag>
+      ),
     },
     {
       title: t('listingManagement.pricingModel'),

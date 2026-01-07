@@ -45,7 +45,8 @@
         "symfony/uid": "6.4.*",
         "symfony/validator": "6.4.*",
         "symfony/yaml": "6.4.*",
-        "tencentcloud/ses": "^3.0"
+        "tencentcloud/ses": "^3.0",
+        "zenstruck/messenger-monitor-bundle": "^0.6.0"
     },
     "config": {
         "allow-plugins": {

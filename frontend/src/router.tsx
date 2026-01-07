@@ -25,6 +25,8 @@ import { ProductsListPage, ProductDetailPage } from '@/pages/products';
 import { MerchantsListPage } from '@/pages/merchants';
 import { BrandsListPage } from '@/pages/brands';
 import { ChannelsListPage, MerchantChannelsListPage, AvailableChannelsPage, MyChannelsPage } from '@/pages/channels';
+import { ChannelProductsListPage } from '@/pages/channels/products/list';
+import { ChannelProductDetailPage } from '@/pages/channels/products/detail';
 import { ListingsListPage, CreateListingPage, EditListingPage, ListingLogsPage } from '@/pages/listings';
 import { CategoriesListPage } from '@/pages/categories';
 import { TagsListPage } from '@/pages/tags';
@@ -185,6 +187,8 @@ export const router = createBrowserRouter([
               // Channels
               { path: '/channels', element: <Navigate to="/channels/list" replace /> },
               { path: '/channels/list', element: <ChannelsListPage /> },
+              { path: '/channels/products', element: <ChannelProductsListPage /> },
+              { path: '/channels/products/:id', element: <ChannelProductDetailPage /> },
               { path: '/channels/merchants', element: <MerchantChannelsListPage /> },
               { path: '/channels/available', element: <AvailableChannelsPage /> },
               { path: '/channels/my-channels', element: <MyChannelsPage /> },

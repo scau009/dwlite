@@ -410,6 +410,13 @@ class InboundOrderService
 
             // 自动创建异常单（数量差异或损坏）
             $this->autoCreateExceptions($order, $operatorId);
+
+            // 更新物流单状态为已送达
+            $shipment = $order->getShipment();
+            if ($shipment !== null && !$shipment->isDelivered()) {
+                $shipment->setStatus(InboundShipment::STATUS_DELIVERED);
+                $shipment->setDeliveredAt(new \DateTimeImmutable('now', new \DateTimeZone('UTC')));
+            }
         } else {
             // 还有未收货商品，设置为收货中状态
             $order->setStatus(InboundOrder::STATUS_RECEIVING);

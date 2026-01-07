@@ -162,6 +162,11 @@ composer cache:clear              # Clear Symfony cache
 php bin/console debug:router      # List all routes
 php bin/console lexik:jwt:generate-keypair   # Generate JWT keys (first-time setup)
 php bin/console app:create-admin admin@example.com password  # Create admin user
+
+# Static analysis and code style
+vendor/bin/phpstan analyse        # Run PHPStan (level 5)
+vendor/bin/php-cs-fixer fix       # Fix code style (PSR-12 + Symfony)
+vendor/bin/php-cs-fixer fix --dry-run --diff  # Preview code style changes
 ```
 
 ### Frontend (from /frontend)
@@ -184,6 +189,9 @@ docker compose exec backend php bin/console messenger:failed:show
 
 # Retry failed messages
 docker compose exec backend php bin/console messenger:failed:retry
+
+# Debug messenger routing
+docker compose exec backend php bin/console debug:messenger
 
 # Test dispatch (sends example message)
 curl -X POST http://localhost:8000/async/dispatch
@@ -263,6 +271,29 @@ $bus->dispatch(new MyTaskMessage('some data'));
 - 失败消息: `dwlite_failed`
 - 重试策略: 最多 3 次，指数退避
 - Trace Context: 自动通过 `TraceIdMiddleware` 传递到异步任务
+
+## Messenger Monitor (队列监控)
+
+监控面板地址：`/_debug/messenger`（无需认证）
+
+**相关命令：**
+
+```bash
+# 查看监控状态
+php bin/console messenger:monitor
+
+# 清理旧消息记录（默认保留1个月）
+php bin/console messenger:monitor:purge
+
+# 清理定时任务历史
+php bin/console messenger:monitor:schedule:purge
+```
+
+**配置文件：**
+
+- Bundle 配置: `config/packages/zenstruck_messenger_monitor.yaml`
+- Entity: `src/Entity/ProcessedMessage.php`
+- 数据库表: `doc/processed_messages.sql`
 
 ## Scheduled Tasks (Symfony Scheduler)
 
@@ -433,6 +464,15 @@ Admin 控制器位于 `src/Controller/Admin/`，处理：
 - **绝对不要使用 Migration 管理数据库 schema**
 - 调试 API 时，使用 IDE 里临时文件的功能
 - **修改了 Entity 后，必须修改对应的 doc 里的 sql 文件**
+
+## Database Schema Management
+
+数据库结构手动管理，SQL 文件位于 `doc/` 目录：
+
+- 每个表对应一个 `.sql` 文件（如 `doc/users.sql`, `doc/products.sql`）
+- 修改 Entity 后，必须同步更新对应的 SQL 文件
+- 新增表时，创建新的 SQL 文件
+- **禁止使用 Doctrine Migrations**
 
 ## Code Conventions
 

@@ -716,6 +716,7 @@ class InboundOrderController extends AbstractController
             'receivedQuantity' => $item->getReceivedQuantity(),
             'damagedQuantity' => $item->getDamagedQuantity(),
             'unitCost' => $item->getUnitCost(),
+            'currency' => $item->getProductSku()?->getCurrency() ?? 'CNY',
             'status' => $item->getStatus(),
             'warehouseRemark' => $item->getWarehouseRemark(),
             'receivedAt' => $item->getReceivedAt()?->format('c'),

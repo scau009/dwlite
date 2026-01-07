@@ -1,0 +1,25 @@
+-- Messenger Monitor: 消息处理记录表
+CREATE TABLE `processed_messages` (
+    `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `run_id` INT NOT NULL COMMENT '运行ID',
+    `attempt` SMALLINT NOT NULL DEFAULT 1 COMMENT '尝试次数',
+    `message_type` VARCHAR(255) NOT NULL COMMENT '消息类型(类名)',
+    `description` VARCHAR(255) NULL COMMENT '消息描述',
+    `dispatched_at` DATETIME NOT NULL COMMENT '派发时间',
+    `received_at` DATETIME NOT NULL COMMENT '接收时间',
+    `finished_at` DATETIME NOT NULL COMMENT '完成时间',
+    `wait_time` BIGINT NOT NULL COMMENT '等待时间(毫秒)',
+    `handle_time` BIGINT NOT NULL COMMENT '处理时间(毫秒)',
+    `memory_usage` BIGINT NOT NULL COMMENT '内存使用(字节)',
+    `transport` VARCHAR(255) NOT NULL COMMENT '传输通道',
+    `tags` VARCHAR(255) NULL COMMENT '标签',
+    `failure_type` VARCHAR(255) NULL COMMENT '失败类型(异常类名)',
+    `failure_message` TEXT NULL COMMENT '失败消息',
+    `results` JSON NULL COMMENT '处理结果',
+    PRIMARY KEY (`id`),
+    INDEX `idx_run_id` (`run_id`),
+    INDEX `idx_message_type` (`message_type`),
+    INDEX `idx_transport` (`transport`),
+    INDEX `idx_finished_at` (`finished_at`),
+    INDEX `idx_failure_type` (`failure_type`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='消息处理记录';

@@ -41,11 +41,6 @@ parameters:
 			path: src/Service/Mail/TencentSesMailService.php
 
 		-
-			message: "#^Negated boolean expression is always false\\.$#"
-			count: 2
-			path: src/Service/RuleEngine/MerchantRuleService.php
-
-		-
 			message: "#^Call to protected method getEntityManager\\(\\) of class Doctrine\\\\ORM\\\\EntityRepository\\<App\\\\Entity\\\\MerchantRule\\>\\.$#"
 			count: 1
 			path: src/Service/RuleEngine/MerchantRuleService.php

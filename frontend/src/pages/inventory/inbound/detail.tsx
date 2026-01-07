@@ -37,6 +37,7 @@ import {
   type InboundOrderItem,
   type InboundException,
 } from '@/lib/inbound-api';
+import { getCurrencySymbol } from '@/lib/merchant-listing-api';
 import { InboundOrderFormModal } from './components/inbound-order-form-modal';
 import { CancelOrderModal } from './components/cancel-order-modal';
 import { InboundOrderItemModal } from './components/inbound-order-item-modal';
@@ -318,6 +319,7 @@ export function InboundOrderDetailPage() {
       align: 'right',
       render: (cost: string | null, record: InboundOrderItem) => {
         const isEditing = editingCostItemId === record.id;
+        const currencySymbol = getCurrencySymbol(record.currency);
 
         if (canEditCost) {
           if (isEditing) {
@@ -345,7 +347,7 @@ export function InboundOrderDetailPage() {
                 }}
                 autoFocus
                 style={{ width: 100 }}
-                prefix="¥"
+                prefix={currencySymbol}
                 disabled={savingCost}
               />
             );
@@ -357,12 +359,12 @@ export function InboundOrderDetailPage() {
               onClick={() => setEditingCostItemId(record.id)}
               title={t('common.clickToEdit')}
             >
-              {cost ? `¥${cost}` : <Text type="secondary">{t('common.clickToEdit')}</Text>}
+              {cost ? `${currencySymbol}${cost}` : <Text type="secondary">{t('common.clickToEdit')}</Text>}
             </span>
           );
         }
 
-        return cost ? `¥${cost}` : '-';
+        return cost ? `${currencySymbol}${cost}` : '-';
       },
     },
     {

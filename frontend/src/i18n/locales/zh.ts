@@ -104,6 +104,7 @@ export default {
     merchantList: '商户列表',
     // Channels
     channelList: '销售渠道',
+    channelProducts: '渠道商品',
     merchantChannels: '商户渠道',
     availableChannels: '可申请渠道',
     myChannels: '我的渠道',
@@ -1776,5 +1777,114 @@ export default {
     operationActivate: '激活上架',
     operationPause: '暂停上架',
     operationDelete: '删除上架',
+  },
+
+  // Channel Products (Admin)
+  channelProducts: {
+    productSku: '商品SKU',
+    salesChannel: '销售渠道',
+    platformPrice: '平台价格',
+    stockQuantity: '库存数量',
+    status: '状态',
+    syncStatus: '同步状态',
+    externalId: '外部ID',
+    lastSyncedAt: '最后同步时间',
+    searchPlaceholder: '搜索商品名称或SKU编码...',
+
+    // Status
+    statusDraft: '草稿',
+    statusPending: '待处理',
+    statusActive: '已激活',
+    statusPaused: '已暂停',
+    statusRejected: '已拒绝',
+
+    // Sync Status
+    syncPending: '待同步',
+    syncSyncing: '同步中',
+    syncSynced: '已同步',
+    syncFailed: '同步失败',
+
+    // Actions
+    activate: '激活',
+    pause: '暂停',
+    sync: '同步',
+    triggerSync: '触发同步',
+
+    // Messages
+    activated: '渠道商品已激活',
+    paused: '渠道商品已暂停',
+    syncTriggered: '已触发同步',
+    syncTriggeredWithCorrection: '已触发同步，修正了 {{count}} 个数据源状态',
+
+    // Detail Page
+    notFound: '渠道商品不存在',
+    basicInfo: '基本信息',
+    productName: '商品名称',
+    skuCode: 'SKU编码',
+    stockMode: '库存模式',
+    sourcesCount: '数据源数量',
+    syncLogs: '同步日志',
+
+    // Sync Log Columns
+    operation: '操作类型',
+    triggerSource: '触发来源',
+    logStatus: '状态',
+    errorMessage: '错误信息',
+    duration: '耗时',
+    startedAt: '开始时间',
+
+    // Operations
+    operationAggregate: '聚合库存',
+    operationPushProduct: '推送商品',
+    operationUpdateStockPrice: '更新库存价格',
+    operationDelist: '下架商品',
+
+    // Trigger Sources
+    triggerListingCreate: '上架创建',
+    triggerListingUpdate: '上架更新',
+    triggerListingActivate: '上架激活',
+    triggerListingPause: '上架暂停',
+    triggerListingDelete: '上架删除',
+    triggerInventoryInbound: '库存入库',
+    triggerInventoryOutbound: '库存出库',
+    triggerInventoryAdjust: '库存调整',
+    triggerManual: '手动触发',
+    triggerScheduled: '定时任务',
+    triggerCompensation: '补偿同步',
+
+    // Log Status
+    logStatusPending: '待处理',
+    logStatusProcessing: '处理中',
+    logStatusSuccess: '成功',
+    logStatusFailed: '失败',
+    logStatusSkipped: '跳过',
+
+    // Inventory Sources
+    inventorySources: '库存来源',
+    sourceMerchant: '商户',
+    sourceWarehouse: '仓库',
+    sourcePrice: '报价',
+    sourceAvailable: '可用库存',
+    sourceAllocation: '分配模式',
+    sourceFulfillment: '履约模式',
+    sourcePriority: '优先级',
+    sourceStatus: '状态',
+    sourceSold: '已售',
+    sourceActive: '启用',
+    sourceInactive: '禁用',
+
+    // Allocation Mode
+    allocationShared: '共享',
+    allocationDedicated: '独占',
+
+    // Fulfillment Type
+    fulfillmentConsignment: '寄售',
+    fulfillmentSelfFulfillment: '自履约',
+
+    // Listing Status
+    listingStatusDraft: '草稿',
+    listingStatusActive: '已上架',
+    listingStatusPaused: '已暂停',
+    listingStatusSoldOut: '已售罄',
   },
 }

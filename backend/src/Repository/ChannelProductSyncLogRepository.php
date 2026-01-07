@@ -197,4 +197,48 @@ class ChannelProductSyncLogRepository extends ServiceEntityRepository
             'total' => $total,
         ];
     }
+
+    /**
+     * Find logs by channel product with pagination.
+     *
+     * @return array{data: ChannelProductSyncLog[], total: int}
+     */
+    public function findByChannelProductPaginated(
+        string $channelProductId,
+        int $page = 1,
+        int $limit = 20,
+        ?string $status = null,
+        ?string $operation = null,
+    ): array {
+        $qb = $this->createQueryBuilder('l')
+            ->where('l.channelProductId = :channelProductId')
+            ->setParameter('channelProductId', $channelProductId)
+            ->orderBy('l.createdAt', 'DESC');
+
+        if ($status !== null) {
+            $qb->andWhere('l.status = :status')
+                ->setParameter('status', $status);
+        }
+
+        if ($operation !== null) {
+            $qb->andWhere('l.operation = :operation')
+                ->setParameter('operation', $operation);
+        }
+
+        // Count total
+        $countQb = clone $qb;
+        $total = (int) $countQb->select('COUNT(l.id)')->getQuery()->getSingleScalarResult();
+
+        // Get paginated results
+        $logs = $qb
+            ->setFirstResult(($page - 1) * $limit)
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+
+        return [
+            'data' => $logs,
+            'total' => $total,
+        ];
+    }
 }

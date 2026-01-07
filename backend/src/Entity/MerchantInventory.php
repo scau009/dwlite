@@ -56,6 +56,9 @@ class MerchantInventory
     #[ORM\Column(type: 'decimal', precision: 10, scale: 2, nullable: true)]
     private ?string $averageCost = null;  // 平均成本单价
 
+    #[ORM\Column(length: 3, options: ['default' => 'CNY'])]
+    private string $currency = 'CNY';  // 成本币种
+
     // 安全库存
     #[ORM\Column(type: 'integer', nullable: true)]
     private ?int $safetyStock = null;  // 安全库存量（低于此值预警）
@@ -202,6 +205,18 @@ class MerchantInventory
     public function setAverageCost(?string $averageCost): static
     {
         $this->averageCost = $averageCost;
+
+        return $this;
+    }
+
+    public function getCurrency(): string
+    {
+        return $this->currency;
+    }
+
+    public function setCurrency(string $currency): static
+    {
+        $this->currency = $currency;
 
         return $this;
     }

@@ -189,6 +189,63 @@ class ChannelProductRepository extends ServiceEntityRepository
     }
 
     /**
+     * Paginated list with filters for admin.
+     *
+     * @param array<string, mixed> $filters
+     *
+     * @return array{data: ChannelProduct[], total: int}
+     */
+    public function findPaginated(int $page, int $limit, array $filters = []): array
+    {
+        $qb = $this->createQueryBuilder('cp')
+            ->leftJoin('cp.salesChannel', 'sc')
+            ->leftJoin('cp.productSku', 'ps')
+            ->leftJoin('ps.product', 'p');
+
+        // Filter by sales channel
+        if (!empty($filters['salesChannelId'])) {
+            $qb->andWhere('sc.id = :salesChannelId')
+                ->setParameter('salesChannelId', $filters['salesChannelId']);
+        }
+
+        // Filter by status
+        if (!empty($filters['status'])) {
+            $qb->andWhere('cp.status = :status')
+                ->setParameter('status', $filters['status']);
+        }
+
+        // Filter by sync status
+        if (!empty($filters['syncStatus'])) {
+            $qb->andWhere('cp.syncStatus = :syncStatus')
+                ->setParameter('syncStatus', $filters['syncStatus']);
+        }
+
+        // Search by style number, size value, or product name
+        if (!empty($filters['search'])) {
+            $qb->andWhere('(p.styleNumber LIKE :search OR ps.sizeValue LIKE :search OR p.name LIKE :search)')
+                ->setParameter('search', '%' . $filters['search'] . '%');
+        }
+
+        // Get total count
+        $countQb = clone $qb;
+        $total = (int) $countQb->select('COUNT(cp.id)')
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        // Get paginated data
+        $data = $qb->orderBy('cp.updatedAt', 'DESC')
+            ->setFirstResult(($page - 1) * $limit)
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+
+        return [
+            'data' => $data,
+            'total' => $total,
+        ];
+    }
+
+    /**
      * Find stale pending products for compensation mechanism.
      *
      * Returns products that have been in pending sync status for longer than threshold,

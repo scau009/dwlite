@@ -104,6 +104,7 @@ export default {
     merchantList: 'Merchant List',
     // Channels
     channelList: 'Sales Channels',
+    channelProducts: 'Channel Products',
     merchantChannels: 'Merchant Channels',
     availableChannels: 'Available Channels',
     myChannels: 'My Channels',
@@ -1777,5 +1778,116 @@ export default {
     operationActivate: 'Activate Listing',
     operationPause: 'Pause Listing',
     operationDelete: 'Delete Listing',
+  },
+
+  // Channel Products (Admin)
+  channelProducts: {
+    title: 'Channel Products',
+    description: 'Manage aggregated products across sales channels',
+    productSku: 'Product SKU',
+    salesChannel: 'Sales Channel',
+    platformPrice: 'Platform Price',
+    stockQuantity: 'Stock Quantity',
+    status: 'Status',
+    syncStatus: 'Sync Status',
+    externalId: 'External ID',
+    lastSyncedAt: 'Last Synced At',
+    searchPlaceholder: 'Search by SKU code or product name...',
+
+    // Status
+    statusDraft: 'Draft',
+    statusPending: 'Pending',
+    statusActive: 'Active',
+    statusPaused: 'Paused',
+    statusRejected: 'Rejected',
+
+    // Sync Status
+    syncPending: 'Pending',
+    syncSyncing: 'Syncing',
+    syncSynced: 'Synced',
+    syncFailed: 'Failed',
+
+    // Actions
+    activate: 'Activate',
+    pause: 'Pause',
+    sync: 'Sync',
+    triggerSync: 'Trigger sync to external channel',
+
+    // Messages
+    activated: 'Channel product activated',
+    paused: 'Channel product paused',
+    syncTriggered: 'Sync triggered successfully',
+    syncTriggeredWithCorrection: 'Sync triggered, corrected {{count}} source status(es)',
+
+    // Detail Page
+    notFound: 'Channel product not found',
+    basicInfo: 'Basic Information',
+    productName: 'Product Name',
+    skuCode: 'SKU Code',
+    stockMode: 'Stock Mode',
+    sourcesCount: 'Sources Count',
+    syncLogs: 'Sync Logs',
+
+    // Sync Log Columns
+    operation: 'Operation',
+    triggerSource: 'Trigger Source',
+    logStatus: 'Status',
+    errorMessage: 'Error Message',
+    duration: 'Duration',
+    startedAt: 'Started At',
+
+    // Operations
+    operationAggregate: 'Aggregate',
+    operationPushProduct: 'Push Product',
+    operationUpdateStockPrice: 'Update Stock/Price',
+    operationDelist: 'Delist',
+
+    // Trigger Sources
+    triggerListingCreate: 'Listing Create',
+    triggerListingUpdate: 'Listing Update',
+    triggerListingActivate: 'Listing Activate',
+    triggerListingPause: 'Listing Pause',
+    triggerListingDelete: 'Listing Delete',
+    triggerInventoryInbound: 'Inventory Inbound',
+    triggerInventoryOutbound: 'Inventory Outbound',
+    triggerInventoryAdjust: 'Inventory Adjust',
+    triggerManual: 'Manual',
+    triggerScheduled: 'Scheduled',
+    triggerCompensation: 'Compensation',
+
+    // Log Status
+    logStatusPending: 'Pending',
+    logStatusProcessing: 'Processing',
+    logStatusSuccess: 'Success',
+    logStatusFailed: 'Failed',
+    logStatusSkipped: 'Skipped',
+
+    // Inventory Sources
+    inventorySources: 'Inventory Sources',
+    sourceMerchant: 'Merchant',
+    sourceWarehouse: 'Warehouse',
+    sourcePrice: 'Price',
+    sourceAvailable: 'Available',
+    sourceAllocation: 'Allocation',
+    sourceFulfillment: 'Fulfillment',
+    sourcePriority: 'Priority',
+    sourceStatus: 'Status',
+    sourceSold: 'Sold',
+    sourceActive: 'Active',
+    sourceInactive: 'Inactive',
+
+    // Allocation Mode
+    allocationShared: 'Shared',
+    allocationDedicated: 'Dedicated',
+
+    // Fulfillment Type
+    fulfillmentConsignment: 'Consignment',
+    fulfillmentSelfFulfillment: 'Self-Fulfillment',
+
+    // Listing Status
+    listingStatusDraft: 'Draft',
+    listingStatusActive: 'Active',
+    listingStatusPaused: 'Paused',
+    listingStatusSoldOut: 'Sold Out',
   },
 }

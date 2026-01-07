@@ -16,6 +16,7 @@ CREATE TABLE `merchant_inventories` (
 
     -- 成本信息
     `average_cost` DECIMAL(10,2) NULL COMMENT '平均成本单价（加权平均成本）',
+    `currency` VARCHAR(3) NOT NULL DEFAULT 'CNY' COMMENT '成本币种',
 
     -- 安全库存
     `safety_stock` INT NULL COMMENT '安全库存量（低于此值预警）',
@@ -44,3 +45,7 @@ CREATE TABLE `merchant_inventories` (
     CONSTRAINT `fk_mi_warehouse` FOREIGN KEY (`warehouse_id`) REFERENCES `warehouses` (`id`) ON DELETE CASCADE,
     CONSTRAINT `fk_mi_sku` FOREIGN KEY (`product_sku_id`) REFERENCES `product_skus` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='商户库存';
+
+ALTER TABLE `merchant_inventories`
+    ADD COLUMN `currency` VARCHAR(3) NOT NULL DEFAULT 'CNY' COMMENT '成本币种'
+        AFTER `average_cost`;

@@ -3,7 +3,9 @@
 namespace App\Scheduler;
 
 use App\Message\CleanupMessage;
+use App\Message\ScanFailedOrderSyncMessage;
 use App\Message\ScanPendingSyncMessage;
+use App\Message\ScheduleOrderPullMessage;
 use App\Message\StartProductSyncMessage;
 use App\Service\ProductSync\Provider\KicksDbProvider;
 use Symfony\Component\Scheduler\Attribute\AsSchedule;
@@ -37,6 +39,12 @@ class MainSchedule implements ScheduleProviderInterface
                 // Channel product sync compensation - scan for stale pending products every 5 minutes
                 // This catches any products stuck in pending status due to message loss or processing failures
                 RecurringMessage::every('5 minutes', ScanPendingSyncMessage::create()),
+
+                // Order sync - pull orders from all active channels every 5 minutes
+                RecurringMessage::every('5 minutes', ScheduleOrderPullMessage::create()),
+
+                // Order sync compensation - scan for failed order syncs every 10 minutes
+                RecurringMessage::every('10 minutes', ScanFailedOrderSyncMessage::create()),
 
                 // Examples of other schedule patterns:
                 // RecurringMessage::every('1 hour', new HourlyTaskMessage()),

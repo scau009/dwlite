@@ -76,6 +76,7 @@ export interface InboundOrderItem {
   receivedQuantity: number;
   damagedQuantity: number;
   unitCost: string | null;
+  currency: string;
   status: string;
   warehouseRemark: string | null;
   receivedAt: string | null;
@@ -594,6 +595,7 @@ export interface MerchantInventoryItem {
   quantityDamaged: number;
   quantityAllocated: number;
   averageCost: string | null;
+  currency: string;
   safetyStock: number | null;
   isBelowSafetyStock: boolean;
   lastInboundAt: string | null;

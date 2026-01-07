@@ -130,6 +130,12 @@ class InboundOrderRepository extends ServiceEntityRepository
         $qb = $this->createQueryBuilder('io')
             ->andWhere('io.warehouse = :warehouse')
             ->setParameter('warehouse', $warehouse)
+            // 仓库视角：始终排除草稿和未发货状态
+            ->andWhere('io.status NOT IN (:excludedStatuses)')
+            ->setParameter('excludedStatuses', [
+                InboundOrder::STATUS_DRAFT,
+                InboundOrder::STATUS_PENDING,
+            ])
             ->orderBy('io.createdAt', 'DESC');
 
         // 应用筛选条件
