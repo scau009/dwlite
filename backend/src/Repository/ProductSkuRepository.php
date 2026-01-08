@@ -74,4 +74,28 @@ class ProductSkuRepository extends ServiceEntityRepository
             ->getQuery()
             ->getOneOrNullResult();
     }
+
+    /**
+     * 根据 SKU 编码查找 SKU（格式：styleNumber-sizeValue，如 ABC123-42）.
+     */
+    public function findOneBySkuCode(string $skuCode): ?ProductSku
+    {
+        // SKU 编码格式：styleNumber-sizeValue
+        $parts = explode('-', $skuCode, 2);
+        if (count($parts) !== 2) {
+            return null;
+        }
+
+        [$styleNumber, $sizeValue] = $parts;
+
+        return $this->createQueryBuilder('s')
+            ->join('s.product', 'p')
+            ->where('p.styleNumber = :styleNumber')
+            ->andWhere('s.sizeValue = :sizeValue')
+            ->setParameter('styleNumber', $styleNumber)
+            ->setParameter('sizeValue', $sizeValue)
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
 }

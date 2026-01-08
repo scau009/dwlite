@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import {
   Modal,
   Steps,
-  Select,
+  TreeSelect,
   Table,
   InputNumber,
   Button,
@@ -19,7 +19,7 @@ import {
   inboundApi,
   type InboundProduct,
   type InboundProductSku,
-  type AvailableWarehouse,
+  type WarehouseGroup,
 } from '@/lib/inbound-api';
 import { getCurrencySymbol } from '@/lib/merchant-listing-api';
 
@@ -49,7 +49,7 @@ export function CreateOrderModal({
   const { message } = App.useApp();
 
   const [currentStep, setCurrentStep] = useState(0);
-  const [warehouses, setWarehouses] = useState<AvailableWarehouse[]>([]);
+  const [warehouseGroups, setWarehouseGroups] = useState<WarehouseGroup[]>([]);
   const [warehouseLoading, setWarehouseLoading] = useState(false);
   const [selectedWarehouse, setSelectedWarehouse] = useState<string | null>(null);
   const [skuSelections, setSkuSelections] = useState<SkuSelection[]>([]);
@@ -71,7 +71,7 @@ export function CreateOrderModal({
     setWarehouseLoading(true);
     try {
       const data = await inboundApi.getAvailableWarehouses();
-      setWarehouses(data);
+      setWarehouseGroups(data);
     } catch (error) {
       console.error('Failed to load warehouses:', error);
       message.error(t('common.error'));
@@ -241,6 +241,33 @@ export function CreateOrderModal({
   const validSelectionsCount = skuSelections.filter((s) => s.quantity > 0).length;
   const totalQuantity = skuSelections.reduce((sum, s) => sum + s.quantity, 0);
 
+  // Transform warehouse groups to tree data
+  const treeData = useMemo(() => {
+    return warehouseGroups.map((group) => ({
+      title: (
+        <div className="flex items-center gap-2">
+          {group.channel.logoUrl && (
+            <Avatar src={group.channel.logoUrl} size={16} />
+          )}
+          <span className="font-medium">{group.channel.name}</span>
+        </div>
+      ),
+      value: `channel-${group.channel.id}`,
+      selectable: false,
+      children: group.warehouses.map((warehouse) => ({
+        title: (
+          <div className="flex flex-col">
+            <span>{warehouse.name} ({warehouse.code})</span>
+            <span className="text-xs text-gray-400">
+              {warehouse.city || warehouse.province || warehouse.fullAddress}
+            </span>
+          </div>
+        ),
+        value: warehouse.id,
+      })),
+    }));
+  }, [warehouseGroups]);
+
   return (
     <Modal
       title={t('opportunities.createOrderTitle')}
@@ -265,16 +292,20 @@ export function CreateOrderModal({
             <label className="block text-sm font-medium mb-2">
               {t('opportunities.selectWarehouse')}
             </label>
-            <Select
+            <TreeSelect
               className="w-full"
               placeholder={t('opportunities.selectWarehousePlaceholder')}
               loading={warehouseLoading}
               value={selectedWarehouse}
               onChange={setSelectedWarehouse}
-              options={warehouses.map((w) => ({
-                label: `${w.name} (${w.code})`,
-                value: w.id,
-              }))}
+              treeData={treeData}
+              treeDefaultExpandAll
+              showSearch
+              treeLine
+              filterTreeNode={(input, node) => {
+                const title = node?.title?.toString() || '';
+                return title.toLowerCase().includes(input.toLowerCase());
+              }}
             />
           </div>
           <div className="flex justify-end mt-6">

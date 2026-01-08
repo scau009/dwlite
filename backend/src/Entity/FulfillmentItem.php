@@ -39,6 +39,19 @@ class FulfillmentItem
     #[ORM\JoinColumn(name: 'warehouse_id', nullable: true)]
     private ?Warehouse $warehouse = null;
 
+    // 来源追踪（用于溯源分配决策）
+    #[ORM\ManyToOne(targetEntity: ChannelProductSource::class)]
+    #[ORM\JoinColumn(name: 'channel_product_source_id', nullable: true)]
+    private ?ChannelProductSource $channelProductSource = null;
+
+    #[ORM\ManyToOne(targetEntity: InventoryListing::class)]
+    #[ORM\JoinColumn(name: 'inventory_listing_id', nullable: true)]
+    private ?InventoryListing $inventoryListing = null;
+
+    #[ORM\ManyToOne(targetEntity: MerchantInventory::class)]
+    #[ORM\JoinColumn(name: 'merchant_inventory_id', nullable: true)]
+    private ?MerchantInventory $merchantInventory = null;
+
     // 数量
     #[ORM\Column(type: 'integer')]
     private int $quantity;
@@ -118,6 +131,42 @@ class FulfillmentItem
     public function setWarehouse(?Warehouse $warehouse): static
     {
         $this->warehouse = $warehouse;
+
+        return $this;
+    }
+
+    public function getChannelProductSource(): ?ChannelProductSource
+    {
+        return $this->channelProductSource;
+    }
+
+    public function setChannelProductSource(?ChannelProductSource $channelProductSource): static
+    {
+        $this->channelProductSource = $channelProductSource;
+
+        return $this;
+    }
+
+    public function getInventoryListing(): ?InventoryListing
+    {
+        return $this->inventoryListing;
+    }
+
+    public function setInventoryListing(?InventoryListing $inventoryListing): static
+    {
+        $this->inventoryListing = $inventoryListing;
+
+        return $this;
+    }
+
+    public function getMerchantInventory(): ?MerchantInventory
+    {
+        return $this->merchantInventory;
+    }
+
+    public function setMerchantInventory(?MerchantInventory $merchantInventory): static
+    {
+        $this->merchantInventory = $merchantInventory;
 
         return $this;
     }
@@ -239,6 +288,7 @@ class FulfillmentItem
      */
     public function snapshotFromListing(InventoryListing $listing): void
     {
+        $this->inventoryListing = $listing;
         $this->listPrice = $listing->getPrice();
         // settlementPrice 和 commissionRate 可从其他配置获取
     }
@@ -248,7 +298,19 @@ class FulfillmentItem
      */
     public function snapshotFromInventory(MerchantInventory $inventory): void
     {
+        $this->merchantInventory = $inventory;
         $this->merchant = $inventory->getMerchant();
         $this->warehouse = $inventory->getWarehouse();
+    }
+
+    /**
+     * 从 ChannelProductSource 快照来源信息.
+     */
+    public function snapshotFromSource(ChannelProductSource $source): void
+    {
+        $this->channelProductSource = $source;
+        $listing = $source->getInventoryListing();
+        $this->snapshotFromListing($listing);
+        $this->snapshotFromInventory($listing->getMerchantInventory());
     }
 }

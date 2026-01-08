@@ -5,7 +5,7 @@ import {
   InboxOutlined,
   // DollarOutlined,
   // ShoppingCartOutlined,
-  // CarOutlined,
+  CarOutlined,
   // BarChartOutlined,
   SettingOutlined,
   TeamOutlined,
@@ -97,19 +97,16 @@ export function getMenuData(t: TFunction): AccessMenuDataItem[] {
     //     { path: '/orders/refunds', name: t('menu.orderRefunds') },
     //   ],
     // },
-    // TODO: 履约管理 - 暂时隐藏
-    // {
-    //   path: '/fulfillment',
-    //   name: t('nav.fulfillment'),
-    //   icon: <CarOutlined />,
-    //   access: ['admin', 'merchant'],
-    //   children: [
-    //     { path: '/fulfillment', name: t('menu.fulfillmentList') },
-    //     { path: '/fulfillment/pending', name: t('menu.fulfillmentPending') },
-    //     { path: '/fulfillment/shipped', name: t('menu.fulfillmentShipped') },
-    //     { path: '/fulfillment/exceptions', name: t('menu.fulfillmentExceptions') },
-    //   ],
-    // },
+    {
+      path: '/fulfillment',
+      name: t('nav.fulfillment'),
+      icon: <CarOutlined />,
+      access: 'admin',
+      children: [
+        { path: '/fulfillment/orders', name: t('menu.platformOrders'), access: 'admin' },
+        { path: '/fulfillment/order-exceptions', name: t('menu.orderExceptions'), access: 'admin' },
+      ],
+    },
     {
       path: '/merchants',
       name: t('nav.merchants'),

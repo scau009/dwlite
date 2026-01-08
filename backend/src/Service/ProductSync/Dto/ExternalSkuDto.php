@@ -15,20 +15,23 @@ readonly class ExternalSkuDto
         public ?string $price,
         public ?string $originalPrice,
         public ?string $barcode = null,
+        public ?string $currency = '',
     ) {
     }
 
     /**
      * Create from KicksDB size data.
      */
-    public static function fromKicksDb(array $data, ?float $retailPrice = null): self
+    public static function fromKicksDb(array $data,float $avgPrice): self
     {
+        $isUs = in_array(strtoupper($data['size_type']), ['US', 'US M'], true);
         return new self(
             sizeValue: (string) ($data['size'] ?? ''),
-            sizeUnit: 'US', // KicksDB uses US sizing
-            price: isset($data['lowestAsk']) ? (string) $data['lowestAsk'] : null,
-            originalPrice: $retailPrice !== null ? (string) $retailPrice : null,
+            sizeUnit: $isUs ? 'US' : ($data['size_type'] ?? ''), // KicksDB uses US sizing
+            price: $avgPrice,
+            originalPrice: $avgPrice,
             barcode: $data['gtin'] ?? $data['upc'] ?? null,
+            currency: 'USD',
         );
     }
 }

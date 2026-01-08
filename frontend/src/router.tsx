@@ -37,6 +37,8 @@ import {
   InboundExceptionsListPage,
   InboundExceptionDetailPage,
   MerchantStockListPage,
+  AddInventoryPage,
+  ImportInventoryPage,
   OutboundOrdersListPage,
   OutboundOrderDetailPage,
   MerchantWarehousesListPage,
@@ -52,6 +54,8 @@ import {
 import { MerchantProfilePage, MerchantWalletPage } from '@/pages/settings';
 import { MerchantRulesPage } from '@/pages/settings/rules';
 import { PlatformRulesListPage } from '@/pages/platform-rules/list';
+import { OrderExceptionsListPage, OrderExceptionDetailPage } from '@/pages/fulfillment/order-exceptions';
+import { PlatformOrdersListPage, PlatformOrderDetailPage } from '@/pages/fulfillment/orders';
 
 // Placeholder component for pages not yet implemented
 // eslint-disable-next-line react-refresh/only-export-components
@@ -163,10 +167,11 @@ export const router = createBrowserRouter([
               { path: '/orders/refunds', element: <PlaceholderPage title="Refunds" /> },
 
               // Fulfillment
-              { path: '/fulfillment', element: <PlaceholderPage title="Fulfillment List" /> },
-              { path: '/fulfillment/pending', element: <PlaceholderPage title="Pending Shipment" /> },
-              { path: '/fulfillment/shipped', element: <PlaceholderPage title="Shipped" /> },
-              { path: '/fulfillment/exceptions', element: <PlaceholderPage title="Fulfillment Exceptions" /> },
+              { path: '/fulfillment', element: <Navigate to="/fulfillment/orders" replace /> },
+              { path: '/fulfillment/orders', element: <PlatformOrdersListPage /> },
+              { path: '/fulfillment/orders/:id', element: <PlatformOrderDetailPage /> },
+              { path: '/fulfillment/order-exceptions', element: <OrderExceptionsListPage /> },
+              { path: '/fulfillment/order-exceptions/:id', element: <OrderExceptionDetailPage /> },
 
               // Opportunities
               { path: '/opportunities', element: <OpportunitiesListPage /> },
@@ -174,6 +179,8 @@ export const router = createBrowserRouter([
               // Inventory
               { path: '/inventory/warehouses', element: <MerchantWarehousesListPage /> },
               { path: '/inventory/stock', element: <MerchantStockListPage /> },
+              { path: '/inventory/stock/add', element: <AddInventoryPage /> },
+              { path: '/inventory/stock/import', element: <ImportInventoryPage /> },
               { path: '/inventory/inbound', element: <InboundOrdersListPage /> },
               { path: '/inventory/inbound/detail/:id', element: <InboundOrderDetailPage /> },
               { path: '/inventory/outbound', element: <OutboundOrdersListPage /> },

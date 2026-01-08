@@ -14,12 +14,14 @@ use App\Dto\Inbound\UpdateInboundOrderRequest;
 use App\Dto\Inbound\UpdateItemCostRequest;
 use App\Entity\InboundException;
 use App\Entity\Product;
+use App\Entity\SalesChannel;
 use App\Entity\User;
 use App\Entity\Warehouse;
 use App\Repository\InboundExceptionRepository;
 use App\Repository\MerchantRepository;
 use App\Repository\ProductRepository;
-use App\Repository\WarehouseRepository;
+use App\Repository\SalesChannelRepository;
+use App\Repository\SalesChannelWarehouseRepository;
 use App\Service\CosService;
 use App\Service\InboundOrderService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -40,7 +42,6 @@ class InboundOrderController extends AbstractController
     public function __construct(
         private InboundOrderService $inboundOrderService,
         private MerchantRepository $merchantRepository,
-        private WarehouseRepository $warehouseRepository,
         private ProductRepository $productRepository,
         private InboundExceptionRepository $inboundExceptionRepository,
         private CosService $cosService,
@@ -62,25 +63,50 @@ class InboundOrderController extends AbstractController
     }
 
     /**
-     * 获取可用仓库列表（平台仓库）.
+     * 获取可用仓库列表（平台仓库，按销售渠道分组）.
      */
     #[Route('/warehouses', name: 'inbound_list_warehouses', methods: ['GET'])]
-    public function listWarehouses(): JsonResponse
-    {
-        $warehouses = $this->warehouseRepository->findActivePlatformWarehouses();
+    public function listWarehouses(
+        SalesChannelRepository $salesChannelRepository,
+        SalesChannelWarehouseRepository $salesChannelWarehouseRepository
+    ): JsonResponse {
+        $channels = $salesChannelRepository->findActive();
 
-        return $this->json([
-            'data' => array_map(fn (Warehouse $w) => [
-                'id' => $w->getId(),
-                'code' => $w->getCode(),
-                'name' => $w->getName(),
-                'shortName' => $w->getShortName(),
-                'type' => $w->getType(),
-                'fullAddress' => $w->getFullAddress(),
-                'city' => $w->getCity(),
-                'province' => $w->getProvince(),
-            ], $warehouses),
-        ]);
+        $result = [];
+        foreach ($channels as $channel) {
+            $channelWarehouses = $salesChannelWarehouseRepository->findByChannel($channel, true);
+
+            $warehouses = [];
+            foreach ($channelWarehouses as $scw) {
+                $warehouse = $scw->getWarehouse();
+                if ($warehouse->isPlatformWarehouse()) {
+                    $warehouses[] = [
+                        'id' => $warehouse->getId(),
+                        'code' => $warehouse->getCode(),
+                        'name' => $warehouse->getName(),
+                        'shortName' => $warehouse->getShortName(),
+                        'type' => $warehouse->getType(),
+                        'fullAddress' => $warehouse->getFullAddress(),
+                        'city' => $warehouse->getCity(),
+                        'province' => $warehouse->getProvince(),
+                    ];
+                }
+            }
+
+            if (!empty($warehouses)) {
+                $result[] = [
+                    'channel' => [
+                        'id' => $channel->getId(),
+                        'code' => $channel->getCode(),
+                        'name' => $channel->getName(),
+                        'logoUrl' => $channel->getLogoUrl(),
+                    ],
+                    'warehouses' => $warehouses,
+                ];
+            }
+        }
+
+        return $this->json(['data' => $result]);
     }
 
     /**

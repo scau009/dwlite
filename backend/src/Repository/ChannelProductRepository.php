@@ -223,7 +223,7 @@ class ChannelProductRepository extends ServiceEntityRepository
         // Search by style number, size value, or product name
         if (!empty($filters['search'])) {
             $qb->andWhere('(p.styleNumber LIKE :search OR ps.sizeValue LIKE :search OR p.name LIKE :search)')
-                ->setParameter('search', '%' . $filters['search'] . '%');
+                ->setParameter('search', '%'.$filters['search'].'%');
         }
 
         // Get total count

@@ -11,6 +11,8 @@ export { InboundExceptionDetailPage } from './exceptions/detail';
 
 // Stock Query
 export { MerchantStockListPage } from './stock/list';
+export { AddInventoryPage } from './stock/add';
+export { ImportInventoryPage } from './stock/import';
 
 // Outbound Orders
 export { OutboundOrdersListPage } from './outbound/list';

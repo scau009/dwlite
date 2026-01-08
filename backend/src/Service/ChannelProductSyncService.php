@@ -370,7 +370,7 @@ class ChannelProductSyncService
 
             if ($source->isActive() !== $shouldBeActive) {
                 $source->setIsActive($shouldBeActive);
-                $correctedCount++;
+                ++$correctedCount;
 
                 $this->logger->info('Source status corrected in batch sync', [
                     'sourceId' => $source->getId(),

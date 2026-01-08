@@ -33,6 +33,12 @@ class Fulfillment
     public const STATUS_SHIPPED = 'shipped';          // 已发货
     public const STATUS_DELIVERED = 'delivered';      // 已签收
     public const STATUS_CANCELLED = 'cancelled';      // 已取消
+    public const STATUS_REJECTED = 'rejected';        // 商户拒绝（仅限自履约）
+    public const STATUS_EXPIRED = 'expired';          // 超时未响应
+
+    // 分配来源
+    public const ALLOCATION_SOURCE_AUTO = 'auto';     // 系统自动分配
+    public const ALLOCATION_SOURCE_MANUAL = 'manual'; // 人工手动分配
 
     #[ORM\Id]
     #[ORM\Column(type: 'string', length: 26)]
@@ -93,6 +99,30 @@ class Fulfillment
     // 备注
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $remark = null;
+
+    // 分配来源（auto: 系统自动分配, manual: 人工手动分配）
+    #[ORM\Column(type: 'string', length: 20, nullable: true)]
+    private ?string $allocationSource = null;
+
+    // 分配尝试次数（第几次分配尝试）
+    #[ORM\Column(type: 'integer', options: ['default' => 1])]
+    private int $allocationAttempt = 1;
+
+    // 拒绝时间（商户拒绝或超时）
+    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
+    private ?\DateTimeImmutable $rejectedAt = null;
+
+    // 拒绝原因
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $rejectionReason = null;
+
+    // 响应截止时间（自履约模式下商户需要在此时间前响应）
+    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
+    private ?\DateTimeImmutable $deadlineAt = null;
+
+    // 已排除的商户ID列表（用于重新分配时跳过已尝试的商户）
+    #[ORM\Column(type: 'json', nullable: true)]
+    private ?array $excludedMerchantIds = null;
 
     // 关联
     #[ORM\OneToMany(targetEntity: FulfillmentItem::class, mappedBy: 'fulfillment', cascade: ['persist', 'remove'], orphanRemoval: true)]
@@ -308,6 +338,84 @@ class Fulfillment
         return $this;
     }
 
+    public function getAllocationSource(): ?string
+    {
+        return $this->allocationSource;
+    }
+
+    public function setAllocationSource(?string $allocationSource): static
+    {
+        $this->allocationSource = $allocationSource;
+
+        return $this;
+    }
+
+    public function getAllocationAttempt(): int
+    {
+        return $this->allocationAttempt;
+    }
+
+    public function setAllocationAttempt(int $allocationAttempt): static
+    {
+        $this->allocationAttempt = $allocationAttempt;
+
+        return $this;
+    }
+
+    public function getRejectedAt(): ?\DateTimeImmutable
+    {
+        return $this->rejectedAt;
+    }
+
+    public function setRejectedAt(?\DateTimeImmutable $rejectedAt): static
+    {
+        $this->rejectedAt = $rejectedAt;
+
+        return $this;
+    }
+
+    public function getRejectionReason(): ?string
+    {
+        return $this->rejectionReason;
+    }
+
+    public function setRejectionReason(?string $rejectionReason): static
+    {
+        $this->rejectionReason = $rejectionReason;
+
+        return $this;
+    }
+
+    public function getDeadlineAt(): ?\DateTimeImmutable
+    {
+        return $this->deadlineAt;
+    }
+
+    public function setDeadlineAt(?\DateTimeImmutable $deadlineAt): static
+    {
+        $this->deadlineAt = $deadlineAt;
+
+        return $this;
+    }
+
+    /**
+     * @return string[]|null
+     */
+    public function getExcludedMerchantIds(): ?array
+    {
+        return $this->excludedMerchantIds;
+    }
+
+    /**
+     * @param string[]|null $excludedMerchantIds
+     */
+    public function setExcludedMerchantIds(?array $excludedMerchantIds): static
+    {
+        $this->excludedMerchantIds = $excludedMerchantIds;
+
+        return $this;
+    }
+
     /**
      * @return Collection<int, FulfillmentItem>
      */
@@ -398,6 +506,54 @@ class Fulfillment
         return $this->status === self::STATUS_CANCELLED;
     }
 
+    public function isRejected(): bool
+    {
+        return $this->status === self::STATUS_REJECTED;
+    }
+
+    public function isExpired(): bool
+    {
+        return $this->status === self::STATUS_EXPIRED;
+    }
+
+    public function isAutoAllocated(): bool
+    {
+        return $this->allocationSource === self::ALLOCATION_SOURCE_AUTO;
+    }
+
+    public function isManualAllocated(): bool
+    {
+        return $this->allocationSource === self::ALLOCATION_SOURCE_MANUAL;
+    }
+
+    /**
+     * 是否需要商户响应（自履约且待处理状态）.
+     */
+    public function needsMerchantResponse(): bool
+    {
+        return $this->isMerchantWarehouse() && $this->isPending();
+    }
+
+    /**
+     * 是否已超过响应截止时间.
+     */
+    public function isOverdue(): bool
+    {
+        if ($this->deadlineAt === null) {
+            return false;
+        }
+
+        return $this->deadlineAt < new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
+    }
+
+    /**
+     * 是否可以被拒绝（仅自履约待处理状态）.
+     */
+    public function canReject(): bool
+    {
+        return $this->isMerchantWarehouse() && $this->isPending();
+    }
+
     public function canCancel(): bool
     {
         return in_array($this->status, [
@@ -472,6 +628,49 @@ class Fulfillment
         $this->status = self::STATUS_CANCELLED;
         $this->cancelReason = $reason;
         $this->cancelledAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
+    }
+
+    /**
+     * 标记商户拒绝（仅限自履约）.
+     */
+    public function markRejected(string $reason): void
+    {
+        $this->status = self::STATUS_REJECTED;
+        $this->rejectionReason = $reason;
+        $this->rejectedAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
+    }
+
+    /**
+     * 标记超时未响应.
+     */
+    public function markExpired(): void
+    {
+        $this->status = self::STATUS_EXPIRED;
+        $this->rejectionReason = 'Response deadline exceeded';
+        $this->rejectedAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
+    }
+
+    /**
+     * 设置自履约响应截止时间（默认24小时后）.
+     */
+    public function setDeadlineFromNow(int $hours = 24): void
+    {
+        $this->deadlineAt = new \DateTimeImmutable(
+            sprintf('+%d hours', $hours),
+            new \DateTimeZone('UTC')
+        );
+    }
+
+    /**
+     * 添加已排除的商户ID.
+     */
+    public function addExcludedMerchantId(string $merchantId): void
+    {
+        $excluded = $this->excludedMerchantIds ?? [];
+        if (!in_array($merchantId, $excluded, true)) {
+            $excluded[] = $merchantId;
+            $this->excludedMerchantIds = $excluded;
+        }
     }
 
     /**

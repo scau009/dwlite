@@ -214,7 +214,7 @@ class ChannelProductController extends AbstractController
             ],
             'productSku' => [
                 'id' => $sku->getId(),
-                'skuCode' => $product->getStyleNumber() . '-' . $sku->getSkuName(),
+                'skuCode' => $product->getStyleNumber().'-'.$sku->getSkuName(),
                 'productName' => $product->getName(),
                 'productId' => $product->getId(),
             ],

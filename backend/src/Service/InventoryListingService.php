@@ -304,7 +304,8 @@ class InventoryListingService
             $channel,
             $page,
             $limit,
-            $search
+            $search,
+            $channel->getApprovedFulfillmentTypes()
         );
     }
 
@@ -319,7 +320,8 @@ class InventoryListingService
         return $this->inventoryRepository->countAvailableForListing(
             $merchant,
             $channel,
-            $search
+            $search,
+            $channel->getApprovedFulfillmentTypes()
         );
     }
 }

@@ -221,7 +221,7 @@ class ProductSyncService
         $product->setStyleNumber($externalProduct->styleId);
         $product->setName($externalProduct->title);
         $product->setSlug($this->generateUniqueSlug($externalProduct->title));
-        $product->setColor($externalProduct->color);
+        $product->setColor($externalProduct->color ?? '');
         $product->setDescription($externalProduct->description);
         $product->setStatus('draft'); // New products start as draft
         $product->setIsActive(false); // Require admin review
@@ -424,7 +424,6 @@ class ProductSyncService
     private function mapSizeUnit(string $unit): ?SizeUnit
     {
         return match (strtoupper($unit)) {
-            'US' => SizeUnit::US,
             'EU' => SizeUnit::EU,
             'UK' => SizeUnit::UK,
             'CM' => SizeUnit::CM,

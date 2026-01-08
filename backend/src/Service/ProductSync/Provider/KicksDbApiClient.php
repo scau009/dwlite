@@ -38,6 +38,7 @@ class KicksDbApiClient
         $this->waitForRateLimit();
 
         $query = array_merge([
+            'filters' => "product_type = 'sneakers'",
             'page' => $pageNumber,
             'limit' => min($pageSize, 100), // Max 100 per page
             'display[variants]' => true,

@@ -31,6 +31,9 @@ class InventoryTransaction
     public const TYPE_TRANSFER_IN = 'transfer_in';               // 调拨入库
     public const TYPE_DAMAGE = 'damage';                         // 损坏报废
     public const TYPE_RETURN_INBOUND = 'return_inbound';         // 退货入库
+    public const TYPE_INIT = 'init';                             // 库存初始化（逻辑仓库）
+    public const TYPE_ADJUST = 'adjust';                         // 库存调整（逻辑仓库）
+    public const TYPE_IMPORT = 'import';                         // 批量导入（逻辑仓库）
 
     // 关联单据类型
     public const REF_INBOUND_ORDER = 'inbound_order';            // 送仓单
@@ -39,6 +42,7 @@ class InventoryTransaction
     public const REF_RETURN_ORDER = 'return_order';              // 退货单
     public const REF_ADJUSTMENT = 'adjustment';                  // 盘点单
     public const REF_TRANSFER = 'transfer';                      // 调拨单
+    public const REF_INVENTORY_MANAGE = 'inventory_manage';      // 库存管理（逻辑仓库）
 
     #[ORM\Id]
     #[ORM\Column(type: 'string', length: 26)]
@@ -304,6 +308,9 @@ class InventoryTransaction
             self::TYPE_TRANSFER_IN => '调拨入库',
             self::TYPE_DAMAGE => '损坏报废',
             self::TYPE_RETURN_INBOUND => '退货入库',
+            self::TYPE_INIT => '库存初始化',
+            self::TYPE_ADJUST => '库存调整',
+            self::TYPE_IMPORT => '批量导入',
             default => $this->type,
         };
     }
@@ -356,6 +363,91 @@ class InventoryTransaction
         $transaction->referenceNo = $referenceNo;
         $transaction->unitCost = $unitCost;
         $transaction->notes = $notes;
+
+        return $transaction;
+    }
+
+    /**
+     * 创建库存初始化流水（逻辑仓库）.
+     */
+    public static function createInit(
+        MerchantInventory $inventory,
+        int $quantity,
+        ?string $unitCost = null,
+        ?string $notes = null,
+        ?string $operatorId = null,
+        ?string $operatorName = null
+    ): self {
+        $transaction = new self();
+        $transaction->merchantInventory = $inventory;
+        $transaction->type = self::TYPE_INIT;
+        $transaction->quantity = $quantity;
+        $transaction->stockType = 'available';
+        $transaction->balanceBefore = 0;
+        $transaction->balanceAfter = $quantity;
+        $transaction->referenceType = self::REF_INVENTORY_MANAGE;
+        $transaction->unitCost = $unitCost;
+        $transaction->notes = $notes;
+        $transaction->operatorId = $operatorId;
+        $transaction->operatorName = $operatorName;
+
+        return $transaction;
+    }
+
+    /**
+     * 创建库存调整流水（逻辑仓库）.
+     */
+    public static function createAdjust(
+        MerchantInventory $inventory,
+        int $quantityChange,
+        int $balanceBefore,
+        int $balanceAfter,
+        ?string $unitCost = null,
+        ?string $notes = null,
+        ?string $operatorId = null,
+        ?string $operatorName = null
+    ): self {
+        $transaction = new self();
+        $transaction->merchantInventory = $inventory;
+        $transaction->type = self::TYPE_ADJUST;
+        $transaction->quantity = $quantityChange;
+        $transaction->stockType = 'available';
+        $transaction->balanceBefore = $balanceBefore;
+        $transaction->balanceAfter = $balanceAfter;
+        $transaction->referenceType = self::REF_INVENTORY_MANAGE;
+        $transaction->unitCost = $unitCost;
+        $transaction->notes = $notes;
+        $transaction->operatorId = $operatorId;
+        $transaction->operatorName = $operatorName;
+
+        return $transaction;
+    }
+
+    /**
+     * 创建批量导入流水（逻辑仓库）.
+     */
+    public static function createImport(
+        MerchantInventory $inventory,
+        int $quantity,
+        int $balanceBefore,
+        int $balanceAfter,
+        ?string $unitCost = null,
+        ?string $notes = null,
+        ?string $operatorId = null,
+        ?string $operatorName = null
+    ): self {
+        $transaction = new self();
+        $transaction->merchantInventory = $inventory;
+        $transaction->type = self::TYPE_IMPORT;
+        $transaction->quantity = $quantity;
+        $transaction->stockType = 'available';
+        $transaction->balanceBefore = $balanceBefore;
+        $transaction->balanceAfter = $balanceAfter;
+        $transaction->referenceType = self::REF_INVENTORY_MANAGE;
+        $transaction->unitCost = $unitCost;
+        $transaction->notes = $notes;
+        $transaction->operatorId = $operatorId;
+        $transaction->operatorName = $operatorName;
 
         return $transaction;
     }

@@ -7,6 +7,7 @@ namespace App\MessageHandler;
 use App\Message\PushOrderStatusMessage;
 use App\Repository\OrderRepository;
 use App\Service\ChannelGateway\Exception\ChannelGatewayException;
+use App\Service\OrderSync\OrderValidationService;
 use App\Service\OrderSyncService;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Lock\LockFactory;
@@ -20,6 +21,7 @@ class PushOrderStatusMessageHandler
     public function __construct(
         private readonly OrderRepository $orderRepo,
         private readonly OrderSyncService $orderSyncService,
+        private readonly OrderValidationService $validationService,
         private readonly LockFactory $lockFactory,
         private readonly LoggerInterface $logger,
     ) {
@@ -65,14 +67,24 @@ class PushOrderStatusMessageHandler
             return;
         }
 
+        // 确认操作前，检查是否有未处理异常
+        if ($message->operation === PushOrderStatusMessage::OP_CONFIRM) {
+            if (!$this->validationService->canConfirm($order)) {
+                $this->logger->info('Order has pending exceptions, skipping confirm', [
+                    'orderId' => $order->getId(),
+                    'pendingExceptions' => $this->validationService->countPendingExceptions($order),
+                ]);
+
+                return;
+            }
+        }
+
         try {
             $syncLog = match ($message->operation) {
                 PushOrderStatusMessage::OP_CONFIRM => $this->orderSyncService->confirmOrder($order),
                 PushOrderStatusMessage::OP_SHIP => $this->orderSyncService->shipOrder($order),
                 PushOrderStatusMessage::OP_CANCEL => throw new \InvalidArgumentException('Cancel not implemented yet'),
-                default => throw new \InvalidArgumentException(
-                    sprintf('Unknown operation: %s', $message->operation)
-                ),
+                default => throw new \InvalidArgumentException(sprintf('Unknown operation: %s', $message->operation)),
             };
 
             if ($syncLog->isSuccess()) {

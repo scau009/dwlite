@@ -46,34 +46,25 @@ readonly class ExternalProductDto
     public static function fromKicksDb(array $data): self
     {
         $skus = [];
-        $retailPrice = $data['retailPrice'] ?? null;
-
+        $avgPrice = $data['avg_price'] ?? 0;
         if (isset($data['variants']) && is_array($data['variants'])) {
             foreach ($data['variants'] as $variant) {
-                $skus[] = ExternalSkuDto::fromKicksDb($variant, $retailPrice);
+                $skus[] = ExternalSkuDto::fromKicksDb($variant,$avgPrice);
             }
         }
 
         // Extract color from product attributes if available
         $color = null;
-        if (isset($data['productAttributes']['color'])) {
-            $color = $data['productAttributes']['color'];
-        } elseif (isset($data['colorway'])) {
-            $color = $data['colorway'];
-        }
 
         // Build external URL
         $externalUrl = null;
-        if (isset($data['urlKey'])) {
-            $externalUrl = 'https://stockx.com/'.$data['urlKey'];
-        }
 
         return new self(
             externalId: $data['productId'] ?? $data['id'] ?? '',
-            styleId: $data['styleId'] ?? '',
+            styleId: $data['sku'] ?? '',
             title: $data['title'] ?? $data['name'] ?? '',
             brand: $data['brand'] ?? null,
-            productType: $data['productType'] ?? null,
+            productType: $data['product_type'] ?? null,
             description: $data['description'] ?? null,
             color: $color,
             imageUrl: $data['image'] ?? $data['thumbnail'] ?? null,

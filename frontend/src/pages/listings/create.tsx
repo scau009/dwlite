@@ -198,14 +198,17 @@ export function CreateListingPage() {
           defaultsResult.data.map((d) => [d.inventoryId, d])
         );
 
-        const defaultFulfillmentType = selectedChannel.approvedFulfillmentTypes[0] || 'consignment';
         const configs: ListingConfig[] = selectedInventories.map((inv) => {
           const defaults = defaultsMap.get(inv.id);
           const hasPriceRules = defaults?.pricing.hasRules ?? false;
           const hasStockRules = defaults?.allocation.hasRules ?? false;
+          // Merchant warehouse: must use self_fulfillment
+          const defaultFulfillmentType = inv.warehouse.category === 'merchant'
+            ? 'self_fulfillment'
+            : (selectedChannel.approvedFulfillmentTypes[0] || 'consignment');
           return {
             ...inv,
-            fulfillmentType: defaultFulfillmentType,
+            fulfillmentType: defaultFulfillmentType as FulfillmentType,
             pricingModel: 'self_pricing',
             allocationMode: hasStockRules ? 'dedicated' : 'shared',
             allocatedQuantity: hasStockRules ? defaults?.allocation.calculatedQuantity : undefined,
@@ -223,18 +226,23 @@ export function CreateListingPage() {
       } catch (error) {
         console.error('Failed to load defaults:', error);
         // Fall back to no defaults
-        const defaultFulfillmentType = selectedChannel.approvedFulfillmentTypes[0] || 'consignment';
-        const configs: ListingConfig[] = selectedInventories.map((inv) => ({
-          ...inv,
-          fulfillmentType: defaultFulfillmentType,
-          pricingModel: 'self_pricing',
-          allocationMode: 'shared',
-          allocatedQuantity: undefined,
-          price: undefined,
-          compareAtPrice: undefined,
-          applyPriceRule: false,
-          applyStockRule: false,
-        }));
+        const configs: ListingConfig[] = selectedInventories.map((inv) => {
+          // Merchant warehouse: must use self_fulfillment
+          const defaultFulfillmentType = inv.warehouse.category === 'merchant'
+            ? 'self_fulfillment'
+            : (selectedChannel.approvedFulfillmentTypes[0] || 'consignment');
+          return {
+            ...inv,
+            fulfillmentType: defaultFulfillmentType as FulfillmentType,
+            pricingModel: 'self_pricing',
+            allocationMode: 'shared',
+            allocatedQuantity: undefined,
+            price: undefined,
+            compareAtPrice: undefined,
+            applyPriceRule: false,
+            applyStockRule: false,
+          };
+        });
         setListingConfigs(configs);
       } finally {
         setLoadingDefaults(false);
@@ -425,7 +433,21 @@ export function CreateListingPage() {
   ];
 
   const currencySymbol = selectedChannel ? getCurrencySymbol(selectedChannel.salesChannel.currency) : '¥';
-  const availableFulfillmentTypes = selectedChannel?.approvedFulfillmentTypes || [];
+
+  // Get available fulfillment types for a specific inventory item based on warehouse category
+  const getAvailableFulfillmentTypesForInventory = (
+    config: ListingConfig
+  ): FulfillmentType[] => {
+    const channelTypes = selectedChannel?.approvedFulfillmentTypes || [];
+
+    // Merchant warehouse: only self-fulfillment allowed
+    if (config.warehouse.category === 'merchant') {
+      return channelTypes.filter(type => type === 'self_fulfillment');
+    }
+
+    // Platform warehouse: all channel-approved types allowed
+    return channelTypes;
+  };
 
   const configColumns = [
     // Left columns with rowSpan=2 (merged for each inventory item)
@@ -466,20 +488,23 @@ export function CreateListingPage() {
       dataIndex: ['config', 'fulfillmentType'],
       width: 120,
       onCell: (record: ConfigRow) => ({ rowSpan: record.isFirstRow ? 2 : 0 }),
-      render: (_: unknown, { config }: ConfigRow) => (
-        <Select
-          size="small"
-          value={config.fulfillmentType}
-          onChange={(value) => handleConfigChange(config.id, 'fulfillmentType', value)}
-          style={{ width: '100%' }}
-          options={availableFulfillmentTypes.map((type) => ({
-            value: type,
-            label: type === 'consignment'
-              ? t('merchantChannels.fulfillmentConsignment')
-              : t('merchantChannels.fulfillmentSelfFulfillment'),
-          }))}
-        />
-      ),
+      render: (_: unknown, { config }: ConfigRow) => {
+        const availableTypes = getAvailableFulfillmentTypesForInventory(config);
+        return (
+          <Select
+            size="small"
+            value={config.fulfillmentType}
+            onChange={(value) => handleConfigChange(config.id, 'fulfillmentType', value)}
+            style={{ width: '100%' }}
+            options={availableTypes.map((type) => ({
+              value: type,
+              label: type === 'consignment'
+                ? t('merchantChannels.fulfillmentConsignment')
+                : t('merchantChannels.fulfillmentSelfFulfillment'),
+            }))}
+          />
+        );
+      },
     },
     {
       title: t('listingManagement.pricingModel'),

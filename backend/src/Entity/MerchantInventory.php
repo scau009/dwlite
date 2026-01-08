@@ -56,7 +56,7 @@ class MerchantInventory
     #[ORM\Column(type: 'decimal', precision: 10, scale: 2, nullable: true)]
     private ?string $averageCost = null;  // 平均成本单价
 
-    #[ORM\Column(length: 3, options: ['default' => 'CNY'])]
+    #[ORM\Column(length: 3)]
     private string $currency = 'CNY';  // 成本币种
 
     // 安全库存

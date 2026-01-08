@@ -1,13 +1,17 @@
 import { useRef, useState, useEffect } from 'react';
+import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { ProTable, type ActionType, type ProColumns } from '@ant-design/pro-components';
-import { Tag, Statistic, Card, Row, Col, Image, Tooltip } from 'antd';
+import { Tag, Statistic, Card, Row, Col, Image, Tooltip, Button } from 'antd';
 import {
   InboxOutlined,
   ShoppingOutlined,
   ExclamationCircleOutlined,
   TruckOutlined,
   LockOutlined,
+  PlusOutlined,
+  EditOutlined,
+  UploadOutlined,
 } from '@ant-design/icons';
 
 import {
@@ -16,15 +20,24 @@ import {
   type MerchantInventorySummary,
   type StockStatus,
   type InventoryWarehouse,
+  type MerchantWarehouse,
 } from '@/lib/inbound-api';
 import { getCurrencySymbol } from '@/lib/merchant-listing-api';
+import { AdjustInventoryModal } from './components/adjust-inventory-modal';
 
 export function MerchantStockListPage() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const actionRef = useRef<ActionType>(null);
 
   const [summary, setSummary] = useState<MerchantInventorySummary | null>(null);
   const [warehouses, setWarehouses] = useState<InventoryWarehouse[]>([]);
+  const [merchantWarehouses, setMerchantWarehouses] = useState<MerchantWarehouse[]>([]);
+  const [merchantWarehouseIds, setMerchantWarehouseIds] = useState<Set<string>>(new Set());
+
+  // Adjust modal state
+  const [adjustModalOpen, setAdjustModalOpen] = useState(false);
+  const [selectedInventory, setSelectedInventory] = useState<MerchantInventoryItem | null>(null);
 
   // Load summary
   const loadSummary = async () => {
@@ -46,9 +59,46 @@ export function MerchantStockListPage() {
     }
   };
 
+  // Load merchant warehouses (for determining which inventory can be adjusted)
+  const loadMerchantWarehouses = async () => {
+    try {
+      const response = await merchantInventoryApi.getMerchantWarehouses();
+      setMerchantWarehouses(response.data);
+      setMerchantWarehouseIds(new Set(response.data.map(w => w.id)));
+    } catch (error) {
+      console.error('Failed to load merchant warehouses:', error);
+    }
+  };
+
+  // Check if inventory is from a merchant warehouse (can be adjusted)
+  const canAdjustInventory = (inventory: MerchantInventoryItem) => {
+    return merchantWarehouseIds.has(inventory.warehouse?.id || '');
+  };
+
+  // Handle adjust click
+  const handleAdjust = (inventory: MerchantInventoryItem) => {
+    setSelectedInventory(inventory);
+    setAdjustModalOpen(true);
+  };
+
+  // Handle adjust modal close
+  const handleAdjustModalClose = () => {
+    setAdjustModalOpen(false);
+    setSelectedInventory(null);
+  };
+
+  // Handle adjust success
+  const handleAdjustSuccess = () => {
+    setAdjustModalOpen(false);
+    setSelectedInventory(null);
+    actionRef.current?.reload();
+    loadSummary();
+  };
+
   useEffect(() => {
     loadSummary();
     loadWarehouses();
+    loadMerchantWarehouses();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -205,6 +255,28 @@ export function MerchantStockListPage() {
       search: false,
       render: (_, record) => new Date(record.updatedAt).toLocaleString(),
     },
+    {
+      title: t('common.actions'),
+      key: 'actions',
+      width: 100,
+      fixed: 'right',
+      search: false,
+      render: (_, record) => {
+        if (!canAdjustInventory(record)) {
+          return null;
+        }
+        return (
+          <Button
+            type="link"
+            size="small"
+            icon={<EditOutlined />}
+            onClick={() => handleAdjust(record)}
+          >
+            {t('merchantStock.adjust')}
+          </Button>
+        );
+      },
+    },
   ];
 
   return (
@@ -302,6 +374,27 @@ export function MerchantStockListPage() {
           labelWidth: 'auto',
           defaultCollapsed: false,
         }}
+        toolBarRender={() => [
+          merchantWarehouses.length > 0 && (
+            <Button
+              key="import"
+              icon={<UploadOutlined />}
+              onClick={() => navigate('/inventory/stock/import')}
+            >
+              {t('merchantStock.batchImport')}
+            </Button>
+          ),
+          merchantWarehouses.length > 0 && (
+            <Button
+              key="add"
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={() => navigate('/inventory/stock/add')}
+            >
+              {t('merchantStock.addInventory')}
+            </Button>
+          ),
+        ]}
         options={{
           density: true,
           fullScreen: true,
@@ -311,7 +404,15 @@ export function MerchantStockListPage() {
           defaultPageSize: 20,
           showSizeChanger: true,
         }}
-        scroll={{ x: 1400 }}
+        scroll={{ x: 1500 }}
+      />
+
+      {/* Adjust Inventory Modal */}
+      <AdjustInventoryModal
+        open={adjustModalOpen}
+        inventory={selectedInventory}
+        onClose={handleAdjustModalClose}
+        onSuccess={handleAdjustSuccess}
       />
     </div>
   );

@@ -23,6 +23,7 @@ use App\Service\ChannelGateway\Dto\Request\ShipOrderRequest;
 use App\Service\ChannelGateway\Dto\Response\PulledOrderDto;
 use App\Service\ChannelGateway\Exception\ChannelGatewayException;
 use App\Service\OrderSync\ChannelStatusMapper;
+use App\Service\OrderSync\OrderValidationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
@@ -38,6 +39,7 @@ class OrderSyncService
         private readonly ChannelProductRepository $channelProductRepo,
         private readonly ChannelGatewayRegistry $gatewayRegistry,
         private readonly ChannelStatusMapper $statusMapper,
+        private readonly OrderValidationService $validationService,
         private readonly EntityManagerInterface $entityManager,
         private readonly MessageBusInterface $messageBus,
         private readonly LoggerInterface $logger,
@@ -167,18 +169,41 @@ class OrderSyncService
             $syncState = new OrderSyncState($order);
             $syncState->markPulled();
 
-            // 如果已支付，设置待确认操作
+            $this->entityManager->persist($syncState);
+
+            // 执行订单校验（库存、价格等）
+            $exceptions = $this->validationService->validateOrder($order);
+
+            if (!empty($exceptions)) {
+                // 有异常，清除 pendingOperation，暂停确认
+                $syncState->setPendingOperation(null);
+                $syncLog->setOrderId($order->getId());
+                $syncLog->markSuccess([
+                    'action' => 'created',
+                    'orderId' => $order->getId(),
+                    'validationFailed' => true,
+                    'exceptionCount' => count($exceptions),
+                ]);
+                $this->entityManager->flush();
+
+                $this->logger->warning('Order created with validation exceptions', [
+                    'orderId' => $order->getId(),
+                    'exceptionCount' => count($exceptions),
+                ]);
+
+                return 'created';
+            }
+
+            // 如果已支付且校验通过，设置待确认操作
             if ($order->isPaid()) {
                 $syncState->setPendingOperation(OrderSyncState::OP_CONFIRM);
             }
-
-            $this->entityManager->persist($syncState);
 
             $syncLog->setOrderId($order->getId());
             $syncLog->markSuccess(['action' => 'created', 'orderId' => $order->getId()]);
             $this->entityManager->flush();
 
-            // 已支付订单派发确认消息
+            // 已支付订单且校验通过，派发确认消息
             if ($order->isPaid()) {
                 $this->messageBus->dispatch(PushOrderStatusMessage::confirm($order->getId()));
             }
@@ -247,10 +272,7 @@ class OrderSyncService
                 $syncState->recordFailure($response->message ?? 'Unknown error');
                 $syncLog->markFailed($response->message ?? 'Confirm failed');
 
-                throw new ChannelGatewayException(
-                    $response->message ?? 'Confirm order failed',
-                    'CONFIRM_FAILED',
-                );
+                throw new ChannelGatewayException($response->message ?? 'Confirm order failed', 'CONFIRM_FAILED');
             }
 
             $this->entityManager->flush();
@@ -336,10 +358,7 @@ class OrderSyncService
                 $syncState->recordFailure($response->message ?? 'Unknown error');
                 $syncLog->markFailed($response->message ?? 'Ship failed');
 
-                throw new ChannelGatewayException(
-                    $response->message ?? 'Ship order failed',
-                    'SHIP_FAILED',
-                );
+                throw new ChannelGatewayException($response->message ?? 'Ship order failed', 'SHIP_FAILED');
             }
 
             $this->entityManager->flush();
