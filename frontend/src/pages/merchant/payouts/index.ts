@@ -1,0 +1,1 @@
+export { MerchantPayoutsListPage } from './list';

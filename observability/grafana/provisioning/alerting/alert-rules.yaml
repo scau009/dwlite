@@ -1,0 +1,293 @@
+# Grafana Alerting Rules Configuration
+# Documentation: https://grafana.com/docs/grafana/latest/alerting/set-up/provision-alerting-resources/file-provisioning/
+
+apiVersion: 1
+
+groups:
+  # ============================================
+  # Error Log Monitoring Rules
+  # ============================================
+  - orgId: 1
+    name: error-log-alerts
+    folder: DWLite Alerts
+    interval: 1m
+    rules:
+      # Rule 1: Any Error Log Detected
+      # Triggers when any ERROR level log appears in the last 5 minutes
+      - uid: error-log-any
+        title: Error Log Detected
+        condition: C
+        data:
+          # Query A: Count ERROR logs in last 5 minutes
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: loki
+            model:
+              expr: 'count_over_time({job="symfony", level="ERROR"}[5m])'
+              queryType: range
+              refId: A
+          # Reduce B: Get the sum of all error counts
+          - refId: B
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: sum
+              refId: B
+          # Threshold C: Alert if count > 0
+          - refId: C
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 0
+                  operator:
+                    type: and
+                  reducer:
+                    type: last
+              refId: C
+        noDataState: OK
+        execErrState: Error
+        for: 0s
+        annotations:
+          summary: "Error log detected in Symfony application"
+          description: "{{ $values.B }} error(s) occurred in the last 5 minutes. Check Grafana Loki for details."
+          runbook_url: "http://localhost:3000/explore?orgId=1&left=%7B%22datasource%22:%22loki%22,%22queries%22:%5B%7B%22expr%22:%22%7Bjob%3D%5C%22symfony%5C%22,%20level%3D%5C%22ERROR%5C%22%7D%22%7D%5D%7D"
+        labels:
+          severity: high
+          team: backend
+
+      # Rule 2: High Frequency Error Alert
+      # Triggers when more than 10 errors occur in 5 minutes
+      - uid: error-log-high-frequency
+        title: High Frequency Errors
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: loki
+            model:
+              expr: 'count_over_time({job="symfony", level="ERROR"}[5m])'
+              queryType: range
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: sum
+              refId: B
+          - refId: C
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 10
+                  operator:
+                    type: and
+                  reducer:
+                    type: last
+              refId: C
+        noDataState: OK
+        execErrState: Error
+        for: 0s
+        annotations:
+          summary: "High frequency of errors detected"
+          description: "{{ $values.B }} errors in the last 5 minutes (threshold: 10). This indicates a potential system issue requiring immediate attention."
+          runbook_url: "http://localhost:3000/explore?orgId=1&left=%7B%22datasource%22:%22loki%22,%22queries%22:%5B%7B%22expr%22:%22%7Bjob%3D%5C%22symfony%5C%22,%20level%3D%5C%22ERROR%5C%22%7D%22%7D%5D%7D"
+        labels:
+          severity: critical
+          team: backend
+
+      # Rule 3: Error Rate Spike Alert
+      # Triggers when error rate increases significantly compared to previous period
+      - uid: error-log-spike
+        title: Error Rate Spike
+        condition: C
+        data:
+          # Current 5-minute error count
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: loki
+            model:
+              expr: 'sum(count_over_time({job="symfony", level="ERROR"}[5m]))'
+              queryType: instant
+              refId: A
+          # Previous 5-minute error count (5-10 minutes ago)
+          - refId: B
+            relativeTimeRange:
+              from: 600
+              to: 300
+            datasourceUid: loki
+            model:
+              expr: 'sum(count_over_time({job="symfony", level="ERROR"}[5m]))'
+              queryType: instant
+              refId: B
+          # Calculate if current is more than 3x previous and at least 5 errors
+          - refId: C
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: math
+              expression: "$A > ($B * 3) && $A > 5"
+              refId: C
+        noDataState: OK
+        execErrState: Error
+        for: 0s
+        annotations:
+          summary: "Sudden spike in error rate"
+          description: "Error rate has increased more than 3x compared to the previous 5 minutes. Current: {{ $values.A }}, Previous: {{ $values.B }}"
+          runbook_url: "http://localhost:3000/explore?orgId=1&left=%7B%22datasource%22:%22loki%22,%22queries%22:%5B%7B%22expr%22:%22%7Bjob%3D%5C%22symfony%5C%22,%20level%3D%5C%22ERROR%5C%22%7D%22%7D%5D%7D"
+        labels:
+          severity: critical
+          team: backend
+
+  # ============================================
+  # Warning Log Monitoring Rules
+  # ============================================
+  - orgId: 1
+    name: warning-log-alerts
+    folder: DWLite Alerts
+    interval: 5m
+    rules:
+      # High Warning Count
+      - uid: warning-log-high
+        title: High Warning Log Count
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: loki
+            model:
+              expr: 'count_over_time({job="symfony", level="WARNING"}[5m])'
+              queryType: range
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: sum
+              refId: B
+          - refId: C
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 50
+                  operator:
+                    type: and
+                  reducer:
+                    type: last
+              refId: C
+        noDataState: OK
+        execErrState: Error
+        for: 5m
+        annotations:
+          summary: "High number of warning logs"
+          description: "{{ $values.B }} warnings in the last 5 minutes (threshold: 50). Review warnings to prevent potential errors."
+          runbook_url: "http://localhost:3000/explore?orgId=1&left=%7B%22datasource%22:%22loki%22,%22queries%22:%5B%7B%22expr%22:%22%7Bjob%3D%5C%22symfony%5C%22,%20level%3D%5C%22WARNING%5C%22%7D%22%7D%5D%7D"
+        labels:
+          severity: medium
+          team: backend
+
+  # ============================================
+  # Application Health Monitoring Rules
+  # ============================================
+  - orgId: 1
+    name: application-health-alerts
+    folder: DWLite Alerts
+    interval: 1m
+    rules:
+      # No Logs Received (Application Down)
+      - uid: app-no-logs
+        title: No Application Logs
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: loki
+            model:
+              expr: 'count_over_time({job="symfony"}[5m])'
+              queryType: range
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: sum
+              refId: B
+          - refId: C
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    type: lt
+                    params:
+                      - 1
+                  operator:
+                    type: and
+                  reducer:
+                    type: last
+              refId: C
+        noDataState: Alerting
+        execErrState: Alerting
+        for: 5m
+        annotations:
+          summary: "No logs received from application"
+          description: "No logs have been received from the Symfony application in the last 5 minutes. The application may be down or logging may be broken."
+          runbook_url: "http://localhost:8000/health"
+        labels:
+          severity: critical
+          team: backend

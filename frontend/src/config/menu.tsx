@@ -3,7 +3,7 @@ import {
   DashboardOutlined,
   ShoppingOutlined,
   InboxOutlined,
-  // DollarOutlined,
+  DollarOutlined,
   // ShoppingCartOutlined,
   CarOutlined,
   // BarChartOutlined,
@@ -62,6 +62,17 @@ export function getMenuData(t: TFunction): AccessMenuDataItem[] {
       ],
     },
     {
+      path: '/merchant',
+      name: t('nav.merchantSettlements'),
+      icon: <DollarOutlined />,
+      access: 'merchant',
+      children: [
+        { path: '/merchant/settlements', name: t('menu.mySettlements'), access: 'merchant' },
+        { path: '/merchant/payouts', name: t('menu.myPayouts'), access: 'merchant' },
+        { path: '/merchant/bank-accounts', name: t('menu.bankAccounts'), access: 'merchant' },
+      ],
+    },
+    {
       path: '/warehouse',
       name: t('nav.warehouseOperations'),
       icon: <InboxOutlined />,
@@ -104,7 +115,18 @@ export function getMenuData(t: TFunction): AccessMenuDataItem[] {
       access: 'admin',
       children: [
         { path: '/fulfillment/orders', name: t('menu.platformOrders'), access: 'admin' },
+        { path: '/fulfillment/fulfillment-orders', name: t('menu.fulfillmentOrders'), access: 'admin' },
         { path: '/fulfillment/order-exceptions', name: t('menu.orderExceptions'), access: 'admin' },
+      ],
+    },
+    {
+      path: '/settlements',
+      name: t('nav.settlements'),
+      icon: <DollarOutlined />,
+      access: 'admin',
+      children: [
+        { path: '/settlements/list', name: t('menu.settlementList'), access: 'admin' },
+        { path: '/settlements/payouts', name: t('menu.payoutList'), access: 'admin' },
       ],
     },
     {

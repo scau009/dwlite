@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\MessageHandler;
 
+use App\Message\AllocateOrderMessage;
 use App\Message\PushOrderStatusMessage;
 use App\Repository\OrderRepository;
 use App\Service\ChannelGateway\Exception\ChannelGatewayException;
@@ -12,6 +13,7 @@ use App\Service\OrderSyncService;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Lock\LockFactory;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
+use Symfony\Component\Messenger\MessageBusInterface;
 
 #[AsMessageHandler]
 class PushOrderStatusMessageHandler
@@ -23,6 +25,7 @@ class PushOrderStatusMessageHandler
         private readonly OrderSyncService $orderSyncService,
         private readonly OrderValidationService $validationService,
         private readonly LockFactory $lockFactory,
+        private readonly MessageBusInterface $messageBus,
         private readonly LoggerInterface $logger,
     ) {
     }
@@ -93,6 +96,14 @@ class PushOrderStatusMessageHandler
                     'operation' => $message->operation,
                     'durationMs' => $syncLog->getDurationMs(),
                 ]);
+
+                // 确认成功后，触发订单分配流程
+                if ($message->operation === PushOrderStatusMessage::OP_CONFIRM && $order->canAllocate()) {
+                    $this->messageBus->dispatch(new AllocateOrderMessage($order->getId()));
+                    $this->logger->info('Order allocation triggered after confirmation', [
+                        'orderId' => $order->getId(),
+                    ]);
+                }
             } else {
                 $this->logger->warning('Order status push failed', [
                     'orderId' => $order->getId(),

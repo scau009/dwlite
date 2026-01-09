@@ -1,0 +1,73 @@
+# Grafana Alerting Contact Points Configuration
+# Documentation: https://grafana.com/docs/grafana/latest/alerting/set-up/provision-alerting-resources/file-provisioning/
+
+apiVersion: 1
+
+contactPoints:
+  # Primary email contact point for alerts
+  - orgId: 1
+    name: email-alerts
+    receivers:
+      - uid: email-alerts-receiver
+        type: email
+        disableResolveMessage: false
+        settings:
+          # Configure ALERT_EMAIL_TO in .env file
+          addresses: ${ALERT_EMAIL_TO}
+          singleEmail: false
+          message: |
+            {{ len .Alerts.Firing }} alert(s) firing, {{ len .Alerts.Resolved }} resolved.
+
+            {{ range .Alerts.Firing }}
+            =====================================
+            Alert: {{ .Labels.alertname }}
+            Severity: {{ .Labels.severity }}
+            Time: {{ .StartsAt.Format "2006-01-02 15:04:05 UTC" }}
+
+            Summary: {{ .Annotations.summary }}
+            Description: {{ .Annotations.description }}
+
+            Labels:
+            {{ range .Labels.SortedPairs }}  - {{ .Name }}: {{ .Value }}
+            {{ end }}
+
+            View in Grafana: {{ .DashboardURL }}
+            Silence: {{ .SilenceURL }}
+            =====================================
+            {{ end }}
+
+            {{ if .Alerts.Resolved }}
+            Resolved Alerts:
+            {{ range .Alerts.Resolved }}
+            - {{ .Labels.alertname }}: {{ .Annotations.summary }}
+            {{ end }}
+            {{ end }}
+
+  # Critical alerts - for immediate notification
+  - orgId: 1
+    name: critical-alerts
+    receivers:
+      - uid: critical-alerts-receiver
+        type: email
+        disableResolveMessage: false
+        settings:
+          addresses: ${ALERT_EMAIL_TO}
+          singleEmail: false
+          subject: |
+            [CRITICAL] {{ .GroupLabels.alertname }} - DWLite Alert
+          message: |
+            CRITICAL ALERT - Immediate Action Required
+
+            {{ range .Alerts.Firing }}
+            ================================================
+            Alert: {{ .Labels.alertname }}
+            Severity: CRITICAL
+            Time: {{ .StartsAt.Format "2006-01-02 15:04:05 UTC" }}
+
+            Summary: {{ .Annotations.summary }}
+            Description: {{ .Annotations.description }}
+
+            View in Grafana: {{ .DashboardURL }}
+            Silence this alert: {{ .SilenceURL }}
+            ================================================
+            {{ end }}

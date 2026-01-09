@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Service;
 
-use App\Entity\MerchantSalesChannel;
 use App\Entity\Order;
 use App\Entity\OrderItem;
 use App\Entity\OrderSyncLog;
@@ -22,6 +21,7 @@ use App\Service\ChannelGateway\Dto\Request\PullOrdersRequest;
 use App\Service\ChannelGateway\Dto\Request\ShipOrderRequest;
 use App\Service\ChannelGateway\Dto\Response\PulledOrderDto;
 use App\Service\ChannelGateway\Exception\ChannelGatewayException;
+use App\Service\Fulfillment\FulfillmentCompletionService;
 use App\Service\OrderSync\ChannelStatusMapper;
 use App\Service\OrderSync\OrderValidationService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -40,6 +40,7 @@ class OrderSyncService
         private readonly ChannelGatewayRegistry $gatewayRegistry,
         private readonly ChannelStatusMapper $statusMapper,
         private readonly OrderValidationService $validationService,
+        private readonly FulfillmentCompletionService $fulfillmentCompletionService,
         private readonly EntityManagerInterface $entityManager,
         private readonly MessageBusInterface $messageBus,
         private readonly LoggerInterface $logger,
@@ -49,11 +50,12 @@ class OrderSyncService
     /**
      * 从渠道拉取订单.
      *
+     * 订单拉取始终在平台级别进行，API 凭证存储在 SalesChannel.config 中。
+     *
      * @return array{created: int, updated: int, skipped: int, errors: int}
      */
     public function pullOrders(
         SalesChannel $salesChannel,
-        ?MerchantSalesChannel $merchantChannel,
         \DateTimeImmutable $startTime,
         \DateTimeImmutable $endTime,
         int $page = 1,
@@ -80,7 +82,7 @@ class OrderSyncService
             return $stats;
         }
 
-        $context = new ChannelGatewayContext($salesChannel, $merchantChannel);
+        $context = new ChannelGatewayContext($salesChannel);
 
         try {
             $request = new PullOrdersRequest(
@@ -478,8 +480,22 @@ class OrderSyncService
         // 更新状态
         $newStatus = $this->statusMapper->mapOrderStatus($channelCode, $pulledOrder->status);
         if ($order->getStatus() !== $newStatus) {
+            $oldStatus = $order->getStatus();
             $order->setStatus($newStatus);
             $changed = true;
+
+            // 更新订单时间戳
+            $this->updateOrderTimestamps($order, $newStatus);
+
+            // 订单完成时，触发关联履约单完成
+            if ($newStatus === Order::STATUS_COMPLETED) {
+                $completedCount = $this->fulfillmentCompletionService->completeOrderFulfillments($order);
+                $this->logger->info('Order completed, fulfillments updated', [
+                    'orderId' => $order->getId(),
+                    'oldStatus' => $oldStatus,
+                    'completedFulfillments' => $completedCount,
+                ]);
+            }
         }
 
         $newPaymentStatus = $this->statusMapper->mapPaymentStatus($channelCode, $pulledOrder->paymentStatus);
@@ -496,6 +512,22 @@ class OrderSyncService
         $order->setSyncedAt(new \DateTimeImmutable('now', new \DateTimeZone('UTC')));
 
         return $changed;
+    }
+
+    /**
+     * 根据状态转换更新订单时间戳.
+     */
+    private function updateOrderTimestamps(Order $order, string $newStatus): void
+    {
+        $now = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
+
+        match ($newStatus) {
+            Order::STATUS_SHIPPED => $order->getShippedAt() === null ? $order->setShippedAt($now) : null,
+            Order::STATUS_DELIVERED => $order->getDeliveredAt() === null ? $order->setDeliveredAt($now) : null,
+            Order::STATUS_COMPLETED => $order->getCompletedAt() === null ? $order->setCompletedAt($now) : null,
+            Order::STATUS_CANCELLED => $order->getCancelledAt() === null ? $order->setCancelledAt($now) : null,
+            default => null,
+        };
     }
 
     /**

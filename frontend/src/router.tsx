@@ -56,6 +56,12 @@ import { MerchantRulesPage } from '@/pages/settings/rules';
 import { PlatformRulesListPage } from '@/pages/platform-rules/list';
 import { OrderExceptionsListPage, OrderExceptionDetailPage } from '@/pages/fulfillment/order-exceptions';
 import { PlatformOrdersListPage, PlatformOrderDetailPage } from '@/pages/fulfillment/orders';
+import { FulfillmentOrdersListPage, FulfillmentOrderDetailPage } from '@/pages/fulfillment/fulfillment-orders';
+import { SettlementsListPage, SettlementDetailPage } from '@/pages/settlements';
+import { PayoutsListPage, PayoutDetailPage } from '@/pages/settlements/payouts';
+import { BankAccountsListPage } from '@/pages/merchant/bank-accounts';
+import { MerchantSettlementsListPage, MerchantSettlementDetailPage } from '@/pages/merchant/settlements';
+import { MerchantPayoutsListPage } from '@/pages/merchant/payouts';
 
 // Placeholder component for pages not yet implemented
 // eslint-disable-next-line react-refresh/only-export-components
@@ -170,8 +176,17 @@ export const router = createBrowserRouter([
               { path: '/fulfillment', element: <Navigate to="/fulfillment/orders" replace /> },
               { path: '/fulfillment/orders', element: <PlatformOrdersListPage /> },
               { path: '/fulfillment/orders/:id', element: <PlatformOrderDetailPage /> },
+              { path: '/fulfillment/fulfillment-orders', element: <FulfillmentOrdersListPage /> },
+              { path: '/fulfillment/fulfillment-orders/:id', element: <FulfillmentOrderDetailPage /> },
               { path: '/fulfillment/order-exceptions', element: <OrderExceptionsListPage /> },
               { path: '/fulfillment/order-exceptions/:id', element: <OrderExceptionDetailPage /> },
+
+              // Settlements
+              { path: '/settlements', element: <Navigate to="/settlements/list" replace /> },
+              { path: '/settlements/list', element: <SettlementsListPage /> },
+              { path: '/settlements/detail/:id', element: <SettlementDetailPage /> },
+              { path: '/settlements/payouts', element: <PayoutsListPage /> },
+              { path: '/settlements/payouts/:id', element: <PayoutDetailPage /> },
 
               // Opportunities
               { path: '/opportunities', element: <OpportunitiesListPage /> },
@@ -225,6 +240,13 @@ export const router = createBrowserRouter([
 
               // Platform Rules (Admin)
               { path: '/platform-rules', element: <PlatformRulesListPage /> },
+
+              // Merchant Settlement Center
+              { path: '/merchant', element: <Navigate to="/merchant/settlements" replace /> },
+              { path: '/merchant/settlements', element: <MerchantSettlementsListPage /> },
+              { path: '/merchant/settlements/:id', element: <MerchantSettlementDetailPage /> },
+              { path: '/merchant/payouts', element: <MerchantPayoutsListPage /> },
+              { path: '/merchant/bank-accounts', element: <BankAccountsListPage /> },
 
               // Settings
               { path: '/settings/info', element: <MerchantProfilePage /> },

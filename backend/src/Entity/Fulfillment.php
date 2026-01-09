@@ -32,6 +32,7 @@ class Fulfillment
     public const STATUS_PROCESSING = 'processing';    // 处理中（平台仓：出库作业中；商家仓：已通知商家）
     public const STATUS_SHIPPED = 'shipped';          // 已发货
     public const STATUS_DELIVERED = 'delivered';      // 已签收
+    public const STATUS_COMPLETED = 'completed';      // 已完成
     public const STATUS_CANCELLED = 'cancelled';      // 已取消
     public const STATUS_REJECTED = 'rejected';        // 商户拒绝（仅限自履约）
     public const STATUS_EXPIRED = 'expired';          // 超时未响应
@@ -91,6 +92,9 @@ class Fulfillment
 
     #[ORM\Column(type: 'datetime_immutable', nullable: true)]
     private ?\DateTimeImmutable $cancelledAt = null;  // 取消时间
+
+    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
+    private ?\DateTimeImmutable $completedAt = null;  // 完成时间
 
     // 取消原因
     #[ORM\Column(type: 'text', nullable: true)]
@@ -314,6 +318,18 @@ class Fulfillment
         return $this;
     }
 
+    public function getCompletedAt(): ?\DateTimeImmutable
+    {
+        return $this->completedAt;
+    }
+
+    public function setCompletedAt(?\DateTimeImmutable $completedAt): static
+    {
+        $this->completedAt = $completedAt;
+
+        return $this;
+    }
+
     public function getCancelReason(): ?string
     {
         return $this->cancelReason;
@@ -501,6 +517,11 @@ class Fulfillment
         return $this->status === self::STATUS_DELIVERED;
     }
 
+    public function isCompleted(): bool
+    {
+        return $this->status === self::STATUS_COMPLETED;
+    }
+
     public function isCancelled(): bool
     {
         return $this->status === self::STATUS_CANCELLED;
@@ -618,6 +639,15 @@ class Fulfillment
     {
         $this->status = self::STATUS_DELIVERED;
         $this->deliveredAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
+    }
+
+    /**
+     * 标记已完成.
+     */
+    public function markCompleted(): void
+    {
+        $this->status = self::STATUS_COMPLETED;
+        $this->completedAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
     }
 
     /**

@@ -83,6 +83,16 @@ services:
         tags:
             - { name: 'app.channel_gateway', key: 'MOCK' }
 
+    # Kicks Crew Gateway
+    App\Service\ChannelGateway\Provider\KicksCrew\KicksCrewApiClient:
+        arguments:
+            $httpClient: '@kickscrew.client'
+            $kickscrewApiLimiter: '@limiter.kickscrew_api'
+
+    App\Service\ChannelGateway\Provider\KicksCrew\KicksCrewGateway:
+        tags:
+            - { name: 'app.channel_gateway', key: 'KICKSCREW' }
+
     # Channel Gateway Registry with tagged service locator
     App\Service\ChannelGateway\ChannelGatewayRegistry:
         arguments:

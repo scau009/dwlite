@@ -18,6 +18,7 @@ class BusinessNoGenerator
     public const PREFIX_OUTBOUND = 'OL';            // 发货单
     public const PREFIX_WITHDRAW = 'WD';            // 提现单
     public const PREFIX_REFUND = 'RF';              // 退款单
+    public const PREFIX_SETTLEMENT = 'ST';          // 结算单
 
     private const KEY_PREFIX = 'biz_seq:';
     private const SEQ_PAD_LENGTH = 5;  // 序号位数，00001-99999
@@ -89,5 +90,13 @@ class BusinessNoGenerator
     public function generateRefundNo(): string
     {
         return $this->generate(self::PREFIX_REFUND);
+    }
+
+    /**
+     * 生成结算单编号.
+     */
+    public function generateSettlementNo(): string
+    {
+        return $this->generate(self::PREFIX_SETTLEMENT);
     }
 }

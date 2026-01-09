@@ -282,7 +282,7 @@ class FulfillmentService
     /**
      * 获取商户履约统计.
      *
-     * @return array{pending: int, processing: int, shipped: int, delivered: int, rejected: int}
+     * @return array{pending: int, processing: int, shipped: int, delivered: int, completed: int, rejected: int}
      */
     public function getMerchantFulfillmentStats(Merchant $merchant): array
     {
@@ -302,6 +302,10 @@ class FulfillmentService
             'delivered' => $this->fulfillmentRepository->countByMerchantAndStatus(
                 $merchant,
                 Fulfillment::STATUS_DELIVERED
+            ),
+            'completed' => $this->fulfillmentRepository->countByMerchantAndStatus(
+                $merchant,
+                Fulfillment::STATUS_COMPLETED
             ),
             'rejected' => $this->fulfillmentRepository->countByMerchantAndStatus(
                 $merchant,

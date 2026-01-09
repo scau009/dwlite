@@ -6,6 +6,8 @@ namespace App\Message;
 
 /**
  * 从外部渠道拉取订单的消息.
+ *
+ * 订单拉取始终在平台级别进行，API 凭证存储在 SalesChannel.config 中。
  */
 readonly class PullOrdersMessage implements AsyncMessageInterface
 {
@@ -13,7 +15,6 @@ readonly class PullOrdersMessage implements AsyncMessageInterface
         public string $salesChannelId,
         public \DateTimeImmutable $startTime,
         public \DateTimeImmutable $endTime,
-        public ?string $merchantSalesChannelId = null,
         public int $page = 1,
         public int $pageSize = 100,
     ) {
@@ -25,7 +26,6 @@ readonly class PullOrdersMessage implements AsyncMessageInterface
     public static function createScheduled(
         string $salesChannelId,
         int $lookbackMinutes = 10,
-        ?string $merchantSalesChannelId = null,
     ): self {
         $now = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
 
@@ -33,7 +33,6 @@ readonly class PullOrdersMessage implements AsyncMessageInterface
             salesChannelId: $salesChannelId,
             startTime: $now->modify(sprintf('-%d minutes', $lookbackMinutes)),
             endTime: $now,
-            merchantSalesChannelId: $merchantSalesChannelId,
         );
     }
 
@@ -46,7 +45,6 @@ readonly class PullOrdersMessage implements AsyncMessageInterface
             salesChannelId: $this->salesChannelId,
             startTime: $this->startTime,
             endTime: $this->endTime,
-            merchantSalesChannelId: $this->merchantSalesChannelId,
             page: $this->page + 1,
             pageSize: $this->pageSize,
         );

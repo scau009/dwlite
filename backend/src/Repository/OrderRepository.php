@@ -187,4 +187,127 @@ class OrderRepository extends ServiceEntityRepository
 
         return $counts;
     }
+
+    /**
+     * 统计今日订单数量.
+     */
+    public function countToday(): int
+    {
+        $timezone = new \DateTimeZone('Asia/Shanghai');
+        $today = new \DateTimeImmutable('today', $timezone);
+        $tomorrow = $today->modify('+1 day');
+
+        return (int) $this->createQueryBuilder('o')
+            ->select('COUNT(o.id)')
+            ->where('o.placedAt >= :start')
+            ->andWhere('o.placedAt < :end')
+            ->setParameter('start', $today->setTimezone(new \DateTimeZone('UTC')))
+            ->setParameter('end', $tomorrow->setTimezone(new \DateTimeZone('UTC')))
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    /**
+     * 统计今日订单总金额.
+     */
+    public function sumTodayRevenue(): string
+    {
+        $timezone = new \DateTimeZone('Asia/Shanghai');
+        $today = new \DateTimeImmutable('today', $timezone);
+        $tomorrow = $today->modify('+1 day');
+
+        $result = $this->createQueryBuilder('o')
+            ->select('SUM(o.totalAmount)')
+            ->where('o.placedAt >= :start')
+            ->andWhere('o.placedAt < :end')
+            ->setParameter('start', $today->setTimezone(new \DateTimeZone('UTC')))
+            ->setParameter('end', $tomorrow->setTimezone(new \DateTimeZone('UTC')))
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        return $result !== null ? (string) $result : '0.00';
+    }
+
+    /**
+     * 统计昨日订单数量.
+     */
+    public function countYesterday(): int
+    {
+        $timezone = new \DateTimeZone('Asia/Shanghai');
+        $yesterday = new \DateTimeImmutable('yesterday', $timezone);
+        $today = new \DateTimeImmutable('today', $timezone);
+
+        return (int) $this->createQueryBuilder('o')
+            ->select('COUNT(o.id)')
+            ->where('o.placedAt >= :start')
+            ->andWhere('o.placedAt < :end')
+            ->setParameter('start', $yesterday->setTimezone(new \DateTimeZone('UTC')))
+            ->setParameter('end', $today->setTimezone(new \DateTimeZone('UTC')))
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    /**
+     * 统计昨日订单总金额.
+     */
+    public function sumYesterdayRevenue(): string
+    {
+        $timezone = new \DateTimeZone('Asia/Shanghai');
+        $yesterday = new \DateTimeImmutable('yesterday', $timezone);
+        $today = new \DateTimeImmutable('today', $timezone);
+
+        $result = $this->createQueryBuilder('o')
+            ->select('SUM(o.totalAmount)')
+            ->where('o.placedAt >= :start')
+            ->andWhere('o.placedAt < :end')
+            ->setParameter('start', $yesterday->setTimezone(new \DateTimeZone('UTC')))
+            ->setParameter('end', $today->setTimezone(new \DateTimeZone('UTC')))
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        return $result !== null ? (string) $result : '0.00';
+    }
+
+    /**
+     * 按日期范围统计订单数量.
+     *
+     * @return array<string, int> 日期 => 数量
+     */
+    public function countByDateRange(\DateTimeImmutable $startDate, \DateTimeImmutable $endDate): array
+    {
+        $conn = $this->getEntityManager()->getConnection();
+
+        $sql = "SELECT DATE(CONVERT_TZ(placed_at, '+00:00', '+08:00')) as order_date, COUNT(id) as cnt
+                FROM orders
+                WHERE placed_at >= :start AND placed_at < :end
+                GROUP BY order_date";
+
+        $result = $conn->executeQuery($sql, [
+            'start' => $startDate->format('Y-m-d H:i:s'),
+            'end' => $endDate->format('Y-m-d H:i:s'),
+        ])->fetchAllAssociative();
+
+        $counts = [];
+        foreach ($result as $row) {
+            $counts[$row['order_date']] = (int) $row['cnt'];
+        }
+
+        return $counts;
+    }
+
+    /**
+     * 获取最近的订单.
+     *
+     * @return Order[]
+     */
+    public function findRecent(int $limit = 5): array
+    {
+        return $this->createQueryBuilder('o')
+            ->leftJoin('o.salesChannel', 'sc')
+            ->addSelect('sc')
+            ->orderBy('o.placedAt', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
 }

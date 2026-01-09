@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\MessageHandler;
 
 use App\Message\PullOrdersMessage;
-use App\Repository\MerchantSalesChannelRepository;
 use App\Repository\SalesChannelRepository;
 use App\Service\ChannelGateway\Exception\ChannelRateLimitException;
 use App\Service\OrderSyncService;
@@ -21,7 +20,6 @@ class PullOrdersMessageHandler
 
     public function __construct(
         private readonly SalesChannelRepository $salesChannelRepo,
-        private readonly MerchantSalesChannelRepository $merchantChannelRepo,
         private readonly OrderSyncService $orderSyncService,
         private readonly LockFactory $lockFactory,
         private readonly MessageBusInterface $messageBus,
@@ -70,15 +68,9 @@ class PullOrdersMessageHandler
             return;
         }
 
-        $merchantChannel = null;
-        if ($message->merchantSalesChannelId !== null) {
-            $merchantChannel = $this->merchantChannelRepo->find($message->merchantSalesChannelId);
-        }
-
         try {
             $stats = $this->orderSyncService->pullOrders(
                 $salesChannel,
-                $merchantChannel,
                 $message->startTime,
                 $message->endTime,
                 $message->page,

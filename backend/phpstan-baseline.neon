@@ -56,11 +56,6 @@ parameters:
 			path: src/Service/ProductSync/ProductSyncService.php
 
 		-
-			message: "#^Ternary operator condition is always true\\.$#"
-			count: 1
-			path: src/Service/ProductSync/Provider/KicksDbApiClient.php
-
-		-
 			message: "#^Property App\\\\Service\\\\ChannelProductSyncService\\:\\:\\$syncLogRepo is never read, only written\\.$#"
 			count: 1
 			path: src/Service/ChannelProductSyncService.php

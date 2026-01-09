@@ -189,4 +189,33 @@ class OrderExceptionRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    /**
+     * 统计所有待处理异常数量.
+     */
+    public function countAllPending(): int
+    {
+        return (int) $this->createQueryBuilder('e')
+            ->select('COUNT(e.id)')
+            ->where('e.status = :status')
+            ->setParameter('status', OrderException::STATUS_PENDING)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    /**
+     * 获取最近的异常.
+     *
+     * @return OrderException[]
+     */
+    public function findRecent(int $limit = 5): array
+    {
+        return $this->createQueryBuilder('e')
+            ->leftJoin('e.order', 'o')
+            ->addSelect('o')
+            ->orderBy('e.createdAt', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
 }

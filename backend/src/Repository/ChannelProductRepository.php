@@ -275,4 +275,43 @@ class ChannelProductRepository extends ServiceEntityRepository
 
         return $qb->getQuery()->getResult();
     }
+
+    /**
+     * 获取渠道商品统计摘要.
+     *
+     * @return array{total: int, syncFailed: int, outOfStock: int}
+     */
+    public function getSummaryStats(): array
+    {
+        // 总数
+        $total = (int) $this->createQueryBuilder('cp')
+            ->select('COUNT(cp.id)')
+            ->where('cp.status = :activeStatus')
+            ->setParameter('activeStatus', ChannelProduct::STATUS_ACTIVE)
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        // 同步失败数
+        $syncFailed = (int) $this->createQueryBuilder('cp')
+            ->select('COUNT(cp.id)')
+            ->where('cp.syncStatus = :failedStatus')
+            ->setParameter('failedStatus', ChannelProduct::SYNC_STATUS_FAILED)
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        // 库存为零数
+        $outOfStock = (int) $this->createQueryBuilder('cp')
+            ->select('COUNT(cp.id)')
+            ->where('cp.status = :activeStatus')
+            ->andWhere('cp.stockQuantity = 0')
+            ->setParameter('activeStatus', ChannelProduct::STATUS_ACTIVE)
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        return [
+            'total' => $total,
+            'syncFailed' => $syncFailed,
+            'outOfStock' => $outOfStock,
+        ];
+    }
 }

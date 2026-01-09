@@ -1,0 +1,1 @@
+export { BankAccountsListPage } from './list';
