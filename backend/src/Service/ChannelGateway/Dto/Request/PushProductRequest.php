@@ -28,34 +28,3 @@ readonly class PushProductRequest
     ) {
     }
 }
-
-/**
- * Product image DTO.
- */
-readonly class ProductImageDto
-{
-    public function __construct(
-        public string $url,
-        public bool $isPrimary = false,
-        public int $sortOrder = 0,
-    ) {
-    }
-}
-
-/**
- * Product SKU DTO for push request.
- */
-readonly class ProductSkuDto
-{
-    public function __construct(
-        public string $internalId,
-        public ?string $externalId,
-        public ?string $skuCode,
-        public ?string $sizeValue,
-        public string $price,
-        public ?string $compareAtPrice,
-        public int $stock,
-        public ?string $barcode = null,
-    ) {
-    }
-}

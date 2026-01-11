@@ -9,6 +9,7 @@ use App\Entity\Merchant;
 use App\Entity\MerchantInventory;
 use App\Entity\ProductSku;
 use App\Entity\Warehouse;
+use App\Enum\SyncTriggerSource;
 use App\Repository\MerchantInventoryRepository;
 use App\Repository\ProductSkuRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -21,6 +22,7 @@ class InventoryService
         private ProductSkuRepository $skuRepository,
         private EntityManagerInterface $entityManager,
         private LoggerInterface $logger,
+        private ChannelProductSyncService $channelProductSyncService,
     ) {
     }
 
@@ -173,6 +175,21 @@ class InventoryService
             'order_id' => $order->getId(),
             'order_no' => $order->getOrderNo(),
         ]);
+
+        // 触发渠道商品库存同步
+        foreach ($order->getItems() as $item) {
+            $inventory = $this->inventoryRepository->findOneBy([
+                'merchant' => $order->getMerchant(),
+                'warehouse' => $order->getWarehouse(),
+                'productSku' => $item->getProductSku(),
+            ]);
+            if ($inventory !== null) {
+                $this->channelProductSyncService->triggerSyncFromInventory(
+                    $inventory,
+                    SyncTriggerSource::INVENTORY_INBOUND
+                );
+            }
+        }
     }
 
     /**
@@ -391,6 +408,12 @@ class InventoryService
         );
 
         $this->entityManager->flush();
+
+        // 触发渠道商品库存同步
+        $this->channelProductSyncService->triggerSyncFromInventory(
+            $inventory,
+            SyncTriggerSource::ORDER_CANCEL
+        );
     }
 
     /**
@@ -691,6 +714,12 @@ class InventoryService
             'unit_cost' => $unitCost,
         ]);
 
+        // 触发渠道商品库存同步
+        $this->channelProductSyncService->triggerSyncFromInventory(
+            $inventory,
+            SyncTriggerSource::INVENTORY_ADJUST
+        );
+
         return $inventory;
     }
 
@@ -728,6 +757,9 @@ class InventoryService
             'errors' => [],
         ];
 
+        /** @var MerchantInventory[] $affectedInventories */
+        $affectedInventories = [];
+
         foreach ($items as $item) {
             $skuCode = $item->skuCode;
 
@@ -761,6 +793,7 @@ class InventoryService
                             $operatorName,
                             true
                         );
+                        $affectedInventories[] = $existingInventory;
                         ++$result['imported'];
                         continue 2;
                     case 'add':
@@ -775,6 +808,7 @@ class InventoryService
                             $operatorName,
                             false
                         );
+                        $affectedInventories[] = $existingInventory;
                         ++$result['imported'];
                         continue 2;
                 }
@@ -807,6 +841,7 @@ class InventoryService
             );
             $this->entityManager->persist($transaction);
 
+            $affectedInventories[] = $inventory;
             ++$result['imported'];
         }
 
@@ -819,6 +854,14 @@ class InventoryService
             'skipped' => $result['skipped'],
             'errors' => count($result['errors']),
         ]);
+
+        // 触发渠道商品库存同步
+        foreach ($affectedInventories as $inventory) {
+            $this->channelProductSyncService->triggerSyncFromInventory(
+                $inventory,
+                SyncTriggerSource::INVENTORY_IMPORT
+            );
+        }
 
         return $result;
     }

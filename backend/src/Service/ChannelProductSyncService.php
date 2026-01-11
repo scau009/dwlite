@@ -16,7 +16,10 @@ use App\Repository\ChannelProductSourceRepository;
 use App\Repository\ChannelProductSyncLogRepository;
 use App\Repository\InventoryListingRepository;
 use App\Service\ChannelGateway\ChannelGatewayContext;
+use App\Service\ChannelGateway\ChannelGatewayInterface;
 use App\Service\ChannelGateway\ChannelGatewayRegistry;
+use App\Service\ChannelGateway\Dto\Request\ProductImageDto;
+use App\Service\ChannelGateway\Dto\Request\ProductSkuDto;
 use App\Service\ChannelGateway\Dto\Request\PushProductRequest;
 use App\Service\ChannelGateway\Dto\Request\StockPriceUpdateDto;
 use App\Service\ChannelGateway\Dto\Request\UpdateStockPriceRequest;
@@ -333,6 +336,7 @@ class ChannelProductSyncService
 
     /**
      * Ensure source link exists between channel product and listing.
+     * Also updates the source's isActive status to match listing's actual status.
      */
     private function ensureSourceExists(
         ChannelProduct $channelProduct,
@@ -340,16 +344,28 @@ class ChannelProductSyncService
         SyncTriggerSource $triggerSource,
     ): void {
         $source = $this->sourceRepo->findOneByProductAndListing($channelProduct, $listing);
+        $shouldBeActive = $listing->getStatus() === InventoryListing::STATUS_ACTIVE;
 
         if ($source === null) {
             $source = new ChannelProductSource();
             $source->setChannelProduct($channelProduct);
             $source->setInventoryListing($listing);
             $source->setPriority(0);
-            $source->setIsActive($listing->getStatus() === InventoryListing::STATUS_ACTIVE);
+            $source->setIsActive($shouldBeActive);
 
             $this->entityManager->persist($source);
             $this->entityManager->flush();
+        } elseif ($source->isActive() !== $shouldBeActive) {
+            // Update existing source's isActive status if it doesn't match listing status
+            $source->setIsActive($shouldBeActive);
+            $this->entityManager->flush();
+
+            $this->logger->info('Source isActive updated in ensureSourceExists', [
+                'sourceId' => $source->getId(),
+                'listingId' => $listing->getId(),
+                'listingStatus' => $listing->getStatus(),
+                'newIsActive' => $shouldBeActive,
+            ]);
         }
     }
 
@@ -487,10 +503,33 @@ class ChannelProductSyncService
      *
      * @return array{success: bool, externalId?: string, externalUrl?: string, message?: string, errorCode?: string, data?: array}
      */
-    private function doPushProduct($gateway, ChannelGatewayContext $context, ChannelProduct $channelProduct): array
+    private function doPushProduct(ChannelGatewayInterface $gateway, ChannelGatewayContext $context, ChannelProduct $channelProduct): array
     {
         $sku = $channelProduct->getProductSku();
         $product = $sku->getProduct();
+
+        // Build SKU DTO with actual data
+        $skuDto = new ProductSkuDto(
+            internalId: $channelProduct->getId(),
+            externalId: $channelProduct->getExternalId(),
+            skuCode: $product->getStyleNumber(),
+            sizeValue: $sku->getSizeValue(),
+            price: $channelProduct->getPlatformPrice(),
+            compareAtPrice: $channelProduct->getPlatformCompareAtPrice(),
+            stock: $channelProduct->getStockQuantity(),
+            barcode: $sku->getBarcode(),
+        );
+
+        // Build images array
+        $images = [];
+        $primaryImage = $product->getPrimaryImage();
+        if ($primaryImage !== null) {
+            $images[] = new ProductImageDto(
+                url: $primaryImage->getUrl(),
+                isPrimary: true,
+                sortOrder: 0,
+            );
+        }
 
         $request = new PushProductRequest(
             internalId: $channelProduct->getId(),
@@ -499,10 +538,13 @@ class ChannelProductSyncService
             description: $product->getDescription() ?? '',
             brand: $product->getBrand()?->getName() ?? '',
             categoryCode: $product->getCategory()?->getSlug() ?? null,
-            images: [], // TODO: Add image support
-            skus: [],   // TODO: Add multi-SKU support
+            images: $images,
+            skus: [$skuDto],
             currency: $sku->getCurrency(),
-            attributes: [],
+            attributes: [
+                'model_no' => $product->getStyleNumber(),
+                'size_system' => $sku->getSizeUnit()?->value ?? 'US',
+            ],
         );
 
         $response = $gateway->pushProduct($context, $request);
