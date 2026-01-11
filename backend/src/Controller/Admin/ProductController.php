@@ -4,6 +4,7 @@ namespace App\Controller\Admin;
 
 use App\Attribute\AdminOnly;
 use App\Dto\Admin\BatchDeleteSkuRequest;
+use App\Dto\Admin\BatchUpdateProductStatusRequest;
 use App\Dto\Admin\BatchUpdateSkuRequest;
 use App\Dto\Admin\CreateProductRequest;
 use App\Dto\Admin\CreateProductSkuRequest;
@@ -65,6 +66,37 @@ class ProductController extends AbstractController
             'total' => $result['meta']['total'],
             'page' => $query->getPage(),
             'limit' => $query->getLimit(),
+        ]);
+    }
+
+    #[Route('/batch-status', name: 'admin_product_batch_status', methods: ['PUT'])]
+    public function batchUpdateStatus(#[MapRequestPayload] BatchUpdateProductStatusRequest $dto): JsonResponse
+    {
+        $updatedCount = 0;
+        $notFoundIds = [];
+
+        foreach ($dto->productIds as $productId) {
+            $product = $this->productRepository->find($productId);
+            if (!$product) {
+                $notFoundIds[] = $productId;
+                continue;
+            }
+
+            $product->setStatus($dto->status);
+            $this->productRepository->save($product);
+            ++$updatedCount;
+        }
+
+        if ($updatedCount > 0) {
+            $this->productRepository->flush();
+        }
+
+        return $this->json([
+            'message' => $this->translator->trans('admin.product.batch_status_updated', [
+                '%count%' => $updatedCount,
+            ]),
+            'updatedCount' => $updatedCount,
+            'notFoundCount' => count($notFoundIds),
         ]);
     }
 

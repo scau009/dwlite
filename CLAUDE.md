@@ -146,12 +146,12 @@ frontend/src/
 ### Docker (from root)
 
 ```bash
-docker compose up -d              # Start all services
-docker compose up -d --build      # Rebuild and start
-docker compose restart backend    # Restart backend only
-docker compose logs -f backend    # Follow backend logs
-docker compose logs -f worker     # Follow async worker logs
-docker compose logs -f scheduler  # Follow scheduler logs
+docker-compose up -d              # Start all services
+docker-compose up -d --build      # Rebuild and start
+docker-compose restart backend    # Restart backend only
+docker-compose logs -f backend    # Follow backend logs
+docker-compose logs -f worker     # Follow async worker logs
+docker-compose logs -f scheduler  # Follow scheduler logs
 ```
 
 ### Backend (from /backend)
@@ -165,8 +165,14 @@ php bin/console app:create-admin admin@example.com password  # Create admin user
 
 # Static analysis and code style
 vendor/bin/phpstan analyse        # Run PHPStan (level 5)
+vendor/bin/phpstan analyse --generate-baseline  # Regenerate baseline after fixing issues
 vendor/bin/php-cs-fixer fix       # Fix code style (PSR-12 + Symfony)
 vendor/bin/php-cs-fixer fix --dry-run --diff  # Preview code style changes
+
+# Testing (PHPUnit) - run locally or via docker-compose exec backend
+vendor/bin/phpunit                # Run all tests
+vendor/bin/phpunit tests/MessageHandler/PushOrderStatusMessageHandlerTest.php  # Run single test file
+vendor/bin/phpunit --filter testConfirmSuccessTriggersAllocation  # Run single test method
 ```
 
 ### Frontend (from /frontend)
@@ -182,16 +188,16 @@ npm run lint                      # Run ESLint
 
 ```bash
 # Run worker locally (in container)
-docker compose exec backend php bin/console messenger:consume async -vv
+docker-compose exec backend php bin/console messenger:consume async -vv
 
 # View failed messages
-docker compose exec backend php bin/console messenger:failed:show
+docker-compose exec backend php bin/console messenger:failed:show
 
 # Retry failed messages
-docker compose exec backend php bin/console messenger:failed:retry
+docker-compose exec backend php bin/console messenger:failed:retry
 
 # Debug messenger routing
-docker compose exec backend php bin/console debug:messenger
+docker-compose exec backend php bin/console debug:messenger
 
 # Test dispatch (sends example message)
 curl -X POST http://localhost:8000/async/dispatch
@@ -467,7 +473,7 @@ Admin 控制器位于 `src/Controller/Admin/`，处理：
 
 ## Database Schema Management
 
-数据库结构手动管理，SQL 文件位于 `doc/` 目录：
+数据库结构手动管理，SQL 文件位于项目根目录的 `doc/` 目录（不是 `backend/doc/`）：
 
 - 每个表对应一个 `.sql` 文件（如 `doc/users.sql`, `doc/products.sql`）
 - 修改 Entity 后，必须同步更新对应的 SQL 文件

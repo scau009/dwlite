@@ -2,8 +2,8 @@ import { useRef, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { ProTable, type ActionType, type ProColumns } from '@ant-design/pro-components';
-import { Tag, App, Space, Button, Tooltip, Typography } from 'antd';
-import { SyncOutlined, PlayCircleOutlined, PauseCircleOutlined, LinkOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
+import { Tag, App, Space, Button, Tooltip, Typography, Image, Avatar } from 'antd';
+import { SyncOutlined, PlayCircleOutlined, PauseCircleOutlined, LinkOutlined, ExclamationCircleOutlined, ShopOutlined } from '@ant-design/icons';
 
 import {
   channelProductApi,
@@ -100,23 +100,45 @@ export function ChannelProductsListPage() {
 
   const columns: ProColumns<ChannelProduct>[] = [
     {
-      title: t('channelProducts.productSku'),
+      title: t('channelProducts.product'),
       dataIndex: 'search',
-      width: 250,
-      ellipsis: true,
+      width: 200,
       fieldProps: {
         placeholder: t('channelProducts.searchPlaceholder'),
       },
       render: (_, record) => (
         <div
-          className="cursor-pointer hover:text-blue-500"
+          className="flex items-center gap-3 cursor-pointer hover:text-blue-500"
           onClick={() => navigate(`/channels/products/${record.id}`)}
         >
-          <div className="font-medium">{record.productSku.productName}</div>
-          <Text type="secondary" className="text-xs">
-            {record.productSku.skuCode}
-          </Text>
+          {record.productSku.imageUrl ? (
+            <div className="w-14 h-14 flex items-center justify-center bg-gray-100 rounded flex-shrink-0">
+              <Image
+                src={record.productSku.imageUrl}
+                style={{ maxWidth: 56, maxHeight: 56, objectFit: 'contain' }}
+                preview={false}
+              />
+            </div>
+          ) : (
+            <Avatar shape="square" size={56} icon={<ShopOutlined />} className="flex-shrink-0" />
+          )}
+          <code className="text-xs bg-gray-100 px-2 py-1 rounded">
+            {record.productSku.styleNumber || record.productSku.skuCode}
+          </code>
         </div>
+      ),
+    },
+    {
+      title: t('channelProducts.size'),
+      dataIndex: 'size',
+      width: 100,
+      search: false,
+      render: (_, record) => (
+        <span className="text-sm">
+          {record.productSku.sizeUnit && record.productSku.sizeValue
+            ? `${record.productSku.sizeUnit} ${record.productSku.sizeValue}`
+            : '-'}
+        </span>
       ),
     },
     {

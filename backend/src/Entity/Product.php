@@ -38,7 +38,7 @@ class Product
     #[ORM\Column(length: 220, unique: true)]
     private string $slug = '';
 
-    #[ORM\Column(name: 'style_number', length: 50)]
+    #[ORM\Column(name: 'style_number', length: 100)]
     private string $styleNumber = '';  // 款号
 
     #[ORM\Column(length: 20)]

@@ -7,7 +7,7 @@ CREATE TABLE `products` (
     `category_id` VARCHAR(26) NULL,
     `name` VARCHAR(200) NOT NULL,
     `slug` VARCHAR(220) NOT NULL UNIQUE,
-    `style_number` VARCHAR(50) NOT NULL COMMENT '款号',
+    `style_number` VARCHAR(100) NOT NULL COMMENT '款号',
     `season` VARCHAR(20) NOT NULL COMMENT '季节: 2024SS, 2024AW, 2024FW',
     `color` VARCHAR(50) NULL COMMENT '颜色名',
     `description` TEXT NULL,
@@ -26,6 +26,9 @@ CREATE TABLE `products` (
     CONSTRAINT `fk_product_category` FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`) ON DELETE SET NULL,
     CONSTRAINT `fk_product_brand` FOREIGN KEY (`brand_id`) REFERENCES `brands` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Products (SPU)';
+
+-- Alter: Expand style_number from VARCHAR(50) to VARCHAR(100) for KicksDB sync
+ALTER TABLE `products` MODIFY COLUMN `style_number` VARCHAR(100) NOT NULL COMMENT '款号';
 
 -- Product Tags (Many-to-Many)
 CREATE TABLE `product_tags` (

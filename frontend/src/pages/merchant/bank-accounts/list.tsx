@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button, Tag, App, Popconfirm, Space } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, StarOutlined, StarFilled } from '@ant-design/icons';
+import { PlusOutlined, StarFilled } from '@ant-design/icons';
 import { ProTable, type ActionType, type ProColumns } from '@ant-design/pro-components';
 
 import {
@@ -132,21 +132,11 @@ export function BankAccountsListPage() {
       render: (_, record) => (
         <Space size="small">
           {!record.isDefault && (
-            <Button
-              type="link"
-              size="small"
-              icon={<StarOutlined />}
-              onClick={() => handleSetDefault(record.id)}
-            >
+            <Button type="link" size="small" onClick={() => handleSetDefault(record.id)}>
               {t('bankAccounts.setDefault')}
             </Button>
           )}
-          <Button
-            type="link"
-            size="small"
-            icon={<EditOutlined />}
-            onClick={() => handleEdit(record)}
-          >
+          <Button type="link" size="small" onClick={() => handleEdit(record)}>
             {t('common.edit')}
           </Button>
           <Popconfirm
@@ -155,7 +145,7 @@ export function BankAccountsListPage() {
             okText={t('common.confirm')}
             cancelText={t('common.cancel')}
           >
-            <Button type="link" size="small" danger icon={<DeleteOutlined />}>
+            <Button type="link" size="small" danger>
               {t('common.delete')}
             </Button>
           </Popconfirm>

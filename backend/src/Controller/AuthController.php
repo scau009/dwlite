@@ -196,6 +196,21 @@ class AuthController extends AbstractController
             $response['warehouseName'] = $warehouse->getName();
         }
 
+        // 如果是商户用户，返回商户审核状态
+        if ($user->isMerchant()) {
+            $merchant = $this->merchantService->getMerchantByUser($user);
+            if ($merchant) {
+                $response['merchantStatus'] = $merchant->getStatus();
+                $response['merchantId'] = $merchant->getId();
+                if ($merchant->isRejected()) {
+                    $response['merchantRejectedReason'] = $merchant->getRejectedReason();
+                }
+            } else {
+                // 商户实体尚未创建（邮箱未验证）
+                $response['merchantStatus'] = null;
+            }
+        }
+
         return $this->json($response);
     }
 }

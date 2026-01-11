@@ -59,6 +59,58 @@ class PlatformRuleController extends AbstractController
     }
 
     /**
+     * 获取可用的变量和函数.
+     * 注意：此路由必须在 /{id} 之前定义，否则会被匹配到 detail 路由.
+     */
+    #[Route('/reference', methods: ['GET'])]
+    public function reference(
+        #[MapQueryParameter] string $type = PlatformRule::TYPE_PRICING,
+    ): JsonResponse {
+        $contextType = match ($type) {
+            PlatformRule::TYPE_PRICING => 'platform_pricing',
+            PlatformRule::TYPE_SETTLEMENT_FEE => 'platform_settlement',
+            default => 'platform_pricing',
+        };
+
+        return $this->json([
+            'variables' => $this->ruleEngine->getAvailableVariables($contextType),
+            'functions' => $this->ruleEngine->getAvailableFunctions(),
+        ]);
+    }
+
+    /**
+     * 验证表达式.
+     */
+    #[Route('/validate', methods: ['POST'])]
+    public function validate(Request $request): JsonResponse
+    {
+        $data = json_decode($request->getContent(), true);
+        $expression = $data['expression'] ?? '';
+        $type = $data['type'] ?? PlatformRule::TYPE_PRICING;
+
+        $result = $this->ruleService->validateExpression($expression, $type);
+
+        return $this->json($result);
+    }
+
+    /**
+     * 测试规则执行.
+     */
+    #[Route('/test', methods: ['POST'])]
+    public function test(Request $request): JsonResponse
+    {
+        $data = json_decode($request->getContent(), true);
+        $expression = $data['expression'] ?? '';
+        $conditionExpression = $data['conditionExpression'] ?? null;
+        $type = $data['type'] ?? PlatformRule::TYPE_PRICING;
+        $testContext = $data['testContext'] ?? [];
+
+        $result = $this->ruleService->testRule($expression, $conditionExpression, $type, $testContext);
+
+        return $this->json($result);
+    }
+
+    /**
      * 获取规则详情.
      */
     #[Route('/{id}', methods: ['GET'])]
@@ -80,9 +132,23 @@ class PlatformRuleController extends AbstractController
     #[Route('', methods: ['POST'])]
     public function create(#[MapRequestPayload] CreatePlatformRuleRequest $dto): JsonResponse
     {
-        // 检查编码是否已存在
-        if ($this->ruleRepository->existsByCode($dto->code)) {
-            return $this->json(['error' => 'Rule code already exists'], Response::HTTP_BAD_REQUEST);
+        // 生成或验证编码
+        $code = $dto->code;
+        if (empty($code)) {
+            $code = $this->generateCodeFromName($dto->name);
+        }
+
+        // 检查编码是否已存在，如果是自动生成的则添加后缀
+        $originalCode = $code;
+        $suffix = 1;
+        while ($this->ruleRepository->existsByCode($code)) {
+            if ($dto->code !== null) {
+                // 用户提供的编码已存在
+                return $this->json(['error' => 'Rule code already exists'], Response::HTTP_BAD_REQUEST);
+            }
+            // 自动生成的编码冲突，添加后缀
+            $code = $originalCode.'_'.$suffix;
+            ++$suffix;
         }
 
         // 验证表达式
@@ -100,7 +166,7 @@ class PlatformRuleController extends AbstractController
         }
 
         $rule = new PlatformRule();
-        $rule->setCode($dto->code);
+        $rule->setCode($code);
         $rule->setName($dto->name);
         $rule->setDescription($dto->description);
         $rule->setType($dto->type);
@@ -198,57 +264,6 @@ class PlatformRuleController extends AbstractController
         $this->ruleRepository->remove($rule, true);
 
         return $this->json(['message' => 'Rule deleted successfully']);
-    }
-
-    /**
-     * 验证表达式.
-     */
-    #[Route('/validate', methods: ['POST'])]
-    public function validate(Request $request): JsonResponse
-    {
-        $data = json_decode($request->getContent(), true);
-        $expression = $data['expression'] ?? '';
-        $type = $data['type'] ?? PlatformRule::TYPE_PRICING;
-
-        $result = $this->ruleService->validateExpression($expression, $type);
-
-        return $this->json($result);
-    }
-
-    /**
-     * 测试规则执行.
-     */
-    #[Route('/test', methods: ['POST'])]
-    public function test(Request $request): JsonResponse
-    {
-        $data = json_decode($request->getContent(), true);
-        $expression = $data['expression'] ?? '';
-        $conditionExpression = $data['conditionExpression'] ?? null;
-        $type = $data['type'] ?? PlatformRule::TYPE_PRICING;
-        $testContext = $data['testContext'] ?? [];
-
-        $result = $this->ruleService->testRule($expression, $conditionExpression, $type, $testContext);
-
-        return $this->json($result);
-    }
-
-    /**
-     * 获取可用的变量和函数.
-     */
-    #[Route('/reference', methods: ['GET'])]
-    public function reference(
-        #[MapQueryParameter] string $type = PlatformRule::TYPE_PRICING,
-    ): JsonResponse {
-        $contextType = match ($type) {
-            PlatformRule::TYPE_PRICING => 'platform_pricing',
-            PlatformRule::TYPE_SETTLEMENT_FEE => 'platform_settlement',
-            default => 'platform_pricing',
-        };
-
-        return $this->json([
-            'variables' => $this->ruleEngine->getAvailableVariables($contextType),
-            'functions' => $this->ruleEngine->getAvailableFunctions(),
-        ]);
     }
 
     /**
@@ -427,6 +442,37 @@ class PlatformRuleController extends AbstractController
             'isActive' => $assignment->isActive(),
             'createdAt' => $assignment->getCreatedAt()->format(\DateTimeInterface::ATOM),
         ];
+    }
+
+    /**
+     * 从名称生成规则编码.
+     */
+    private function generateCodeFromName(string $name): string
+    {
+        // 转小写
+        $code = mb_strtolower($name);
+
+        // 将中文和其他非ASCII字符转换为拼音或移除
+        $code = transliterator_transliterate('Any-Latin; Latin-ASCII; Lower()', $code);
+
+        // 移除所有非字母数字字符
+        $code = preg_replace('/[^a-z0-9\s]/', '', $code);
+
+        // 空格转下划线
+        $code = preg_replace('/\s+/', '_', trim($code));
+
+        // 确保以字母开头
+        if (preg_match('/^\d/', $code)) {
+            $code = 'rule_'.$code;
+        }
+
+        // 如果为空，生成一个随机编码
+        if (empty($code)) {
+            $code = 'rule_'.bin2hex(random_bytes(4));
+        }
+
+        // 限制长度
+        return substr($code, 0, 100);
     }
 
     private function getScopeName(PlatformRuleAssignment $assignment): string

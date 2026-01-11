@@ -50,10 +50,11 @@ export interface MerchantRuleListParams {
   limit?: number;
   type?: string;
   search?: string;
+  category?: string;
 }
 
 export interface CreateMerchantRuleParams {
-  code: string;
+  code?: string;
   name: string;
   description?: string;
   type: 'pricing' | 'stock_allocation';
@@ -135,6 +136,7 @@ export const merchantRuleApi = {
     if (params.limit) searchParams.set('limit', String(params.limit));
     if (params.type) searchParams.set('type', params.type);
     if (params.search) searchParams.set('search', params.search);
+    if (params.category) searchParams.set('category', params.category);
 
     const query = searchParams.toString();
     return apiFetch<PaginatedResponse<MerchantRule>>(

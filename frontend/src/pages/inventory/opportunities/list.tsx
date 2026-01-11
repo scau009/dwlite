@@ -150,14 +150,10 @@ export function OpportunitiesListPage() {
     {
       title: t('common.actions'),
       valueType: 'option',
-      width: 100,
+      width: 80,
       fixed: 'right',
       render: (_, record) => (
-        <Button
-          type="primary"
-          size="small"
-          onClick={() => handleCreateOrder(record)}
-        >
+        <Button type="link" size="small" onClick={() => handleCreateOrder(record)}>
           {t('opportunities.createOrder')}
         </Button>
       ),

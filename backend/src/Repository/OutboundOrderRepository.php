@@ -141,6 +141,27 @@ class OutboundOrderRepository extends ServiceEntityRepository
     }
 
     /**
+     * 统计商户各状态的出库单数量.
+     */
+    public function countByMerchantGroupByStatus(Merchant $merchant): array
+    {
+        $results = $this->createQueryBuilder('o')
+            ->select('o.status, COUNT(o.id) as count')
+            ->andWhere('o.merchant = :merchant')
+            ->setParameter('merchant', $merchant)
+            ->groupBy('o.status')
+            ->getQuery()
+            ->getResult();
+
+        $counts = [];
+        foreach ($results as $row) {
+            $counts[$row['status']] = (int) $row['count'];
+        }
+
+        return $counts;
+    }
+
+    /**
      * 统计仓库各状态的出库单数量.
      */
     public function countByWarehouseGroupByStatus(Warehouse $warehouse): array
@@ -205,6 +226,40 @@ class OutboundOrderRepository extends ServiceEntityRepository
 
         $results = $conn->executeQuery($sql, [
             'warehouseId' => $warehouse->getId(),
+            'status' => OutboundOrder::STATUS_SHIPPED,
+            'startDate' => $startDate->format('Y-m-d H:i:s'),
+        ])->fetchAllAssociative();
+
+        $counts = [];
+        foreach ($results as $row) {
+            $counts[$row['date']] = (int) $row['count'];
+        }
+
+        return $counts;
+    }
+
+    /**
+     * 获取商户近N天每日发货的出库单数量.
+     *
+     * @return array<string, int> 日期 => 数量
+     */
+    public function countShippedByMerchantGroupByDate(Merchant $merchant, int $days = 7): array
+    {
+        $startDate = new \DateTimeImmutable('-'.($days - 1).' days', new \DateTimeZone('Asia/Shanghai'));
+        $startDate = $startDate->setTime(0, 0, 0);
+
+        $conn = $this->getEntityManager()->getConnection();
+        $sql = '
+            SELECT DATE(shipped_at) as date, COUNT(id) as count
+            FROM outbound_orders
+            WHERE merchant_id = :merchantId
+            AND status = :status
+            AND shipped_at >= :startDate
+            GROUP BY DATE(shipped_at)
+        ';
+
+        $results = $conn->executeQuery($sql, [
+            'merchantId' => $merchant->getId(),
             'status' => OutboundOrder::STATUS_SHIPPED,
             'startDate' => $startDate->format('Y-m-d H:i:s'),
         ])->fetchAllAssociative();

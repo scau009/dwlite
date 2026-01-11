@@ -1,6 +1,9 @@
 // Account types
 export type AccountType = 'admin' | 'merchant' | 'warehouse';
 
+// Merchant approval status
+export type MerchantStatus = 'pending' | 'approved' | 'rejected' | 'disabled';
+
 // User type matching backend User entity
 export interface User {
   id: string;
@@ -11,6 +14,10 @@ export interface User {
   createdAt: string;
   warehouseId?: string;
   warehouseName?: string;
+  // Merchant-specific fields
+  merchantId?: string;
+  merchantStatus?: MerchantStatus | null;
+  merchantRejectedReason?: string;
 }
 
 // API Request types

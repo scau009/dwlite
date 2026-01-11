@@ -200,7 +200,9 @@ class ChannelProductRepository extends ServiceEntityRepository
         $qb = $this->createQueryBuilder('cp')
             ->leftJoin('cp.salesChannel', 'sc')
             ->leftJoin('cp.productSku', 'ps')
-            ->leftJoin('ps.product', 'p');
+            ->leftJoin('ps.product', 'p')
+            ->leftJoin('p.images', 'pi')
+            ->addSelect('sc', 'ps', 'p', 'pi');
 
         // Filter by sales channel
         if (!empty($filters['salesChannelId'])) {

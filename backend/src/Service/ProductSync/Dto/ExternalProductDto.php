@@ -50,6 +50,7 @@ readonly class ExternalProductDto
     {
         $skus = [];
         $avgPrice = (float) ($data['avg_price'] ?? 0);
+        $retailPrice = (float) ($data['retail_price'] ?? 0);
 
         if (isset($data['variants']) && is_array($data['variants'])) {
             foreach ($data['variants'] as $variant) {
@@ -57,7 +58,7 @@ readonly class ExternalProductDto
                 if (isset($variant['hidden']) && $variant['hidden'] === true) {
                     continue;
                 }
-                $skus[] = ExternalSkuDto::fromKicksDb($variant, $avgPrice, $currency);
+                $skus[] = ExternalSkuDto::fromKicksDb($variant, $avgPrice, $retailPrice, $currency);
             }
         }
 

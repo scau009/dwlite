@@ -58,6 +58,12 @@ services:
             $fromEmail: '%env(SES_FROM_EMAIL)%'
             $fromName: '%env(SES_FROM_NAME)%'
 
+    App\Service\Mail\SymfonyMailerService:
+        arguments:
+            $fromEmail: '%env(SES_FROM_EMAIL)%'
+            $fromName: '%env(SES_FROM_NAME)%'
+
+    # Default to TencentSesMailService for production
     App\Service\Mail\MailServiceInterface:
         alias: App\Service\Mail\TencentSesMailService
 
@@ -99,3 +105,9 @@ services:
             $gateways: !tagged_locator
                 tag: 'app.channel_gateway'
                 index_by: 'key'
+
+# Development environment: use SymfonyMailerService (MailHog)
+when@dev:
+    services:
+        App\Service\Mail\MailServiceInterface:
+            alias: App\Service\Mail\SymfonyMailerService

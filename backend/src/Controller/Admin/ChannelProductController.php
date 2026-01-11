@@ -11,6 +11,7 @@ use App\Enum\SyncTriggerSource;
 use App\Repository\ChannelProductRepository;
 use App\Repository\ChannelProductSyncLogRepository;
 use App\Service\ChannelProductSyncService;
+use App\Service\CosService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -30,6 +31,7 @@ class ChannelProductController extends AbstractController
         private ChannelProductSyncService $syncService,
         private EntityManagerInterface $entityManager,
         private TranslatorInterface $translator,
+        private CosService $cosService,
     ) {
     }
 
@@ -205,6 +207,17 @@ class ChannelProductController extends AbstractController
         $product = $sku->getProduct();
         $channel = $cp->getSalesChannel();
 
+        // Get signed image URL
+        $imageUrl = null;
+        $primaryImage = $product->getPrimaryImage();
+        if ($primaryImage) {
+            $imageUrl = $this->cosService->getSignedUrl(
+                $primaryImage->getCosKey(),
+                3600,
+                'imageMogr2/thumbnail/120x120>'
+            );
+        }
+
         $data = [
             'id' => $cp->getId(),
             'salesChannel' => [
@@ -217,6 +230,10 @@ class ChannelProductController extends AbstractController
                 'skuCode' => $product->getStyleNumber().'-'.$sku->getSkuName(),
                 'productName' => $product->getName(),
                 'productId' => $product->getId(),
+                'styleNumber' => $product->getStyleNumber(),
+                'imageUrl' => $imageUrl,
+                'sizeUnit' => $sku->getSizeUnit()?->value,
+                'sizeValue' => $sku->getSizeValue(),
             ],
             'platformPrice' => $cp->getPlatformPrice(),
             'platformCompareAtPrice' => $cp->getPlatformCompareAtPrice(),

@@ -131,6 +131,7 @@ class MerchantRuleRepository extends ServiceEntityRepository
         ?string $type = null,
         ?string $search = null,
         ?bool $isActive = null,
+        ?string $category = null,
     ): array {
         $qb = $this->createQueryBuilder('r')
             ->andWhere('r.merchant = :merchant')
@@ -142,13 +143,18 @@ class MerchantRuleRepository extends ServiceEntityRepository
         }
 
         if ($search) {
-            $qb->andWhere('(r.code LIKE :search OR r.name LIKE :search)')
+            $qb->andWhere('r.name LIKE :search')
                 ->setParameter('search', '%'.$search.'%');
         }
 
         if (null !== $isActive) {
             $qb->andWhere('r.isActive = :isActive')
                 ->setParameter('isActive', $isActive);
+        }
+
+        if ($category) {
+            $qb->andWhere('r.category = :category')
+                ->setParameter('category', $category);
         }
 
         // 获取总数

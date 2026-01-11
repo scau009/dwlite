@@ -83,6 +83,10 @@ export interface ChannelProduct {
     skuCode: string;
     productName: string;
     productId: string;
+    styleNumber?: string;
+    imageUrl?: string | null;
+    sizeUnit?: string | null;
+    sizeValue?: string | null;
   };
   platformPrice: string;
   platformCompareAtPrice: string | null;

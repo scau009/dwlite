@@ -90,6 +90,12 @@ export function AddInventoryPage() {
       clearTimeout(searchTimerRef.current);
     }
 
+    // If input is empty, just clear the list
+    if (!value.trim()) {
+      setProducts([]);
+      return;
+    }
+
     searchTimerRef.current = setTimeout(() => {
       searchProducts(value);
     }, 300);
@@ -102,6 +108,18 @@ export function AddInventoryPage() {
     // Reset search
     setSearchValue('');
     setProducts([]);
+  };
+
+  // Handle change SKU - show same product's sizes for quick switch
+  const handleChangeSku = () => {
+    if (selectedSku) {
+      const styleNumber = selectedSku.product.styleNumber;
+      setSearchValue(styleNumber);
+      setSelectedSku(null);
+      form.setFieldValue('productSkuId', undefined);
+      // Directly search with the style number
+      searchProducts(styleNumber);
+    }
   };
 
   // Handle form submit
@@ -135,46 +153,50 @@ export function AddInventoryPage() {
   // Product columns for search results
   const productColumns: ColumnsType<InboundProduct> = [
     {
-      title: t('merchantStock.product'),
-      key: 'product',
-      width: 250,
-      render: (_, record) => (
-        <div className="flex gap-3">
-          {record.primaryImageUrl ? (
+      title: t('merchantStock.productImage'),
+      key: 'image',
+      width: 80,
+      render: (_, record) =>
+        record.primaryImageUrl ? (
+          <div className="w-14 h-14 flex items-center justify-center bg-gray-100 rounded">
             <Image
               src={record.primaryImageUrl}
-              width={50}
-              height={50}
-              style={{ objectFit: 'cover' }}
+              style={{ maxWidth: 56, maxHeight: 56, objectFit: 'contain' }}
               preview={false}
             />
-          ) : (
-            <div className="w-[50px] h-[50px] bg-gray-100 flex items-center justify-center text-gray-400 text-xs">
-              N/A
-            </div>
-          )}
-          <div className="flex-1 min-w-0">
-            <div className="font-medium text-sm truncate">{record.name}</div>
-            <div className="text-xs text-gray-500">{record.styleNumber}</div>
           </div>
-        </div>
+        ) : (
+          <div className="w-14 h-14 bg-gray-100 flex items-center justify-center text-gray-400 text-xs rounded">
+            N/A
+          </div>
+        ),
+    },
+    {
+      title: t('merchantStock.styleNumber'),
+      dataIndex: 'styleNumber',
+      key: 'styleNumber',
+      width: 120,
+      render: (text: string) => (
+        <code className="text-xs bg-gray-100 px-2 py-1 rounded">{text}</code>
       ),
     },
     {
       title: t('merchantStock.availableSizes'),
       key: 'sizes',
       render: (_, record) => (
-        <Space wrap size={[4, 4]}>
+        <Space wrap size={[8, 8]}>
           {record.skus
             .filter(sku => sku.isActive)
             .map(sku => (
               <Button
                 key={sku.id}
-                size="small"
+                size="middle"
                 type="default"
                 onClick={() => handleSelectSku(record, sku)}
               >
-                {sku.skuName || sku.sizeValue || '-'}
+                {sku.sizeUnit && sku.sizeValue
+                  ? `${sku.sizeUnit} ${sku.sizeValue}`
+                  : sku.skuName || '-'}
               </Button>
             ))}
         </Space>
@@ -236,27 +258,36 @@ export function AddInventoryPage() {
           {/* Selected SKU Display */}
           {selectedSku && (
             <Form.Item label={t('merchantStock.selectedSku')}>
-              <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+              <div className="flex items-center gap-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                 {selectedSku.product.primaryImageUrl ? (
-                  <Image
-                    src={selectedSku.product.primaryImageUrl}
-                    width={60}
-                    height={60}
-                    style={{ objectFit: 'cover' }}
-                    preview={false}
-                  />
+                  <div className="w-16 h-16 flex-shrink-0 flex items-center justify-center bg-gray-100 rounded">
+                    <Image
+                      src={selectedSku.product.primaryImageUrl}
+                      style={{ maxWidth: 64, maxHeight: 64, objectFit: 'contain' }}
+                      preview={false}
+                    />
+                  </div>
                 ) : (
-                  <div className="w-[60px] h-[60px] bg-gray-200 flex items-center justify-center text-gray-400 text-xs">
+                  <div className="w-16 h-16 flex-shrink-0 bg-gray-200 flex items-center justify-center text-gray-400 text-xs rounded">
                     N/A
                   </div>
                 )}
-                <div className="flex-1">
-                  <div className="font-medium">{selectedSku.product.name}</div>
-                  <div className="text-sm text-gray-500">
-                    {selectedSku.product.styleNumber} - {selectedSku.sku.skuName || selectedSku.sku.sizeValue}
+                <div className="flex-1 space-y-1">
+                  <code className="text-sm bg-gray-100 px-2 py-1 rounded">
+                    {selectedSku.product.styleNumber}
+                  </code>
+                  <div className="text-sm text-gray-600">
+                    <span className="mr-4">
+                      {t('merchantStock.skuName')}: {selectedSku.sku.sizeUnit && selectedSku.sku.sizeValue
+                        ? `${selectedSku.sku.sizeUnit} ${selectedSku.sku.sizeValue}`
+                        : selectedSku.sku.skuName || '-'}
+                    </span>
+                    <span className="text-orange-600">
+                      {getCurrencySymbol(selectedSku.sku.currency)}{parseFloat(selectedSku.sku.price).toFixed(2)}
+                    </span>
                   </div>
                 </div>
-                <Button size="small" onClick={() => setSelectedSku(null)}>
+                <Button size="small" onClick={handleChangeSku}>
                   {t('common.change')}
                 </Button>
               </div>

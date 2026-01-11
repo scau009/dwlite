@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { ProTable, type ActionType, type ProColumns } from '@ant-design/pro-components';
-import { Button, Tag, Space, App, Avatar } from 'antd';
+import { Button, Tag, Space, App, Avatar, Image } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 
 import {
@@ -105,27 +105,44 @@ export function ListingsListPage() {
     {
       title: t('listingManagement.product'),
       dataIndex: 'product',
-      width: 280,
+      width: 240,
       search: {
         transform: (value) => ({ search: value }),
       },
       render: (_, record) => (
-        <Space size="small">
-          {record.product.imageUrl ? (
-            <Avatar src={record.product.imageUrl} size={40} shape="square" />
-          ) : (
-            <Avatar size={40} shape="square">
-              {record.product.name.charAt(0)}
-            </Avatar>
-          )}
-          <div>
-            <div className="font-medium">{record.product.name}</div>
-            <div className="text-xs text-gray-500">
-              {record.product.styleNumber} / {record.productSku.sizeValue}
-              {record.productSku.sizeUnit}
-            </div>
+        <div className="flex items-center gap-2">
+          <div className="flex-shrink-0">
+            {record.product.imageUrl ? (
+              <Image
+                src={record.product.imageUrl}
+                alt={record.product.name}
+                width={56}
+                height={56}
+                className="object-contain rounded bg-gray-50"
+                preview={false}
+              />
+            ) : (
+              <Avatar size={56} shape="square">
+                {record.product.name.charAt(0)}
+              </Avatar>
+            )}
           </div>
-        </Space>
+          <div className="flex-1 min-w-0">
+            <div className="font-medium truncate" title={record.product.name}>
+              {record.product.name}
+            </div>
+            <div className="text-xs text-gray-500 truncate">{record.product.styleNumber}</div>
+          </div>
+        </div>
+      ),
+    },
+    {
+      title: t('listingManagement.size'),
+      dataIndex: ['productSku', 'sizeValue'],
+      width: 80,
+      search: false,
+      render: (_, record) => (
+        <span>{record.productSku.sizeUnit} {record.productSku.sizeValue}</span>
       ),
     },
     {

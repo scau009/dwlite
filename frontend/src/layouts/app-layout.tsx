@@ -9,14 +9,20 @@ import { HeaderRight } from '@/components/layout/header-right';
 import { useAuth } from '@/contexts/auth-context';
 import { useTheme } from '@/contexts/theme-context';
 import { filterMenuByAccess } from '@/lib/menu-access';
+import { MerchantPendingApprovalPage } from '@/pages/merchant';
 
 export function AppLayout() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
-  const { user } = useAuth();
+  const { user, isMerchantApproved } = useAuth();
   const { isDark } = useTheme();
+
+  // If merchant is not approved, show the pending approval page
+  if (user?.accountType === 'merchant' && !isMerchantApproved) {
+    return <MerchantPendingApprovalPage />;
+  }
 
   // eslint-disable-next-line react-hooks/preserve-manual-memoization
   const menuData = useMemo(() => {

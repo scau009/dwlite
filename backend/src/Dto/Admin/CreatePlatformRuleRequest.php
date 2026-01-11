@@ -7,13 +7,13 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 class CreatePlatformRuleRequest
 {
-    #[Assert\NotBlank(message: 'Rule code is required')]
     #[Assert\Length(max: 100, maxMessage: 'Rule code cannot exceed {{ limit }} characters')]
     #[Assert\Regex(
         pattern: '/^[a-z][a-z0-9_]*$/',
-        message: 'Rule code must start with a letter and contain only lowercase letters, numbers, and underscores'
+        message: 'Rule code must start with a letter and contain only lowercase letters, numbers, and underscores',
+        groups: ['code_provided']
     )]
-    public string $code;
+    public ?string $code = null;
 
     #[Assert\NotBlank(message: 'Rule name is required')]
     #[Assert\Length(max: 200, maxMessage: 'Rule name cannot exceed {{ limit }} characters')]

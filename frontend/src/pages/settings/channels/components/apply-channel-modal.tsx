@@ -106,12 +106,13 @@ export function ApplyChannelModal({ open, channel, onClose, onSuccess }: Props) 
         </Descriptions>
       </div>
 
-      <Alert
-        message={t('myChannels.fulfillmentTypesHint')}
-        type="info"
-        showIcon
-        className="mb-4"
-      />
+      <div className="mb-6">
+        <Alert
+          message={t('myChannels.fulfillmentTypesHint')}
+          type="info"
+          showIcon
+        />
+      </div>
 
       <Form
         form={form}

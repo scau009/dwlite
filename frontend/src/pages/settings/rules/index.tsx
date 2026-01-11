@@ -1,11 +1,11 @@
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router';
 import { ProTable, type ActionType, type ProColumns } from '@ant-design/pro-components';
 import { Button, Tag, Switch, App, Popconfirm, Space, Tabs, Typography } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 
 import { merchantRuleApi, type MerchantRule } from '@/lib/merchant-rule-api';
-import { RuleFormModal } from './components/rule-form-modal';
 import { AssignmentDrawer } from './components/assignment-drawer';
 
 const { Paragraph } = Typography;
@@ -14,12 +14,11 @@ type RuleType = 'pricing' | 'stock_allocation';
 
 export function MerchantRulesPage() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const actionRef = useRef<ActionType>(null);
   const { message, modal } = App.useApp();
 
   const [ruleType, setRuleType] = useState<RuleType>('pricing');
-  const [formModalOpen, setFormModalOpen] = useState(false);
-  const [editingRule, setEditingRule] = useState<MerchantRule | null>(null);
   const [assignmentDrawerOpen, setAssignmentDrawerOpen] = useState(false);
   const [selectedRule, setSelectedRule] = useState<MerchantRule | null>(null);
   const [statusLoading, setStatusLoading] = useState<string | null>(null);
@@ -39,13 +38,11 @@ export function MerchantRulesPage() {
   };
 
   const handleAdd = () => {
-    setEditingRule(null);
-    setFormModalOpen(true);
+    navigate(`/channels/rules/create?type=${ruleType}`);
   };
 
   const handleEdit = (rule: MerchantRule) => {
-    setEditingRule(rule);
-    setFormModalOpen(true);
+    navigate(`/channels/rules/${rule.id}/edit?type=${ruleType}`);
   };
 
   const handleManageAssignments = (rule: MerchantRule) => {
@@ -88,16 +85,20 @@ export function MerchantRulesPage() {
     }
   };
 
+  const getCategoryValueEnum = () => {
+    if (ruleType === 'pricing') {
+      return {
+        markup: { text: t('rules.categoryMarkup') },
+        discount: { text: t('rules.categoryDiscount') },
+      };
+    }
+    return {
+      ratio: { text: t('rules.categoryRatio') },
+      limit: { text: t('rules.categoryLimit') },
+    };
+  };
+
   const columns: ProColumns<MerchantRule>[] = [
-    {
-      title: t('rules.code'),
-      dataIndex: 'code',
-      width: 150,
-      ellipsis: true,
-      render: (_, record) => (
-        <code className="text-xs bg-gray-100 px-2 py-1 rounded">{record.code}</code>
-      ),
-    },
     {
       title: t('rules.name'),
       dataIndex: 'name',
@@ -111,7 +112,8 @@ export function MerchantRulesPage() {
       title: t('rules.category'),
       dataIndex: 'category',
       width: 100,
-      search: false,
+      valueType: 'select',
+      valueEnum: getCategoryValueEnum(),
       render: (_, record) => (
         <Tag color={getCategoryColor(record.category)}>
           {t(`rules.category${record.category.charAt(0).toUpperCase() + record.category.slice(1)}`)}
@@ -253,6 +255,7 @@ export function MerchantRulesPage() {
               limit: params.pageSize,
               type: ruleType,
               search: params.name,
+              category: params.category,
             });
             return {
               data: result.data,
@@ -292,21 +295,6 @@ export function MerchantRulesPage() {
           showSizeChanger: true,
         }}
         scroll={{ x: 1200 }}
-      />
-
-      <RuleFormModal
-        open={formModalOpen}
-        rule={editingRule}
-        ruleType={ruleType}
-        onClose={() => {
-          setFormModalOpen(false);
-          setEditingRule(null);
-        }}
-        onSuccess={() => {
-          setFormModalOpen(false);
-          setEditingRule(null);
-          actionRef.current?.reload();
-        }}
       />
 
       <AssignmentDrawer

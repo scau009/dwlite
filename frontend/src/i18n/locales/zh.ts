@@ -6,6 +6,7 @@ export default {
     query: '查询',
     add: '新增',
     edit: '编辑',
+    change: '更换',
     view: '查看',
     delete: '删除',
     save: '保存',
@@ -47,6 +48,7 @@ export default {
     inactive: '停用',
     apply: '应用',
     clickToEdit: '点击编辑',
+    quantity: '数量',
   },
 
   // Navigation
@@ -97,7 +99,7 @@ export default {
     fulfillmentPending: '待发货',
     fulfillmentShipped: '已发货',
     fulfillmentExceptions: '异常处理',
-    platformOrders: '平台订单',
+    platformOrders: '渠道订单',
     fulfillmentOrders: '履约单列表',
     orderExceptions: '订单异常',
     // Settlements (Admin)
@@ -159,6 +161,21 @@ export default {
     forgotPassword: '忘记密码',
     resetPassword: '重置密码',
     verifyEmail: '验证邮箱',
+    logout: '退出登录',
+  },
+
+  // Merchant approval
+  merchant: {
+    approval: {
+      pendingTitle: '账号待审核',
+      pendingDescription: '您的商户账号正在审核中，审核通过后我们将通过邮件通知您。',
+      rejectedTitle: '账号申请被拒绝',
+      rejectedDescription: '很抱歉，您的商户账号申请未通过审核。请查看以下拒绝原因并更新资料后重新申请。',
+      disabledTitle: '账号已禁用',
+      disabledDescription: '您的商户账号已被禁用，如有疑问请联系客服。',
+      rejectedReason: '拒绝原因',
+      editProfile: '编辑资料',
+    },
   },
 
   // Dashboard
@@ -325,6 +342,14 @@ export default {
     updateBarcode: '更新条码',
     pricePlaceholder: '请输入价格',
     originalPricePlaceholder: '请输入发售价',
+    // 商品批量操作
+    batchOperation: '批量操作',
+    batchUpdateStatus: '批量修改状态',
+    batchSelectStatus: '选择目标状态',
+    batchStatusHint: '您正在修改 {{count}} 个选中商品的状态',
+    batchStatusUpdated: '已成功更新 {{count}} 个商品的状态',
+    selectAll: '全选',
+    deselectAll: '取消全选',
   },
 
   // Orders
@@ -537,6 +562,12 @@ export default {
     updated: '仓库更新成功',
     deleted: '仓库已删除',
     confirmDelete: '确定要删除此仓库吗？',
+    infoTitle: '仓库类型说明',
+    logicalWarehouse: '逻辑仓库',
+    logicalWarehouseDesc:
+      '商户虚拟定义的仓库，无需确定具体物理位置，仅作为库存维护的载体。商户可以选择逻辑仓库的库存进行自履约业务。',
+    platformWarehouse: '平台仓库',
+    platformWarehouseDesc: '由平台运营维护的实体仓库，主要用于支持寄售业务。',
   },
 
   // Warehouse Users
@@ -600,6 +631,9 @@ export default {
     descriptionMaxLength: '品牌描述最多500个字符',
     sortOrderTooltip: '数字越小越靠前，默认为0',
     namePlaceholder: '输入品牌名称',
+    batchActivate: '批量启用',
+    batchDeactivate: '批量停用',
+    batchStatusConfirm: '确定要对选中的 {{count}} 个品牌执行此操作吗？',
   },
 
   // My Channels (Merchant)
@@ -1448,6 +1482,7 @@ export default {
     skuCount: '尺码数',
     skuCountValue: '{{count}} 个尺码',
     skuList: 'SKU列表',
+    size: '尺码',
     statusLabel: '状态',
     priceRange: '价格区间',
     searchPlaceholder: '搜索商品名称或款号',
@@ -1654,6 +1689,7 @@ export default {
     categoryPriority: '优先级',
     categoryFeeRate: '费率',
     categoryFeerate: '费率',
+    categoryHint: '分类的选择仅作标志管理，不实际影响结果',
 
     // Actions
     addRule: '添加规则',
@@ -1670,9 +1706,12 @@ export default {
     cannotDeleteSystem: '系统规则不能删除',
     cannotModifySystem: '系统规则不能修改',
     systemRule: '系统规则',
+    systemRuleWarning: '这是一个系统规则',
+    systemRuleWarningDesc: '系统规则不能修改，您只能查看规则详情。',
 
     // Form
     codePlaceholder: '例如：markup_rate_15',
+    codeTooltip: '留空时将根据规则名称自动生成',
     codeRequired: '请输入规则编码',
     codeMaxLength: '规则编码不能超过100个字符',
     codeInvalid: '规则编码必须以字母开头，只能包含小写字母、数字和下划线',
@@ -1698,6 +1737,49 @@ export default {
     expressionValid: '表达式有效',
     validating: '验证中',
     validationFailed: '验证失败',
+
+    // Variable descriptions - Pricing Rules
+    var_value: '当前计算值（规则链中间值）',
+    var_cost: '商品成本价',
+    var_referencePrice: 'SKU 参考价格',
+    var_originalPrice: '商品原价',
+    var_channelCode: '销售渠道编码',
+    var_sizeValue: '尺码值',
+    var_sizeUnit: '尺码单位',
+    var_config: '规则配置对象',
+
+    // Variable descriptions - Stock Allocation Rules
+    var_availableStock: '可分配库存数量',
+    var_totalStock: '总库存数量（在手）',
+    var_reservedStock: '已预留库存数量',
+
+    // Variable descriptions - Platform Rules
+    var_merchantPrice: '商户销售价格',
+    var_brand: '品牌名称',
+    var_brandSlug: '品牌标识',
+    var_category: '分类名称',
+    var_categorySlug: '分类标识',
+    var_merchantId: '商户ID',
+    var_orderAmount: '订单金额',
+
+    // Function descriptions
+    func_markup: '在基础价格上加价指定比例。例如：markup(100, 0.15) = 115',
+    func_discount: '在基础价格上打折指定比例。例如：discount(100, 0.1) = 90',
+    func_addFee: '添加费用（百分比 + 固定金额）。例如：addFee(100, 0.05, 2) = 107',
+    func_ratio: '按指定比例计算（向下取整）。例如：ratio(100, 0.8) = 80',
+    func_limit: '限制最大值。例如：limit(150, 100) = 100',
+    func_tieredRate: '获取阶梯费率。例如：tieredRate(8000, [[10000, 0.03], [5000, 0.04], [0, 0.05]]) = 0.04',
+    func_round: '四舍五入到指定小数位。例如：round(3.1415, 2) = 3.14',
+    func_floor: '向下取整。例如：floor(3.9) = 3',
+    func_ceil: '向上取整。例如：ceil(3.1) = 4',
+    func_min: '返回最小值。例如：min(5, 3) = 3',
+    func_max: '返回最大值。例如：max(5, 3) = 5',
+    func_abs: '返回绝对值。例如：abs(-5) = 5',
+    func_inList: '检查值是否在列表中。例如：inList("nike", ["nike", "adidas"]) = true',
+    func_startsWith: '检查字符串前缀。例如：startsWith("nike-air", "nike") = true',
+    func_endsWith: '检查字符串后缀。例如：endsWith("nike-air", "air") = true',
+    func_contains: '检查字符串是否包含子串。例如：contains("nike-air-max", "air") = true',
+    func_config: '获取规则配置值。例如：config("rate", 0.1)',
 
     // Test Panel
     testExecution: '测试执行',
@@ -1748,6 +1830,8 @@ export default {
     remark: '备注',
     warehouse: '仓库',
     platformWarehouse: '平台仓',
+    logicalWarehouse: '逻辑仓',
+    size: '尺码',
     shareableQuantity: '可分配数量',
 
     // Status
@@ -1882,7 +1966,9 @@ export default {
 
   // Channel Products (Admin)
   channelProducts: {
+    product: '商品',
     productSku: '商品SKU',
+    size: '尺码',
     salesChannel: '销售渠道',
     platformPrice: '平台价格',
     stockQuantity: '库存数量',
@@ -2291,5 +2377,37 @@ export default {
     statusCompleted: '已完成',
     statusRejected: '已拒绝',
     statusFailed: '失败',
+  },
+
+  // Merchant Dashboard
+  merchantDashboard: {
+    title: '商户工作台',
+    // Inventory Summary
+    inventorySummary: '库存概览',
+    availableStock: '可用库存',
+    inTransitStock: '在途库存',
+    reservedStock: '已预留库存',
+    warehouses: '个仓库',
+    pendingExceptions: '待处理异常',
+    // Finance Summary
+    financeSummary: '财务概览',
+    availableBalance: '可用余额',
+    depositBalance: '保证金余额',
+    frozen: '冻结',
+    pendingSettlement: '待结算金额',
+    withdrawable: '可提现金额',
+    processing: '处理中',
+    // Pending Tasks
+    pendingTasks: '待处理事项',
+    pendingInbounds: '待处理入库单',
+    pendingOutbounds: '待处理出库单',
+    // Trend
+    trendTitle: '近7天入库/出库趋势',
+    inboundCompleted: '入库完成',
+    outboundShipped: '出库发货',
+    // Recent
+    recentInbounds: '最近入库单',
+    recentOutbounds: '最近出库单',
+    recentExceptions: '待处理异常',
   },
 }

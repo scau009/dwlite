@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Modal, Form, InputNumber, Select, Input, App, Alert } from 'antd';
 
@@ -20,12 +20,14 @@ export function CreatePayoutModal({
   const { t } = useTranslation();
   const { message } = App.useApp();
   const [form] = Form.useForm();
+  const prevOpenRef = useRef(false);
 
   const availableBalance = parseFloat(summary?.availableBalance || '0');
   const bankAccounts = summary?.bankAccounts || [];
 
   useEffect(() => {
-    if (open) {
+    // Only reset form when modal is first opened (not on every bankAccounts change)
+    if (open && !prevOpenRef.current) {
       form.resetFields();
       // Set default bank account if available
       const defaultAccount = bankAccounts.find((a) => a.isDefault);
@@ -35,6 +37,7 @@ export function CreatePayoutModal({
         form.setFieldValue('bankAccountId', bankAccounts[0].id);
       }
     }
+    prevOpenRef.current = open;
   }, [open, bankAccounts, form]);
 
   const handleSubmit = async () => {
@@ -115,7 +118,7 @@ export function CreatePayoutModal({
           <InputNumber
             style={{ width: '100%' }}
             min={0.01}
-            max={availableBalance}
+            max={availableBalance > 0 ? availableBalance : undefined}
             precision={2}
             prefix="¥"
             placeholder={t('merchantPayouts.withdrawAmountPlaceholder')}

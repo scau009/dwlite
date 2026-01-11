@@ -62,7 +62,7 @@ class ChannelProduct
 
     // 库存策略
     #[ORM\Column(type: 'string', length: 20)]
-    private string $stockMode = self::STOCK_MODE_AGGREGATE;
+    private string $stockMode = self::STOCK_MODE_LOWEST;
 
     #[ORM\Column(type: 'integer', options: ['default' => 0])]
     private int $stockQuantity = 0;  // 计算后的对外库存

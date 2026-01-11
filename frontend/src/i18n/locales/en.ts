@@ -6,6 +6,7 @@ export default {
     query: 'Query',
     add: 'Add',
     edit: 'Edit',
+    change: 'Change',
     view: 'View',
     delete: 'Delete',
     save: 'Save',
@@ -47,6 +48,7 @@ export default {
     inactive: 'Inactive',
     apply: 'Apply',
     clickToEdit: 'Click to edit',
+    quantity: 'Quantity',
   },
 
   // Navigation
@@ -97,7 +99,7 @@ export default {
     fulfillmentPending: 'Pending Shipment',
     fulfillmentShipped: 'Shipped',
     fulfillmentExceptions: 'Exceptions',
-    platformOrders: 'Platform Orders',
+    platformOrders: 'Channel Orders',
     fulfillmentOrders: 'Fulfillment Orders',
     orderExceptions: 'Order Exceptions',
     // Settlements (Admin)
@@ -159,6 +161,21 @@ export default {
     forgotPassword: 'Forgot Password',
     resetPassword: 'Reset Password',
     verifyEmail: 'Verify Email',
+    logout: 'Logout',
+  },
+
+  // Merchant approval
+  merchant: {
+    approval: {
+      pendingTitle: 'Account Pending Approval',
+      pendingDescription: 'Your merchant account is currently under review. We will notify you via email once the review is complete.',
+      rejectedTitle: 'Account Application Rejected',
+      rejectedDescription: 'Unfortunately, your merchant account application has been rejected. Please review the reason below and update your profile to reapply.',
+      disabledTitle: 'Account Disabled',
+      disabledDescription: 'Your merchant account has been disabled. Please contact customer support for assistance.',
+      rejectedReason: 'Rejection Reason',
+      editProfile: 'Edit Profile',
+    },
   },
 
   // Dashboard
@@ -325,6 +342,14 @@ export default {
     updateBarcode: 'Update Barcode',
     pricePlaceholder: 'Enter price',
     originalPricePlaceholder: 'Enter release price',
+    // Product batch operations
+    batchOperation: 'Batch Operation',
+    batchUpdateStatus: 'Batch Update Status',
+    batchSelectStatus: 'Select Target Status',
+    batchStatusHint: 'You are modifying the status of {{count}} selected product(s)',
+    batchStatusUpdated: 'Successfully updated the status of {{count}} product(s)',
+    selectAll: 'Select All',
+    deselectAll: 'Deselect All',
   },
 
   // Orders
@@ -537,6 +562,13 @@ export default {
     updated: 'Warehouse updated successfully',
     deleted: 'Warehouse deleted successfully',
     confirmDelete: 'Are you sure you want to delete this warehouse?',
+    infoTitle: 'Warehouse Types',
+    logicalWarehouse: 'Logical Warehouse',
+    logicalWarehouseDesc:
+      'A virtual warehouse defined by the merchant without a specific physical location. Used as a carrier for inventory management. Merchants can select inventory from logical warehouses for self-fulfillment.',
+    platformWarehouse: 'Platform Warehouse',
+    platformWarehouseDesc:
+      'A physical warehouse operated and maintained by the platform, primarily used to support consignment business.',
   },
 
   // Warehouse Users
@@ -600,6 +632,9 @@ export default {
     descriptionMaxLength: 'Description cannot exceed 500 characters',
     sortOrderTooltip: 'Lower numbers appear first, default is 0',
     namePlaceholder: 'Enter brand name',
+    batchActivate: 'Batch Activate',
+    batchDeactivate: 'Batch Deactivate',
+    batchStatusConfirm: 'Are you sure you want to perform this action on {{count}} selected brands?',
   },
 
   // Sales Channels
@@ -1398,6 +1433,7 @@ export default {
     skuCount: 'Sizes',
     skuCountValue: '{{count}} sizes',
     skuList: 'SKU List',
+    size: 'Size',
     statusLabel: 'Status',
     priceRange: 'Price Range',
     searchPlaceholder: 'Search by name or style number',
@@ -1655,6 +1691,7 @@ export default {
     categoryPriority: 'Priority',
     categoryFeeRate: 'Fee Rate',
     categoryFeerate: 'Fee Rate',
+    categoryHint: 'Category selection is for labeling only and does not affect the result',
 
     // Actions
     addRule: 'Add Rule',
@@ -1671,9 +1708,12 @@ export default {
     cannotDeleteSystem: 'System rules cannot be deleted',
     cannotModifySystem: 'System rules cannot be modified',
     systemRule: 'System Rule',
+    systemRuleWarning: 'This is a system rule',
+    systemRuleWarningDesc: 'System rules cannot be modified. You can only view the rule details.',
 
     // Form
     codePlaceholder: 'e.g., markup_rate_15',
+    codeTooltip: 'Auto-generated from rule name if left empty',
     codeRequired: 'Please enter rule code',
     codeMaxLength: 'Rule code cannot exceed 100 characters',
     codeInvalid: 'Rule code must start with a letter and contain only lowercase letters, numbers, and underscores',
@@ -1699,6 +1739,49 @@ export default {
     expressionValid: 'Expression is valid',
     validating: 'Validating',
     validationFailed: 'Validation failed',
+
+    // Variable descriptions - Pricing Rules
+    var_value: 'Current calculated value (intermediate in rule chain)',
+    var_cost: 'Product cost price',
+    var_referencePrice: 'SKU reference price',
+    var_originalPrice: 'Product original price',
+    var_channelCode: 'Sales channel code',
+    var_sizeValue: 'Size value',
+    var_sizeUnit: 'Size unit',
+    var_config: 'Rule configuration object',
+
+    // Variable descriptions - Stock Allocation Rules
+    var_availableStock: 'Allocatable stock quantity',
+    var_totalStock: 'Total stock quantity (on hand)',
+    var_reservedStock: 'Reserved stock quantity',
+
+    // Variable descriptions - Platform Rules
+    var_merchantPrice: 'Merchant selling price',
+    var_brand: 'Brand name',
+    var_brandSlug: 'Brand slug/identifier',
+    var_category: 'Category name',
+    var_categorySlug: 'Category slug/identifier',
+    var_merchantId: 'Merchant ID',
+    var_orderAmount: 'Order amount',
+
+    // Function descriptions
+    func_markup: 'Apply markup to base price. Example: markup(100, 0.15) = 115',
+    func_discount: 'Apply discount to base price. Example: discount(100, 0.1) = 90',
+    func_addFee: 'Add fee (percentage + fixed amount). Example: addFee(100, 0.05, 2) = 107',
+    func_ratio: 'Calculate by ratio (floor). Example: ratio(100, 0.8) = 80',
+    func_limit: 'Limit to maximum value. Example: limit(150, 100) = 100',
+    func_tieredRate: 'Get tiered rate. Example: tieredRate(8000, [[10000, 0.03], [5000, 0.04], [0, 0.05]]) = 0.04',
+    func_round: 'Round to specified decimal places. Example: round(3.1415, 2) = 3.14',
+    func_floor: 'Round down. Example: floor(3.9) = 3',
+    func_ceil: 'Round up. Example: ceil(3.1) = 4',
+    func_min: 'Return minimum value. Example: min(5, 3) = 3',
+    func_max: 'Return maximum value. Example: max(5, 3) = 5',
+    func_abs: 'Return absolute value. Example: abs(-5) = 5',
+    func_inList: 'Check if value is in list. Example: inList("nike", ["nike", "adidas"]) = true',
+    func_startsWith: 'Check string prefix. Example: startsWith("nike-air", "nike") = true',
+    func_endsWith: 'Check string suffix. Example: endsWith("nike-air", "air") = true',
+    func_contains: 'Check if string contains substring. Example: contains("nike-air-max", "air") = true',
+    func_config: 'Get rule configuration value. Example: config("rate", 0.1)',
 
     // Test Panel
     testExecution: 'Test Execution',
@@ -1749,6 +1832,8 @@ export default {
     remark: 'Remark',
     warehouse: 'Warehouse',
     platformWarehouse: 'Platform',
+    logicalWarehouse: 'Logical',
+    size: 'Size',
     shareableQuantity: 'Shareable Qty',
 
     // Status
@@ -1885,7 +1970,9 @@ export default {
   channelProducts: {
     title: 'Channel Products',
     description: 'Manage aggregated products across sales channels',
+    product: 'Product',
     productSku: 'Product SKU',
+    size: 'Size',
     salesChannel: 'Sales Channel',
     platformPrice: 'Platform Price',
     stockQuantity: 'Stock Quantity',
@@ -2294,5 +2381,37 @@ export default {
     statusCompleted: 'Completed',
     statusRejected: 'Rejected',
     statusFailed: 'Failed',
+  },
+
+  // Merchant Dashboard
+  merchantDashboard: {
+    title: 'Merchant Dashboard',
+    // Inventory Summary
+    inventorySummary: 'Inventory Overview',
+    availableStock: 'Available Stock',
+    inTransitStock: 'In Transit',
+    reservedStock: 'Reserved Stock',
+    warehouses: 'Warehouses',
+    pendingExceptions: 'Pending Exceptions',
+    // Finance Summary
+    financeSummary: 'Finance Overview',
+    availableBalance: 'Available Balance',
+    depositBalance: 'Deposit Balance',
+    frozen: 'Frozen',
+    pendingSettlement: 'Pending Settlement',
+    withdrawable: 'Withdrawable',
+    processing: 'Processing',
+    // Pending Tasks
+    pendingTasks: 'Pending Tasks',
+    pendingInbounds: 'Pending Inbounds',
+    pendingOutbounds: 'Pending Outbounds',
+    // Trend
+    trendTitle: '7-Day Inbound/Outbound Trend',
+    inboundCompleted: 'Inbound Completed',
+    outboundShipped: 'Outbound Shipped',
+    // Recent
+    recentInbounds: 'Recent Inbounds',
+    recentOutbounds: 'Recent Outbounds',
+    recentExceptions: 'Pending Exceptions',
   },
 }

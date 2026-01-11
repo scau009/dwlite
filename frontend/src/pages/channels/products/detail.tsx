@@ -11,8 +11,10 @@ import {
   Empty,
   Descriptions,
   Alert,
+  Image,
 } from 'antd';
 import { ProTable, type ActionType, type ProColumns } from '@ant-design/pro-components';
+import { ShoppingOutlined } from '@ant-design/icons';
 import {
   ArrowLeftOutlined,
   SyncOutlined,
@@ -416,66 +418,92 @@ export function ChannelProductDetailPage() {
 
       {/* Basic Info */}
       <Card title={t('channelProducts.basicInfo')}>
-        <Descriptions column={3} bordered size="small">
-          <Descriptions.Item label={t('channelProducts.productName')}>
-            {product.productSku.productName}
-          </Descriptions.Item>
-          <Descriptions.Item label={t('channelProducts.skuCode')}>
-            {product.productSku.skuCode}
-          </Descriptions.Item>
-          <Descriptions.Item label={t('channelProducts.salesChannel')}>
-            <Tag>{product.salesChannel.name}</Tag>
-          </Descriptions.Item>
-
-          <Descriptions.Item label={t('channelProducts.platformPrice')}>
-            <span className="font-semibold">${product.platformPrice}</span>
-          </Descriptions.Item>
-          <Descriptions.Item label={t('channelProducts.stockQuantity')}>
-            <span className={product.stockQuantity === 0 ? 'text-red-500' : ''}>
-              {product.stockQuantity}
-            </span>
-          </Descriptions.Item>
-          <Descriptions.Item label={t('channelProducts.stockMode')}>
-            {product.stockMode}
-          </Descriptions.Item>
-
-          <Descriptions.Item label={t('channelProducts.status')}>
-            <Tag color={statusColorMap[product.status]}>
-              {t(`channelProducts.status${product.status.charAt(0).toUpperCase() + product.status.slice(1)}`)}
-            </Tag>
-          </Descriptions.Item>
-          <Descriptions.Item label={t('channelProducts.syncStatus')}>
-            <Tag color={syncStatusColorMap[product.syncStatus]}>
-              {t(`channelProducts.sync${product.syncStatus.charAt(0).toUpperCase() + product.syncStatus.slice(1)}`)}
-            </Tag>
-          </Descriptions.Item>
-          <Descriptions.Item label={t('channelProducts.lastSyncedAt')}>
-            {product.lastSyncedAt
-              ? new Date(product.lastSyncedAt).toLocaleString()
-              : '-'}
-          </Descriptions.Item>
-
-          <Descriptions.Item label={t('channelProducts.externalId')} span={2}>
-            {product.externalId ? (
-              product.externalUrl ? (
-                <a
-                  href={product.externalUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  {product.externalId} <LinkOutlined />
-                </a>
-              ) : (
-                product.externalId
-              )
+        <div className="flex gap-6">
+          {/* Product Image */}
+          <div className="flex-shrink-0">
+            {product.productSku.imageUrl ? (
+              <Image
+                src={product.productSku.imageUrl}
+                alt={product.productSku.productName}
+                width={160}
+                height={160}
+                style={{ objectFit: 'contain', borderRadius: 8 }}
+                fallback="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMIAAADDCAYAAADQvc6UAAABRWlDQ1BJQ0MgUHJvZmlsZQAAKJFjYGASSSwoyGFhYGDIzSspCnJ3UoiIjFJgf8LAwSDCIMogwMCcmFxc4BgQ4ANUwgCjUcG3awyMIPqyLsis7PPOq3QdDFcvjV3jOD1boQVTPQrgSkktTgbSf4A4LbmgqISBgTEFyFYuLykAsTuAbJEioKOA7DkgdjqEvQHEToKwj4DVhAQ5A9k3gGyB5IxEoBmML4BsnSQk8XQkNtReEOBxcfXxUQg1Mjc0dyHgXNJBSWpFCYh2zi+oLMpMzyhRcASGUqqCZ16yno6CkYGRAQMDKMwhqj/fAIcloxgHQqxAjIHBEugw5sUIsSQpBobtQPdLciLEVJYzMPBHMDBsayhILEqEO4DxG0txmrERhM29nYGBddr//5/DGRjYNRkY/l7////39v///y4Dmn+LgesAAGdJREFUeNrt3XuMXOV5xvHvmd3Z2fVt7XV8wWtvjB1fMBhCCCQhBJoQyJ9JVRqpUZqqlaomqpSqUtMmatIWNW2jtqlUKaSx0qhNo4QkpEpUQSEhCQHCLd5gwI69xvZ6fd+93tude+8f+7r2+rLZ8e7M7HJ+kvn+/PrMnDmO5s/znnPmKBmGIUREqvkBiCiEIiIhFBEJoYhICEVEIRQRCaGISAhFREIoIhJCEZEQioiEUEQkhCIiIRQRCaGISAhFREIoIhJCEZEQioiEUEQkhCIiIRQRCaGISAhFREIoIhJCEZEQioiEUEQkhCIiIRQRCaGISAhFREIoIhJCEZEQioiEUEQkhCIiIRQRCaGISAhFREIoIhJCEZEQioiEUEQkhCIiIRQRCaGISAhFREIoIhJCEZEQioiEUEQkhCIiIRQRCaGISAhFREIoIhJCEZEQioiEUEQkhCIiIRQRCaGISAhFREIoIhJCEZEQioiEUEQkhCIiIRQRCaGISAhFREIoIhJCEZEQioiEUEQkhCIiIRQRCaGISAhFREIoIhJCEZEQioiEUEQkhCIiIRQRCaGISAhFREIoIhJCEZEQioiEUEQkhCIiIRQRCaGISAhFREIoIhJCEZEQioiEUEQkhCIiIRQRCaGISAhFREIoIhJCEZEQioiEUEQkhCIiIRQRCaGISAhFREIoIhJCEZEQioiEUEQkhCIiIRQRCaGISAhFREIoIhJCEZEQioiEUEQkhCIiIRQRCaGISAhFREIoIhJCEZEQioiEUEQkhCIiIRQRCaGISAhFREIoIhJCEZEQioiEUEQkhCIiIRQRCaGISAhFREIoIhJCEZEQioiEUEQkhCIiIRQRCaGISAhFREIoIhJCEZEQioiEUEQkhCIiIRQRCaGISAhFREIoIhJCEZEQioiEUEQkhCIiIRQRCaGISAhFREIoIhJCEZEQioiEUEQkhCIiIRQRCaGISAhFREIoIhJCEZEQioiEUEQkhCIiIRQRCaGISAhFREIoIhJCEZEQioiEUEQkhCIiIRQRCaGISAhFREIoIhJCEZEQioiEUEQkhCIiIRQRCaGISAhFREIoIhJCEZEQioiEUEQkhCIiIRQRCaGISAhFREIoIhJCEZEQioiEUEQkhCIiIRQRCaGISAhFREIoIhJCEZEQioiEUEQkhCIiIRQRCaGISAhFREIoIhJCEZEQioiEUEQkhCIiIRQRCaGISAhFREIoIhJCEZEQioiEUEQkhCIiIRQRCaGISAhFREIoIhJCEZEQioiEUEQkhCIiIRQRCaGISAhFREIoIhJCEZEQioiEUEQkhCIiIRQRCaGISAhFREIoIhJCEZEQioiEUEQkhCIiIRQRCaGISAhFREIoIhJCEZEQioiEUEQkhCIiIRQRCaGISAhFREIoIhJCEZEQioiEUEQkhCIiIRQRCaGISAhFREIoIhJCEZEQioiEUEQkhCIiIRQRCaGISAhFREIoIhJCEZEQioj+P5PjOPR/IgDxbL8J"
+              />
             ) : (
-              '-'
+              <div
+                className="flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-lg"
+                style={{ width: 160, height: 160 }}
+              >
+                <ShoppingOutlined style={{ fontSize: 48, color: '#999' }} />
+              </div>
             )}
-          </Descriptions.Item>
-          <Descriptions.Item label={t('channelProducts.sourcesCount')}>
-            {product.activeSourcesCount} / {product.sourcesCount}
-          </Descriptions.Item>
-        </Descriptions>
+          </div>
+
+          {/* Product Details */}
+          <div className="flex-1 min-w-0">
+            <Descriptions column={3} bordered size="small">
+              <Descriptions.Item label={t('channelProducts.productName')}>
+                {product.productSku.productName}
+              </Descriptions.Item>
+              <Descriptions.Item label={t('channelProducts.skuCode')}>
+                {product.productSku.skuCode}
+              </Descriptions.Item>
+              <Descriptions.Item label={t('channelProducts.salesChannel')}>
+                <Tag>{product.salesChannel.name}</Tag>
+              </Descriptions.Item>
+
+              <Descriptions.Item label={t('channelProducts.platformPrice')}>
+                <span className="font-semibold">${product.platformPrice}</span>
+              </Descriptions.Item>
+              <Descriptions.Item label={t('channelProducts.stockQuantity')}>
+                <span className={product.stockQuantity === 0 ? 'text-red-500' : ''}>
+                  {product.stockQuantity}
+                </span>
+              </Descriptions.Item>
+              <Descriptions.Item label={t('channelProducts.stockMode')}>
+                {product.stockMode}
+              </Descriptions.Item>
+
+              <Descriptions.Item label={t('channelProducts.status')}>
+                <Tag color={statusColorMap[product.status]}>
+                  {t(`channelProducts.status${product.status.charAt(0).toUpperCase() + product.status.slice(1)}`)}
+                </Tag>
+              </Descriptions.Item>
+              <Descriptions.Item label={t('channelProducts.syncStatus')}>
+                <Tag color={syncStatusColorMap[product.syncStatus]}>
+                  {t(`channelProducts.sync${product.syncStatus.charAt(0).toUpperCase() + product.syncStatus.slice(1)}`)}
+                </Tag>
+              </Descriptions.Item>
+              <Descriptions.Item label={t('channelProducts.lastSyncedAt')}>
+                {product.lastSyncedAt
+                  ? new Date(product.lastSyncedAt).toLocaleString()
+                  : '-'}
+              </Descriptions.Item>
+
+              <Descriptions.Item label={t('channelProducts.externalId')} span={2}>
+                {product.externalId ? (
+                  product.externalUrl ? (
+                    <a
+                      href={product.externalUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {product.externalId} <LinkOutlined />
+                    </a>
+                  ) : (
+                    product.externalId
+                  )
+                ) : (
+                  '-'
+                )}
+              </Descriptions.Item>
+              <Descriptions.Item label={t('channelProducts.sourcesCount')}>
+                {product.activeSourcesCount} / {product.sourcesCount}
+              </Descriptions.Item>
+            </Descriptions>
+          </div>
+        </div>
       </Card>
 
       {/* Inventory Sources */}

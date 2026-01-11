@@ -116,22 +116,22 @@ export function MerchantStockListPage() {
         return (
           <div className="flex gap-3">
             {image ? (
-              <Image src={image} width={50} height={50} style={{ objectFit: 'cover', borderRadius: '4px' }} />
+              <div className="w-12 h-12 flex-shrink-0 flex items-center justify-center bg-gray-100 rounded">
+                <Image
+                  src={image}
+                  style={{ maxWidth: 48, maxHeight: 48, objectFit: 'contain' }}
+                  preview={false}
+                />
+              </div>
             ) : (
-              <div className="w-[50px] h-[50px] bg-gray-100 flex items-center justify-center text-gray-400 rounded text-xs">
+              <div className="w-12 h-12 flex-shrink-0 bg-gray-100 flex items-center justify-center text-gray-400 rounded text-xs">
                 N/A
               </div>
             )}
             <div className="flex-1 min-w-0">
               <div className="font-medium text-sm truncate">{record.product?.name || '-'}</div>
-              <div className="text-xs text-gray-500 space-x-2 mt-1">
+              <div className="text-xs text-gray-500 mt-1">
                 <span className="font-mono">{record.product?.styleNumber || '-'}</span>
-                {record.sku?.skuName && (
-                  <>
-                    <span>•</span>
-                    <span>{record.sku.skuName}</span>
-                  </>
-                )}
               </div>
             </div>
           </div>
@@ -139,22 +139,17 @@ export function MerchantStockListPage() {
       },
     },
     {
-      title: t('merchantStock.warehouse'),
-      dataIndex: 'warehouseId',
-      width: 120,
-      valueType: 'select',
-      fieldProps: {
-        placeholder: t('merchantStock.selectWarehouse'),
-        options: warehouses.map(w => ({ value: w.id, label: w.name })),
-      },
-      render: (_, record) => {
-        if (!record.warehouse) return '-';
-        return (
-          <Tooltip title={record.warehouse.code}>
-            <Tag>{record.warehouse.name}</Tag>
-          </Tooltip>
-        );
-      },
+      title: t('merchantStock.skuName'),
+      key: 'skuName',
+      width: 100,
+      search: false,
+      render: (_, record) => (
+        <span className="text-sm">
+          {record.sku?.sizeUnit && record.sku?.sizeValue
+            ? `${record.sku.sizeUnit} ${record.sku.sizeValue}`
+            : record.sku?.skuName || '-'}
+        </span>
+      ),
     },
     {
       title: t('merchantStock.stockStatus'),
@@ -223,6 +218,24 @@ export function MerchantStockListPage() {
           {record.quantityDamaged}
         </span>
       ),
+    },
+    {
+      title: t('merchantStock.warehouse'),
+      dataIndex: 'warehouseId',
+      width: 120,
+      valueType: 'select',
+      fieldProps: {
+        placeholder: t('merchantStock.selectWarehouse'),
+        options: warehouses.map(w => ({ value: w.id, label: w.name })),
+      },
+      render: (_, record) => {
+        if (!record.warehouse) return '-';
+        return (
+          <Tooltip title={record.warehouse.code}>
+            <Tag>{record.warehouse.name}</Tag>
+          </Tooltip>
+        );
+      },
     },
     {
       title: t('merchantStock.averageCost'),

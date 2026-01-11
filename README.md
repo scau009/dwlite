@@ -35,10 +35,10 @@ cd backend
 docker build -t dwlite-php-base:latest -f Dockerfile.base .
 
 # 3. 启动所有服务
-docker compose up -d
+docker-compose up -d
 
 # 4. 生成 JWT 密钥（首次）
-docker compose exec backend php bin/console lexik:jwt:generate-keypair
+docker-compose exec backend php bin/console lexik:jwt:generate-keypair
 
 # 5. 前端开发
 cd ../frontend && npm install && npm run dev
@@ -84,9 +84,9 @@ dwlite/
 ### Docker
 
 ```bash
-docker compose up -d              # 启动所有服务
-docker compose restart backend    # 重启后端
-docker compose logs -f worker     # 查看 Worker 日志
+docker-compose up -d              # 启动所有服务
+docker-compose restart backend    # 重启后端
+docker-compose logs -f worker     # 查看 Worker 日志
 ```
 
 ### 后端 (backend/)

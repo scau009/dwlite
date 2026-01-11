@@ -1,12 +1,14 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Modal, Form, Input, InputNumber, Select, Switch, App, Tabs } from 'antd';
+import { Modal, Form, Input, InputNumber, Radio, Switch, App, Row, Col, Collapse, Tag, Tooltip, Space, Typography } from 'antd';
+import { InfoCircleOutlined } from '@ant-design/icons';
 import type { MerchantRule, RuleVariable, RuleFunction, ValidateResult, TestResult } from '@/lib/merchant-rule-api';
 import { merchantRuleApi } from '@/lib/merchant-rule-api';
 import { ExpressionEditor } from './expression-editor';
 import { RuleTestPanel } from './rule-test-panel';
 
 const { TextArea } = Input;
+const { Paragraph, Text } = Typography;
 
 interface RuleFormModalProps {
   open: boolean;
@@ -35,7 +37,6 @@ export function RuleFormModal({ open, rule, ruleType, onClose, onSuccess }: Rule
   const [detailLoading, setDetailLoading] = useState(false);
   const [variables, setVariables] = useState<RuleVariable[]>([]);
   const [functions, setFunctions] = useState<RuleFunction[]>([]);
-  const [activeTab, setActiveTab] = useState('form');
 
   const isEdit = !!rule;
   const expression = Form.useWatch('expression', form);
@@ -85,7 +86,6 @@ export function RuleFormModal({ open, rule, ruleType, onClose, onSuccess }: Rule
           category: ruleType === 'pricing' ? 'markup' : 'ratio',
         });
       }
-      setActiveTab('form');
     }
   }, [open, rule, form, message, t, ruleType]);
 
@@ -161,132 +161,6 @@ export function RuleFormModal({ open, rule, ruleType, onClose, onSuccess }: Rule
     ];
   };
 
-  const tabItems = [
-    {
-      key: 'form',
-      label: t('rules.basicInfo'),
-      children: (
-        <Form
-          form={form}
-          layout="vertical"
-          className="mt-4"
-          disabled={detailLoading}
-        >
-          <Form.Item
-            name="code"
-            label={t('rules.code')}
-            rules={[
-              { required: true, message: t('rules.codeRequired') },
-              { max: 100, message: t('rules.codeMaxLength') },
-              { pattern: /^[a-z][a-z0-9_]*$/, message: t('rules.codeInvalid') },
-            ]}
-          >
-            <Input
-              placeholder={t('rules.codePlaceholder')}
-              disabled={isEdit}
-            />
-          </Form.Item>
-
-          <Form.Item
-            name="name"
-            label={t('rules.name')}
-            rules={[
-              { required: true, message: t('rules.nameRequired') },
-              { max: 200, message: t('rules.nameMaxLength') },
-            ]}
-          >
-            <Input placeholder={t('rules.namePlaceholder')} />
-          </Form.Item>
-
-          <Form.Item
-            name="description"
-            label={t('rules.description')}
-            rules={[
-              { max: 1000, message: t('rules.descriptionMaxLength') },
-            ]}
-          >
-            <TextArea
-              placeholder={t('rules.descriptionPlaceholder')}
-              autoSize={{ minRows: 2, maxRows: 4 }}
-            />
-          </Form.Item>
-
-          <Form.Item
-            name="category"
-            label={t('rules.category')}
-            rules={[{ required: true, message: t('rules.categoryRequired') }]}
-          >
-            <Select options={getCategoryOptions()} />
-          </Form.Item>
-
-          <Form.Item
-            name="expression"
-            label={t('rules.expression')}
-            rules={[{ required: true, message: t('rules.expressionRequired') }]}
-          >
-            <ExpressionEditor
-              variables={variables}
-              functions={functions}
-              onValidate={handleValidate}
-              placeholder={ruleType === 'pricing' ? 'markup(cost, 0.3)' : 'ratio(availableStock, 0.8)'}
-            />
-          </Form.Item>
-
-          <Form.Item
-            name="conditionExpression"
-            label={t('rules.conditionExpression')}
-            tooltip={t('rules.conditionExpressionTooltip')}
-          >
-            <ExpressionEditor
-              variables={variables}
-              functions={functions}
-              onValidate={handleValidate}
-              placeholder="channelCode == 'NIKE'"
-            />
-          </Form.Item>
-
-          <div className="flex gap-4">
-            <Form.Item
-              name="priority"
-              label={t('rules.priority')}
-              tooltip={t('rules.priorityTooltip')}
-              className="flex-1"
-            >
-              <InputNumber min={0} max={9999} style={{ width: '100%' }} />
-            </Form.Item>
-
-            <Form.Item
-              name="isActive"
-              label={t('rules.status')}
-              valuePropName="checked"
-            >
-              <Switch
-                checkedChildren={t('rules.statusActive')}
-                unCheckedChildren={t('rules.statusInactive')}
-              />
-            </Form.Item>
-          </div>
-        </Form>
-      ),
-    },
-    {
-      key: 'test',
-      label: t('rules.testTab'),
-      disabled: !expression,
-      children: (
-        <div className="mt-4">
-          <RuleTestPanel
-            expression={expression || ''}
-            conditionExpression={conditionExpression}
-            type={ruleType}
-            variables={variables}
-            onTest={handleTest}
-          />
-        </div>
-      ),
-    },
-  ];
-
   return (
     <Modal
       title={isEdit ? t('rules.editRule') : t('rules.addRule')}
@@ -299,11 +173,196 @@ export function RuleFormModal({ open, rule, ruleType, onClose, onSuccess }: Rule
       destroyOnClose
       width={700}
     >
-      <Tabs
-        activeKey={activeTab}
-        onChange={setActiveTab}
-        items={tabItems}
-      />
+      <Form
+        form={form}
+        layout="vertical"
+        className="mt-4"
+        disabled={detailLoading}
+      >
+        {/* 规则编码和名称放在一行 */}
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item
+              name="code"
+              label={t('rules.code')}
+              rules={[
+                { required: true, message: t('rules.codeRequired') },
+                { max: 100, message: t('rules.codeMaxLength') },
+                { pattern: /^[a-z][a-z0-9_]*$/, message: t('rules.codeInvalid') },
+              ]}
+            >
+              <Input
+                placeholder={t('rules.codePlaceholder')}
+                disabled={isEdit}
+              />
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item
+              name="name"
+              label={t('rules.name')}
+              rules={[
+                { required: true, message: t('rules.nameRequired') },
+                { max: 200, message: t('rules.nameMaxLength') },
+              ]}
+            >
+              <Input placeholder={t('rules.namePlaceholder')} />
+            </Form.Item>
+          </Col>
+        </Row>
+
+        <Form.Item
+          name="description"
+          label={t('rules.description')}
+          rules={[
+            { max: 1000, message: t('rules.descriptionMaxLength') },
+          ]}
+        >
+          <TextArea
+            placeholder={t('rules.descriptionPlaceholder')}
+            autoSize={{ minRows: 2, maxRows: 4 }}
+          />
+        </Form.Item>
+
+        {/* 分类选项展开显示 */}
+        <Form.Item
+          name="category"
+          label={t('rules.category')}
+          rules={[{ required: true, message: t('rules.categoryRequired') }]}
+        >
+          <Radio.Group>
+            {getCategoryOptions().map((opt) => (
+              <Radio.Button key={opt.value} value={opt.value}>
+                {opt.label}
+              </Radio.Button>
+            ))}
+          </Radio.Group>
+        </Form.Item>
+
+        {/* Expression Section */}
+        <div className="p-4 bg-gray-50 rounded-lg mb-4">
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                name="expression"
+                label={t('rules.expression')}
+                rules={[{ required: true, message: t('rules.expressionRequired') }]}
+                className="mb-3"
+              >
+                <ExpressionEditor
+                  variables={variables}
+                  functions={functions}
+                  onValidate={handleValidate}
+                  placeholder={ruleType === 'pricing' ? 'markup(cost, 0.3)' : 'ratio(availableStock, 0.8)'}
+                  showReference={false}
+                />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="conditionExpression"
+                label={t('rules.conditionExpression')}
+                tooltip={t('rules.conditionExpressionTooltip')}
+                className="mb-3"
+              >
+                <ExpressionEditor
+                  variables={variables}
+                  functions={functions}
+                  onValidate={handleValidate}
+                  placeholder="channelCode == 'NIKE'"
+                  showReference={false}
+                />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          {/* Reference Section */}
+          <Collapse
+            defaultActiveKey={['variables']}
+            items={[
+              {
+                key: 'variables',
+                label: (
+                  <Space>
+                    <InfoCircleOutlined />
+                    {t('rules.availableVariables')}
+                  </Space>
+                ),
+                children: (
+                  <div className="flex flex-wrap gap-2">
+                    {variables.map((v) => (
+                      <Tooltip key={v.name} title={`${t(`rules.var_${v.name}`, { defaultValue: v.description })} (${v.type})`}>
+                        <Tag className="cursor-default">{v.name}</Tag>
+                      </Tooltip>
+                    ))}
+                  </div>
+                ),
+              },
+              {
+                key: 'functions',
+                label: (
+                  <Space>
+                    <InfoCircleOutlined />
+                    {t('rules.availableFunctions')}
+                  </Space>
+                ),
+                children: (
+                  <div className="space-y-2">
+                    {functions.map((f) => (
+                      <div key={f.name} className="p-2 bg-white rounded">
+                        <div className="flex items-center gap-2">
+                          <Tag color="blue">{f.signature}</Tag>
+                        </div>
+                        <Paragraph className="text-xs text-gray-500 mt-1 mb-0">
+                          {t(`rules.func_${f.name}`, { defaultValue: f.description })}
+                        </Paragraph>
+                        <Text code className="text-xs">
+                          {t('rules.example')}: {f.example}
+                        </Text>
+                      </div>
+                    ))}
+                  </div>
+                ),
+              },
+            ]}
+            size="small"
+            ghost
+          />
+
+          {/* Test Panel - 直接放在表达式区域下方 */}
+          <div className="mt-4">
+            <RuleTestPanel
+              expression={expression || ''}
+              conditionExpression={conditionExpression}
+              type={ruleType}
+              variables={variables}
+              onTest={handleTest}
+            />
+          </div>
+        </div>
+
+        <div className="flex gap-4">
+          <Form.Item
+            name="priority"
+            label={t('rules.priority')}
+            tooltip={t('rules.priorityTooltip')}
+            className="flex-1"
+          >
+            <InputNumber min={0} max={9999} style={{ width: '100%' }} />
+          </Form.Item>
+
+          <Form.Item
+            name="isActive"
+            label={t('rules.status')}
+            valuePropName="checked"
+          >
+            <Switch
+              checkedChildren={t('rules.statusActive')}
+              unCheckedChildren={t('rules.statusInactive')}
+            />
+          </Form.Item>
+        </div>
+      </Form>
     </Modal>
   );
 }

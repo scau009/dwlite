@@ -138,22 +138,24 @@ export function AdjustInventoryModal({
       width={500}
     >
       {/* Current inventory info */}
-      <Descriptions column={1} size="small" className="mb-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-        <Descriptions.Item label={t('merchantStock.sku')}>
-          {inventory.product?.styleNumber} - {inventory.sku?.skuName || inventory.sku?.sizeValue || '-'}
-        </Descriptions.Item>
-        <Descriptions.Item label={t('merchantStock.warehouse')}>
-          {inventory.warehouse?.name}
-        </Descriptions.Item>
-        <Descriptions.Item label={t('merchantStock.currentStock')}>
-          <span className="font-medium text-lg">{inventory.quantityAvailable}</span>
-        </Descriptions.Item>
-        {inventory.averageCost && (
-          <Descriptions.Item label={t('merchantStock.currentCost')}>
-            {getCurrencySymbol(inventory.currency)}{inventory.averageCost}
+      <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+        <Descriptions column={1} size="small">
+          <Descriptions.Item label={t('merchantStock.sku')}>
+            {inventory.product?.styleNumber} - {inventory.sku?.skuName || inventory.sku?.sizeValue || '-'}
           </Descriptions.Item>
-        )}
-      </Descriptions>
+          <Descriptions.Item label={t('merchantStock.warehouse')}>
+            {inventory.warehouse?.name}
+          </Descriptions.Item>
+          <Descriptions.Item label={t('merchantStock.currentStock')}>
+            <span className="font-medium text-lg">{inventory.quantityAvailable}</span>
+          </Descriptions.Item>
+          {inventory.averageCost && (
+            <Descriptions.Item label={t('merchantStock.currentCost')}>
+              {getCurrencySymbol(inventory.currency)}{inventory.averageCost}
+            </Descriptions.Item>
+          )}
+        </Descriptions>
+      </div>
 
       <Form form={form} layout="vertical">
         {/* Adjustment Type */}

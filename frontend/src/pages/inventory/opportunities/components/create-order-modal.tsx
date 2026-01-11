@@ -12,6 +12,7 @@ import {
   App,
   Avatar,
   Empty,
+  Image,
 } from 'antd';
 import { ShoppingOutlined } from '@ant-design/icons';
 
@@ -33,6 +34,7 @@ interface CreateOrderModalProps {
 interface SkuSelection {
   productId: string;
   productName: string;
+  productStyleNumber: string;
   productImage: string | null;
   sku: InboundProductSku;
   quantity: number;
@@ -88,6 +90,7 @@ export function CreateOrderModal({
         selections.push({
           productId: product.id,
           productName: product.name,
+          productStyleNumber: product.styleNumber,
           productImage: product.primaryImageUrl,
           sku,
           quantity: 1,
@@ -169,31 +172,35 @@ export function CreateOrderModal({
       key: 'product',
       width: 200,
       render: (_: unknown, record: SkuSelection) => (
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           {record.productImage ? (
-            <Avatar src={record.productImage} shape="square" size={40} />
+            <div className="w-14 h-14 flex items-center justify-center bg-gray-100 rounded flex-shrink-0">
+              <Image
+                src={record.productImage}
+                alt={record.productName}
+                preview={false}
+                style={{ maxWidth: 56, maxHeight: 56, objectFit: 'contain' }}
+              />
+            </div>
           ) : (
-            <Avatar shape="square" size={40} icon={<ShoppingOutlined />} />
+            <div className="w-14 h-14 flex items-center justify-center bg-gray-100 rounded text-gray-400 flex-shrink-0">
+              <ShoppingOutlined style={{ fontSize: 24 }} />
+            </div>
           )}
-          <div className="min-w-0">
-            <div className="text-sm font-medium truncate">{record.productName}</div>
-          </div>
+          <code className="text-xs bg-gray-100 px-2 py-1 rounded">
+            {record.productStyleNumber}
+          </code>
         </div>
       ),
     },
     {
-      title: t('opportunities.sku'),
-      key: 'sku',
-      width: 150,
+      title: t('opportunities.size'),
+      key: 'size',
+      width: 100,
       render: (_: unknown, record: SkuSelection) => (
-        <div>
-          <div className="text-sm">{record.sku.skuName || '-'}</div>
-          {record.sku.sizeValue && (
-            <div className="text-xs text-gray-500">
-              {record.sku.sizeUnit} {record.sku.sizeValue}
-            </div>
-          )}
-        </div>
+        <span className="text-sm">
+          {record.sku.sizeValue || '-'}
+        </span>
       ),
     },
     {

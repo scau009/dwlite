@@ -281,7 +281,12 @@ export function InboundOrderDetailPage() {
       width: 80,
       render: (image: string | null) =>
         image ? (
-          <Image src={image} width={60} height={60} style={{ objectFit: 'cover' }} />
+          <Image
+            src={image}
+            width={60}
+            height={60}
+            style={{ objectFit: 'contain', background: '#f5f5f5' }}
+          />
         ) : (
           <div className="w-[60px] h-[60px] bg-gray-100 flex items-center justify-center text-gray-400">
             N/A

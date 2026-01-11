@@ -53,7 +53,8 @@ import {
 } from '@/pages/warehouse-ops';
 import { MerchantProfilePage, MerchantWalletPage } from '@/pages/settings';
 import { MerchantRulesPage } from '@/pages/settings/rules';
-import { PlatformRulesListPage } from '@/pages/platform-rules/list';
+import { RuleFormPage } from '@/pages/settings/rules/form';
+import { PlatformRulesListPage, PlatformRuleFormPage } from '@/pages/platform-rules';
 import { OrderExceptionsListPage, OrderExceptionDetailPage } from '@/pages/fulfillment/order-exceptions';
 import { PlatformOrdersListPage, PlatformOrderDetailPage } from '@/pages/fulfillment/orders';
 import { FulfillmentOrdersListPage, FulfillmentOrderDetailPage } from '@/pages/fulfillment/fulfillment-orders';
@@ -219,6 +220,8 @@ export const router = createBrowserRouter([
               { path: '/channels/listings/:id/edit', element: <EditListingPage /> },
               { path: '/channels/listings-logs', element: <ListingLogsPage /> },
               { path: '/channels/rules', element: <MerchantRulesPage /> },
+              { path: '/channels/rules/create', element: <RuleFormPage /> },
+              { path: '/channels/rules/:id/edit', element: <RuleFormPage /> },
 
               // Warehouses (Admin)
               { path: '/warehouses', element: <Navigate to="/warehouses/list" replace /> },
@@ -240,6 +243,8 @@ export const router = createBrowserRouter([
 
               // Platform Rules (Admin)
               { path: '/platform-rules', element: <PlatformRulesListPage /> },
+              { path: '/platform-rules/create', element: <PlatformRuleFormPage /> },
+              { path: '/platform-rules/:id/edit', element: <PlatformRuleFormPage /> },
 
               // Merchant Settlement Center
               { path: '/merchant', element: <Navigate to="/merchant/settlements" replace /> },

@@ -21,6 +21,7 @@ import {
   Result,
   Popover,
   Switch,
+  Image,
 } from 'antd';
 import { ArrowLeftOutlined, ShopOutlined, CheckCircleOutlined, CloseCircleOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import { ProTable, type ActionType, type ProColumns } from '@ant-design/pro-components';
@@ -370,7 +371,7 @@ export function CreateListingPage() {
     {
       title: t('listingManagement.product'),
       dataIndex: 'product',
-      width: 280,
+      width: 240,
       search: {
         transform: (value) => ({ search: value }),
       },
@@ -380,20 +381,33 @@ export function CreateListingPage() {
       render: (_, record) => (
         <Space size="small">
           {record.product.imageUrl ? (
-            <Avatar src={record.product.imageUrl} size={40} shape="square" />
+            <Image
+              src={record.product.imageUrl}
+              alt={record.product.name}
+              width={56}
+              height={56}
+              className="object-contain rounded bg-gray-50"
+              preview={false}
+            />
           ) : (
-            <Avatar size={40} shape="square">
+            <Avatar size={56} shape="square">
               {record.product.name.charAt(0)}
             </Avatar>
           )}
           <div>
             <div className="font-medium">{record.product.name}</div>
-            <div className="text-xs text-gray-500">
-              {record.product.styleNumber} / {record.productSku.sizeValue}
-              {record.productSku.sizeUnit}
-            </div>
+            <div className="text-xs text-gray-500">{record.product.styleNumber}</div>
           </div>
         </Space>
+      ),
+    },
+    {
+      title: t('listingManagement.size'),
+      dataIndex: ['productSku', 'sizeValue'],
+      width: 80,
+      search: false,
+      render: (_, record) => (
+        <span>{record.productSku.sizeUnit} {record.productSku.sizeValue}</span>
       ),
     },
     {
@@ -402,15 +416,14 @@ export function CreateListingPage() {
       width: 160,
       search: false,
       render: (_, record) => (
-        <div>
-          <div>{record.warehouse.name}</div>
-          <div className="text-xs text-gray-500">
-            {record.warehouse.code}
-            {record.warehouse.category === 'platform' && (
-              <Tag color="blue" className="ml-1">{t('listingManagement.platformWarehouse')}</Tag>
-            )}
-          </div>
-        </div>
+        <Space size="small">
+          <Tag color={record.warehouse.category === 'platform' ? 'blue' : 'default'}>
+            {record.warehouse.category === 'platform'
+              ? t('listingManagement.platformWarehouse')
+              : t('listingManagement.logicalWarehouse')}
+          </Tag>
+          <span>{record.warehouse.name}</span>
+        </Space>
       ),
     },
     {
@@ -454,15 +467,34 @@ export function CreateListingPage() {
     {
       title: t('listingManagement.product'),
       dataIndex: ['config', 'product'],
-      width: 200,
+      width: 180,
       onCell: (record: ConfigRow) => ({ rowSpan: record.isFirstRow ? 2 : 0 }),
       render: (_: unknown, { config }: ConfigRow) => (
-        <div>
-          <div className="font-medium text-sm">{config.product.name}</div>
-          <div className="text-xs text-gray-500">
-            {config.product.styleNumber} / {config.productSku.sizeValue}{config.productSku.sizeUnit}
-          </div>
+        <div className="flex items-center gap-3">
+          {config.product.imageUrl ? (
+            <div className="w-14 h-14 flex items-center justify-center bg-gray-100 rounded flex-shrink-0">
+              <Image
+                src={config.product.imageUrl}
+                style={{ maxWidth: 56, maxHeight: 56, objectFit: 'contain' }}
+                preview={false}
+              />
+            </div>
+          ) : (
+            <Avatar shape="square" size={56} icon={<ShopOutlined />} className="flex-shrink-0" />
+          )}
+          <code className="text-xs bg-gray-100 px-2 py-1 rounded">{config.product.styleNumber}</code>
         </div>
+      ),
+    },
+    {
+      title: t('listingManagement.size'),
+      dataIndex: ['config', 'productSku'],
+      width: 80,
+      onCell: (record: ConfigRow) => ({ rowSpan: record.isFirstRow ? 2 : 0 }),
+      render: (_: unknown, { config }: ConfigRow) => (
+        <span className="text-sm">
+          {config.productSku.sizeUnit} {config.productSku.sizeValue}
+        </span>
       ),
     },
     {

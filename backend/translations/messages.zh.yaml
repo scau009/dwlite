@@ -47,6 +47,8 @@ admin:
     activated: '品牌已启用'
     deactivated: '品牌已禁用'
     has_products: '无法删除已关联商品的品牌'
+    batch_activated: '已成功启用 %count% 个品牌'
+    batch_deactivated: '已成功禁用 %count% 个品牌'
 
   # Tag management messages
   tag:
@@ -68,6 +70,7 @@ admin:
     updated: '商品更新成功'
     deleted: '商品删除成功'
     status_updated: '商品状态已更新'
+    batch_status_updated: '已更新 %count% 个商品的状态'
     # SKU
     sku_code_exists: 'SKU编码已存在'
     sku_not_found: 'SKU不存在'
@@ -166,6 +169,12 @@ admin:
 merchant:
   not_found: '未找到商户信息'
   profile_updated: '商户信息更新成功'
+  approval:
+    not_verified: '请先验证您的邮箱'
+    pending: '您的商户账号正在等待审核'
+    rejected: '您的商户账号申请已被拒绝'
+    disabled: '您的商户账号已被禁用'
+    not_approved: '您的商户账号未通过审核'
 
 # Merchant channel messages
 merchant_channel:

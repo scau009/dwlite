@@ -123,7 +123,6 @@ class InboundOrderController extends AbstractController
 
         $filters = [
             'status' => 'active',  // 只查询已上架的商品
-            'isActive' => true,
         ];
 
         if ($search) {

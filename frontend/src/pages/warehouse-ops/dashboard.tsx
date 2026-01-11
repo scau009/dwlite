@@ -1,5 +1,14 @@
 import { useEffect, useState } from 'react';
 import { Card, Col, Row, Statistic, Spin, Typography } from 'antd';
+import {
+  ClockCircleOutlined,
+  InboxOutlined,
+  CheckCircleOutlined,
+  ScanOutlined,
+  GiftOutlined,
+  CarOutlined,
+  SendOutlined,
+} from '@ant-design/icons';
 import { Line } from '@ant-design/charts';
 import { useTranslation } from 'react-i18next';
 import {
@@ -58,16 +67,10 @@ export default function WarehouseDashboardPage() {
     xField: 'date',
     yField: 'value',
     colorField: 'category',
+    shapeField: 'smooth',
     height: 300,
-    point: {
-      shapeField: 'circle',
-      sizeField: 4,
-    },
-    interaction: {
-      tooltip: {
-        marker: false,
-      },
-    },
+    legend: { color: { position: 'top' as const } },
+    point: { size: 4, shape: 'circle' },
     style: {
       lineWidth: 2,
     },
@@ -98,7 +101,7 @@ export default function WarehouseDashboardPage() {
               <Statistic
                 title={t('warehouseOps.awaitingArrival')}
                 value={inboundStats?.awaitingArrival ?? 0}
-                valueStyle={{ color: '#1677ff' }}
+                prefix={<ClockCircleOutlined style={{ color: '#1677ff' }} />}
               />
             </Card>
           </Col>
@@ -107,7 +110,7 @@ export default function WarehouseDashboardPage() {
               <Statistic
                 title={t('warehouseOps.pendingReceiving')}
                 value={inboundStats?.pendingReceiving ?? 0}
-                valueStyle={{ color: '#722ed1' }}
+                prefix={<InboxOutlined style={{ color: '#722ed1' }} />}
               />
             </Card>
           </Col>
@@ -116,7 +119,7 @@ export default function WarehouseDashboardPage() {
               <Statistic
                 title={t('warehouseOps.completedToday')}
                 value={inboundStats?.completedToday ?? 0}
-                valueStyle={{ color: '#52c41a' }}
+                prefix={<CheckCircleOutlined style={{ color: '#52c41a' }} />}
               />
             </Card>
           </Col>
@@ -134,7 +137,7 @@ export default function WarehouseDashboardPage() {
               <Statistic
                 title={t('warehouseOps.pendingPicking')}
                 value={outboundStats?.pendingPicking ?? 0}
-                valueStyle={{ color: '#1677ff' }}
+                prefix={<ScanOutlined style={{ color: '#1677ff' }} />}
               />
             </Card>
           </Col>
@@ -143,7 +146,7 @@ export default function WarehouseDashboardPage() {
               <Statistic
                 title={t('warehouseOps.pendingPacking')}
                 value={outboundStats?.pendingPacking ?? 0}
-                valueStyle={{ color: '#13c2c2' }}
+                prefix={<GiftOutlined style={{ color: '#13c2c2' }} />}
               />
             </Card>
           </Col>
@@ -152,7 +155,7 @@ export default function WarehouseDashboardPage() {
               <Statistic
                 title={t('warehouseOps.readyToShip')}
                 value={outboundStats?.readyToShip ?? 0}
-                valueStyle={{ color: '#722ed1' }}
+                prefix={<CarOutlined style={{ color: '#722ed1' }} />}
               />
             </Card>
           </Col>
@@ -161,7 +164,7 @@ export default function WarehouseDashboardPage() {
               <Statistic
                 title={t('warehouseOps.shippedToday')}
                 value={outboundStats?.shippedToday ?? 0}
-                valueStyle={{ color: '#52c41a' }}
+                prefix={<SendOutlined style={{ color: '#52c41a' }} />}
               />
             </Card>
           </Col>

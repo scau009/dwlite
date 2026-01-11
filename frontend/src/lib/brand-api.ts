@@ -117,4 +117,17 @@ export const brandApi = {
       body: JSON.stringify({ isActive }),
     });
   },
+
+  /**
+   * 批量更新品牌状态
+   */
+  batchUpdateBrandStatus: async (
+    ids: string[],
+    isActive: boolean
+  ): Promise<{ message: string; updated: number }> => {
+    return apiFetch('/api/admin/brands/batch-status', {
+      method: 'PUT',
+      body: JSON.stringify({ ids, isActive }),
+    });
+  },
 };

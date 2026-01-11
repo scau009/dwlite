@@ -15,6 +15,7 @@ interface ExpressionEditorProps {
   onValidate?: (expression: string) => Promise<ValidateResult>;
   placeholder?: string;
   disabled?: boolean;
+  showReference?: boolean;
 }
 
 export function ExpressionEditor({
@@ -25,6 +26,7 @@ export function ExpressionEditor({
   onValidate,
   placeholder,
   disabled,
+  showReference = true,
 }: ExpressionEditorProps) {
   const { t } = useTranslation();
   const [validationResult, setValidationResult] = useState<ValidateResult | null>(null);
@@ -159,12 +161,14 @@ export function ExpressionEditor({
           )}
         </div>
 
-        <Collapse
-          items={variableItems}
-          size="small"
-          ghost
-          className="bg-gray-50 rounded"
-        />
+        {showReference && (
+          <Collapse
+            items={variableItems}
+            size="small"
+            ghost
+            className="bg-gray-50 rounded"
+          />
+        )}
       </div>
     </Card>
   );

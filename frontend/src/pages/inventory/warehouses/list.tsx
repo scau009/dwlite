@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ProTable, type ActionType, type ProColumns } from '@ant-design/pro-components';
-import { Button, Tag, Space, App, Popconfirm } from 'antd';
+import { Button, Tag, Space, App, Popconfirm, Alert } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 
 import {
@@ -190,7 +190,25 @@ export function MerchantWarehousesListPage() {
   ];
 
   return (
-    <div>
+    <div className="space-y-6">
+      <Alert
+        type="info"
+        showIcon
+        message={t('merchantWarehouses.infoTitle')}
+        description={
+          <ul className="list-disc pl-4 mt-2 space-y-1">
+            <li>
+              <strong>{t('merchantWarehouses.logicalWarehouse')}</strong>:{' '}
+              {t('merchantWarehouses.logicalWarehouseDesc')}
+            </li>
+            <li>
+              <strong>{t('merchantWarehouses.platformWarehouse')}</strong>:{' '}
+              {t('merchantWarehouses.platformWarehouseDesc')}
+            </li>
+          </ul>
+        }
+        style={{ marginBottom: 24 }}
+      />
       <ProTable<MerchantWarehouse>
         headerTitle={t('merchantWarehouses.title')}
         actionRef={actionRef}

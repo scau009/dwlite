@@ -47,6 +47,8 @@ admin:
     activated: 'Brand activated'
     deactivated: 'Brand deactivated'
     has_products: 'Cannot delete brand with associated products'
+    batch_activated: 'Successfully activated %count% brands'
+    batch_deactivated: 'Successfully deactivated %count% brands'
 
   # Tag management messages
   tag:
@@ -68,6 +70,7 @@ admin:
     updated: 'Product updated successfully'
     deleted: 'Product deleted successfully'
     status_updated: 'Product status updated'
+    batch_status_updated: 'Updated the status of %count% product(s)'
     # SKU
     sku_code_exists: 'SKU code already exists'
     sku_not_found: 'SKU not found'
@@ -166,6 +169,12 @@ admin:
 merchant:
   not_found: 'Merchant not found'
   profile_updated: 'Profile updated successfully'
+  approval:
+    not_verified: 'Please verify your email first'
+    pending: 'Your merchant account is pending approval'
+    rejected: 'Your merchant account has been rejected'
+    disabled: 'Your merchant account has been disabled'
+    not_approved: 'Your merchant account is not approved'
 
 # Merchant channel messages
 merchant_channel:

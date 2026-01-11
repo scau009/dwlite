@@ -22,20 +22,29 @@ readonly class ExternalSkuDto
     /**
      * Create from KicksDB variant data (v3 API).
      *
-     * @param array  $data     Variant data from KicksDB API
-     * @param float  $avgPrice Average price of the product (fallback)
-     * @param string $currency Currency code
+     * @param array  $data        Variant data from KicksDB API
+     * @param float  $avgPrice    Average price of the product (fallback)
+     * @param float  $retailPrice Retail price of the product (fallback when price is 0)
+     * @param string $currency    Currency code
      */
-    public static function fromKicksDb(array $data, float $avgPrice, string $currency = 'USD'): self
+    public static function fromKicksDb(array $data, float $avgPrice, float $retailPrice, string $currency = 'USD'): self
     {
         // Normalize size type: "us m" -> "US", "us w" -> "US W"
         $sizeType = strtoupper($data['size_type'] ?? '');
         $isUsM = in_array($sizeType, ['US', 'US M'], true);
         $sizeUnit = $isUsM ? 'US' : ($data['size_type'] ?? '');
 
-        // Use lowest_ask as the price if available, otherwise use avgPrice
+        // Price priority: lowest_ask > avgPrice > retailPrice (fallback)
         $lowestAsk = $data['lowest_ask'] ?? null;
         $price = $lowestAsk !== null ? (string) $lowestAsk : (string) $avgPrice;
+
+        // If price is 0, use retail price as reference price
+        if ((float) $price === 0.0 && $retailPrice > 0) {
+            $price = (string) $retailPrice;
+        }
+
+        // originalPrice uses retailPrice if available, otherwise avgPrice
+        $originalPrice = $retailPrice > 0 ? (string) $retailPrice : (string) $avgPrice;
 
         // Extract barcode from identifiers array (v3 API structure)
         $barcode = self::extractIdentifier($data);
@@ -44,7 +53,7 @@ readonly class ExternalSkuDto
             sizeValue: (string) ($data['size'] ?? ''),
             sizeUnit: $sizeUnit,
             price: $price,
-            originalPrice: (string) $avgPrice,
+            originalPrice: $originalPrice,
             barcode: $barcode,
             currency: $currency,
         );

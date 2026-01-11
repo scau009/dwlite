@@ -249,4 +249,39 @@ class InboundOrderRepository extends ServiceEntityRepository
 
         return $counts;
     }
+
+    /**
+     * 获取商户近N天每日完成的入库单数量.
+     *
+     * @return array<string, int> 日期 => 数量
+     */
+    public function countCompletedByMerchantGroupByDate(Merchant $merchant, int $days = 7): array
+    {
+        $startDate = new \DateTimeImmutable('-'.($days - 1).' days', new \DateTimeZone('Asia/Shanghai'));
+        $startDate = $startDate->setTime(0, 0, 0);
+
+        $conn = $this->getEntityManager()->getConnection();
+        $sql = '
+            SELECT DATE(completed_at) as date, COUNT(id) as count
+            FROM inbound_orders
+            WHERE merchant_id = :merchantId
+            AND status IN (:statusCompleted, :statusPartialCompleted)
+            AND completed_at >= :startDate
+            GROUP BY DATE(completed_at)
+        ';
+
+        $results = $conn->executeQuery($sql, [
+            'merchantId' => $merchant->getId(),
+            'statusCompleted' => InboundOrder::STATUS_COMPLETED,
+            'statusPartialCompleted' => InboundOrder::STATUS_PARTIAL_COMPLETED,
+            'startDate' => $startDate->format('Y-m-d H:i:s'),
+        ])->fetchAllAssociative();
+
+        $counts = [];
+        foreach ($results as $row) {
+            $counts[$row['date']] = (int) $row['count'];
+        }
+
+        return $counts;
+    }
 }
