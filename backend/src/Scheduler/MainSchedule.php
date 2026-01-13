@@ -28,13 +28,12 @@ class MainSchedule implements ScheduleProviderInterface
             ->with(
                 // Run cleanup every minute (for demo purposes)
                 // In production, use '1 hour', '1 day', or cron expressions
-                RecurringMessage::every('1 minute', new CleanupMessage(new \DateTimeImmutable('now', new \DateTimeZone('UTC')))),
 
                 // KicksDB product sync - runs daily at 02:00 UTC
-                RecurringMessage::cron('0 2 * * *', new StartProductSyncMessage(
-                    KicksDbProvider::PROVIDER_NAME,
-                    new \DateTimeImmutable('now', new \DateTimeZone('UTC'))
-                )),
+//                RecurringMessage::cron('0 2 * * *', new StartProductSyncMessage(
+//                    KicksDbProvider::PROVIDER_NAME,
+//                    new \DateTimeImmutable('now', new \DateTimeZone('UTC'))
+//                )),
 
                 // Channel product sync compensation - scan for stale pending products every 5 minutes
                 // This catches any products stuck in pending status due to message loss or processing failures

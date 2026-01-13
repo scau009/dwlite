@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Service\ChannelGateway\Provider\KicksCrew;
 
+use App\Entity\SalesChannel;
+use App\Repository\ChannelProductRepository;
 use App\Service\ChannelGateway\AbstractChannelGateway;
 use App\Service\ChannelGateway\ChannelGatewayContext;
 use App\Service\ChannelGateway\ChannelGatewayInterface;
@@ -50,6 +52,7 @@ class KicksCrewGateway extends AbstractChannelGateway
         LoggerInterface $logger,
         private readonly KicksCrewApiClient $apiClient,
         private readonly KicksCrewSkuMapper $skuMapper,
+        private readonly ChannelProductRepository $channelProductRepository,
     ) {
         parent::__construct($logger);
     }
@@ -205,6 +208,7 @@ class KicksCrewGateway extends AbstractChannelGateway
         ]);
 
         $apiKey = $this->getApiKey($context);
+        $salesChannel = $context->getSalesChannel();
 
         try {
             // KC uses milliseconds for timestamps
@@ -232,7 +236,7 @@ class KicksCrewGateway extends AbstractChannelGateway
                     continue;
                 }
 
-                $pulledOrder = $this->mapKcOrderToPulledOrder($kcOrder);
+                $pulledOrder = $this->mapKcOrderToPulledOrder($kcOrder, $salesChannel);
                 if ($pulledOrder !== null) {
                     $orders[] = $pulledOrder;
                 }
@@ -398,15 +402,24 @@ class KicksCrewGateway extends AbstractChannelGateway
     /**
      * Map KC order to PulledOrderDto.
      */
-    private function mapKcOrderToPulledOrder(array $kcOrder): ?PulledOrderDto
+    private function mapKcOrderToPulledOrder(array $kcOrder, SalesChannel $salesChannel): ?PulledOrderDto
     {
         try {
             $status = $this->mapKcStatusToSystemStatus($kcOrder['status'] ?? '');
             $paymentStatus = 'paid'; // KC orders are pre-paid
 
-            // Parse size object
+            // Parse size object to get size system and value
             $sizeObject = $kcOrder['size'] ?? [];
-            $sizeValue = $this->skuMapper->parseOrderSize($sizeObject);
+            $parsedSize = $this->skuMapper->parseOrderSize($sizeObject);
+            $sizeSystem = $parsedSize['sizeSystem'];
+            $sizeValue = $parsedSize['sizeValue'];
+
+            // Format size value for display (e.g., "US 9")
+            $sizeDisplay = $sizeSystem !== '' ? sprintf('%s %s', $sizeSystem, $sizeValue) : '';
+
+            // Find ChannelProduct by model_no and size to get externalId
+            $modelNo = $kcOrder['model_no'] ?? '';
+            $externalProductId = $this->findChannelProductExternalId($salesChannel, $modelNo, $sizeSystem, $sizeValue);
 
             $receiver = new ReceiverDto(
                 name: $kcOrder['recipient_name'] ?? '',
@@ -419,7 +432,7 @@ class KicksCrewGateway extends AbstractChannelGateway
 
             // Create order item
             $item = new PulledOrderItemDto(
-                externalProductId: $kcOrder['model_no'] ?? '',
+                externalProductId: $externalProductId,
                 externalSkuId: $kcOrder['stock_id'] ?? null,
                 productName: sprintf('%s %s', $kcOrder['brand'] ?? '', $kcOrder['model_no'] ?? ''),
                 productImage: null,
@@ -427,7 +440,7 @@ class KicksCrewGateway extends AbstractChannelGateway
                 unitPrice: (string) ($kcOrder['price'] ?? 0),
                 totalPrice: (string) ($kcOrder['price'] ?? 0),
                 skuCode: $kcOrder['model_no'] ?? null,
-                sizeValue: $sizeValue,
+                sizeValue: $sizeDisplay,
             );
 
             $placedAt = isset($kcOrder['created_at'])
@@ -459,6 +472,40 @@ class KicksCrewGateway extends AbstractChannelGateway
 
             return null;
         }
+    }
+
+    /**
+     * Find ChannelProduct external_id by model_no and size.
+     */
+    private function findChannelProductExternalId(
+        SalesChannel $salesChannel,
+        string $modelNo,
+        string $sizeSystem,
+        string $sizeValue,
+    ): string {
+        if (empty($modelNo) || empty($sizeSystem) || empty($sizeValue)) {
+            return $modelNo;
+        }
+
+        $channelProduct = $this->channelProductRepository->findByStyleNumberAndSize(
+            $salesChannel,
+            $modelNo,
+            $sizeSystem,
+            $sizeValue
+        );
+
+        if ($channelProduct !== null && $channelProduct->getExternalId() !== null) {
+            return $channelProduct->getExternalId();
+        }
+
+        // Fallback to model_no if no ChannelProduct found
+        $this->logger->warning('[KICKSCREW] ChannelProduct not found for order item', [
+            'modelNo' => $modelNo,
+            'sizeSystem' => $sizeSystem,
+            'sizeValue' => $sizeValue,
+        ]);
+
+        return $modelNo;
     }
 
     /**

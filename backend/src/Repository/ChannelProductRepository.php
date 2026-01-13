@@ -279,6 +279,34 @@ class ChannelProductRepository extends ServiceEntityRepository
     }
 
     /**
+     * 通过款号和尺码查找渠道商品.
+     *
+     * @param string $sizeSystem 尺码系统 (US, EU, UK)
+     * @param string $sizeValue 尺码值
+     */
+    public function findByStyleNumberAndSize(
+        SalesChannel $channel,
+        string $styleNumber,
+        string $sizeSystem,
+        string $sizeValue,
+    ): ?ChannelProduct {
+        return $this->createQueryBuilder('cp')
+            ->join('cp.productSku', 'ps')
+            ->join('ps.product', 'p')
+            ->andWhere('cp.salesChannel = :channel')
+            ->andWhere('p.styleNumber = :styleNumber')
+            ->andWhere('ps.sizeUnit = :sizeUnit')
+            ->andWhere('ps.sizeValue = :sizeValue')
+            ->setParameter('channel', $channel)
+            ->setParameter('styleNumber', $styleNumber)
+            ->setParameter('sizeUnit', $sizeSystem)
+            ->setParameter('sizeValue', $sizeValue)
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
+    /**
      * 获取渠道商品统计摘要.
      *
      * @return array{total: int, syncFailed: int, outOfStock: int}

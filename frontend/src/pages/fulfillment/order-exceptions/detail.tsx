@@ -262,14 +262,14 @@ export function OrderExceptionDetailPage() {
         </Descriptions>
 
         {exception.description && (
-          <div className="mt-3 pt-3 border-t">
+          <div className="mt-3">
             <Text type="secondary">{t('fulfillment.exceptionDescription')}:</Text>
             <p className="mt-1">{exception.description}</p>
           </div>
         )}
 
         {exception.resolution && (
-          <div className="mt-3 pt-3 border-t">
+          <div className="mt-3">
             <Text type="secondary">{t('fulfillment.resolution')}:</Text>
             <p className="mt-1">
               <Tag color="blue">{exception.resolutionLabel || exception.resolution}</Tag>

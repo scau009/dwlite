@@ -225,7 +225,9 @@ class ChannelProductSyncService
 
             // Check if gateway exists
             if (!$this->gatewayRegistry->has($salesChannel->getCode())) {
-                $syncLog->markSkipped(sprintf('No gateway for channel: %s', $salesChannel->getCode()));
+                $errorMessage = sprintf('No gateway for channel: %s', $salesChannel->getCode());
+                $channelProduct->markSyncFailed($errorMessage);
+                $syncLog->markSkipped($errorMessage);
                 $this->entityManager->flush();
 
                 return $syncLog;

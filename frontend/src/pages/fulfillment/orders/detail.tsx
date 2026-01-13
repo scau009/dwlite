@@ -264,9 +264,6 @@ export function PlatformOrderDetailPage() {
             <span className="text-lg font-semibold">{order.orderNo}</span>
           </Space>
           <Tag color={orderStatusColors[order.status]}>{order.statusLabel}</Tag>
-          <Tag color={paymentStatusColors[order.paymentStatus]}>
-            {order.paymentStatusLabel}
-          </Tag>
         </div>
       </div>
 
@@ -312,7 +309,7 @@ export function PlatformOrderDetailPage() {
         </Descriptions>
 
         {/* Amount Info */}
-        <div className="mt-4 pt-4 border-t">
+        <div className="mt-4">
           <Descriptions column={{ xs: 1, sm: 2, md: 4 }} size="small">
             <Descriptions.Item label={t('fulfillment.productAmount')}>
               {order.currency} {order.productAmount}
@@ -333,7 +330,7 @@ export function PlatformOrderDetailPage() {
 
         {/* Failure reason if allocation failed */}
         {order.allocationFailReason && (
-          <div className="mt-4 pt-4 border-t">
+          <div className="mt-4">
             <Text type="danger">{t('fulfillment.allocationFailReason')}:</Text>
             <p className="mt-1 text-red-500">{order.allocationFailReason}</p>
           </div>
@@ -349,8 +346,20 @@ export function PlatformOrderDetailPage() {
           <Descriptions.Item label={t('fulfillment.receiverPhone')}>
             {order.receiverPhone}
           </Descriptions.Item>
+          <Descriptions.Item label={t('fulfillment.receiverProvince')}>
+            {order.receiverProvince || '-'}
+          </Descriptions.Item>
+          <Descriptions.Item label={t('fulfillment.receiverCity')}>
+            {order.receiverCity || '-'}
+          </Descriptions.Item>
+          <Descriptions.Item label={t('fulfillment.receiverDistrict')}>
+            {order.receiverDistrict || '-'}
+          </Descriptions.Item>
+          <Descriptions.Item label={t('fulfillment.receiverPostalCode')}>
+            {order.receiverPostalCode || '-'}
+          </Descriptions.Item>
           <Descriptions.Item label={t('fulfillment.receiverAddress')} span={3}>
-            {order.receiverFullAddress}
+            {order.receiverAddress || '-'}
           </Descriptions.Item>
           {order.buyerRemark && (
             <Descriptions.Item label={t('fulfillment.buyerRemark')} span={3}>

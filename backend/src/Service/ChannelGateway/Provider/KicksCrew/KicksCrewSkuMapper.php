@@ -137,13 +137,30 @@ class KicksCrewSkuMapper
     }
 
     /**
-     * Parse KC order size object to get size value.
+     * Parse KC order size object to get size system and value.
      *
      * @param array{US?: string, UK?: string, EU?: string} $sizeObject
+     *
+     * @return array{sizeSystem: string, sizeValue: string} Returns size system (US/EU/UK) and value
      */
-    public function parseOrderSize(array $sizeObject, string $preferredSystem = 'US'): string
+    public function parseOrderSize(array $sizeObject, string $preferredSystem = 'US'): array
     {
-        return $sizeObject[$preferredSystem] ?? $sizeObject['US'] ?? $sizeObject['EU'] ?? $sizeObject['UK'] ?? '';
+        // Priority order for size systems
+        $systemPriority = [$preferredSystem, 'US', 'EU', 'UK'];
+
+        foreach ($systemPriority as $system) {
+            if (isset($sizeObject[$system]) && $sizeObject[$system] !== '') {
+                return [
+                    'sizeSystem' => $system,
+                    'sizeValue' => $sizeObject[$system],
+                ];
+            }
+        }
+
+        return [
+            'sizeSystem' => '',
+            'sizeValue' => '',
+        ];
     }
 
     /**
