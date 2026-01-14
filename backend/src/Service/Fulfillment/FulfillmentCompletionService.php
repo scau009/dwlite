@@ -6,7 +6,9 @@ namespace App\Service\Fulfillment;
 
 use App\Entity\Fulfillment;
 use App\Entity\Order;
+use App\Message\CreateSettlementMessage;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\Messenger\MessageBusInterface;
 
 /**
  * 履约单完成服务 - 处理订单完成时触发履约单完成的逻辑.
@@ -15,6 +17,7 @@ class FulfillmentCompletionService
 {
     public function __construct(
         private readonly LoggerInterface $logger,
+        private readonly MessageBusInterface $messageBus,
     ) {
     }
 
@@ -34,6 +37,9 @@ class FulfillmentCompletionService
             if ($this->canComplete($fulfillment)) {
                 $fulfillment->markCompleted();
                 ++$completedCount;
+
+                // 派发创建结算单消息
+                $this->messageBus->dispatch(CreateSettlementMessage::create($fulfillment->getId()));
 
                 $this->logger->info('Fulfillment marked as completed', [
                     'fulfillmentId' => $fulfillment->getId(),
