@@ -13,13 +13,13 @@ use App\Entity\Order;
 readonly class AllocationResult
 {
     /**
-     * @param Order                                $order                 订单
-     * @param bool                                 $success               是否成功
-     * @param Fulfillment[]                        $fulfillments          创建的履约单列表
-     * @param SourceSelectionResult[]              $itemResults           每个订单项的分配结果
-     * @param string|null                          $failureReason         失败原因
-     * @param string[]                             $excludedMerchantIds   已排除的商户ID列表
-     * @param int                                  $attemptNumber         当前尝试次数
+     * @param Order                          $order               订单
+     * @param bool                           $success             是否成功
+     * @param Fulfillment[]                  $fulfillments        创建的履约单列表
+     * @param MultiSourceSelectionResult[]   $itemResults         每个订单项的分配结果
+     * @param string|null                    $failureReason       失败原因
+     * @param string[]                       $excludedMerchantIds 已排除的商户ID列表
+     * @param int                            $attemptNumber       当前尝试次数
      */
     public function __construct(
         public Order $order,
@@ -35,9 +35,9 @@ readonly class AllocationResult
     /**
      * 创建成功结果.
      *
-     * @param Fulfillment[]           $fulfillments
-     * @param SourceSelectionResult[] $itemResults
-     * @param string[]                $excludedMerchantIds
+     * @param Fulfillment[]                $fulfillments
+     * @param MultiSourceSelectionResult[] $itemResults
+     * @param string[]                     $excludedMerchantIds
      */
     public static function success(
         Order $order,
@@ -59,8 +59,8 @@ readonly class AllocationResult
     /**
      * 创建失败结果.
      *
-     * @param SourceSelectionResult[] $itemResults
-     * @param string[]                $excludedMerchantIds
+     * @param MultiSourceSelectionResult[] $itemResults
+     * @param string[]                     $excludedMerchantIds
      */
     public static function failure(
         Order $order,
@@ -127,26 +127,26 @@ readonly class AllocationResult
     /**
      * 获取失败的订单项.
      *
-     * @return SourceSelectionResult[]
+     * @return MultiSourceSelectionResult[]
      */
     public function getFailedItems(): array
     {
         return array_filter(
             $this->itemResults,
-            fn (SourceSelectionResult $result) => !$result->success
+            fn (MultiSourceSelectionResult $result) => !$result->success
         );
     }
 
     /**
      * 获取成功的订单项.
      *
-     * @return SourceSelectionResult[]
+     * @return MultiSourceSelectionResult[]
      */
     public function getSuccessfulItems(): array
     {
         return array_filter(
             $this->itemResults,
-            fn (SourceSelectionResult $result) => $result->success
+            fn (MultiSourceSelectionResult $result) => $result->success
         );
     }
 }

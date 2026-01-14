@@ -8,20 +8,15 @@ use App\Entity\ChannelProductSource;
 use App\Entity\Fulfillment;
 use App\Entity\FulfillmentAllocationLog;
 use App\Entity\FulfillmentItem;
-use App\Entity\InventoryListing;
 use App\Entity\Order;
 use App\Entity\OrderException;
 use App\Entity\OrderItem;
 use App\Entity\PlatformRule;
 use App\Repository\ChannelProductSourceRepository;
-use App\Repository\FulfillmentAllocationLogRepository;
-use App\Repository\FulfillmentRepository;
-use App\Repository\OrderExceptionRepository;
 use App\Repository\PlatformRuleRepository;
 use App\Service\Fulfillment\Dto\AllocationResult;
 use App\Service\Fulfillment\Dto\MultiSourceSelectionResult;
 use App\Service\Fulfillment\Dto\SourceAllocation;
-use App\Service\Fulfillment\Dto\SourceSelectionResult;
 use App\Service\RuleEngine\RuleEngineService;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
@@ -42,9 +37,6 @@ class FulfillmentAllocationService
         private readonly EntityManagerInterface $entityManager,
         private readonly ChannelProductSourceRepository $sourceRepository,
         private readonly PlatformRuleRepository $ruleRepository,
-        private readonly FulfillmentRepository $fulfillmentRepository,
-        private readonly FulfillmentAllocationLogRepository $allocationLogRepository,
-        private readonly OrderExceptionRepository $orderExceptionRepository,
         private readonly RuleEngineService $ruleEngine,
         private readonly LockFactory $lockFactory,
         private readonly LoggerInterface $logger,
@@ -133,131 +125,13 @@ class FulfillmentAllocationService
             'attemptNumber' => $attemptNumber,
         ]);
 
-        // 转换为旧版结果格式以兼容 AllocationResult
-        $legacyResults = $this->convertToLegacyResults($itemResults);
-
         return AllocationResult::success(
             $order,
             $fulfillments,
-            $legacyResults,
+            $itemResults,
             $excludedMerchantIds,
             $attemptNumber
         );
-    }
-
-    /**
-     * 为单个订单项选择最佳来源.
-     *
-     * @param PlatformRule[] $allocationRules
-     */
-    private function selectSourceForItem(
-        OrderItem $orderItem,
-        array $excludedMerchantIds,
-        array $allocationRules,
-        int $attemptNumber
-    ): SourceSelectionResult {
-        $channelProduct = $orderItem->getChannelProduct();
-
-        if ($channelProduct === null) {
-            $this->logAllocationFailure(
-                $orderItem->getOrder(),
-                $orderItem,
-                $attemptNumber,
-                FulfillmentAllocationLog::RESULT_NO_SOURCE,
-                'Order item has no channel product',
-                null
-            );
-
-            return SourceSelectionResult::failure(
-                $orderItem,
-                'Order item has no channel product'
-            );
-        }
-
-        // 获取所有可用来源
-        $allSources = $this->getAvailableSources($channelProduct, $excludedMerchantIds);
-        $requiredQuantity = $orderItem->getQuantity();
-
-        // 过滤掉库存不足的来源（旧方法要求单个来源满足全部数量）
-        $availableSources = array_filter(
-            $allSources,
-            fn (ChannelProductSource $source) => $source->getAvailableQuantity() >= $requiredQuantity
-        );
-
-        if (empty($availableSources)) {
-            $this->logAllocationFailure(
-                $orderItem->getOrder(),
-                $orderItem,
-                $attemptNumber,
-                FulfillmentAllocationLog::RESULT_NO_SOURCE,
-                'No available sources after excluding merchants',
-                null
-            );
-
-            return SourceSelectionResult::failure(
-                $orderItem,
-                'No available sources for this product'
-            );
-        }
-
-        // 计算每个来源的评分
-        $scoredSources = $this->scoreAllSources($availableSources, $orderItem, $allocationRules);
-
-        // 按评分排序选择最佳来源
-        usort($scoredSources, fn (array $a, array $b) => $b['score'] <=> $a['score']);
-
-        // 构建候选来源列表用于日志
-        $candidates = array_map(fn (array $s) => [
-            'sourceId' => $s['source']->getId(),
-            'merchantId' => $s['source']->getMerchant()->getId(),
-            'score' => $s['score'],
-            'available' => $s['source']->getAvailableQuantity(),
-            'price' => $s['source']->getMerchantPrice(),
-        ], $scoredSources);
-
-        // 验证价格合理性
-        $platformPrice = $channelProduct->getPlatformPrice();
-        $selectedSource = null;
-
-        foreach ($scoredSources as $scoredSource) {
-            $source = $scoredSource['source'];
-            $merchantPrice = $source->getMerchantPrice();
-
-            // 价格验证：商户价格不能高于平台售价
-            if (bccomp($merchantPrice, $platformPrice, 2) <= 0) {
-                $selectedSource = $source;
-                break;
-            }
-        }
-
-        if ($selectedSource === null) {
-            $this->logAllocationFailure(
-                $orderItem->getOrder(),
-                $orderItem,
-                $attemptNumber,
-                FulfillmentAllocationLog::RESULT_PRICE_INVALID,
-                'All source prices exceed platform price',
-                $candidates
-            );
-
-            return SourceSelectionResult::failure(
-                $orderItem,
-                'All source prices exceed platform price',
-                $candidates
-            );
-        }
-
-        // 记录成功日志
-        $this->logAllocationSuccess(
-            $orderItem->getOrder(),
-            $orderItem,
-            $attemptNumber,
-            $selectedSource->getMerchant()->getId(),
-            $selectedSource->getId(),
-            $candidates
-        );
-
-        return SourceSelectionResult::success($orderItem, $selectedSource, $candidates);
     }
 
     /**
@@ -626,118 +500,6 @@ class FulfillmentAllocationService
     }
 
     /**
-     * 创建履约单.
-     *
-     * @param SourceSelectionResult[] $itemResults
-     * @param string[]                $excludedMerchantIds
-     *
-     * @return Fulfillment[]
-     */
-    private function createFulfillments(
-        Order $order,
-        array $itemResults,
-        array $excludedMerchantIds,
-        int $attemptNumber
-    ): array {
-        // 按商户+仓库分组创建履约单
-        $grouped = [];
-
-        foreach ($itemResults as $result) {
-            if (!$result->success || $result->selectedSource === null) {
-                continue;
-            }
-
-            $key = $result->merchantId.'_'.$result->warehouseId.'_'.$result->fulfillmentType;
-            if (!isset($grouped[$key])) {
-                $grouped[$key] = [
-                    'merchantId' => $result->merchantId,
-                    'warehouseId' => $result->warehouseId,
-                    'fulfillmentType' => $result->fulfillmentType,
-                    'items' => [],
-                ];
-            }
-            $grouped[$key]['items'][] = $result;
-        }
-
-        $fulfillments = [];
-
-        foreach ($grouped as $group) {
-            $fulfillment = $this->createFulfillmentForGroup(
-                $order,
-                $group,
-                $excludedMerchantIds,
-                $attemptNumber
-            );
-            $fulfillments[] = $fulfillment;
-        }
-
-        return $fulfillments;
-    }
-
-    /**
-     * 为一组订单项创建履约单.
-     *
-     * @param string[] $excludedMerchantIds
-     */
-    private function createFulfillmentForGroup(
-        Order $order,
-        array $group,
-        array $excludedMerchantIds,
-        int $attemptNumber
-    ): Fulfillment {
-        /** @var SourceSelectionResult[] $itemResults */
-        $itemResults = $group['items'];
-        $firstResult = $itemResults[0];
-        $source = $firstResult->selectedSource;
-        $listing = $source->getInventoryListing();
-        $inventory = $listing->getMerchantInventory();
-
-        // 创建履约单
-        $fulfillment = new Fulfillment();
-        $fulfillment->setOrder($order);
-        $fulfillment->setWarehouse($inventory->getWarehouse());
-        $fulfillment->setAllocationSource(Fulfillment::ALLOCATION_SOURCE_AUTO);
-        $fulfillment->setAllocationAttempt($attemptNumber);
-        $fulfillment->setExcludedMerchantIds($excludedMerchantIds ?: null);
-
-        // 根据履约类型设置
-        if ($listing->isConsignment()) {
-            $fulfillment->setFulfillmentType(Fulfillment::TYPE_PLATFORM_WAREHOUSE);
-        } else {
-            $fulfillment->setFulfillmentType(Fulfillment::TYPE_MERCHANT_WAREHOUSE);
-            $fulfillment->setMerchant($inventory->getMerchant());
-            // 设置自履约响应截止时间
-            $fulfillment->setDeadlineFromNow(self::DEFAULT_DEADLINE_HOURS);
-        }
-
-        // 添加履约单明细
-        foreach ($itemResults as $result) {
-            $fulfillmentItem = new FulfillmentItem();
-            $fulfillmentItem->setOrderItem($result->orderItem);
-            $fulfillmentItem->setQuantity($result->orderItem->getQuantity());
-
-            // 快照来源信息
-            $fulfillmentItem->snapshotFromSource($result->selectedSource);
-
-            $fulfillment->addItem($fulfillmentItem);
-
-            // 更新订单项分配数量
-            $result->orderItem->addAllocatedQuantity($result->orderItem->getQuantity());
-
-            // 记录来源销售
-            $result->selectedSource->recordSale($result->orderItem->getQuantity());
-        }
-
-        // 添加到订单
-        $order->addFulfillment($fulfillment);
-
-        // 持久化
-        $this->entityManager->persist($fulfillment);
-
-        return $fulfillment;
-    }
-
-    /**
      * 从多来源分配结果创建履约单.
      *
      * @param MultiSourceSelectionResult[] $itemResults
@@ -912,13 +674,10 @@ class FulfillmentAllocationService
             'hasMoreMerchants' => $hasMoreMerchants,
         ]);
 
-        // 转换为旧版结果格式以兼容 AllocationResult
-        $legacyResults = $this->convertToLegacyResults($itemResults);
-
         return AllocationResult::failure(
             $order,
             $reason,
-            $legacyResults,
+            $itemResults,
             $excludedMerchantIds,
             $attemptNumber
         );
@@ -947,125 +706,6 @@ class FulfillmentAllocationService
             }
 
             if ($totalAvailable >= $orderItem->getQuantity()) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * 将 MultiSourceSelectionResult 转换为旧版 SourceSelectionResult 以兼容 AllocationResult.
-     *
-     * @param MultiSourceSelectionResult[] $results
-     *
-     * @return SourceSelectionResult[]
-     */
-    private function convertToLegacyResults(array $results): array
-    {
-        $legacyResults = [];
-
-        foreach ($results as $result) {
-            if ($result->success && !empty($result->allocations)) {
-                // 使用第一个分配作为旧版兼容
-                $firstAllocation = $result->allocations[0];
-                $legacyResults[] = SourceSelectionResult::success(
-                    $result->orderItem,
-                    $firstAllocation->source,
-                    $result->candidates
-                );
-            } else {
-                $legacyResults[] = SourceSelectionResult::failure(
-                    $result->orderItem,
-                    $result->failureReason ?? 'Unknown failure',
-                    $result->candidates
-                );
-            }
-        }
-
-        return $legacyResults;
-    }
-
-    /**
-     * 处理分配失败.
-     *
-     * @param SourceSelectionResult[] $itemResults
-     * @param string[]                $excludedMerchantIds
-     */
-    private function handleAllocationFailure(
-        Order $order,
-        array $itemResults,
-        array $excludedMerchantIds,
-        int $attemptNumber
-    ): AllocationResult {
-        $failedItems = array_filter($itemResults, fn ($r) => !$r->success);
-        $reasons = array_map(fn ($r) => $r->failureReason, $failedItems);
-        $reason = implode('; ', array_filter($reasons));
-
-        // 检查是否所有商户都已尝试过
-        $hasMoreMerchants = $this->hasMoreAvailableMerchants($order, $excludedMerchantIds);
-
-        if (!$hasMoreMerchants) {
-            // 所有商户都已尝试，创建异常工单
-            $this->createOrderException(
-                $order,
-                OrderException::TYPE_ALLOCATION_EXHAUSTED,
-                'All available merchants have been tried: '.$reason
-            );
-
-            $order->markAllocationFailed('All available merchants exhausted');
-        } else {
-            // 还有可用商户，创建异常工单
-            $this->createOrderException(
-                $order,
-                OrderException::TYPE_NO_MERCHANT_AVAILABLE,
-                'Current allocation attempt failed: '.$reason
-            );
-
-            $order->markAllocationFailed($reason);
-        }
-
-        $this->entityManager->flush();
-
-        $this->logger->warning('Order allocation failed', [
-            'orderId' => $order->getId(),
-            'reason' => $reason,
-            'attemptNumber' => $attemptNumber,
-            'hasMoreMerchants' => $hasMoreMerchants,
-        ]);
-
-        return AllocationResult::failure(
-            $order,
-            $reason,
-            $itemResults,
-            $excludedMerchantIds,
-            $attemptNumber
-        );
-    }
-
-    /**
-     * 检查是否还有未尝试的商户（旧方法，要求单个来源满足全部数量）.
-     *
-     * @param string[] $excludedMerchantIds
-     */
-    private function hasMoreAvailableMerchants(Order $order, array $excludedMerchantIds): bool
-    {
-        foreach ($order->getItems() as $orderItem) {
-            $channelProduct = $orderItem->getChannelProduct();
-            if ($channelProduct === null) {
-                continue;
-            }
-
-            $allSources = $this->getAvailableSources($channelProduct, $excludedMerchantIds);
-            $requiredQuantity = $orderItem->getQuantity();
-
-            // 过滤掉库存不足的来源
-            $sources = array_filter(
-                $allSources,
-                fn (ChannelProductSource $source) => $source->getAvailableQuantity() >= $requiredQuantity
-            );
-
-            if (!empty($sources)) {
                 return true;
             }
         }
