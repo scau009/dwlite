@@ -33,6 +33,7 @@ CREATE TABLE `orders` (
     `allocation_fail_reason` TEXT NULL,
     `synced_at` DATETIME NOT NULL COMMENT 'Sync time',
     `external_data` JSON NULL COMMENT 'Raw order data',
+    `label` VARCHAR(500) NULL COMMENT 'Shipping label URL (COS)',
     `created_at` DATETIME NOT NULL,
     `updated_at` DATETIME NOT NULL,
     INDEX `idx_order_channel` (`sales_channel_id`),
@@ -41,3 +42,6 @@ CREATE TABLE `orders` (
     INDEX `idx_order_placed` (`placed_at`),
     CONSTRAINT `fk_order_channel` FOREIGN KEY (`sales_channel_id`) REFERENCES `sales_channels` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Orders';
+
+-- Migration: Add label field
+ALTER TABLE `orders` ADD COLUMN `label` VARCHAR(500) NULL COMMENT 'Shipping label URL (COS)' AFTER `external_data`;

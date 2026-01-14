@@ -139,6 +139,9 @@ class Order
     #[ORM\Column(type: 'json', nullable: true)]
     private ?array $externalData = null;  // 原始订单数据（JSON）
 
+    #[ORM\Column(type: 'string', length: 500, nullable: true)]
+    private ?string $label = null;  // 渠道物流标签（COS URL）
+
     // 关联
     #[ORM\OneToMany(targetEntity: OrderItem::class, mappedBy: 'order', cascade: ['persist', 'remove'], orphanRemoval: true)]
     #[ORM\OrderBy(['id' => 'ASC'])]
@@ -538,6 +541,18 @@ class Order
     public function setExternalData(?array $externalData): static
     {
         $this->externalData = $externalData;
+
+        return $this;
+    }
+
+    public function getLabel(): ?string
+    {
+        return $this->label;
+    }
+
+    public function setLabel(?string $label): static
+    {
+        $this->label = $label;
 
         return $this;
     }

@@ -7,6 +7,7 @@ namespace App\Service\Fulfillment;
 use App\Entity\Fulfillment;
 use App\Entity\Merchant;
 use App\Entity\User;
+use App\Message\AllocateOrderMessage;
 use App\Repository\FulfillmentRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
@@ -336,12 +337,11 @@ class FulfillmentService
 
         // 这里通过消息队列异步触发重新分配
         // 消息处理器会调用 FulfillmentAllocationService::allocateOrder()
-        // 在消息处理器实现后启用：
-        // $this->messageBus->dispatch(new AllocateOrderMessage(
-        //     $order->getId(),
-        //     $params['excludedMerchantIds'],
-        //     $params['attemptNumber']
-        // ));
+        $this->messageBus->dispatch(new AllocateOrderMessage(
+            $order->getId(),
+            $params['excludedMerchantIds'],
+            $params['attemptNumber']
+        ));
 
         $this->logger->info('Reallocation triggered', [
             'orderId' => $order->getId(),

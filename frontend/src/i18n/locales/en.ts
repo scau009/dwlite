@@ -178,6 +178,23 @@ export default {
     },
   },
 
+  // Merchant Fulfillment
+  merchantFulfillment: {
+    list: 'Fulfillment List',
+    accept: 'Accept',
+    reject: 'Reject',
+    ship: 'Ship',
+    acceptSuccess: 'Accepted successfully',
+    rejectSuccess: 'Rejected, order will be reallocated',
+    shipSuccess: 'Shipped successfully',
+    rejectReason: 'Rejection reason',
+    carrier: 'Carrier',
+    trackingNumber: 'Tracking Number',
+    trackingUrl: 'Tracking URL',
+    deadline: 'Response Deadline',
+    expired: 'Expired',
+  },
+
   // Dashboard
   dashboard: {
     title: 'Dashboard',

@@ -3,7 +3,9 @@
 namespace App\Scheduler;
 
 use App\Message\CleanupMessage;
+use App\Message\HandleExpiredFulfillmentsMessage;
 use App\Message\ScanFailedOrderSyncMessage;
+use App\Message\ScanPendingSettlementsMessage;
 use App\Message\ScanPendingSyncMessage;
 use App\Message\ScheduleOrderPullMessage;
 use App\Message\StartProductSyncMessage;
@@ -44,6 +46,12 @@ class MainSchedule implements ScheduleProviderInterface
 
                 // Order sync compensation - scan for failed order syncs every 10 minutes
                 RecurringMessage::every('10 minutes', ScanFailedOrderSyncMessage::create()),
+
+                // Fulfillment timeout detection - check for expired fulfillments every 5 minutes
+                RecurringMessage::every('5 minutes', HandleExpiredFulfillmentsMessage::create()),
+
+                // Settlement scanning - scan for pending settlements every 1 hour
+                RecurringMessage::every('1 hour', ScanPendingSettlementsMessage::create()),
 
                 // Examples of other schedule patterns:
                 // RecurringMessage::every('1 hour', new HourlyTaskMessage()),

@@ -178,6 +178,23 @@ export default {
     },
   },
 
+  // Merchant Fulfillment
+  merchantFulfillment: {
+    list: '履约单列表',
+    accept: '接单',
+    reject: '拒绝',
+    ship: '发货',
+    acceptSuccess: '接单成功',
+    rejectSuccess: '已拒绝，订单将重新分配',
+    shipSuccess: '发货成功',
+    rejectReason: '拒绝原因',
+    carrier: '物流公司',
+    trackingNumber: '物流单号',
+    trackingUrl: '物流链接',
+    deadline: '响应截止时间',
+    expired: '已超时',
+  },
+
   // Dashboard
   dashboard: {
     title: '工作台',
