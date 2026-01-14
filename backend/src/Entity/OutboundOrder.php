@@ -140,6 +140,10 @@ class OutboundOrder
     #[ORM\OneToMany(targetEntity: OutboundOrderItem::class, mappedBy: 'outboundOrder', cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $items;
 
+    // 面单（1:1 关联）
+    #[ORM\OneToOne(targetEntity: Waybill::class, mappedBy: 'outboundOrder', cascade: ['persist'])]
+    private ?Waybill $waybill = null;
+
     #[ORM\Column(type: 'datetime_immutable')]
     private \DateTimeImmutable $createdAt;
 
@@ -502,6 +506,18 @@ class OutboundOrder
     public function removeItem(OutboundOrderItem $item): static
     {
         $this->items->removeElement($item);
+
+        return $this;
+    }
+
+    public function getWaybill(): ?Waybill
+    {
+        return $this->waybill;
+    }
+
+    public function setWaybill(?Waybill $waybill): static
+    {
+        $this->waybill = $waybill;
 
         return $this;
     }

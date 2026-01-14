@@ -223,6 +223,22 @@ export function ChannelProductDetailPage() {
 
   const sourceColumns: ProColumns<ChannelProductSource>[] = [
     {
+      title: t('channelProducts.allocationRank'),
+      dataIndex: 'allocationRank',
+      width: 60,
+      render: (_, record) => (
+        <span className="font-medium text-blue-600">#{record.allocationRank}</span>
+      ),
+    },
+    {
+      title: t('channelProducts.sourceScore'),
+      dataIndex: 'displayScore',
+      width: 70,
+      render: (_, record) => (
+        <span className="font-medium">{record.displayScore?.toFixed(1) ?? '-'}</span>
+      ),
+    },
+    {
       title: t('channelProducts.sourceMerchant'),
       dataIndex: ['merchant', 'name'],
       width: 120,

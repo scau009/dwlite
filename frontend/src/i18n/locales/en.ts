@@ -2058,6 +2058,8 @@ export default {
     sourceAvailable: 'Available',
     sourceAllocation: 'Allocation',
     sourceFulfillment: 'Fulfillment',
+    sourceScore: 'Score',
+    allocationRank: 'Rank',
     sourcePriority: 'Priority',
     sourceStatus: 'Status',
     sourceSold: 'Sold',

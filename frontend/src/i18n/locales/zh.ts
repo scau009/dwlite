@@ -2054,6 +2054,8 @@ export default {
     sourceAvailable: '可用库存',
     sourceAllocation: '分配模式',
     sourceFulfillment: '履约模式',
+    sourceScore: '评分',
+    allocationRank: '分配顺序',
     sourcePriority: '优先级',
     sourceStatus: '状态',
     sourceSold: '已售',

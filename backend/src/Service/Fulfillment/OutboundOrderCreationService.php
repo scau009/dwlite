@@ -1,0 +1,84 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Service\Fulfillment;
+
+use App\Entity\Fulfillment;
+use App\Entity\OutboundOrder;
+use App\Entity\OutboundOrderItem;
+use Psr\Log\LoggerInterface;
+
+/**
+ * 出库单创建服务 - 从履约单创建出库单.
+ */
+class OutboundOrderCreationService
+{
+    public function __construct(
+        private readonly LoggerInterface $logger,
+    ) {
+    }
+
+    /**
+     * 从履约单创建出库单.
+     *
+     * 一个履约单对应一个出库单（履约单已按商户分组）。
+     *
+     * @throws \InvalidArgumentException
+     */
+    public function createFromFulfillment(Fulfillment $fulfillment): OutboundOrder
+    {
+        // 验证履约单类型
+        if (!$fulfillment->isPlatformWarehouse()) {
+            throw new \InvalidArgumentException('只有寄售履约单可以创建出库单');
+        }
+
+        // 验证履约单有明细
+        if ($fulfillment->getItems()->isEmpty()) {
+            throw new \InvalidArgumentException('履约单没有明细项');
+        }
+
+        // 1. 创建出库单
+        $outbound = OutboundOrder::createFromFulfillment($fulfillment);
+
+        // 2. 从 FulfillmentItem 获取商户（寄售履约单的 merchant 字段为 null）
+        $firstItem = $fulfillment->getItems()->first();
+        if ($firstItem !== false && $firstItem->getMerchant() !== null) {
+            $outbound->setMerchant($firstItem->getMerchant());
+        } else {
+            throw new \InvalidArgumentException('履约单明细缺少商户信息');
+        }
+
+        // 3. 创建出库单明细
+        foreach ($fulfillment->getItems() as $fulfillmentItem) {
+            $outboundItem = new OutboundOrderItem();
+            $outboundItem->setQuantity($fulfillmentItem->getQuantity());
+            $outboundItem->setWarehouse($fulfillment->getWarehouse());
+            $outboundItem->setMerchant($fulfillmentItem->getMerchant());
+
+            // 从 OrderItem 获取 SKU 信息
+            $orderItem = $fulfillmentItem->getOrderItem();
+            $sku = $orderItem->getProductSku();
+            if ($sku !== null) {
+                $outboundItem->snapshotFromSku($sku);
+                $outboundItem->setProductSku($sku);
+            }
+
+            $outbound->addItem($outboundItem);
+        }
+
+        // 4. 提交出库单 (draft → pending)
+        $outbound->submit();
+
+        $this->logger->info('OutboundOrder created from fulfillment', [
+            'outboundOrderId' => $outbound->getId(),
+            'outboundNo' => $outbound->getOutboundNo(),
+            'fulfillmentId' => $fulfillment->getId(),
+            'fulfillmentNo' => $fulfillment->getFulfillmentNo(),
+            'itemCount' => $outbound->getItems()->count(),
+            'totalQuantity' => $outbound->getTotalQuantity(),
+        ]);
+
+        return $outbound;
+    }
+}

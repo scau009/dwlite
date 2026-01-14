@@ -48,6 +48,8 @@ export interface ChannelProductSource {
   isActive: boolean;
   soldQuantity: number;
   remark: string | null;
+  displayScore: number;
+  allocationRank: number;
   listing: {
     id: string;
     price: string;

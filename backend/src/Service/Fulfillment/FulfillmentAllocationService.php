@@ -17,10 +17,12 @@ use App\Repository\PlatformRuleRepository;
 use App\Service\Fulfillment\Dto\AllocationResult;
 use App\Service\Fulfillment\Dto\MultiSourceSelectionResult;
 use App\Service\Fulfillment\Dto\SourceAllocation;
+use App\Message\ProcessConsignmentFulfillmentMessage;
 use App\Service\RuleEngine\RuleEngineService;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Lock\LockFactory;
+use Symfony\Component\Messenger\MessageBusInterface;
 
 /**
  * 履约分配服务 - 负责订单的商户分配逻辑.
@@ -39,6 +41,7 @@ class FulfillmentAllocationService
         private readonly PlatformRuleRepository $ruleRepository,
         private readonly RuleEngineService $ruleEngine,
         private readonly LockFactory $lockFactory,
+        private readonly MessageBusInterface $messageBus,
         private readonly LoggerInterface $logger,
     ) {
     }
@@ -194,71 +197,34 @@ class FulfillmentAllocationService
         // 构建候选来源列表用于日志
         $candidates = $this->buildCandidatesList($scoredSources);
 
-        // 按履约类型分组
-        $consignmentSources = [];
-        $selfFulfillmentSources = [];
-
-        foreach ($scoredSources as $scored) {
-            $source = $scored['source'];
-            $listing = $source->getInventoryListing();
-
-            if ($listing->isConsignment()) {
-                $consignmentSources[] = $scored;
-            } else {
-                $selfFulfillmentSources[] = $scored;
-            }
-        }
-
-        // 先尝试自履约（必须单个来源满足全部数量）
+        // 统一按评分分配（不再区分履约类型优先级）
         $platformPrice = $channelProduct->getPlatformPrice();
-        $selfFulfillmentResult = $this->trySelfFulfillmentAllocation(
-            $selfFulfillmentSources,
+        $allocations = $this->allocateByUnifiedScore(
+            $scoredSources,
             $requiredQuantity,
             $platformPrice
         );
 
-        if ($selfFulfillmentResult !== null) {
-            $this->logAllocationSuccess(
-                $orderItem->getOrder(),
-                $orderItem,
-                $attemptNumber,
-                $selfFulfillmentResult->getMerchantId(),
-                $selfFulfillmentResult->source->getId(),
-                $candidates
-            );
-
-            return MultiSourceSelectionResult::success($orderItem, [$selfFulfillmentResult], $candidates);
-        }
-
-        // 尝试寄售拆分分配
-        $consignmentAllocations = $this->tryConsignmentSplitAllocation(
-            $consignmentSources,
-            $requiredQuantity,
-            $platformPrice
+        $totalAllocated = array_reduce(
+            $allocations,
+            fn (int $sum, SourceAllocation $a) => $sum + $a->quantity,
+            0
         );
 
-        if (!empty($consignmentAllocations)) {
-            $totalAllocated = array_reduce(
-                $consignmentAllocations,
-                fn (int $sum, SourceAllocation $a) => $sum + $a->quantity,
-                0
-            );
-
-            if ($totalAllocated >= $requiredQuantity) {
-                // 记录每个分配的成功日志
-                foreach ($consignmentAllocations as $allocation) {
-                    $this->logAllocationSuccess(
-                        $orderItem->getOrder(),
-                        $orderItem,
-                        $attemptNumber,
-                        $allocation->getMerchantId(),
-                        $allocation->source->getId(),
-                        $candidates
-                    );
-                }
-
-                return MultiSourceSelectionResult::success($orderItem, $consignmentAllocations, $candidates);
+        if ($totalAllocated >= $requiredQuantity) {
+            // 记录每个分配的成功日志
+            foreach ($allocations as $allocation) {
+                $this->logAllocationSuccess(
+                    $orderItem->getOrder(),
+                    $orderItem,
+                    $attemptNumber,
+                    $allocation->getMerchantId(),
+                    $allocation->source->getId(),
+                    $candidates
+                );
             }
+
+            return MultiSourceSelectionResult::success($orderItem, $allocations, $candidates);
         }
 
         // 分配失败
@@ -279,56 +245,31 @@ class FulfillmentAllocationService
     }
 
     /**
-     * 尝试自履约分配 - 必须单个来源满足全部数量.
+     * 统一评分分配算法 - 按评分高低遍历所有来源，不区分类型.
      *
-     * @param array<array{source: ChannelProductSource, score: float}> $sources
-     */
-    private function trySelfFulfillmentAllocation(
-        array $sources,
-        int $requiredQuantity,
-        string $platformPrice
-    ): ?SourceAllocation {
-        foreach ($sources as $scored) {
-            $source = $scored['source'];
-
-            // 必须有足够库存
-            if ($source->getAvailableQuantity() < $requiredQuantity) {
-                continue;
-            }
-
-            // 价格验证
-            $merchantPrice = $source->getMerchantPrice();
-            if (bccomp($merchantPrice, $platformPrice, 2) > 0) {
-                continue;
-            }
-
-            return new SourceAllocation($source, $requiredQuantity, $scored['score']);
-        }
-
-        return null;
-    }
-
-    /**
-     * 尝试寄售拆分分配 - 可以从多个来源组合.
+     * 分配规则：
+     * - 自履约来源：必须满足全部剩余数量才能选中
+     * - 寄售来源：可以部分分配
      *
-     * @param array<array{source: ChannelProductSource, score: float}> $sources
+     * @param array<array{source: ChannelProductSource, score: float}> $scoredSources
      *
      * @return SourceAllocation[]
      */
-    private function tryConsignmentSplitAllocation(
-        array $sources,
+    private function allocateByUnifiedScore(
+        array $scoredSources,
         int $requiredQuantity,
         string $platformPrice
     ): array {
         $allocations = [];
         $remainingQuantity = $requiredQuantity;
 
-        foreach ($sources as $scored) {
+        foreach ($scoredSources as $scored) {
             if ($remainingQuantity <= 0) {
                 break;
             }
 
             $source = $scored['source'];
+            $listing = $source->getInventoryListing();
             $merchantPrice = $source->getMerchantPrice();
 
             // 价格验证
@@ -341,10 +282,20 @@ class FulfillmentAllocationService
                 continue;
             }
 
-            // 从该来源分配尽可能多的数量
-            $allocateQty = min($availableQty, $remainingQuantity);
-            $allocations[] = new SourceAllocation($source, $allocateQty, $scored['score']);
-            $remainingQuantity -= $allocateQty;
+            if ($listing->isSelfFulfillment()) {
+                // 自履约：必须满足全部剩余数量
+                if ($availableQty >= $remainingQuantity) {
+                    $allocations[] = new SourceAllocation($source, $remainingQuantity, $scored['score']);
+                    $remainingQuantity = 0;
+                    break;
+                }
+                // 不能部分分配，跳过
+            } else {
+                // 寄售：可以部分分配
+                $allocateQty = min($availableQty, $remainingQuantity);
+                $allocations[] = new SourceAllocation($source, $allocateQty, $scored['score']);
+                $remainingQuantity -= $allocateQty;
+            }
         }
 
         return $allocations;
@@ -553,6 +504,13 @@ class FulfillmentAllocationService
                 $attemptNumber
             );
             $fulfillments[] = $fulfillment;
+
+            // 寄售履约单自动触发出库单创建
+            if ($group['isConsignment']) {
+                $this->messageBus->dispatch(
+                    new ProcessConsignmentFulfillmentMessage($fulfillment->getId())
+                );
+            }
         }
 
         return $fulfillments;
@@ -877,5 +835,103 @@ class FulfillmentAllocationService
             'excludedMerchantIds' => $excludedMerchantIds,
             'attemptNumber' => $rejectedFulfillment->getAllocationAttempt() + 1,
         ];
+    }
+
+    /**
+     * 为展示计算并排序来源评分（公开方法，供 API 使用）.
+     *
+     * @return array<array{source: ChannelProductSource, score: float}>
+     */
+    public function scoreSourcesForDisplay(\App\Entity\ChannelProduct $channelProduct): array
+    {
+        $rules = $this->ruleRepository->findActiveByType(PlatformRule::TYPE_FULFILLMENT_ALLOCATION);
+        $sources = $channelProduct->getSources()->toArray();
+
+        $scoredSources = [];
+        foreach ($sources as $source) {
+            $score = $this->calculateDisplayScore($source, $channelProduct, $rules);
+            $scoredSources[] = [
+                'source' => $source,
+                'score' => $score,
+            ];
+        }
+
+        usort($scoredSources, fn (array $a, array $b) => $b['score'] <=> $a['score']);
+
+        return $scoredSources;
+    }
+
+    /**
+     * 计算来源展示评分（无订单上下文）.
+     *
+     * 使用中性/默认值填充订单相关变量，用于展示来源的预估分配优先级。
+     *
+     * @param PlatformRule[] $rules
+     */
+    private function calculateDisplayScore(
+        ChannelProductSource $source,
+        \App\Entity\ChannelProduct $channelProduct,
+        array $rules
+    ): float {
+        $listing = $source->getInventoryListing();
+
+        // 构建展示用上下文（无订单上下文，使用中性值）
+        $context = [
+            'source' => [
+                'merchantId' => $source->getMerchant()->getId(),
+                'priority' => $source->getPriority(),
+                'price' => $source->getMerchantPrice(),
+                'availableQuantity' => $source->getAvailableQuantity(),
+                'soldQuantity' => $source->getSoldQuantity(),
+            ],
+            'product' => [
+                'platformPrice' => $channelProduct->getPlatformPrice(),
+                'skuCode' => $channelProduct->getProductSku()?->getSkuCode() ?? '',
+                'categorySlug' => '',
+            ],
+            'fulfillmentType' => $listing->getFulfillmentType(),
+            'order' => [
+                'totalAmount' => '0.00',
+                'itemCount' => 1,
+            ],
+        ];
+
+        // 默认评分（基于优先级）
+        $defaultScore = 100.0 - (float) $source->getPriority();
+
+        if (empty($rules)) {
+            return $defaultScore;
+        }
+
+        // 应用规则计算评分
+        $ruleData = [];
+        foreach ($rules as $rule) {
+            $ruleData[] = [
+                'expression' => $rule->getExpression(),
+                'conditionExpression' => $rule->getConditionExpression(),
+                'config' => $rule->getConfig() ?? [],
+                'ruleId' => $rule->getId(),
+                'ruleType' => $rule->getType(),
+            ];
+        }
+
+        try {
+            $score = $this->ruleEngine->executeRuleChain(
+                $ruleData,
+                $context,
+                $defaultScore,
+                'fulfillment_allocation_display',
+                $source->getId()
+            );
+
+            return is_numeric($score) ? (float) $score : $defaultScore;
+        } catch (\Throwable $e) {
+            $this->logger->warning('Display score calculation failed, using default score', [
+                'sourceId' => $source->getId(),
+                'error' => $e->getMessage(),
+            ]);
+
+            return $defaultScore;
+        }
     }
 }

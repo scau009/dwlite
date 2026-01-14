@@ -12,6 +12,7 @@ use App\Repository\ChannelProductRepository;
 use App\Repository\ChannelProductSyncLogRepository;
 use App\Service\ChannelProductSyncService;
 use App\Service\CosService;
+use App\Service\Fulfillment\FulfillmentAllocationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -137,20 +138,27 @@ class ChannelProductController extends AbstractController
     }
 
     #[Route('/{id}/sources', name: 'admin_channel_product_sources', methods: ['GET'])]
-    public function getSources(string $id): JsonResponse
+    public function getSources(string $id, FulfillmentAllocationService $allocationService): JsonResponse
     {
         $channelProduct = $this->channelProductRepository->find($id);
         if (!$channelProduct) {
             return $this->json(['error' => $this->translator->trans('admin.channelProduct.notFound')], Response::HTTP_NOT_FOUND);
         }
 
-        $sources = $channelProduct->getSources()->toArray();
+        // 使用分配服务按规则引擎评分排序
+        $scoredSources = $allocationService->scoreSourcesForDisplay($channelProduct);
 
-        // Sort by priority
-        usort($sources, fn ($a, $b) => $a->getPriority() <=> $b->getPriority());
+        $rank = 1;
+        $data = array_map(function (array $scored) use (&$rank) {
+            $result = $this->serializeSource($scored['source']);
+            $result['displayScore'] = round($scored['score'], 2);
+            $result['allocationRank'] = $rank++;
+
+            return $result;
+        }, $scoredSources);
 
         return $this->json([
-            'data' => array_map(fn ($source) => $this->serializeSource($source), $sources),
+            'data' => $data,
         ]);
     }
 
