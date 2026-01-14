@@ -195,7 +195,10 @@ class KicksCrewGateway extends AbstractChannelGateway
     /**
      * Pull orders from KC.
      *
+     * @param ChannelGatewayContext $context
+     * @param PullOrdersRequest $request
      * @return PulledOrderDto[]
+     * @throws \Throwable
      */
     public function pullOrders(
         ChannelGatewayContext $context,
@@ -215,15 +218,12 @@ class KicksCrewGateway extends AbstractChannelGateway
             $dateFrom = $request->startTime->getTimestamp() * 1000;
             $dateTo = $request->endTime->getTimestamp() * 1000;
 
-            // Default status filter if not provided
-            $status = $request->status ?? 'order.confirmed,order.packed,seller.shipped,order.completed,order.canceled';
-
             $response = $this->apiClient->getOrders(
                 $apiKey,
                 page: $request->page,
                 dateFrom: $dateFrom,
                 dateTo: $dateTo,
-                status: $status
+                status: $request->status
             );
 
             $orders = [];

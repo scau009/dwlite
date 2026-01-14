@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Command;
 
+use App\Entity\SalesChannel;
 use App\Repository\SalesChannelRepository;
 use App\Service\ChannelGateway\ChannelGatewayContext;
 use App\Service\ChannelGateway\ChannelGatewayInterface;
@@ -124,7 +125,7 @@ class TestOrderPullCommand extends Command
     private function executeDryRun(
         SymfonyStyle $io,
         ChannelGatewayInterface $gateway,
-        \App\Entity\SalesChannel $salesChannel,
+        SalesChannel $salesChannel,
         \DateTimeImmutable $startTime,
         \DateTimeImmutable $endTime,
         int $page,
@@ -197,7 +198,7 @@ class TestOrderPullCommand extends Command
 
     private function executeFullSync(
         SymfonyStyle $io,
-        \App\Entity\SalesChannel $salesChannel,
+        SalesChannel $salesChannel,
         \DateTimeImmutable $startTime,
         \DateTimeImmutable $endTime,
         int $page,
