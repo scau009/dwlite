@@ -36,7 +36,7 @@ class TestOrderPullCommand extends Command
     {
         $this
             ->addArgument('channel', InputArgument::OPTIONAL, 'Channel code (e.g., KICKSCREW)', 'KICKSCREW')
-            ->addOption('hours', null, InputOption::VALUE_OPTIONAL, 'Hours to look back', '24')
+            ->addOption('days', null, InputOption::VALUE_OPTIONAL, 'Days to look back', '24')
             ->addOption('api-key', null, InputOption::VALUE_OPTIONAL, 'API key for direct testing (overrides channel config)')
             ->addOption('page', null, InputOption::VALUE_OPTIONAL, 'Page number', '1')
             ->addOption('dry-run', null, InputOption::VALUE_NONE, 'Only fetch and display, do not save to database');
@@ -47,7 +47,7 @@ class TestOrderPullCommand extends Command
         $io = new SymfonyStyle($input, $output);
 
         $channelCode = $input->getArgument('channel');
-        $hours = (int) $input->getOption('hours');
+        $days = (int) $input->getOption('days');
         $apiKey = $input->getOption('api-key');
         $page = (int) $input->getOption('page');
         $dryRun = $input->getOption('dry-run');
@@ -89,13 +89,13 @@ class TestOrderPullCommand extends Command
 
         // Build time range
         $endTime = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
-        $startTime = $endTime->modify("-{$hours} hours");
+        $startTime = $endTime->modify("-{$days} days");
 
         $io->section('Time Range');
         $io->info([
             "Start: {$startTime->format(\DateTimeInterface::ATOM)}",
             "End: {$endTime->format(\DateTimeInterface::ATOM)}",
-            "Lookback: {$hours} hours",
+            "Lookback: {$days} hours",
         ]);
 
         // If API key provided, override channel config
