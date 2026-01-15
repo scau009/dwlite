@@ -124,8 +124,8 @@ class CreateSettlementMessageHandler
                 [
                     'settlement_no' => $settlement->getSettlementNo(),
                     'fulfillment_no' => $fulfillment->getFulfillmentNo(),
-                    'order_external_id' => $order->getExternalOrderId(),
-                    'sales_channel' => $order->getSalesChannel()->getCode(),
+                    'order_external_id' => $fulfillment->getOrder()->getExternalOrderId(),
+                    'sales_channel' => $fulfillment->getOrder()->getSalesChannel()->getCode(),
                     'gross_amount' => $settlement->getGrossAmount(),
                     'commission_amount' => $settlement->getCommissionAmount(),
                     'net_amount' => $settlement->getNetAmount(),

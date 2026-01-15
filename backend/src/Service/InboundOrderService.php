@@ -467,8 +467,8 @@ class InboundOrderService
                     'warehouse_code' => $order->getWarehouse()->getCode(),
                     'warehouse_name' => $order->getWarehouse()->getName(),
                     'expected_quantity' => $order->getTotalQuantity(),
-                    'received_quantity' => $order->getTotalReceivedQuantity(),
-                    'damaged_quantity' => $order->getTotalDamagedQuantity(),
+                    'received_quantity' => $order->getReceivedQuantity(),
+                    'quantity_difference' => $order->getQuantityDifference(),
                     'has_difference' => $order->hasQuantityDifference(),
                     'status' => $order->getStatus(),
                     'completed_at' => $order->getCompletedAt()?->format(\DateTimeInterface::ATOM),
@@ -570,7 +570,7 @@ class InboundOrderService
                 'description' => $exception->getDescription(),
                 'total_quantity' => $exception->getTotalQuantity(),
                 'items_count' => $exception->getItems()->count(),
-                'reported_at' => $exception->getReportedAt()->format(\DateTimeInterface::ATOM),
+                'reported_at' => $exception->getCreatedAt()->format(\DateTimeInterface::ATOM),
             ]
         );
 
@@ -606,7 +606,7 @@ class InboundOrderService
 
         // 检查关联的入库单是否可以完结
         $order = $exception->getInboundOrder();
-        if ($order !== null && $order->getStatus() === InboundOrder::STATUS_PARTIAL_COMPLETED) {
+        if ($order->getStatus() === InboundOrder::STATUS_PARTIAL_COMPLETED) {
             $this->tryCompleteOrder($order, $operatorId, $operatorName);
         }
 
@@ -882,7 +882,7 @@ class InboundOrderService
                 'description' => $exception->getDescription(),
                 'total_quantity' => $exception->getTotalQuantity(),
                 'items_count' => $exception->getItems()->count(),
-                'reported_at' => $exception->getReportedAt()->format(\DateTimeInterface::ATOM),
+                'reported_at' => $exception->getCreatedAt()->format(\DateTimeInterface::ATOM),
             ]
         );
 

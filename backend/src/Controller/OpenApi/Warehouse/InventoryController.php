@@ -152,11 +152,12 @@ class InventoryController extends AbstractController
             // Create transaction record
             $transaction = new InventoryTransaction();
             $transaction->setMerchantInventory($inventory);
-            $transaction->setType($adjustment > 0 ? InventoryTransaction::TYPE_ADJUSTMENT_IN : InventoryTransaction::TYPE_ADJUSTMENT_OUT);
-            $transaction->setQuantityChange(abs($adjustment));
-            $transaction->setQuantityBefore($currentQty);
-            $transaction->setQuantityAfter($item->countedQuantity);
-            $transaction->setReason('stocktake');
+            $transaction->setType($adjustment > 0 ? InventoryTransaction::TYPE_ADJUSTMENT_ADD : InventoryTransaction::TYPE_ADJUSTMENT_SUB);
+            $transaction->setQuantity(abs($adjustment));
+            $transaction->setBalanceBefore($currentQty);
+            $transaction->setBalanceAfter($item->countedQuantity);
+            $transaction->setStockType('available');
+            $transaction->setReferenceType('stocktake');
             if ($item->notes !== null) {
                 $transaction->setNotes($item->notes);
             }
@@ -235,11 +236,12 @@ class InventoryController extends AbstractController
             // Create transaction record
             $transaction = new InventoryTransaction();
             $transaction->setMerchantInventory($inventory);
-            $transaction->setType($item->adjustmentQuantity > 0 ? InventoryTransaction::TYPE_ADJUSTMENT_IN : InventoryTransaction::TYPE_ADJUSTMENT_OUT);
-            $transaction->setQuantityChange(abs($item->adjustmentQuantity));
-            $transaction->setQuantityBefore($currentQty);
-            $transaction->setQuantityAfter($newQty);
-            $transaction->setReason($item->reason);
+            $transaction->setType($item->adjustmentQuantity > 0 ? InventoryTransaction::TYPE_ADJUSTMENT_ADD : InventoryTransaction::TYPE_ADJUSTMENT_SUB);
+            $transaction->setQuantity(abs($item->adjustmentQuantity));
+            $transaction->setBalanceBefore($currentQty);
+            $transaction->setBalanceAfter($newQty);
+            $transaction->setStockType('available');
+            $transaction->setReferenceType($item->reason);
             if ($item->notes !== null) {
                 $transaction->setNotes($item->notes);
             }
@@ -275,8 +277,8 @@ class InventoryController extends AbstractController
         $sku = $inventory->getProductSku();
 
         return [
-            'sku' => $sku->getSku(),
-            'merchantCode' => $inventory->getMerchant()->getCode(),
+            'sku' => $sku->getSkuName(),
+            'merchantId' => $inventory->getMerchant()->getId(),
             'merchantName' => $inventory->getMerchant()->getName(),
             'quantityInTransit' => $inventory->getQuantityInTransit(),
             'quantityAvailable' => $inventory->getQuantityAvailable(),

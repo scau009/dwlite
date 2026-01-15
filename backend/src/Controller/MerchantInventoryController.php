@@ -157,7 +157,7 @@ class MerchantInventoryController extends AbstractController
             'sku' => [
                 'id' => $row['skuId'] ?? null,
                 'skuName' => $skuName,
-                'sizeUnit' => $sizeUnit?->value ?? $sizeUnit,
+                'sizeUnit' => $sizeUnit?->value,
                 'sizeValue' => $sizeValue,
             ],
             'quantityInTransit' => (int) ($row['quantityInTransit'] ?? 0),

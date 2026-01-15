@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Service\Fulfillment;
 
 use App\Entity\Fulfillment;
+use App\Entity\FulfillmentItem;
 use App\Entity\OutboundOrder;
 use App\Entity\OutboundOrderItem;
 use App\Service\OpenApi\WebhookService;
@@ -44,8 +45,9 @@ class OutboundOrderCreationService
         $outbound = OutboundOrder::createFromFulfillment($fulfillment);
 
         // 2. 从 FulfillmentItem 获取商户（寄售履约单的 merchant 字段为 null）
+        /** @var FulfillmentItem $firstItem */
         $firstItem = $fulfillment->getItems()->first();
-        if ($firstItem !== false && $firstItem->getMerchant() !== null) {
+        if ($firstItem->getMerchant() !== null) {
             $outbound->setMerchant($firstItem->getMerchant());
         } else {
             throw new \InvalidArgumentException('履约单明细缺少商户信息');

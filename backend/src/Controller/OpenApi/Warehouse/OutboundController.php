@@ -224,7 +224,7 @@ class OutboundController extends AbstractController
         foreach ($dto->items as $pickedItem) {
             $orderItem = null;
             foreach ($order->getItems() as $item) {
-                if ($item->getSku() === $pickedItem->sku) {
+                if ($item->getSkuName() === $pickedItem->sku) {
                     $orderItem = $item;
                     break;
                 }
@@ -376,8 +376,8 @@ class OutboundController extends AbstractController
         return [
             'outboundNo' => $order->getOutboundNo(),
             'fulfillmentNo' => $order->getFulfillment()?->getFulfillmentNo(),
-            'merchantCode' => $order->getMerchant()->getCode(),
-            'merchantName' => $order->getMerchant()->getName(),
+            'merchantId' => $order->getMerchant()?->getId(),
+            'merchantName' => $order->getMerchant()?->getName(),
             'status' => $order->getStatus(),
             'receiverName' => $order->getReceiverName(),
             'receiverPhone' => $order->getReceiverPhone(),
@@ -402,7 +402,7 @@ class OutboundController extends AbstractController
 
         foreach ($order->getItems() as $item) {
             $data['items'][] = [
-                'sku' => $item->getSku(),
+                'sku' => $item->getSkuName(),
                 'quantity' => $item->getQuantity(),
             ];
         }

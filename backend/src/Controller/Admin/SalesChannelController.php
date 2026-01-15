@@ -82,9 +82,7 @@ class SalesChannelController extends AbstractController
         if ($dto->sortOrder !== null) {
             $channel->setSortOrder($dto->sortOrder);
         }
-        if ($dto->currency !== null) {
-            $channel->setCurrency($dto->currency);
-        }
+        $channel->setCurrency($dto->currency);
 
         $this->salesChannelRepository->save($channel, true);
 

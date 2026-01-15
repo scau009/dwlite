@@ -605,6 +605,22 @@ class Fulfillment
     }
 
     /**
+     * 获取总金额（基于上架价格）.
+     */
+    public function getTotalAmount(): string
+    {
+        $total = '0';
+        foreach ($this->items as $item) {
+            $price = $item->getListPrice();
+            if ($price !== null) {
+                $total = bcadd($total, bcmul($price, (string) $item->getQuantity(), 2), 2);
+            }
+        }
+
+        return $total;
+    }
+
+    /**
      * 标记为处理中.
      */
     public function markProcessing(): void

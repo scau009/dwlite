@@ -149,10 +149,9 @@ class InboundController extends AbstractController
 
         foreach ($order->getItems() as $item) {
             $data['items'][] = [
-                'sku' => $item->getSku(),
+                'sku' => $item->getSkuName(),
                 'expectedQuantity' => $item->getExpectedQuantity(),
                 'receivedQuantity' => $item->getReceivedQuantity(),
-                'shelvingLocation' => $item->getShelvingLocation(),
             ];
         }
 

@@ -908,7 +908,7 @@ class FulfillmentAllocationService
             ],
             'product' => [
                 'platformPrice' => $channelProduct->getPlatformPrice(),
-                'skuCode' => $channelProduct->getProductSku()?->getSkuCode() ?? '',
+                'skuCode' => $channelProduct->getProductSku()->getSkuName(),
                 'categorySlug' => '',
             ],
             'fulfillmentType' => $listing->getFulfillmentType(),

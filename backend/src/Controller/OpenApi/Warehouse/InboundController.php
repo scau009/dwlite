@@ -20,8 +20,6 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\MapQueryString;
 use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
-use Symfony\Component\Serializer\SerializerInterface;
 
 /**
  * Warehouse Inbound API Controller.
@@ -32,8 +30,7 @@ class InboundController extends AbstractController
 {
     public function __construct(
         private readonly InboundOrderRepository $inboundOrderRepository,
-        private readonly EntityManagerInterface $em,
-        private readonly SerializerInterface $serializer
+        private readonly EntityManagerInterface $em
     ) {
     }
 
@@ -236,7 +233,7 @@ class InboundController extends AbstractController
         foreach ($dto->items as $receivedItem) {
             $orderItem = null;
             foreach ($order->getItems() as $item) {
-                if ($item->getSku() === $receivedItem->sku) {
+                if ($item->getSkuName() === $receivedItem->sku) {
                     $orderItem = $item;
                     break;
                 }
@@ -254,11 +251,8 @@ class InboundController extends AbstractController
             }
 
             $orderItem->setReceivedQuantity($receivedItem->receivedQuantity);
-            if ($receivedItem->shelvingLocation !== null) {
-                $orderItem->setShelvingLocation($receivedItem->shelvingLocation);
-            }
             if ($receivedItem->notes !== null) {
-                $orderItem->setNotes($receivedItem->notes);
+                $orderItem->setWarehouseRemark($receivedItem->notes);
             }
         }
 
@@ -330,7 +324,7 @@ class InboundController extends AbstractController
         if ($dto->sku !== null && $dto->affectedQuantity !== null) {
             $exceptionItem = new InboundExceptionItem();
             $exceptionItem->setInboundException($exception);
-            $exceptionItem->setSku($dto->sku);
+            $exceptionItem->setSkuName($dto->sku);
             $exceptionItem->setQuantity($dto->affectedQuantity);
             $exception->addItem($exceptionItem);
         }
@@ -358,7 +352,7 @@ class InboundController extends AbstractController
     {
         return [
             'orderNo' => $order->getOrderNo(),
-            'merchantCode' => $order->getMerchant()->getCode(),
+            'merchantId' => $order->getMerchant()->getId(),
             'merchantName' => $order->getMerchant()->getName(),
             'status' => $order->getStatus(),
             'totalSkuCount' => $order->getTotalSkuCount(),
@@ -384,11 +378,10 @@ class InboundController extends AbstractController
 
         foreach ($order->getItems() as $item) {
             $data['items'][] = [
-                'sku' => $item->getSku(),
+                'sku' => $item->getSkuName(),
                 'expectedQuantity' => $item->getExpectedQuantity(),
                 'receivedQuantity' => $item->getReceivedQuantity(),
-                'shelvingLocation' => $item->getShelvingLocation(),
-                'notes' => $item->getNotes(),
+                'warehouseRemark' => $item->getWarehouseRemark(),
             ];
         }
 

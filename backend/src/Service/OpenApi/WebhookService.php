@@ -67,7 +67,6 @@ class WebhookService
         $delivery->setWebhook($webhook);
         $delivery->setPayload($payload);
         $delivery->setStatus(WebhookDelivery::STATUS_PENDING);
-        $delivery->setAttempts(0);
 
         $this->em->persist($delivery);
         $this->em->flush();
@@ -78,7 +77,7 @@ class WebhookService
         $this->logger->info('Webhook dispatched', [
             'webhook_id' => $webhook->getId(),
             'delivery_id' => $delivery->getId(),
-            'event' => $webhook->getEvent(),
+            'events' => $webhook->getEvents(),
         ]);
     }
 }

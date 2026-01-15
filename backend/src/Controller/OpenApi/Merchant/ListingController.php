@@ -11,11 +11,9 @@ use App\Dto\OpenApi\Merchant\UpdateListingRequest;
 use App\Entity\InventoryListing;
 use App\Entity\Merchant;
 use App\Repository\InventoryListingRepository;
-use App\Repository\MerchantInventoryRepository;
 use App\Repository\MerchantSalesChannelRepository;
 use App\Repository\SalesChannelRepository;
 use App\Service\InventoryListingService;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -33,11 +31,9 @@ class ListingController extends AbstractController
 {
     public function __construct(
         private readonly InventoryListingRepository $listingRepository,
-        private readonly MerchantInventoryRepository $inventoryRepository,
         private readonly SalesChannelRepository $salesChannelRepository,
         private readonly MerchantSalesChannelRepository $merchantChannelRepository,
-        private readonly InventoryListingService $listingService,
-        private readonly EntityManagerInterface $em
+        private readonly InventoryListingService $listingService
     ) {
     }
 
@@ -302,7 +298,7 @@ class ListingController extends AbstractController
 
         return [
             'id' => $listing->getId(),
-            'sku' => $sku->getSku(),
+            'sku' => $sku->getSkuName(),
             'productName' => $product->getName(),
             'styleNumber' => $product->getStyleNumber(),
             'color' => $product->getColor(),

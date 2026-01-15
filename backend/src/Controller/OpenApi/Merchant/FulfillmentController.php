@@ -143,21 +143,21 @@ class FulfillmentController extends AbstractController
             ], Response::HTTP_NOT_FOUND);
         }
 
-        if ($fulfillment->getStatus() !== Fulfillment::STATUS_ALLOCATED) {
+        if ($fulfillment->getStatus() !== Fulfillment::STATUS_PENDING) {
             return $this->json([
                 'success' => false,
                 'error' => [
                     'code' => 'STATE_CONFLICT',
-                    'message' => 'Only allocated fulfillments can be accepted',
+                    'message' => 'Only pending fulfillments can be accepted',
                 ],
                 'requestId' => $request->attributes->get('request_id'),
             ], Response::HTTP_CONFLICT);
         }
 
-        $fulfillment->setStatus(Fulfillment::STATUS_ACCEPTED);
-        $fulfillment->setAcceptedAt(new \DateTimeImmutable($dto->acceptedAt, new \DateTimeZone('UTC')));
+        $fulfillment->setStatus(Fulfillment::STATUS_PROCESSING);
+        $fulfillment->setNotifiedAt(new \DateTimeImmutable($dto->acceptedAt, new \DateTimeZone('UTC')));
         if ($dto->notes !== null) {
-            $fulfillment->setMerchantNotes($dto->notes);
+            $fulfillment->setRemark($dto->notes);
         }
 
         $this->em->flush();
@@ -194,12 +194,12 @@ class FulfillmentController extends AbstractController
             ], Response::HTTP_NOT_FOUND);
         }
 
-        if ($fulfillment->getStatus() !== Fulfillment::STATUS_ALLOCATED) {
+        if ($fulfillment->getStatus() !== Fulfillment::STATUS_PENDING) {
             return $this->json([
                 'success' => false,
                 'error' => [
                     'code' => 'STATE_CONFLICT',
-                    'message' => 'Only allocated fulfillments can be rejected',
+                    'message' => 'Only pending fulfillments can be rejected',
                 ],
                 'requestId' => $request->attributes->get('request_id'),
             ], Response::HTTP_CONFLICT);
@@ -207,7 +207,7 @@ class FulfillmentController extends AbstractController
 
         $fulfillment->setStatus(Fulfillment::STATUS_REJECTED);
         $fulfillment->setRejectedAt(new \DateTimeImmutable($dto->rejectedAt, new \DateTimeZone('UTC')));
-        $fulfillment->setRejectReason($dto->reason);
+        $fulfillment->setRejectionReason($dto->reason);
 
         $this->em->flush();
 
@@ -223,15 +223,14 @@ class FulfillmentController extends AbstractController
         return [
             'fulfillmentNo' => $f->getFulfillmentNo(),
             'status' => $f->getStatus(),
-            'warehouse' => $f->getWarehouse() ? [
+            'warehouse' => [
                 'code' => $f->getWarehouse()->getCode(),
                 'name' => $f->getWarehouse()->getName(),
-            ] : null,
+            ],
             'totalQuantity' => $f->getTotalQuantity(),
-            'totalAmount' => $f->getTotalAmount(),
-            'deadline' => $f->getDeadline()?->format(\DateTimeInterface::ATOM),
-            'allocatedAt' => $f->getAllocatedAt()?->format(\DateTimeInterface::ATOM),
-            'acceptedAt' => $f->getAcceptedAt()?->format(\DateTimeInterface::ATOM),
+            'deadline' => $f->getDeadlineAt()?->format(\DateTimeInterface::ATOM),
+            'allocatedAt' => $f->getCreatedAt()->format(\DateTimeInterface::ATOM),
+            'acceptedAt' => $f->getNotifiedAt()?->format(\DateTimeInterface::ATOM),
             'rejectedAt' => $f->getRejectedAt()?->format(\DateTimeInterface::ATOM),
             'shippedAt' => $f->getShippedAt()?->format(\DateTimeInterface::ATOM),
             'createdAt' => $f->getCreatedAt()->format(\DateTimeInterface::ATOM),
@@ -244,16 +243,18 @@ class FulfillmentController extends AbstractController
         $data['items'] = [];
 
         foreach ($f->getItems() as $item) {
+            $unitPrice = $item->getListPrice();
+            $totalPrice = $unitPrice !== null ? bcmul($unitPrice, (string) $item->getQuantity(), 2) : null;
             $data['items'][] = [
-                'sku' => $item->getSku(),
+                'sku' => $item->getOrderItem()->getSkuCode(),
                 'quantity' => $item->getQuantity(),
-                'unitPrice' => $item->getUnitPrice(),
-                'totalPrice' => $item->getTotalPrice(),
+                'unitPrice' => $unitPrice,
+                'totalPrice' => $totalPrice,
             ];
         }
 
-        $data['merchantNotes'] = $f->getMerchantNotes();
-        $data['rejectReason'] = $f->getRejectReason();
+        $data['merchantNotes'] = $f->getRemark();
+        $data['rejectReason'] = $f->getRejectionReason();
 
         return $data;
     }

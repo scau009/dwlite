@@ -73,7 +73,7 @@ class InventoryController extends AbstractController
             'success' => true,
             'data' => [
                 'items' => array_map(fn(MerchantInventory $inv) => [
-                    'sku' => $inv->getProductSku()->getSku(),
+                    'sku' => $inv->getProductSku()->getSkuName(),
                     'warehouseCode' => $inv->getWarehouse()->getCode(),
                     'warehouseName' => $inv->getWarehouse()->getName(),
                     'quantityInTransit' => $inv->getQuantityInTransit(),

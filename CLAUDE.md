@@ -173,7 +173,30 @@ vendor/bin/php-cs-fixer fix --dry-run --diff  # Preview code style changes
 vendor/bin/phpunit                # Run all tests
 vendor/bin/phpunit tests/MessageHandler/PushOrderStatusMessageHandlerTest.php  # Run single test file
 vendor/bin/phpunit --filter testConfirmSuccessTriggersAllocation  # Run single test method
+vendor/bin/phpunit tests/E2E/      # Run E2E tests only
 ```
+
+**测试工厂 (Test Factories)**：
+
+测试中使用工厂创建实体，位于 `tests/Factory/`：
+
+```php
+use Tests\Factory\MerchantFactory;
+use Tests\Factory\OrderFactory;
+use Tests\Factory\InventoryFactory;
+
+$merchant = MerchantFactory::create($em);
+$order = OrderFactory::create($em, $merchant, $channel);
+$inventory = InventoryFactory::create($em, $merchant, $sku);
+```
+
+**E2E 测试**：
+
+端到端工作流测试位于 `tests/E2E/`，测试完整业务流程：
+- `InboundWorkflowTest`: 入库全流程
+- `FulfillmentWorkflowTest`: 履约分配流程
+- `OrderSyncWorkflowTest`: 订单同步流程
+- `SettlementWorkflowTest`: 结算流程
 
 ### Frontend (from /frontend)
 
@@ -277,6 +300,34 @@ $bus->dispatch(new MyTaskMessage('some data'));
 - 失败消息: `dwlite_failed`
 - 重试策略: 最多 3 次，指数退避
 - Trace Context: 自动通过 `TraceIdMiddleware` 传递到异步任务
+
+## Channel Gateway (渠道网关)
+
+销售渠道对接使用 Strategy 模式，每个渠道实现 `ChannelGatewayInterface`：
+
+```php
+// src/Service/ChannelGateway/Provider/KicksCrew/KicksCrewGateway.php
+class KicksCrewGateway extends AbstractChannelGateway {
+    public function getChannelCode(): string { return 'KICKSCREW'; }
+    public function pushProduct(ChannelGatewayContext $context, PushProductRequest $request): PushProductResponse { }
+    public function updateStockPrice(ChannelGatewayContext $context, UpdateStockPriceRequest $request): UpdateStockPriceResponse { }
+    public function pullOrders(ChannelGatewayContext $context, PullOrdersRequest $request): array { }
+}
+```
+
+**核心接口操作**：
+
+- `pushProduct`: 推送商品到渠道
+- `updateStockPrice`: 更新库存和价格
+- `pullOrders`: 拉取订单
+- `confirmOrder`: 确认订单
+- `shipOrder`: 推送发货信息
+
+**添加新渠道**：
+
+1. 在 `src/Service/ChannelGateway/Provider/{ChannelName}/` 创建网关类
+2. 继承 `AbstractChannelGateway`，实现必要方法
+3. 网关自动注册到 `ChannelGatewayRegistry`
 
 ## Messenger Monitor (队列监控)
 
@@ -452,6 +503,29 @@ Admin 控制器位于 `src/Controller/Admin/`，处理：
 - `OutboundController`: 出库作业（拣货、打包、发货）
 - `InventoryController`: 库存盘点和查询
 
+### Open API (外部系统集成)
+
+外部系统通过 API Key 认证访问 Open API（位于 `src/Controller/OpenApi/`）：
+
+**认证方式**：使用 `#[OpenApiOnly]` 属性标记，支持权限控制
+
+```php
+#[Route('/api/v1/open/merchant/fulfillments')]
+#[OpenApiOnly(permission: 'fulfillment:read')]
+class FulfillmentController extends AbstractController { }
+
+// 单个方法指定不同权限
+#[OpenApiOnly(permission: 'fulfillment:write')]
+public function accept(...): JsonResponse { }
+```
+
+**端点分类**：
+
+- `OpenApi/Merchant/`: 商户系统对接（履约、入库、库存、上架、结算）
+- `OpenApi/Warehouse/`: 仓库 WMS 对接（入库、出库、库存盘点）
+
+**DTOs**：Open API 专用 DTOs 位于 `src/Dto/OpenApi/`
+
 ## Architecture Principles
 
 1. Backend language: 以 PHP 为主，Go 为辅
@@ -499,6 +573,24 @@ Admin 控制器位于 `src/Controller/Admin/`，处理：
 - 接口返回的文本需要考虑 i18n
 - 永远不要用 Doctrine 的 migration 来修改数据库结构
 - 每次修改数据库结构时，都要更新对应的 doc 目录下的 sql 文件
+
+### DTO 组织
+
+DTOs 按业务域组织在 `src/Dto/` 目录：
+
+- `Dto/Auth/`: 认证相关请求
+- `Dto/Admin/`: 管理端请求和查询
+- `Dto/Admin/Query/`: 管理端列表查询参数
+- `Dto/Merchant/`: 商户端请求
+- `Dto/Merchant/Query/`: 商户端查询参数
+- `Dto/Inbound/`: 入库相关
+- `Dto/Outbound/`: 出库相关
+- `Dto/OpenApi/`: 外部 API 专用
+
+**命名约定**：
+- 创建请求: `Create{Entity}Request`
+- 更新请求: `Update{Entity}Request`
+- 列表查询: `{Entity}ListQuery` 或 `{Entity}Query`
 
 ### DateTime 处理
 

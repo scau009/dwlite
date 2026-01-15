@@ -3,7 +3,6 @@
 namespace App\Security;
 
 use App\Entity\ApiKeyLog;
-use App\Repository\ApiKeyLogRepository;
 use App\Service\OpenApi\ApiKeyService;
 use App\Service\OpenApi\SignatureService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -24,7 +23,6 @@ class OpenApiAuthenticator extends AbstractAuthenticator
     public function __construct(
         private readonly ApiKeyService $apiKeyService,
         private readonly SignatureService $signatureService,
-        private readonly ApiKeyLogRepository $apiKeyLogRepository,
         private readonly EntityManagerInterface $entityManager,
         private readonly LoggerInterface $logger
     ) {
@@ -54,8 +52,7 @@ class OpenApiAuthenticator extends AbstractAuthenticator
             if (!$headerValidation['valid']) {
                 throw new CustomUserMessageAuthenticationException(
                     $headerValidation['error'],
-                    [],
-                    'INVALID_REQUEST'
+                    ['_error_code' => 'INVALID_REQUEST']
                 );
             }
 
@@ -69,8 +66,7 @@ class OpenApiAuthenticator extends AbstractAuthenticator
             if ($apiKey === null) {
                 throw new CustomUserMessageAuthenticationException(
                     'Invalid or inactive API key',
-                    [],
-                    'INVALID_API_KEY'
+                    ['_error_code' => 'INVALID_API_KEY']
                 );
             }
 
@@ -83,8 +79,7 @@ class OpenApiAuthenticator extends AbstractAuthenticator
                 ]);
                 throw new CustomUserMessageAuthenticationException(
                     'IP not allowed',
-                    [],
-                    'IP_NOT_ALLOWED'
+                    ['_error_code' => 'IP_NOT_ALLOWED']
                 );
             }
 
@@ -105,8 +100,7 @@ class OpenApiAuthenticator extends AbstractAuthenticator
             if (!$signatureResult['valid']) {
                 throw new CustomUserMessageAuthenticationException(
                     'Signature verification failed',
-                    [],
-                    $signatureResult['error']
+                    ['_error_code' => $signatureResult['error']]
                 );
             }
 
@@ -123,7 +117,7 @@ class OpenApiAuthenticator extends AbstractAuthenticator
                 $request,
                 $headers['x-api-key'] ?? null,
                 Response::HTTP_UNAUTHORIZED,
-                $e->getMessageKey(),
+                $e->getMessageData()['_error_code'] ?? 'AUTHENTICATION_ERROR',
                 $startTime
             );
             throw $e;
@@ -134,8 +128,7 @@ class OpenApiAuthenticator extends AbstractAuthenticator
             ]);
             throw new CustomUserMessageAuthenticationException(
                 'Authentication failed',
-                [],
-                'AUTHENTICATION_ERROR'
+                ['_error_code' => 'AUTHENTICATION_ERROR']
             );
         }
     }
@@ -149,7 +142,7 @@ class OpenApiAuthenticator extends AbstractAuthenticator
     public function onAuthenticationFailure(Request $request, AuthenticationException $exception): ?Response
     {
         $errorCode = $exception instanceof CustomUserMessageAuthenticationException
-            ? $exception->getMessageKey()
+            ? ($exception->getMessageData()['_error_code'] ?? 'AUTHENTICATION_ERROR')
             : 'AUTHENTICATION_ERROR';
 
         return new JsonResponse([
