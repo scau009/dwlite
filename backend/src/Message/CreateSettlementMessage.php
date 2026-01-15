@@ -11,7 +11,8 @@ readonly class CreateSettlementMessage implements AsyncMessageInterface
 {
     public function __construct(
         public string $fulfillmentId,
-    ) {}
+    ) {
+    }
 
     public static function create(string $fulfillmentId): self
     {

@@ -32,7 +32,8 @@ class CreateSettlementMessageHandler
         private LockFactory $lockFactory,
         private WebhookService $webhookService,
         private LoggerInterface $logger,
-    ) {}
+    ) {
+    }
 
     public function __invoke(CreateSettlementMessage $message): void
     {

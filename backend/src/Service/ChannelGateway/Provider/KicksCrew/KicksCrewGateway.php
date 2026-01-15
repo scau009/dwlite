@@ -195,9 +195,8 @@ class KicksCrewGateway extends AbstractChannelGateway
     /**
      * Pull orders from KC.
      *
-     * @param ChannelGatewayContext $context
-     * @param PullOrdersRequest $request
      * @return PulledOrderDto[]
+     *
      * @throws \Throwable
      */
     public function pullOrders(

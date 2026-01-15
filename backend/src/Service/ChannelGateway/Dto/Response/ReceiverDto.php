@@ -8,15 +8,14 @@ namespace App\Service\ChannelGateway\Dto\Response;
 readonly class ReceiverDto
 {
     public function __construct(
-        public string  $name,
-        public string  $phone,
-        public string  $address,
+        public string $name,
+        public string $phone,
+        public string $address,
         public ?string $province = null,
         public ?string $city = null,
         public ?string $district = null,
         public ?string $postalCode = null,
-    )
-    {
+    ) {
     }
 
     /**

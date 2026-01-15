@@ -31,6 +31,7 @@ class IdempotencyService
 
         if ($item->isHit()) {
             $this->logger->debug('Idempotency key found in cache', ['key' => $key]);
+
             return [
                 'exists' => true,
                 'response' => $item->get(),
@@ -72,7 +73,7 @@ class IdempotencyService
      */
     private function getCacheKey(string $key): string
     {
-        return 'openapi_idempotency_' . hash('sha256', $key);
+        return 'openapi_idempotency_'.hash('sha256', $key);
     }
 
     /**
@@ -82,6 +83,7 @@ class IdempotencyService
     {
         // Key should be at least 16 characters and max 255 characters
         $length = strlen($key);
+
         return $length >= 16 && $length <= 255;
     }
 }

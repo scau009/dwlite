@@ -86,7 +86,7 @@ class InventoryController extends AbstractController
         return $this->json([
             'success' => true,
             'data' => [
-                'items' => array_map(fn(MerchantInventory $inv) => $this->serializeInventory($inv), $inventories),
+                'items' => array_map(fn (MerchantInventory $inv) => $this->serializeInventory($inv), $inventories),
                 'pagination' => [
                     'page' => $query->page,
                     'pageSize' => $query->pageSize,

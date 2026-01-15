@@ -264,7 +264,7 @@ class MerchantInventoryController extends AbstractController
         }
 
         // DEBUG: Log costCurrency value
-        error_log('DEBUG: costCurrency from DTO = ' . var_export($request->costCurrency, true));
+        error_log('DEBUG: costCurrency from DTO = '.var_export($request->costCurrency, true));
 
         try {
             $inventory = $this->inventoryService->initializeInventory(

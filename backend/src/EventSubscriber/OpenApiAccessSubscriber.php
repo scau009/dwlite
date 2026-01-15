@@ -66,9 +66,7 @@ class OpenApiAccessSubscriber implements EventSubscriberInterface
         // Check permission if specified
         if ($attribute->permission !== null) {
             if (!$user->hasPermission($attribute->permission)) {
-                throw new AccessDeniedHttpException(
-                    sprintf('Missing required permission: %s', $attribute->permission)
-                );
+                throw new AccessDeniedHttpException(sprintf('Missing required permission: %s', $attribute->permission));
             }
         }
 

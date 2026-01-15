@@ -78,7 +78,7 @@ class ListingController extends AbstractController
         return $this->json([
             'success' => true,
             'data' => [
-                'items' => array_map(fn(InventoryListing $l) => $this->serializeListing($l), $result['data']),
+                'items' => array_map(fn (InventoryListing $l) => $this->serializeListing($l), $result['data']),
                 'pagination' => [
                     'page' => $query->page,
                     'pageSize' => $query->pageSize,

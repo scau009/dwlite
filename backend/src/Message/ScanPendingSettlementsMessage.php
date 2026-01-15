@@ -11,7 +11,8 @@ readonly class ScanPendingSettlementsMessage implements AsyncMessageInterface
 {
     public function __construct(
         public \DateTimeImmutable $scheduledAt,
-    ) {}
+    ) {
+    }
 
     public static function create(): self
     {

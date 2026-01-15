@@ -93,9 +93,7 @@ class SymfonyMailerService implements MailServiceInterface
     /**
      * Build a simple HTML representation of template data for development testing.
      *
-     * @param int $templateId
      * @param array<string, string> $templateData
-     * @return string
      */
     private function buildTemplateHtml(int $templateId, array $templateData): string
     {

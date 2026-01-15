@@ -120,6 +120,7 @@ class ApiKeyService
 
         if ($apiKey === null) {
             $this->logger->warning('API key not found', ['keyId' => $keyId]);
+
             return null;
         }
 
@@ -129,6 +130,7 @@ class ApiKeyService
                 'keyId' => $keyId,
                 'status' => $apiKey->getStatus(),
             ]);
+
             return null;
         }
 
@@ -138,12 +140,14 @@ class ApiKeyService
                 'keyId' => $keyId,
                 'expiresAt' => $apiKey->getExpiresAt()?->format(\DateTimeInterface::ATOM),
             ]);
+
             return null;
         }
 
         // Verify secret
         if (!$apiKey->verifySecret($plainSecret)) {
             $this->logger->warning('API key secret verification failed', ['keyId' => $keyId]);
+
             return null;
         }
 

@@ -52,7 +52,7 @@ class SignatureService
      */
     public function sign(string $canonicalString, string $secret): string
     {
-        return 'sha256=' . hash_hmac('sha256', $canonicalString, $secret);
+        return 'sha256='.hash_hmac('sha256', $canonicalString, $secret);
     }
 
     /**
@@ -109,6 +109,7 @@ class SignatureService
                 'path' => $path,
                 'nonce' => $nonce,
             ]);
+
             return ['valid' => false, 'error' => 'INVALID_SIGNATURE'];
         }
 
@@ -158,7 +159,7 @@ class SignatureService
      */
     private function getNonceCacheKey(string $nonce): string
     {
-        return 'openapi_nonce_' . $nonce;
+        return 'openapi_nonce_'.$nonce;
     }
 
     /**

@@ -50,10 +50,7 @@ class OpenApiAuthenticator extends AbstractAuthenticator
             // Validate headers presence
             $headerValidation = $this->signatureService->validateHeaders($headers);
             if (!$headerValidation['valid']) {
-                throw new CustomUserMessageAuthenticationException(
-                    $headerValidation['error'],
-                    ['_error_code' => 'INVALID_REQUEST']
-                );
+                throw new CustomUserMessageAuthenticationException($headerValidation['error'], ['_error_code' => 'INVALID_REQUEST']);
             }
 
             $keyId = $headers['x-api-key'];
@@ -64,10 +61,7 @@ class OpenApiAuthenticator extends AbstractAuthenticator
             // Get API Key
             $apiKey = $this->apiKeyService->getActiveApiKeyByKeyId($keyId);
             if ($apiKey === null) {
-                throw new CustomUserMessageAuthenticationException(
-                    'Invalid or inactive API key',
-                    ['_error_code' => 'INVALID_API_KEY']
-                );
+                throw new CustomUserMessageAuthenticationException('Invalid or inactive API key', ['_error_code' => 'INVALID_API_KEY']);
             }
 
             // Check IP whitelist
@@ -77,10 +71,7 @@ class OpenApiAuthenticator extends AbstractAuthenticator
                     'keyId' => $keyId,
                     'clientIp' => $clientIp,
                 ]);
-                throw new CustomUserMessageAuthenticationException(
-                    'IP not allowed',
-                    ['_error_code' => 'IP_NOT_ALLOWED']
-                );
+                throw new CustomUserMessageAuthenticationException('IP not allowed', ['_error_code' => 'IP_NOT_ALLOWED']);
             }
 
             // Get request body
@@ -98,16 +89,13 @@ class OpenApiAuthenticator extends AbstractAuthenticator
             );
 
             if (!$signatureResult['valid']) {
-                throw new CustomUserMessageAuthenticationException(
-                    'Signature verification failed',
-                    ['_error_code' => $signatureResult['error']]
-                );
+                throw new CustomUserMessageAuthenticationException('Signature verification failed', ['_error_code' => $signatureResult['error']]);
             }
 
             // Create API Key User
             $userBadge = new UserBadge(
                 $apiKey->getKeyId(),
-                fn() => new ApiKeyUser($apiKey)
+                fn () => new ApiKeyUser($apiKey)
             );
 
             return new SelfValidatingPassport($userBadge);
@@ -126,10 +114,7 @@ class OpenApiAuthenticator extends AbstractAuthenticator
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
-            throw new CustomUserMessageAuthenticationException(
-                'Authentication failed',
-                ['_error_code' => 'AUTHENTICATION_ERROR']
-            );
+            throw new CustomUserMessageAuthenticationException('Authentication failed', ['_error_code' => 'AUTHENTICATION_ERROR']);
         }
     }
 

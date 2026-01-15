@@ -94,7 +94,7 @@ class InboundController extends AbstractController
         return $this->json([
             'success' => true,
             'data' => [
-                'items' => array_map(fn(InboundOrder $order) => $this->serializeOrder($order), $orders),
+                'items' => array_map(fn (InboundOrder $order) => $this->serializeOrder($order), $orders),
                 'pagination' => [
                     'page' => $query->page,
                     'pageSize' => $query->pageSize,

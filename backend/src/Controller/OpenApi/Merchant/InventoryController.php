@@ -72,7 +72,7 @@ class InventoryController extends AbstractController
         return $this->json([
             'success' => true,
             'data' => [
-                'items' => array_map(fn(MerchantInventory $inv) => [
+                'items' => array_map(fn (MerchantInventory $inv) => [
                     'sku' => $inv->getProductSku()->getSkuName(),
                     'warehouseCode' => $inv->getWarehouse()->getCode(),
                     'warehouseName' => $inv->getWarehouse()->getName(),

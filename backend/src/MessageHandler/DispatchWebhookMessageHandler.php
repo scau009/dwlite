@@ -36,6 +36,7 @@ class DispatchWebhookMessageHandler
             $this->logger->warning('Webhook delivery not found', [
                 'delivery_id' => $message->deliveryId,
             ]);
+
             return;
         }
 
@@ -48,6 +49,7 @@ class DispatchWebhookMessageHandler
                 'webhook_id' => $webhook->getId(),
                 'webhook_status' => $webhook->getStatus(),
             ]);
+
             return;
         }
 

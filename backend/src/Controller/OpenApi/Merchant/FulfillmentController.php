@@ -78,7 +78,7 @@ class FulfillmentController extends AbstractController
         return $this->json([
             'success' => true,
             'data' => [
-                'items' => array_map(fn(Fulfillment $f) => $this->serializeFulfillment($f), $fulfillments),
+                'items' => array_map(fn (Fulfillment $f) => $this->serializeFulfillment($f), $fulfillments),
                 'pagination' => [
                     'page' => $query->page,
                     'pageSize' => $query->pageSize,

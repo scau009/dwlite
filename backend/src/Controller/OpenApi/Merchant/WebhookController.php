@@ -69,7 +69,7 @@ class WebhookController extends AbstractController
 
         return $this->json([
             'success' => true,
-            'data' => array_map(fn(Webhook $w) => $this->serializeWebhook($w), $webhooks),
+            'data' => array_map(fn (Webhook $w) => $this->serializeWebhook($w), $webhooks),
             'requestId' => $request->attributes->get('request_id'),
         ]);
     }

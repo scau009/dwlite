@@ -132,6 +132,7 @@ class Webhook
     public function setApiKey(ApiKey $apiKey): static
     {
         $this->apiKey = $apiKey;
+
         return $this;
     }
 
@@ -143,6 +144,7 @@ class Webhook
     public function setUrl(string $url): static
     {
         $this->url = $url;
+
         return $this;
     }
 
@@ -160,6 +162,7 @@ class Webhook
     public function setEvents(array $events): static
     {
         $this->events = $events;
+
         return $this;
     }
 
@@ -173,6 +176,7 @@ class Webhook
         if (!in_array($event, $this->events, true)) {
             $this->events[] = $event;
         }
+
         return $this;
     }
 
@@ -180,8 +184,9 @@ class Webhook
     {
         $this->events = array_values(array_filter(
             $this->events,
-            fn($e) => $e !== $event
+            fn ($e) => $e !== $event
         ));
+
         return $this;
     }
 
@@ -193,6 +198,7 @@ class Webhook
     public function setSecret(string $secret): static
     {
         $this->secret = $secret;
+
         return $this;
     }
 
@@ -200,6 +206,7 @@ class Webhook
     {
         $this->secret = bin2hex(random_bytes(32));
         $this->updatedAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
+
         return $this;
     }
 
@@ -211,6 +218,7 @@ class Webhook
     public function setStatus(string $status): static
     {
         $this->status = $status;
+
         return $this;
     }
 
@@ -233,6 +241,7 @@ class Webhook
     {
         $this->status = self::STATUS_SUSPENDED;
         $this->updatedAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
+
         return $this;
     }
 
@@ -241,6 +250,7 @@ class Webhook
         $this->status = self::STATUS_ACTIVE;
         $this->failureCount = 0;
         $this->updatedAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
+
         return $this;
     }
 
@@ -248,6 +258,7 @@ class Webhook
     {
         $this->status = self::STATUS_FAILED;
         $this->updatedAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
+
         return $this;
     }
 
@@ -258,16 +269,18 @@ class Webhook
 
     public function incrementFailureCount(): static
     {
-        $this->failureCount++;
+        ++$this->failureCount;
         if ($this->failureCount >= self::MAX_FAILURE_COUNT) {
             $this->markAsFailed();
         }
+
         return $this;
     }
 
     public function resetFailureCount(): static
     {
         $this->failureCount = 0;
+
         return $this;
     }
 
@@ -279,12 +292,14 @@ class Webhook
     public function setLastTriggeredAt(?\DateTimeImmutable $lastTriggeredAt): static
     {
         $this->lastTriggeredAt = $lastTriggeredAt;
+
         return $this;
     }
 
     public function updateLastTriggeredAt(): static
     {
         $this->lastTriggeredAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
+
         return $this;
     }
 
@@ -296,6 +311,7 @@ class Webhook
     public function setLastSuccessAt(?\DateTimeImmutable $lastSuccessAt): static
     {
         $this->lastSuccessAt = $lastSuccessAt;
+
         return $this;
     }
 
@@ -303,6 +319,7 @@ class Webhook
     {
         $this->lastSuccessAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
         $this->failureCount = 0;
+
         return $this;
     }
 
@@ -336,6 +353,7 @@ class Webhook
             $this->deliveries->add($delivery);
             $delivery->setWebhook($this);
         }
+
         return $this;
     }
 
@@ -344,6 +362,6 @@ class Webhook
      */
     public function signPayload(string $payload): string
     {
-        return 'sha256=' . hash_hmac('sha256', $payload, $this->secret);
+        return 'sha256='.hash_hmac('sha256', $payload, $this->secret);
     }
 }

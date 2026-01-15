@@ -45,7 +45,7 @@ class WebhookController extends AbstractController
 
         return $this->json([
             'success' => true,
-            'data' => array_map(fn(Webhook $webhook) => $this->serializeWebhook($webhook), $webhooks),
+            'data' => array_map(fn (Webhook $webhook) => $this->serializeWebhook($webhook), $webhooks),
             'requestId' => $request->attributes->get('request_id'),
         ]);
     }
@@ -75,7 +75,7 @@ class WebhookController extends AbstractController
                 'error' => [
                     'code' => 'INVALID_REQUEST',
                     'message' => 'Validation failed',
-                    'details' => array_map(fn($v) => $v->getMessage(), iterator_to_array($violations)),
+                    'details' => array_map(fn ($v) => $v->getMessage(), iterator_to_array($violations)),
                 ],
                 'requestId' => $request->attributes->get('request_id'),
             ], Response::HTTP_BAD_REQUEST);
@@ -169,7 +169,7 @@ class WebhookController extends AbstractController
                 'error' => [
                     'code' => 'INVALID_REQUEST',
                     'message' => 'Validation failed',
-                    'details' => array_map(fn($v) => $v->getMessage(), iterator_to_array($violations)),
+                    'details' => array_map(fn ($v) => $v->getMessage(), iterator_to_array($violations)),
                 ],
                 'requestId' => $request->attributes->get('request_id'),
             ], Response::HTTP_BAD_REQUEST);

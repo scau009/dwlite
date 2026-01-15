@@ -31,7 +31,8 @@ class ProcessSettlementMessageHandler
         private LockFactory $lockFactory,
         private WebhookService $webhookService,
         private LoggerInterface $logger,
-    ) {}
+    ) {
+    }
 
     public function __invoke(ProcessSettlementMessage $message): void
     {

@@ -2,7 +2,6 @@
 
 namespace App\Scheduler;
 
-use App\Message\CleanupMessage;
 use App\Message\HandleExpiredFulfillmentsMessage;
 use App\Message\ScanFailedOrderSyncMessage;
 use App\Message\ScanPendingSettlementsMessage;
@@ -32,10 +31,10 @@ class MainSchedule implements ScheduleProviderInterface
                 // In production, use '1 hour', '1 day', or cron expressions
 
                 // KicksDB product sync - runs daily at 02:00 UTC
-//                RecurringMessage::cron('0 2 * * *', new StartProductSyncMessage(
-//                    KicksDbProvider::PROVIDER_NAME,
-//                    new \DateTimeImmutable('now', new \DateTimeZone('UTC'))
-//                )),
+                //                RecurringMessage::cron('0 2 * * *', new StartProductSyncMessage(
+                //                    KicksDbProvider::PROVIDER_NAME,
+                //                    new \DateTimeImmutable('now', new \DateTimeZone('UTC'))
+                //                )),
 
                 // Channel product sync compensation - scan for stale pending products every 5 minutes
                 // This catches any products stuck in pending status due to message loss or processing failures

@@ -12,14 +12,14 @@ use App\Entity\Order;
 use App\Entity\OrderException;
 use App\Entity\OrderItem;
 use App\Entity\PlatformRule;
+use App\Message\ProcessConsignmentFulfillmentMessage;
 use App\Repository\ChannelProductSourceRepository;
 use App\Repository\PlatformRuleRepository;
 use App\Service\Fulfillment\Dto\AllocationResult;
 use App\Service\Fulfillment\Dto\MultiSourceSelectionResult;
 use App\Service\Fulfillment\Dto\SourceAllocation;
-use App\Message\ProcessConsignmentFulfillmentMessage;
-use App\Service\RuleEngine\RuleEngineService;
 use App\Service\OpenApi\WebhookService;
+use App\Service\RuleEngine\RuleEngineService;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Lock\LockFactory;
@@ -291,7 +291,7 @@ class FulfillmentAllocationService
                     $remainingQuantity = 0;
                     break;
                 }
-                // 不能部分分配，跳过
+            // 不能部分分配，跳过
             } else {
                 // 寄售：可以部分分配
                 $allocateQty = min($availableQty, $remainingQuantity);

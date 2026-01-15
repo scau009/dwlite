@@ -110,7 +110,7 @@ class ApiKey
      */
     public static function generateKeyId(): string
     {
-        return 'dwl_' . bin2hex(random_bytes(14));
+        return 'dwl_'.bin2hex(random_bytes(14));
     }
 
     /**
@@ -134,6 +134,7 @@ class ApiKey
     public function setKeyId(string $keyId): static
     {
         $this->keyId = $keyId;
+
         return $this;
     }
 
@@ -145,6 +146,7 @@ class ApiKey
     public function setKeySecret(string $keySecret): static
     {
         $this->keySecret = $keySecret;
+
         return $this;
     }
 
@@ -164,6 +166,7 @@ class ApiKey
     public function setName(string $name): static
     {
         $this->name = $name;
+
         return $this;
     }
 
@@ -175,6 +178,7 @@ class ApiKey
     public function setType(string $type): static
     {
         $this->type = $type;
+
         return $this;
     }
 
@@ -196,6 +200,7 @@ class ApiKey
     public function setWarehouse(?Warehouse $warehouse): static
     {
         $this->warehouse = $warehouse;
+
         return $this;
     }
 
@@ -207,6 +212,7 @@ class ApiKey
     public function setMerchant(?Merchant $merchant): static
     {
         $this->merchant = $merchant;
+
         return $this;
     }
 
@@ -224,6 +230,7 @@ class ApiKey
     public function setPermissions(array $permissions): static
     {
         $this->permissions = $permissions;
+
         return $this;
     }
 
@@ -237,6 +244,7 @@ class ApiKey
         if (!in_array($permission, $this->permissions, true)) {
             $this->permissions[] = $permission;
         }
+
         return $this;
     }
 
@@ -244,8 +252,9 @@ class ApiKey
     {
         $this->permissions = array_values(array_filter(
             $this->permissions,
-            fn($p) => $p !== $permission
+            fn ($p) => $p !== $permission
         ));
+
         return $this;
     }
 
@@ -263,6 +272,7 @@ class ApiKey
     public function setIpWhitelist(?array $ipWhitelist): static
     {
         $this->ipWhitelist = $ipWhitelist;
+
         return $this;
     }
 
@@ -271,6 +281,7 @@ class ApiKey
         if ($this->ipWhitelist === null || count($this->ipWhitelist) === 0) {
             return true;
         }
+
         return in_array($ip, $this->ipWhitelist, true);
     }
 
@@ -282,6 +293,7 @@ class ApiKey
     public function setStatus(string $status): static
     {
         $this->status = $status;
+
         return $this;
     }
 
@@ -304,6 +316,7 @@ class ApiKey
     {
         $this->status = self::STATUS_SUSPENDED;
         $this->updatedAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
+
         return $this;
     }
 
@@ -311,6 +324,7 @@ class ApiKey
     {
         $this->status = self::STATUS_ACTIVE;
         $this->updatedAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
+
         return $this;
     }
 
@@ -318,6 +332,7 @@ class ApiKey
     {
         $this->status = self::STATUS_REVOKED;
         $this->updatedAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
+
         return $this;
     }
 
@@ -329,12 +344,14 @@ class ApiKey
     public function setLastUsedAt(?\DateTimeImmutable $lastUsedAt): static
     {
         $this->lastUsedAt = $lastUsedAt;
+
         return $this;
     }
 
     public function updateLastUsedAt(): static
     {
         $this->lastUsedAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
+
         return $this;
     }
 
@@ -346,6 +363,7 @@ class ApiKey
     public function setExpiresAt(?\DateTimeImmutable $expiresAt): static
     {
         $this->expiresAt = $expiresAt;
+
         return $this;
     }
 
@@ -354,6 +372,7 @@ class ApiKey
         if ($this->expiresAt === null) {
             return false;
         }
+
         return $this->expiresAt < new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
     }
 
@@ -365,6 +384,7 @@ class ApiKey
     public function setCreatedBy(?User $createdBy): static
     {
         $this->createdBy = $createdBy;
+
         return $this;
     }
 
@@ -398,12 +418,14 @@ class ApiKey
             $this->webhooks->add($webhook);
             $webhook->setApiKey($this);
         }
+
         return $this;
     }
 
     public function removeWebhook(Webhook $webhook): static
     {
         $this->webhooks->removeElement($webhook);
+
         return $this;
     }
 

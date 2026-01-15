@@ -79,7 +79,7 @@ class InboundController extends AbstractController
         return $this->json([
             'success' => true,
             'data' => [
-                'items' => array_map(fn(InboundOrder $order) => [
+                'items' => array_map(fn (InboundOrder $order) => [
                     'orderNo' => $order->getOrderNo(),
                     'warehouseCode' => $order->getWarehouse()->getCode(),
                     'warehouseName' => $order->getWarehouse()->getName(),

@@ -11,7 +11,8 @@ readonly class ProcessSettlementMessage implements AsyncMessageInterface
 {
     public function __construct(
         public string $settlementId,
-    ) {}
+    ) {
+    }
 
     public static function create(string $settlementId): self
     {

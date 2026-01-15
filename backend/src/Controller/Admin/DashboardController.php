@@ -166,7 +166,7 @@ class DashboardController extends AbstractController
      *
      * @return array<string, mixed>
      */
-    private function serializeOrder(\App\Entity\Order $order): array
+    private function serializeOrder(Order $order): array
     {
         $channel = $order->getSalesChannel();
 

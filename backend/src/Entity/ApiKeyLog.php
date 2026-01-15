@@ -77,6 +77,7 @@ class ApiKeyLog
         $log->userAgent = $userAgent;
         $log->requestBodySize = $requestBodySize;
         $log->errorCode = $errorCode;
+
         return $log;
     }
 

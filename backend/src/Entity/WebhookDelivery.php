@@ -83,6 +83,7 @@ class WebhookDelivery
         $delivery->webhook = $webhook;
         $delivery->event = $event;
         $delivery->payload = $payload;
+
         return $delivery;
     }
 
@@ -99,6 +100,7 @@ class WebhookDelivery
     public function setWebhook(Webhook $webhook): static
     {
         $this->webhook = $webhook;
+
         return $this;
     }
 
@@ -110,6 +112,7 @@ class WebhookDelivery
     public function setEvent(string $event): static
     {
         $this->event = $event;
+
         return $this;
     }
 
@@ -132,6 +135,7 @@ class WebhookDelivery
     public function setPayload(array $payload): static
     {
         $this->payload = $payload;
+
         return $this;
     }
 
@@ -143,6 +147,7 @@ class WebhookDelivery
     public function setResponseCode(?int $responseCode): static
     {
         $this->responseCode = $responseCode;
+
         return $this;
     }
 
@@ -158,6 +163,7 @@ class WebhookDelivery
             $responseBody = mb_substr($responseBody, 0, 2000);
         }
         $this->responseBody = $responseBody;
+
         return $this;
     }
 
@@ -169,6 +175,7 @@ class WebhookDelivery
     public function setStatus(string $status): static
     {
         $this->status = $status;
+
         return $this;
     }
 
@@ -194,7 +201,8 @@ class WebhookDelivery
 
     public function incrementAttempts(): static
     {
-        $this->attempts++;
+        ++$this->attempts;
+
         return $this;
     }
 
@@ -211,6 +219,7 @@ class WebhookDelivery
     public function setNextRetryAt(?\DateTimeImmutable $nextRetryAt): static
     {
         $this->nextRetryAt = $nextRetryAt;
+
         return $this;
     }
 
@@ -221,6 +230,7 @@ class WebhookDelivery
     {
         if (!$this->canRetry()) {
             $this->nextRetryAt = null;
+
             return $this;
         }
 
@@ -229,6 +239,7 @@ class WebhookDelivery
             sprintf('+%d seconds', $interval),
             new \DateTimeZone('UTC')
         );
+
         return $this;
     }
 
@@ -240,6 +251,7 @@ class WebhookDelivery
     public function setDeliveredAt(?\DateTimeImmutable $deliveredAt): static
     {
         $this->deliveredAt = $deliveredAt;
+
         return $this;
     }
 
@@ -258,6 +270,7 @@ class WebhookDelivery
         $this->setResponseBody($responseBody);
         $this->deliveredAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
         $this->nextRetryAt = null;
+
         return $this;
     }
 

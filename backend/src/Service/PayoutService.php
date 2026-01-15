@@ -87,7 +87,7 @@ class PayoutService
 
     /**
      * 生成提现单号.
-     * 格式: WD + 年月日 + 6位序列号
+     * 格式: WD + 年月日 + 6位序列号.
      */
     private function generatePayoutNo(): string
     {
@@ -96,7 +96,7 @@ class PayoutService
 
         // 获取当天最大序列号
         $conn = $this->entityManager->getConnection();
-        $sql = "SELECT MAX(SUBSTRING(payout_no, 11)) as max_seq FROM payouts WHERE payout_no LIKE :prefix";
+        $sql = 'SELECT MAX(SUBSTRING(payout_no, 11)) as max_seq FROM payouts WHERE payout_no LIKE :prefix';
         $result = $conn->executeQuery($sql, ['prefix' => $prefix.'%'])->fetchAssociative();
 
         $maxSeq = $result['max_seq'] ?? 0;

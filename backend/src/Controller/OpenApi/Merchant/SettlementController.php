@@ -61,7 +61,7 @@ class SettlementController extends AbstractController
         return $this->json([
             'success' => true,
             'data' => [
-                'items' => array_map(fn(Settlement $s) => $this->serializeSettlement($s), $result['data']),
+                'items' => array_map(fn (Settlement $s) => $this->serializeSettlement($s), $result['data']),
                 'pagination' => [
                     'page' => $query->page,
                     'pageSize' => $query->pageSize,

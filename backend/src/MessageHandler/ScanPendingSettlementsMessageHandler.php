@@ -21,7 +21,8 @@ class ScanPendingSettlementsMessageHandler
         private SettlementRepository $settlementRepository,
         private MessageBusInterface $messageBus,
         private LoggerInterface $logger,
-    ) {}
+    ) {
+    }
 
     public function __invoke(ScanPendingSettlementsMessage $message): void
     {
