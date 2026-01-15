@@ -7,6 +7,7 @@ use App\Dto\OpenApi\Merchant\SettlementQuery;
 use App\Entity\Merchant;
 use App\Entity\Settlement;
 use App\Repository\SettlementRepository;
+use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -19,6 +20,7 @@ use Symfony\Component\Routing\Attribute\Route;
  */
 #[Route('/api/v1/open/merchant/settlements', name: 'open_api_merchant_settlement_')]
 #[OpenApiOnly(permission: 'settlement:read')]
+#[OA\Tag(name: 'Merchant - Settlement', description: '商户结算')]
 class SettlementController extends AbstractController
 {
     public function __construct(

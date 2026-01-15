@@ -10,6 +10,7 @@ use App\Entity\Fulfillment;
 use App\Entity\Merchant;
 use App\Repository\FulfillmentRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -23,6 +24,7 @@ use Symfony\Component\Routing\Attribute\Route;
  */
 #[Route('/api/v1/open/merchant/fulfillments', name: 'open_api_merchant_fulfillment_')]
 #[OpenApiOnly(permission: 'fulfillment:read')]
+#[OA\Tag(name: 'Merchant - Fulfillment', description: '商户履约管理')]
 class FulfillmentController extends AbstractController
 {
     public function __construct(

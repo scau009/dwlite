@@ -7,6 +7,7 @@ use App\Dto\OpenApi\Merchant\InventoryQuery;
 use App\Entity\Merchant;
 use App\Entity\MerchantInventory;
 use App\Repository\MerchantInventoryRepository;
+use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -18,6 +19,7 @@ use Symfony\Component\Routing\Attribute\Route;
  */
 #[Route('/api/v1/open/merchant/inventory', name: 'open_api_merchant_inventory_')]
 #[OpenApiOnly(permission: 'merchant_inventory:read')]
+#[OA\Tag(name: 'Merchant - Inventory', description: '商户库存查询')]
 class InventoryController extends AbstractController
 {
     public function __construct(

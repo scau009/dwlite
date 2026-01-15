@@ -7,6 +7,7 @@ use App\Dto\OpenApi\Merchant\InboundOrderQuery;
 use App\Entity\InboundOrder;
 use App\Entity\Merchant;
 use App\Repository\InboundOrderRepository;
+use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -19,6 +20,7 @@ use Symfony\Component\Routing\Attribute\Route;
  */
 #[Route('/api/v1/open/merchant/inbound', name: 'open_api_merchant_inbound_')]
 #[OpenApiOnly(permission: 'merchant_inbound:read')]
+#[OA\Tag(name: 'Merchant - Inbound', description: '商户入库单')]
 class InboundController extends AbstractController
 {
     public function __construct(

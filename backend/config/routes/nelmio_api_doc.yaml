@@ -1,0 +1,13 @@
+# OpenAPI JSON 文档
+api_doc_json:
+    path: /api/v1/open/doc.json
+    methods: GET
+    defaults:
+        _controller: nelmio_api_doc.controller.swagger_json
+
+# Swagger UI（开发环境）
+api_doc_ui:
+    path: /api/v1/open/doc
+    methods: GET
+    defaults:
+        _controller: nelmio_api_doc.controller.swagger_ui

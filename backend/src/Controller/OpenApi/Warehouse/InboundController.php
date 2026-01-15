@@ -13,6 +13,7 @@ use App\Entity\InboundOrder;
 use App\Entity\Warehouse;
 use App\Repository\InboundOrderRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -26,6 +27,7 @@ use Symfony\Component\Routing\Attribute\Route;
  */
 #[Route('/api/v1/open/warehouse/inbound', name: 'open_api_warehouse_inbound_')]
 #[OpenApiOnly(permission: 'inbound:read')]
+#[OA\Tag(name: 'Warehouse - Inbound', description: '仓库入库作业')]
 class InboundController extends AbstractController
 {
     public function __construct(

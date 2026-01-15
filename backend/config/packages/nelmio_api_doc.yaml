@@ -1,0 +1,103 @@
+nelmio_api_doc:
+    documentation:
+        openapi: '3.0.0'
+        info:
+            title: DWLite Open API
+            description: |
+                球鞋供应链资源撮合与渠道分销平台 Open API
+
+                ## 认证方式
+
+                所有 API 请求需要以下 Header:
+                - `X-Api-Key`: API Key ID
+                - `X-Timestamp`: Unix 时间戳（秒）
+                - `X-Nonce`: 唯一 UUID（防重放）
+                - `X-Signature`: HMAC-SHA256 签名
+
+                ## 签名算法
+
+                ```
+                canonical = METHOD + "\n" + PATH + "\n" + TIMESTAMP + "\n" + NONCE + "\n" + SHA256(BODY)
+                signature = "sha256=" + HMAC-SHA256(canonical, API_SECRET)
+                ```
+
+                ## 响应格式
+
+                成功响应:
+                ```json
+                {
+                    "success": true,
+                    "data": { ... },
+                    "requestId": "uuid"
+                }
+                ```
+
+                错误响应:
+                ```json
+                {
+                    "success": false,
+                    "error": {
+                        "code": "ERROR_CODE",
+                        "message": "错误描述"
+                    },
+                    "requestId": "uuid"
+                }
+                ```
+            version: '1.0.0'
+            contact:
+                name: DWLite API Support
+        servers:
+            - url: /api/v1/open
+              description: Open API
+        components:
+            securitySchemes:
+                ApiKeyAuth:
+                    type: apiKey
+                    in: header
+                    name: X-Api-Key
+                    description: API Key ID
+                TimestampAuth:
+                    type: apiKey
+                    in: header
+                    name: X-Timestamp
+                    description: Unix 时间戳（秒）
+                NonceAuth:
+                    type: apiKey
+                    in: header
+                    name: X-Nonce
+                    description: 唯一 UUID（防重放攻击）
+                SignatureAuth:
+                    type: apiKey
+                    in: header
+                    name: X-Signature
+                    description: HMAC-SHA256 签名
+        security:
+            - ApiKeyAuth: []
+              TimestampAuth: []
+              NonceAuth: []
+              SignatureAuth: []
+        tags:
+            - name: Merchant - Fulfillment
+              description: 商户履约管理
+            - name: Merchant - Inbound
+              description: 商户入库单
+            - name: Merchant - Inventory
+              description: 商户库存查询
+            - name: Merchant - Listing
+              description: 商户上架管理
+            - name: Merchant - Settlement
+              description: 商户结算
+            - name: Merchant - Webhook
+              description: 商户 Webhook 配置
+            - name: Warehouse - Inbound
+              description: 仓库入库作业
+            - name: Warehouse - Outbound
+              description: 仓库出库作业
+            - name: Warehouse - Inventory
+              description: 仓库库存管理
+            - name: Warehouse - Webhook
+              description: 仓库 Webhook 配置
+    areas:
+        default:
+            path_patterns:
+                - ^/api/v1/open/(?!doc)

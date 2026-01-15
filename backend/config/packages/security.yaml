@@ -29,6 +29,11 @@ security:
             stateless: true
             security: false
 
+        api_doc:
+            pattern: ^/api/v1/open/doc
+            stateless: true
+            security: false
+
         open_api:
             pattern: ^/api/v1/open/
             stateless: true

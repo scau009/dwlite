@@ -12,6 +12,7 @@ use App\Entity\OutboundOrder;
 use App\Entity\Warehouse;
 use App\Repository\OutboundOrderRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -25,6 +26,7 @@ use Symfony\Component\Routing\Attribute\Route;
  */
 #[Route('/api/v1/open/warehouse/outbound', name: 'open_api_warehouse_outbound_')]
 #[OpenApiOnly(permission: 'outbound:read')]
+#[OA\Tag(name: 'Warehouse - Outbound', description: '仓库出库作业')]
 class OutboundController extends AbstractController
 {
     public function __construct(

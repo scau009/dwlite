@@ -14,6 +14,7 @@ use App\Repository\InventoryListingRepository;
 use App\Repository\MerchantSalesChannelRepository;
 use App\Repository\SalesChannelRepository;
 use App\Service\InventoryListingService;
+use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -27,6 +28,7 @@ use Symfony\Component\Routing\Attribute\Route;
  */
 #[Route('/api/v1/open/merchant/listings', name: 'open_api_merchant_listing_')]
 #[OpenApiOnly(permission: 'listing:read')]
+#[OA\Tag(name: 'Merchant - Listing', description: '商户上架管理')]
 class ListingController extends AbstractController
 {
     public function __construct(

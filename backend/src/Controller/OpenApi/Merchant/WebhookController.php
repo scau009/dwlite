@@ -7,6 +7,7 @@ use App\Entity\ApiKey;
 use App\Entity\Webhook;
 use App\Repository\WebhookRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -18,10 +19,12 @@ use Symfony\Component\Validator\Constraints as Assert;
 /**
  * DTO for creating/updating webhook.
  */
+#[OA\Schema(schema: 'WebhookDto', description: 'Webhook 配置')]
 class WebhookDto
 {
     #[Assert\NotBlank]
     #[Assert\Url]
+    #[OA\Property(description: 'Webhook URL', example: 'https://example.com/webhook')]
     public string $url;
 
     /** @var array<string> */
@@ -37,9 +40,16 @@ class WebhookDto
             'inbound.exception_reported',
         ]),
     ])]
+    #[OA\Property(
+        description: '订阅的事件类型',
+        type: 'array',
+        items: new OA\Items(type: 'string'),
+        example: ['fulfillment.created', 'settlement.created']
+    )]
     public array $events;
 
     #[Assert\Length(max: 64)]
+    #[OA\Property(description: 'Webhook 签名密钥（可选，不提供则自动生成）', example: 'your-secret-key')]
     public ?string $secret = null;
 }
 
@@ -48,6 +58,7 @@ class WebhookDto
  */
 #[Route('/api/v1/open/merchant/webhooks', name: 'open_api_merchant_webhook_')]
 #[OpenApiOnly(permission: 'webhook:manage')]
+#[OA\Tag(name: 'Merchant - Webhook', description: '商户 Webhook 配置')]
 class WebhookController extends AbstractController
 {
     public function __construct(
