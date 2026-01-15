@@ -41,3 +41,24 @@ framework:
             limit: 10
             interval: '1 minute'
             cache_pool: cache.app
+
+        # Open API default rate limiter
+        open_api_default:
+            policy: 'sliding_window'
+            limit: 100
+            interval: '1 minute'
+            cache_pool: cache.app
+
+        # Open API batch operations limiter
+        open_api_batch:
+            policy: 'sliding_window'
+            limit: 10
+            interval: '1 minute'
+            cache_pool: cache.app
+
+        # Open API webhook limiter
+        open_api_webhook:
+            policy: 'sliding_window'
+            limit: 1000
+            interval: '1 hour'
+            cache_pool: cache.app

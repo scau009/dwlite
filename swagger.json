@@ -1,0 +1,3071 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/sapi/v2/product/{modelNumber}": {
+      "get": {
+        "operationId": "SellerProductApiController_enquireProduct",
+        "summary": "Enquire product",
+        "description": "Enquire product information by model number",
+        "parameters": [
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "description": "Crewsupply API Key",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "modelNumber",
+            "required": true,
+            "in": "path",
+            "description": "Model number to enquire",
+            "example": "DD1391-100",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "number"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "model_number": {
+                          "type": "string"
+                        },
+                        "title": {
+                          "type": "string"
+                        },
+                        "image": {
+                          "type": "string"
+                        },
+                        "brand": {
+                          "type": "string"
+                        },
+                        "category": {
+                          "type": "string",
+                          "examples": [
+                            "sneaker",
+                            "apparel",
+                            "accessory"
+                          ]
+                        },
+                        "gender": {
+                          "type": "string",
+                          "examples": [
+                            "mens",
+                            "womens",
+                            "kids",
+                            "baby",
+                            "unisex"
+                          ]
+                        },
+                        "primary_size_code": {
+                          "type": "string",
+                          "examples": [
+                            "EU",
+                            "US",
+                            "UK"
+                          ]
+                        },
+                        "sizes": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "eu": {
+                                "type": "string"
+                              },
+                              "us": {
+                                "type": "string"
+                              },
+                              "uk": {
+                                "type": "string"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "example": {
+                    "code": 0,
+                    "data": {
+                      "model_number": "DD1391-100",
+                      "title": "Nike Dunk Low 'Black White Panda'",
+                      "image": "https://static.storefront.kickscrew.com/images/main/DD1391-100",
+                      "brand": "NIKE",
+                      "category": "sneaker",
+                      "gender": "mens",
+                      "primary_size_code": "US",
+                      "sizes": [
+                        {
+                          "eu": "35.5",
+                          "us": "3.5",
+                          "uk": "3"
+                        },
+                        {
+                          "eu": "36",
+                          "us": "4",
+                          "uk": "3.5"
+                        },
+                        {
+                          "eu": "36.5",
+                          "us": "4.5",
+                          "uk": "4"
+                        },
+                        {
+                          "eu": "37.5",
+                          "us": "5",
+                          "uk": "4.5"
+                        },
+                        {
+                          "eu": "38",
+                          "us": "5.5",
+                          "uk": "5"
+                        },
+                        {
+                          "eu": "38.5",
+                          "us": "6",
+                          "uk": "5.5"
+                        },
+                        {
+                          "eu": "39",
+                          "us": "6.5",
+                          "uk": "6"
+                        },
+                        {
+                          "eu": "40",
+                          "us": "7",
+                          "uk": "6"
+                        },
+                        {
+                          "eu": "40.5",
+                          "us": "7.5",
+                          "uk": "6.5"
+                        },
+                        {
+                          "eu": "41",
+                          "us": "8",
+                          "uk": "7"
+                        },
+                        {
+                          "eu": "42",
+                          "us": "8.5",
+                          "uk": "7.5"
+                        },
+                        {
+                          "eu": "42.5",
+                          "us": "9",
+                          "uk": "8"
+                        },
+                        {
+                          "eu": "43",
+                          "us": "9.5",
+                          "uk": "8.5"
+                        },
+                        {
+                          "eu": "44",
+                          "us": "10",
+                          "uk": "9"
+                        },
+                        {
+                          "eu": "44.5",
+                          "us": "10.5",
+                          "uk": "9.5"
+                        },
+                        {
+                          "eu": "45",
+                          "us": "11",
+                          "uk": "10"
+                        },
+                        {
+                          "eu": "45.5",
+                          "us": "11.5",
+                          "uk": "10.5"
+                        },
+                        {
+                          "eu": "46",
+                          "us": "12",
+                          "uk": "11"
+                        },
+                        {
+                          "eu": "47",
+                          "us": "12.5",
+                          "uk": "11.5"
+                        },
+                        {
+                          "eu": "47.5",
+                          "us": "13",
+                          "uk": "12"
+                        },
+                        {
+                          "eu": "48",
+                          "us": "13.5",
+                          "uk": "12.5"
+                        },
+                        {
+                          "eu": "48.5",
+                          "us": "14",
+                          "uk": "13"
+                        },
+                        {
+                          "eu": "49.5",
+                          "us": "15",
+                          "uk": "14"
+                        },
+                        {
+                          "eu": "50.5",
+                          "us": "16",
+                          "uk": "15"
+                        },
+                        {
+                          "eu": "51.5",
+                          "us": "17",
+                          "uk": "16"
+                        },
+                        {
+                          "eu": "52.5",
+                          "us": "18",
+                          "uk": "17"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Product not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "number"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "example": {
+                    "code": 1,
+                    "message": "Product not found"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Product Information Management"
+        ]
+      }
+    },
+    "/sapi/v2/product/new/{period}": {
+      "get": {
+        "operationId": "SellerProductApiController_findNewProductsByPeriod",
+        "summary": "Find new products by period",
+        "description": "Find products newly published on KICKS CREW Platform in the last specified period",
+        "parameters": [
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "description": "Crewsupply API Key",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "period",
+            "required": true,
+            "in": "path",
+            "description": "Period to find new products",
+            "example": "1d",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "number"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "model_number": {
+                            "type": "string"
+                          },
+                          "title": {
+                            "type": "string"
+                          },
+                          "image": {
+                            "type": "string"
+                          },
+                          "brand": {
+                            "type": "string"
+                          },
+                          "category": {
+                            "type": "string",
+                            "examples": [
+                              "sneaker",
+                              "apparel",
+                              "accessory"
+                            ]
+                          },
+                          "gender": {
+                            "type": "string",
+                            "examples": [
+                              "mens",
+                              "womens",
+                              "kids",
+                              "baby",
+                              "unisex"
+                            ]
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "example": {
+                    "code": 0,
+                    "data": [
+                      {
+                        "model_number": "FB4496-400",
+                        "title": "(WMNS) Nike Air Max 97 Futura 'Glacier Blue Guava Ice'",
+                        "image": "https://static.storefront.kickscrew.com/images/main/FB4496-400",
+                        "brand": "NIKE",
+                        "category": "sneaker",
+                        "gender": "womens"
+                      },
+                      {
+                        "model_number": "JI4208",
+                        "title": "(WMNS) adidas Samba OG 'Hazy Green Night Indigo'",
+                        "image": "https://static.storefront.kickscrew.com/images/main/JI4208",
+                        "brand": "ADIDAS",
+                        "category": "sneaker",
+                        "gender": "womens"
+                      },
+                      {
+                        "model_number": "FN4137-800",
+                        "title": "Nike x College Offcourt Slides 'Florida 2024'",
+                        "image": "https://static.storefront.kickscrew.com/images/main/FN4137-800",
+                        "brand": "NIKE",
+                        "category": "sneaker",
+                        "gender": "mens"
+                      },
+                      {
+                        "model_number": "AR0416-400",
+                        "title": "Nike Free TR Trainer 8 'Florida Gators'",
+                        "image": "https://static.storefront.kickscrew.com/images/main/AR0416-400",
+                        "brand": "NIKE",
+                        "category": "sneaker",
+                        "gender": "mens"
+                      },
+                      {
+                        "model_number": "CK4855-400",
+                        "title": "Nike React Element 55 'Florida Gators'",
+                        "image": "https://static.storefront.kickscrew.com/images/main/CK4855-400",
+                        "brand": "NIKE",
+                        "category": "sneaker",
+                        "gender": "mens"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Product Information Management"
+        ]
+      }
+    },
+    "/sapi/v2/bidding/platform-lowest": {
+      "post": {
+        "operationId": "SellerBiddingApiController_getPlatformLowestPrices",
+        "summary": "Get platform lowest prices",
+        "description": "Get the current lowest price per size for the given model number(s) on KICKS CREW website.",
+        "parameters": [
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "description": "Crewsupply API Key",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "List of model numbers to get lowest prices for",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SellerGetPlatformLowestPricesRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "model_no": {
+                        "type": "string"
+                      },
+                      "sizes": {
+                        "type": "object",
+                        "properties": {
+                          "us": {
+                            "type": "string"
+                          },
+                          "uk": {
+                            "type": "string"
+                          },
+                          "eu": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "price": {
+                        "type": "number"
+                      },
+                      "currency": {
+                        "type": "string",
+                        "example": "USD"
+                      },
+                      "sku": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "example": [
+                    {
+                      "model_no": "GW1229",
+                      "sizes": {
+                        "us": "4",
+                        "uk": "4",
+                        "eu": "36"
+                      },
+                      "price": 227,
+                      "currency": "USD",
+                      "sku": "GW1229-40"
+                    },
+                    {
+                      "model_no": "GW1229",
+                      "sizes": {
+                        "us": "4.5",
+                        "uk": "4.5",
+                        "eu": "36.67"
+                      },
+                      "price": 205,
+                      "currency": "USD",
+                      "sku": "GW1229-45"
+                    },
+                    {
+                      "model_no": "GW1229",
+                      "sizes": {
+                        "us": "5",
+                        "uk": "5",
+                        "eu": "37.33"
+                      },
+                      "price": 186,
+                      "currency": "USD",
+                      "sku": "GW1229-50"
+                    },
+                    {
+                      "model_no": "GW1229",
+                      "sizes": {
+                        "us": "5.5",
+                        "uk": "5.5",
+                        "eu": "38"
+                      },
+                      "price": 206,
+                      "currency": "USD",
+                      "sku": "GW1229-55"
+                    },
+                    {
+                      "model_no": "GW1229",
+                      "sizes": {
+                        "us": "6",
+                        "uk": "6",
+                        "eu": "38.67"
+                      },
+                      "price": 293,
+                      "currency": "USD",
+                      "sku": "GW1229-60"
+                    },
+                    {
+                      "model_no": "DD1391-100",
+                      "sizes": {
+                        "us": "6",
+                        "uk": "6",
+                        "eu": "38.5"
+                      },
+                      "price": 104,
+                      "currency": "USD",
+                      "sku": "DD1391-100-60"
+                    },
+                    {
+                      "model_no": "GW1229",
+                      "sizes": {
+                        "us": "6.5",
+                        "uk": "6.5",
+                        "eu": "39.33"
+                      },
+                      "price": 290,
+                      "currency": "USD",
+                      "sku": "GW1229-65"
+                    },
+                    {
+                      "model_no": "DD1391-100",
+                      "sizes": {
+                        "us": "6.5",
+                        "uk": "6.5",
+                        "eu": "39"
+                      },
+                      "price": 109,
+                      "currency": "USD",
+                      "sku": "DD1391-100-65"
+                    },
+                    {
+                      "model_no": "GW1229",
+                      "sizes": {
+                        "us": "7",
+                        "uk": "7",
+                        "eu": "40"
+                      },
+                      "price": 346,
+                      "currency": "USD",
+                      "sku": "GW1229-70"
+                    },
+                    {
+                      "model_no": "DD1391-100",
+                      "sizes": {
+                        "us": "7",
+                        "uk": "7",
+                        "eu": "40"
+                      },
+                      "price": 88,
+                      "currency": "USD",
+                      "sku": "DD1391-100-70"
+                    },
+                    {
+                      "model_no": "GW1229",
+                      "sizes": {
+                        "us": "7.5",
+                        "uk": "7.5",
+                        "eu": "40.67"
+                      },
+                      "price": 333,
+                      "currency": "USD",
+                      "sku": "GW1229-75"
+                    },
+                    {
+                      "model_no": "DD1391-100",
+                      "sizes": {
+                        "us": "7.5",
+                        "uk": "7.5",
+                        "eu": "40.5"
+                      },
+                      "price": 78,
+                      "currency": "USD",
+                      "sku": "DD1391-100-75"
+                    },
+                    {
+                      "model_no": "GW1229",
+                      "sizes": {
+                        "us": "8",
+                        "uk": "8",
+                        "eu": "41.33"
+                      },
+                      "price": 321,
+                      "currency": "USD",
+                      "sku": "GW1229-80"
+                    },
+                    {
+                      "model_no": "DD1391-100",
+                      "sizes": {
+                        "us": "8",
+                        "uk": "8",
+                        "eu": "41"
+                      },
+                      "price": 91,
+                      "currency": "USD",
+                      "sku": "DD1391-100-80"
+                    },
+                    {
+                      "model_no": "GW1229",
+                      "sizes": {
+                        "us": "8.5",
+                        "uk": "8.5",
+                        "eu": "42"
+                      },
+                      "price": 314,
+                      "currency": "USD",
+                      "sku": "GW1229-85"
+                    },
+                    {
+                      "model_no": "DD1391-100",
+                      "sizes": {
+                        "us": "8.5",
+                        "uk": "8.5",
+                        "eu": "42"
+                      },
+                      "price": 81,
+                      "currency": "USD",
+                      "sku": "DD1391-100-85"
+                    },
+                    {
+                      "model_no": "GW1229",
+                      "sizes": {
+                        "us": "9",
+                        "uk": "9",
+                        "eu": "42.67"
+                      },
+                      "price": 341,
+                      "currency": "USD",
+                      "sku": "GW1229-90"
+                    },
+                    {
+                      "model_no": "DD1391-100",
+                      "sizes": {
+                        "us": "9",
+                        "uk": "9",
+                        "eu": "42.5"
+                      },
+                      "price": 75,
+                      "currency": "USD",
+                      "sku": "DD1391-100-90"
+                    },
+                    {
+                      "model_no": "GW1229",
+                      "sizes": {
+                        "us": "9.5",
+                        "uk": "9.5",
+                        "eu": "43.33"
+                      },
+                      "price": 344,
+                      "currency": "USD",
+                      "sku": "GW1229-95"
+                    },
+                    {
+                      "model_no": "DD1391-100",
+                      "sizes": {
+                        "us": "9.5",
+                        "uk": "9.5",
+                        "eu": "43"
+                      },
+                      "price": 73,
+                      "currency": "USD",
+                      "sku": "DD1391-100-95"
+                    },
+                    {
+                      "model_no": "DD1391-100",
+                      "sizes": {
+                        "us": "10",
+                        "uk": "10",
+                        "eu": "44"
+                      },
+                      "price": 74,
+                      "currency": "USD",
+                      "sku": "DD1391-100-100"
+                    },
+                    {
+                      "model_no": "GW1229",
+                      "sizes": {
+                        "us": "10",
+                        "uk": "10",
+                        "eu": "44"
+                      },
+                      "price": 352,
+                      "currency": "USD",
+                      "sku": "GW1229-100"
+                    },
+                    {
+                      "model_no": "GW1229",
+                      "sizes": {
+                        "us": "10.5",
+                        "uk": "10.5",
+                        "eu": "44.67"
+                      },
+                      "price": 372,
+                      "currency": "USD",
+                      "sku": "GW1229-105"
+                    },
+                    {
+                      "model_no": "DD1391-100",
+                      "sizes": {
+                        "us": "10.5",
+                        "uk": "10.5",
+                        "eu": "44.5"
+                      },
+                      "price": 90,
+                      "currency": "USD",
+                      "sku": "DD1391-100-105"
+                    },
+                    {
+                      "model_no": "DD1391-100",
+                      "sizes": {
+                        "us": "11",
+                        "uk": "11",
+                        "eu": "45"
+                      },
+                      "price": 96,
+                      "currency": "USD",
+                      "sku": "DD1391-100-110"
+                    },
+                    {
+                      "model_no": "GW1229",
+                      "sizes": {
+                        "us": "11",
+                        "uk": "11",
+                        "eu": "45.33"
+                      },
+                      "price": 383,
+                      "currency": "USD",
+                      "sku": "GW1229-110"
+                    },
+                    {
+                      "model_no": "GW1229",
+                      "sizes": {
+                        "us": "11.5",
+                        "uk": "11.5",
+                        "eu": "46"
+                      },
+                      "price": 402,
+                      "currency": "USD",
+                      "sku": "GW1229-115"
+                    },
+                    {
+                      "model_no": "DD1391-100",
+                      "sizes": {
+                        "us": "11.5",
+                        "uk": "11.5",
+                        "eu": "45.5"
+                      },
+                      "price": 100,
+                      "currency": "USD",
+                      "sku": "DD1391-100-115"
+                    },
+                    {
+                      "model_no": "GW1229",
+                      "sizes": {
+                        "us": "12",
+                        "uk": "12",
+                        "eu": "46.67"
+                      },
+                      "price": 463,
+                      "currency": "USD",
+                      "sku": "GW1229-120"
+                    },
+                    {
+                      "model_no": "DD1391-100",
+                      "sizes": {
+                        "us": "12",
+                        "uk": "12",
+                        "eu": "46"
+                      },
+                      "price": 100,
+                      "currency": "USD",
+                      "sku": "DD1391-100-120"
+                    },
+                    {
+                      "model_no": "GW1229",
+                      "sizes": {
+                        "us": "12.5",
+                        "uk": "12.5",
+                        "eu": "47.33"
+                      },
+                      "price": 455,
+                      "currency": "USD",
+                      "sku": "GW1229-125"
+                    },
+                    {
+                      "model_no": "DD1391-100",
+                      "sizes": {
+                        "us": "12.5",
+                        "uk": "12.5",
+                        "eu": "47"
+                      },
+                      "price": 130,
+                      "currency": "USD",
+                      "sku": "DD1391-100-125"
+                    },
+                    {
+                      "model_no": "GW1229",
+                      "sizes": {
+                        "us": "13",
+                        "uk": "13",
+                        "eu": "48"
+                      },
+                      "price": 466,
+                      "currency": "USD",
+                      "sku": "GW1229-130"
+                    },
+                    {
+                      "model_no": "DD1391-100",
+                      "sizes": {
+                        "us": "13",
+                        "uk": "13",
+                        "eu": "47.5"
+                      },
+                      "price": 98,
+                      "currency": "USD",
+                      "sku": "DD1391-100-130"
+                    },
+                    {
+                      "model_no": "GW1229",
+                      "sizes": {
+                        "us": "13.5",
+                        "uk": "13.5",
+                        "eu": "48.67"
+                      },
+                      "price": 626,
+                      "currency": "USD",
+                      "sku": "GW1229-135"
+                    },
+                    {
+                      "model_no": "GW1229",
+                      "sizes": {
+                        "us": "14",
+                        "uk": "14",
+                        "eu": "49.33"
+                      },
+                      "price": 413,
+                      "currency": "USD",
+                      "sku": "GW1229-140"
+                    },
+                    {
+                      "model_no": "DD1391-100",
+                      "sizes": {
+                        "us": "14",
+                        "uk": "14",
+                        "eu": "48.5"
+                      },
+                      "price": 132,
+                      "currency": "USD",
+                      "sku": "DD1391-100-140"
+                    },
+                    {
+                      "model_no": "DD1391-100",
+                      "sizes": {
+                        "us": "15",
+                        "uk": "15",
+                        "eu": "49.5"
+                      },
+                      "price": 121,
+                      "currency": "USD",
+                      "sku": "DD1391-100-150"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Seller Bidding Management"
+        ]
+      }
+    },
+    "/sapi/v2/stock/update": {
+      "post": {
+        "operationId": "SellerStockApiController_updateStock",
+        "summary": "Create/ Update a single listing",
+        "description": "Update quantity and price for a single listing, or create a new listing if currently non-existing",
+        "parameters": [
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "description": "Crewsupply API Key",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "Update stock payload",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SellerUpdateStockRequest"
+              },
+              "examples": {
+                "(Recommended) Update Stock with Model Number, Size System, and Size": {
+                  "value": {
+                    "model_no": "DD9682-102",
+                    "size_system": "US",
+                    "size": "9",
+                    "qty": 3,
+                    "price": 100
+                  }
+                },
+                "Update Stock with SKU": {
+                  "value": {
+                    "sku": "DD9682-102-90",
+                    "qty": 3,
+                    "price": 100
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "number"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/ListingItem"
+                    },
+                    "error": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Seller Listing Management"
+        ]
+      }
+    },
+    "/sapi/v2/stock/batch-update": {
+      "post": {
+        "operationId": "SellerStockApiController_batchUpdateListings",
+        "summary": "Create/ Update multiple listings",
+        "description": "Update quantity and price for multiple listings, or create new listings if currently non-existing",
+        "parameters": [
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "description": "Crewsupply API Key",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "Batch update listings payload",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SellerBatchUpdateListingsRequest"
+              },
+              "examples": {
+                "(Recommended) Batch Update Listings with Model Number, Size System, and Size": {
+                  "value": {
+                    "items": [
+                      {
+                        "model_no": "DD9682-102",
+                        "size_system": "US",
+                        "size": "9",
+                        "qty": 3,
+                        "price": 100
+                      }
+                    ]
+                  }
+                },
+                "Batch Update Listings with SKU": {
+                  "value": {
+                    "items": [
+                      {
+                        "sku": "DD9682-102-90",
+                        "qty": 3,
+                        "price": 100
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "number"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ListingItem"
+                      }
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Seller Listing Management"
+        ]
+      }
+    },
+    "/sapi/v2/stock/get": {
+      "post": {
+        "operationId": "SellerStockApiController_getListings",
+        "summary": "Return current active listings of provided model no. by size",
+        "description": "Listing ID would be unavailable for sizes that do not have any listings",
+        "parameters": [
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "description": "Crewsupply API Key",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "Get listings payload",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SellerGetListingsRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "number"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ListingItem"
+                      }
+                    }
+                  },
+                  "example": {
+                    "code": 0,
+                    "data": [
+                      {
+                        "model_no": "DD9682-102",
+                        "brand": "NIKE",
+                        "qty": 0,
+                        "price": 0,
+                        "size": "5",
+                        "size_system": "US",
+                        "size_values": [
+                          {
+                            "size": "5",
+                            "size_system": "US"
+                          },
+                          {
+                            "size": "2.5",
+                            "size_system": "UK"
+                          },
+                          {
+                            "size": "35.5",
+                            "size_system": "EU"
+                          }
+                        ],
+                        "ext_ref": "",
+                        "status": 1,
+                        "is_lowest": false
+                      },
+                      {
+                        "model_no": "DD9682-102",
+                        "brand": "NIKE",
+                        "qty": 0,
+                        "price": 0,
+                        "size": "5.5",
+                        "size_system": "US",
+                        "size_values": [
+                          {
+                            "size": "5.5",
+                            "size_system": "US"
+                          },
+                          {
+                            "size": "3",
+                            "size_system": "UK"
+                          },
+                          {
+                            "size": "36",
+                            "size_system": "EU"
+                          }
+                        ],
+                        "ext_ref": "",
+                        "status": 1,
+                        "is_lowest": false
+                      },
+                      {
+                        "model_no": "DD9682-102",
+                        "brand": "NIKE",
+                        "qty": 0,
+                        "price": 0,
+                        "size": "6",
+                        "size_system": "US",
+                        "size_values": [
+                          {
+                            "size": "6",
+                            "size_system": "US"
+                          },
+                          {
+                            "size": "3.5",
+                            "size_system": "UK"
+                          },
+                          {
+                            "size": "36.5",
+                            "size_system": "EU"
+                          }
+                        ],
+                        "ext_ref": "",
+                        "status": 1,
+                        "is_lowest": false
+                      },
+                      {
+                        "model_no": "DD9682-102",
+                        "brand": "NIKE",
+                        "qty": 0,
+                        "price": 0,
+                        "size": "6.5",
+                        "size_system": "US",
+                        "size_values": [
+                          {
+                            "size": "6.5",
+                            "size_system": "US"
+                          },
+                          {
+                            "size": "4",
+                            "size_system": "UK"
+                          },
+                          {
+                            "size": "37.5",
+                            "size_system": "EU"
+                          }
+                        ],
+                        "ext_ref": "",
+                        "status": 1,
+                        "is_lowest": false
+                      },
+                      {
+                        "model_no": "DD9682-102",
+                        "brand": "NIKE",
+                        "qty": 0,
+                        "price": 0,
+                        "size": "7",
+                        "size_system": "US",
+                        "size_values": [
+                          {
+                            "size": "7",
+                            "size_system": "US"
+                          },
+                          {
+                            "size": "4.5",
+                            "size_system": "UK"
+                          },
+                          {
+                            "size": "38",
+                            "size_system": "EU"
+                          }
+                        ],
+                        "ext_ref": "",
+                        "status": 1,
+                        "is_lowest": false
+                      },
+                      {
+                        "model_no": "DD9682-102",
+                        "brand": "NIKE",
+                        "qty": 0,
+                        "price": 0,
+                        "size": "7.5",
+                        "size_system": "US",
+                        "size_values": [
+                          {
+                            "size": "7.5",
+                            "size_system": "US"
+                          },
+                          {
+                            "size": "5",
+                            "size_system": "UK"
+                          },
+                          {
+                            "size": "38.5",
+                            "size_system": "EU"
+                          }
+                        ],
+                        "ext_ref": "",
+                        "status": 1,
+                        "is_lowest": false
+                      },
+                      {
+                        "model_no": "DD9682-102",
+                        "brand": "NIKE",
+                        "qty": 0,
+                        "price": 0,
+                        "size": "8",
+                        "size_system": "US",
+                        "size_values": [
+                          {
+                            "size": "8",
+                            "size_system": "US"
+                          },
+                          {
+                            "size": "5.5",
+                            "size_system": "UK"
+                          },
+                          {
+                            "size": "39",
+                            "size_system": "EU"
+                          }
+                        ],
+                        "ext_ref": "",
+                        "status": 1,
+                        "is_lowest": false
+                      },
+                      {
+                        "model_no": "DD9682-102",
+                        "brand": "NIKE",
+                        "qty": 0,
+                        "price": 0,
+                        "size": "8.5",
+                        "size_system": "US",
+                        "size_values": [
+                          {
+                            "size": "8.5",
+                            "size_system": "US"
+                          },
+                          {
+                            "size": "6",
+                            "size_system": "UK"
+                          },
+                          {
+                            "size": "40",
+                            "size_system": "EU"
+                          }
+                        ],
+                        "ext_ref": "",
+                        "status": 1,
+                        "is_lowest": false
+                      },
+                      {
+                        "model_no": "DD9682-102",
+                        "brand": "NIKE",
+                        "qty": 0,
+                        "price": 0,
+                        "size": "9",
+                        "size_system": "US",
+                        "size_values": [
+                          {
+                            "size": "9",
+                            "size_system": "US"
+                          },
+                          {
+                            "size": "6.5",
+                            "size_system": "UK"
+                          },
+                          {
+                            "size": "40.5",
+                            "size_system": "EU"
+                          }
+                        ],
+                        "ext_ref": "",
+                        "status": 1,
+                        "is_lowest": false
+                      },
+                      {
+                        "model_no": "DD9682-102",
+                        "brand": "NIKE",
+                        "qty": 0,
+                        "price": 0,
+                        "size": "9.5",
+                        "size_system": "US",
+                        "size_values": [
+                          {
+                            "size": "9.5",
+                            "size_system": "US"
+                          },
+                          {
+                            "size": "7",
+                            "size_system": "UK"
+                          },
+                          {
+                            "size": "41",
+                            "size_system": "EU"
+                          }
+                        ],
+                        "ext_ref": "",
+                        "status": 1,
+                        "is_lowest": false
+                      },
+                      {
+                        "model_no": "DD9682-102",
+                        "brand": "NIKE",
+                        "qty": 0,
+                        "price": 0,
+                        "size": "10",
+                        "size_system": "US",
+                        "size_values": [
+                          {
+                            "size": "10",
+                            "size_system": "US"
+                          },
+                          {
+                            "size": "7.5",
+                            "size_system": "UK"
+                          },
+                          {
+                            "size": "42",
+                            "size_system": "EU"
+                          }
+                        ],
+                        "ext_ref": "",
+                        "status": 1,
+                        "is_lowest": false
+                      },
+                      {
+                        "model_no": "DD9682-102",
+                        "brand": "NIKE",
+                        "qty": 0,
+                        "price": 0,
+                        "size": "10.5",
+                        "size_system": "US",
+                        "size_values": [
+                          {
+                            "size": "10.5",
+                            "size_system": "US"
+                          },
+                          {
+                            "size": "8",
+                            "size_system": "UK"
+                          },
+                          {
+                            "size": "42.5",
+                            "size_system": "EU"
+                          }
+                        ],
+                        "ext_ref": "",
+                        "status": 1,
+                        "is_lowest": false
+                      },
+                      {
+                        "model_no": "DD9682-102",
+                        "brand": "NIKE",
+                        "qty": 0,
+                        "price": 0,
+                        "size": "11",
+                        "size_system": "US",
+                        "size_values": [
+                          {
+                            "size": "11",
+                            "size_system": "US"
+                          },
+                          {
+                            "size": "8.5",
+                            "size_system": "UK"
+                          },
+                          {
+                            "size": "43",
+                            "size_system": "EU"
+                          }
+                        ],
+                        "ext_ref": "",
+                        "status": 1,
+                        "is_lowest": false
+                      },
+                      {
+                        "model_no": "DD9682-102",
+                        "brand": "NIKE",
+                        "qty": 0,
+                        "price": 0,
+                        "size": "11.5",
+                        "size_system": "US",
+                        "size_values": [
+                          {
+                            "size": "11.5",
+                            "size_system": "US"
+                          },
+                          {
+                            "size": "9",
+                            "size_system": "UK"
+                          },
+                          {
+                            "size": "44",
+                            "size_system": "EU"
+                          }
+                        ],
+                        "ext_ref": "",
+                        "status": 1,
+                        "is_lowest": false
+                      },
+                      {
+                        "model_no": "DD9682-102",
+                        "brand": "NIKE",
+                        "qty": 0,
+                        "price": 0,
+                        "size": "12",
+                        "size_system": "US",
+                        "size_values": [
+                          {
+                            "size": "12",
+                            "size_system": "US"
+                          },
+                          {
+                            "size": "9.5",
+                            "size_system": "UK"
+                          },
+                          {
+                            "size": "44.5",
+                            "size_system": "EU"
+                          }
+                        ],
+                        "ext_ref": "",
+                        "status": 1,
+                        "is_lowest": false
+                      },
+                      {
+                        "model_no": "DD9682-102",
+                        "brand": "NIKE",
+                        "qty": 0,
+                        "price": 0,
+                        "size": "12.5",
+                        "size_system": "US",
+                        "size_values": [
+                          {
+                            "size": "12.5",
+                            "size_system": "US"
+                          },
+                          {
+                            "size": "10",
+                            "size_system": "UK"
+                          },
+                          {
+                            "size": "45",
+                            "size_system": "EU"
+                          }
+                        ],
+                        "ext_ref": "",
+                        "status": 1,
+                        "is_lowest": false
+                      },
+                      {
+                        "model_no": "DD9682-102",
+                        "brand": "NIKE",
+                        "qty": 0,
+                        "price": 0,
+                        "size": "13",
+                        "size_system": "US",
+                        "size_values": [
+                          {
+                            "size": "13",
+                            "size_system": "US"
+                          },
+                          {
+                            "size": "10.5",
+                            "size_system": "UK"
+                          },
+                          {
+                            "size": "45.5",
+                            "size_system": "EU"
+                          }
+                        ],
+                        "ext_ref": "",
+                        "status": 1,
+                        "is_lowest": false
+                      },
+                      {
+                        "model_no": "DD9682-102",
+                        "brand": "NIKE",
+                        "qty": 0,
+                        "price": 0,
+                        "size": "13.5",
+                        "size_system": "US",
+                        "size_values": [
+                          {
+                            "size": "13.5",
+                            "size_system": "US"
+                          },
+                          {
+                            "size": "11",
+                            "size_system": "UK"
+                          },
+                          {
+                            "size": "46",
+                            "size_system": "EU"
+                          }
+                        ],
+                        "ext_ref": "",
+                        "status": 1,
+                        "is_lowest": false
+                      },
+                      {
+                        "model_no": "DD9682-102",
+                        "brand": "NIKE",
+                        "qty": 0,
+                        "price": 0,
+                        "size": "14",
+                        "size_system": "US",
+                        "size_values": [
+                          {
+                            "size": "14",
+                            "size_system": "US"
+                          },
+                          {
+                            "size": "11.5",
+                            "size_system": "UK"
+                          },
+                          {
+                            "size": "47",
+                            "size_system": "EU"
+                          }
+                        ],
+                        "ext_ref": "",
+                        "status": 1,
+                        "is_lowest": false
+                      },
+                      {
+                        "model_no": "DD9682-102",
+                        "brand": "NIKE",
+                        "qty": 0,
+                        "price": 0,
+                        "size": "14.5",
+                        "size_system": "US",
+                        "size_values": [
+                          {
+                            "size": "14.5",
+                            "size_system": "US"
+                          },
+                          {
+                            "size": "12",
+                            "size_system": "UK"
+                          },
+                          {
+                            "size": "47.5",
+                            "size_system": "EU"
+                          }
+                        ],
+                        "ext_ref": "",
+                        "status": 1,
+                        "is_lowest": false
+                      },
+                      {
+                        "model_no": "DD9682-102",
+                        "brand": "NIKE",
+                        "qty": 0,
+                        "price": 0,
+                        "size": "15",
+                        "size_system": "US",
+                        "size_values": [
+                          {
+                            "size": "15",
+                            "size_system": "US"
+                          },
+                          {
+                            "size": "12.5",
+                            "size_system": "UK"
+                          },
+                          {
+                            "size": "48",
+                            "size_system": "EU"
+                          }
+                        ],
+                        "ext_ref": "",
+                        "status": 1,
+                        "is_lowest": false
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Seller Listing Management"
+        ]
+      }
+    },
+    "/sapi/v2/stock/{ext_ref}": {
+      "get": {
+        "operationId": "SellerStockApiController_getListingsByExtRef",
+        "parameters": [
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "description": "Crewsupply API Key",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "ext_ref",
+            "required": true,
+            "in": "path",
+            "description": "External reference stock number",
+            "schema": {
+              "oneOf": [
+                {
+                  "type": "string"
+                }
+              ]
+            },
+            "example": "ext-ref-abc"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Seller Listing Management"
+        ]
+      }
+    },
+    "/sapi/v2/stock": {
+      "delete": {
+        "operationId": "SellerStockApiController_deleteListings",
+        "summary": "Delete listings",
+        "description": "Delete listings by external references or listing ids. This removes price and quantity.",
+        "parameters": [
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "description": "Crewsupply API Key",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "Delete listings payload",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SellerBulkDeletionRequest"
+              },
+              "examples": {
+                "Delete by Model Number and Size of specific Size System": {
+                  "value": {
+                    "items": [
+                      {
+                        "model_no": "DD9682-102",
+                        "size_system": "US",
+                        "size": "9"
+                      },
+                      {
+                        "model_no": "DD9682-102",
+                        "size_system": "US",
+                        "size": "9.5"
+                      }
+                    ]
+                  }
+                },
+                "Delete by External References": {
+                  "value": {
+                    "ext_refs": [
+                      "ext-ref-abc",
+                      "ext-ref-def"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "number"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "deleted": {
+                          "type": "number",
+                          "description": "Number of listings deleted"
+                        }
+                      }
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Seller Listing Management"
+        ]
+      }
+    },
+    "/sapi/v2/stock/all": {
+      "delete": {
+        "operationId": "SellerStockApiController_deleteAllListings",
+        "parameters": [
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "description": "Crewsupply API Key",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Seller Listing Management"
+        ]
+      }
+    },
+    "/sapi/v2/stock/list": {
+      "post": {
+        "operationId": "SellerStockApiController_listListings",
+        "summary": "Get list of all current active listings",
+        "description": "Get list of all current active listings with pagination",
+        "parameters": [
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "description": "Crewsupply API Key",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "List listings payload",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SellerListListingsRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "number"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ListingItem"
+                      }
+                    },
+                    "total": {
+                      "type": "number"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Seller Listing Management"
+        ]
+      }
+    },
+    "/sapi/v2/order/{id}": {
+      "get": {
+        "operationId": "SellerOrderApiController_getOrder",
+        "summary": "Endpoint for seller to fetch order details by order ID",
+        "parameters": [
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "description": "Crewsupply API Key",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The seller order.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SellerOrderResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Seller Sales Management"
+        ]
+      }
+    },
+    "/sapi/v2/orders": {
+      "get": {
+        "operationId": "SellerOrderApiController_getOrders",
+        "summary": "Endpoint for seller to fetch orders",
+        "description": "Endpoint for seller to fetch orders. Include optional parameter `status` to filter by order status",
+        "parameters": [
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "description": "Crewsupply API Key",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": true,
+            "in": "query",
+            "description": "Page number starting from 1, 100 records per page",
+            "example": 1,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "date_to",
+            "required": false,
+            "in": "query",
+            "description": "End date of date range of the order in UNIX timestamp",
+            "example": 1627871999999,
+            "schema": {}
+          },
+          {
+            "name": "date_from",
+            "required": false,
+            "in": "query",
+            "description": "Start date of date range of the order in UNIX timestamp",
+            "example": 1627785600000,
+            "schema": {}
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "description": "status of the order in comma separated values",
+            "example": "order.confirmed,order.packed,order.completed,order.canceled",
+            "schema": {}
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The seller order.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SellerOrdersResponse"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Seller Sales Management"
+        ]
+      }
+    },
+    "/sapi/v2/order/out-stock": {
+      "post": {
+        "operationId": "SellerOrderApiController_outStockOrder",
+        "summary": "Endpoint for seller to declare an order to be out of stock",
+        "description": "Endpoint for seller to declare an order to be out of stock. This will cancel the order.",
+        "parameters": [
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "description": "Crewsupply API Key",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SellerOutStockOrderRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "number"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "example": {
+                    "code": 0,
+                    "message": "success"
+                  }
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Seller Sales Management"
+        ]
+      }
+    },
+    "/sapi/v2/order/pack": {
+      "post": {
+        "operationId": "SellerOrderApiController_packOrder",
+        "summary": "Endpoint for seller to declare that a dropship order is packed and pending courier pickup",
+        "parameters": [
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "description": "Crewsupply API Key",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SellerDeliverOrderRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "number"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "example": {
+                    "code": 0,
+                    "message": "success"
+                  }
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Order should not be shipped or packed for shipment",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "number"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "example": {
+                    "code": 1,
+                    "message": "error",
+                    "errors": [
+                      "Failed to pack order"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Seller Sales Management"
+        ]
+      }
+    },
+    "/sapi/v2/order/label/{id}": {
+      "get": {
+        "operationId": "SellerOrderApiController_getLabel",
+        "summary": "Endpoint to download QR Label for an order",
+        "parameters": [
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "description": "Crewsupply API Key",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Seller Sales Management"
+        ]
+      }
+    },
+    "/sapi/v2/order/confirm-shipped": {
+      "post": {
+        "operationId": "SellerOrderApiController_shipOrderInbound",
+        "summary": "Endpoint for seller to declare that an order is packed and on its way to KC warehouse",
+        "parameters": [
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "description": "Crewsupply API Key",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SellerDeliverOrderRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "number"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Order should not be shipped",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "number"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Seller Sales Management"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "CrewSupply Seller API",
+    "description": "KICKS CREW Crewsupply Seller API",
+    "version": "0.0.1",
+    "contact": {}
+  },
+  "tags": [],
+  "servers": [],
+  "components": {
+    "schemas": {
+      "SellerGetPlatformLowestPricesRequest": {
+        "type": "object",
+        "properties": {
+          "model_nos": {
+            "example": [
+              "DD1391-100",
+              "GW1229"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "model_nos"
+        ]
+      },
+      "SellerUpdateStockRequest": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Listing ID",
+            "readOnly": true
+          },
+          "model_no": {
+            "type": "string",
+            "description": "Product Style Code / Model #, e.g. DD1391-100",
+            "example": "DD1391-100"
+          },
+          "size_system": {
+            "type": "string",
+            "description": "Size system using, it must be either UK, US or EU",
+            "example": "US"
+          },
+          "size": {
+            "type": "string",
+            "description": "Size code w/o size system label, e.g. 9, 1Y, 12K, please don`t append W for women",
+            "example": "9"
+          },
+          "size_values": {
+            "description": "Size details",
+            "example": {
+              "size": "9",
+              "size_system": "US"
+            },
+            "readOnly": true,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "qty": {
+            "type": "number",
+            "description": "Quantity, put 0 to delist your item",
+            "example": 3
+          },
+          "price": {
+            "type": "number",
+            "description": "Listing price in USD, decimals not accepted.",
+            "example": 100
+          },
+          "brand": {
+            "type": "string",
+            "description": "Brand of your item (optional)",
+            "example": "NIKE"
+          },
+          "ext_ref": {
+            "type": "string",
+            "description": "Seller listing reference (optional)",
+            "example": "XXX-1231231"
+          },
+          "sku": {
+            "type": "string",
+            "description": "KICKS CREW SKU code (optional)",
+            "example": "DD1391-100-90",
+            "nullable": true,
+            "writeOnly": true
+          },
+          "is_lowest": {
+            "type": "boolean",
+            "description": "Whether listing price is currently the lowest on KICKS CREW website",
+            "readOnly": true
+          },
+          "check_pending_orders": {
+            "type": "boolean",
+            "nullable": true,
+            "example": false,
+            "default": false,
+            "description": "Flag to auto deduct qty if there is outstand orders pending fulfillments"
+          }
+        },
+        "required": [
+          "id",
+          "model_no",
+          "size_system",
+          "size",
+          "size_values",
+          "qty",
+          "price",
+          "is_lowest",
+          "check_pending_orders"
+        ]
+      },
+      "ListingItem": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Listing ID",
+            "readOnly": true
+          },
+          "model_no": {
+            "type": "string",
+            "description": "Product Style Code / Model #, e.g. DD1391-100",
+            "example": "DD1391-100"
+          },
+          "size_system": {
+            "type": "string",
+            "description": "Size system using, it must be either UK, US or EU",
+            "example": "US"
+          },
+          "size": {
+            "type": "string",
+            "description": "Size code w/o size system label, e.g. 9, 1Y, 12K, please don`t append W for women",
+            "example": "9"
+          },
+          "size_values": {
+            "description": "Size details",
+            "example": {
+              "size": "9",
+              "size_system": "US"
+            },
+            "readOnly": true,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "qty": {
+            "type": "number",
+            "description": "Quantity, put 0 to delist your item",
+            "example": 3
+          },
+          "price": {
+            "type": "number",
+            "description": "Listing price in USD, decimals not accepted.",
+            "example": 100
+          },
+          "brand": {
+            "type": "string",
+            "description": "Brand of your item (optional)",
+            "example": "NIKE"
+          },
+          "ext_ref": {
+            "type": "string",
+            "description": "Seller listing reference (optional)",
+            "example": "XXX-1231231"
+          },
+          "sku": {
+            "type": "string",
+            "description": "KICKS CREW SKU code (optional)",
+            "example": "DD1391-100-90",
+            "nullable": true,
+            "writeOnly": true
+          },
+          "is_lowest": {
+            "type": "boolean",
+            "description": "Whether listing price is currently the lowest on KICKS CREW website",
+            "readOnly": true
+          }
+        },
+        "required": [
+          "id",
+          "model_no",
+          "size_system",
+          "size",
+          "size_values",
+          "qty",
+          "price",
+          "is_lowest"
+        ]
+      },
+      "SellerBatchUpdateListingsRequest": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "nullable": true,
+            "description": "List of items to update, maximum 1000 per request",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ListingItem"
+            }
+          },
+          "skipPriceUpdate": {
+            "type": "boolean",
+            "nullable": true,
+            "default": false
+          }
+        },
+        "required": [
+          "items",
+          "skipPriceUpdate"
+        ]
+      },
+      "SellerGetListingsRequest": {
+        "type": "object",
+        "properties": {
+          "model_no": {
+            "type": "string",
+            "description": "Product Style Code / Model #, e.g. MR530SG",
+            "example": "MR530SG"
+          }
+        },
+        "required": [
+          "model_no"
+        ]
+      },
+      "SellerBulkDeletionRequest": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "nullable": true,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ListingItem"
+            }
+          },
+          "ext_refs": {
+            "nullable": true,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "modified_before": {
+            "format": "date-time",
+            "type": "string",
+            "nullable": true,
+            "example": "2021-01-01T00:00:00Z",
+            "description": "Delete listings modified before this date"
+          }
+        },
+        "required": [
+          "items",
+          "ext_refs",
+          "modified_before"
+        ]
+      },
+      "SellerListListingsRequest": {
+        "type": "object",
+        "properties": {
+          "page_no": {
+            "type": "number",
+            "description": "Page to request, start from 0",
+            "example": 0
+          },
+          "page_size": {
+            "type": "number",
+            "description": "Page size per query, maximum value is 1000, default is 20",
+            "example": 20
+          },
+          "min_qty": {
+            "type": "number",
+            "description": "Minimal quantity to enquire, put 1 to filter out delisted stuff, default is 1",
+            "example": 1
+          }
+        },
+        "required": [
+          "page_no",
+          "page_size"
+        ]
+      },
+      "OrderSize": {
+        "type": "object",
+        "properties": {
+          "displayValue": {
+            "type": "string",
+            "description": "Size display value",
+            "example": "US 10",
+            "deprecated": true
+          },
+          "displayOrder": {
+            "type": "number",
+            "description": "Size display order",
+            "example": 1,
+            "deprecated": true
+          },
+          "US": {
+            "type": "string",
+            "description": "Size in US",
+            "example": "10"
+          },
+          "UK": {
+            "type": "string",
+            "description": "Size in UK",
+            "example": "9"
+          },
+          "EU": {
+            "type": "string",
+            "description": "Size in EU",
+            "example": "44"
+          }
+        },
+        "required": [
+          "displayValue",
+          "displayOrder",
+          "US",
+          "UK",
+          "EU"
+        ]
+      },
+      "SellerOrder": {
+        "type": "object",
+        "properties": {
+          "order_id": {
+            "type": "number",
+            "description": "Order ID",
+            "example": 90000000
+          },
+          "order_number": {
+            "type": "string",
+            "description": "Order number",
+            "example": "KS1019253"
+          },
+          "stock_id": {
+            "type": "string",
+            "description": "Stock ID",
+            "example": "S12345678"
+          },
+          "model_no": {
+            "type": "string",
+            "description": "Item model/style code",
+            "example": "DD1391-100"
+          },
+          "size": {
+            "description": "Item size code",
+            "example": {
+              "US": "10",
+              "UK": "9",
+              "EU": "44"
+            },
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/OrderSize"
+              }
+            ]
+          },
+          "airway_bill_url": {
+            "type": "string",
+            "description": "Airway bill URL",
+            "example": "https://www.example.com/AWB.pdf"
+          },
+          "awb_invoice_url": {
+            "type": "string",
+            "description": "AWB Invoice URL",
+            "example": "https://www.example.com/invoice.pdf"
+          },
+          "brand": {
+            "type": "string",
+            "description": "Item brand",
+            "example": "NIKE"
+          },
+          "recipient_name": {
+            "type": "string",
+            "description": "Recipient name"
+          },
+          "address_line1": {
+            "type": "string",
+            "description": "Recipient address Line 1"
+          },
+          "address_line2": {
+            "type": "string",
+            "description": "Recipient address Line 2"
+          },
+          "mobile": {
+            "type": "string",
+            "description": "Recipient mobile #"
+          },
+          "zip": {
+            "type": "string",
+            "description": "Recipient address zipe code"
+          },
+          "courier_slug": {
+            "type": "string",
+            "description": "Seller courier used"
+          },
+          "track_no": {
+            "type": "string",
+            "description": "Seller shipment tracking number"
+          },
+          "price": {
+            "type": "number",
+            "description": "Item price"
+          },
+          "currency": {
+            "type": "string",
+            "description": "Item currency"
+          },
+          "service_fee": {
+            "type": "number",
+            "description": "Service Fee"
+          },
+          "operation_fee": {
+            "type": "number",
+            "description": "Operation Fee"
+          },
+          "income": {
+            "type": "number",
+            "description": "Income Fee"
+          },
+          "customer_order_reference": {
+            "type": "string",
+            "description": "Customer order reference"
+          },
+          "created_at": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Order creation datetime"
+          },
+          "status": {
+            "type": "string",
+            "description": "Order Status",
+            "enum": [
+              "order.completed",
+              "order.canceled",
+              "seller.shipped",
+              "order.confirmed",
+              "seller.confirmed",
+              "order.packed",
+              "order.shipped"
+            ]
+          },
+          "cancel_reason": {
+            "type": "string",
+            "description": "Order cancel reason"
+          },
+          "on_hold": {
+            "type": "boolean",
+            "description": "On Hold?"
+          }
+        },
+        "required": [
+          "order_id",
+          "order_number",
+          "stock_id",
+          "model_no",
+          "size",
+          "airway_bill_url",
+          "awb_invoice_url",
+          "brand",
+          "recipient_name",
+          "address_line1",
+          "address_line2",
+          "mobile",
+          "zip",
+          "courier_slug",
+          "track_no",
+          "price",
+          "currency",
+          "service_fee",
+          "operation_fee",
+          "income",
+          "customer_order_reference",
+          "created_at",
+          "status",
+          "cancel_reason",
+          "on_hold"
+        ]
+      },
+      "SellerOrderResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "number",
+            "description": "Code"
+          },
+          "message": {
+            "type": "string",
+            "description": "Message"
+          },
+          "data": {
+            "description": "order",
+            "example": {
+              "order_id": 80187688,
+              "order_number": "KS1019253",
+              "stock_id": "S12345678",
+              "recipient_name": "Peter Pan",
+              "address_line1": "***",
+              "address_line2": "***",
+              "city": "Reading",
+              "country": "United Kingdom",
+              "country_code": "GB",
+              "mobile": null,
+              "zip": "RG31 6YJ",
+              "model_no": "DD1391-103",
+              "size": {
+                "displayValue": "US 10",
+                "displayOrder": 1,
+                "US": "10",
+                "UK": "9",
+                "EU": "44"
+              },
+              "airway_bill_url": "https://storage.googleapis.com/kc-courier/ups_kc/213_1ZXXXXXXXXXXXXXXXX_label.pdf",
+              "on_hold": false,
+              "brand": "NIKE",
+              "courier_slug": "DHL",
+              "track_no": "6911477484",
+              "price": 115,
+              "currency": "USD",
+              "status": "order.completed",
+              "service_fee": "13.80",
+              "operation_fee": "15.00",
+              "income": "86.20",
+              "customer_order_reference": "KS1019253",
+              "created_at": "2023-11-24T06:24:13.000Z",
+              "ext_ref": null,
+              "payout": {
+                "payout_id": "240000330",
+                "status": "seller.reviewing"
+              }
+            },
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SellerOrder"
+              }
+            ]
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "data"
+        ]
+      },
+      "SellerOrdersResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "number",
+            "description": "Code"
+          },
+          "message": {
+            "type": "string",
+            "description": "Message"
+          },
+          "data": {
+            "description": "orders",
+            "example": [
+              {
+                "order_id": 80199499,
+                "order_number": "KS1035454",
+                "stock_id": "S12345679",
+                "recipient_name": "Peter Pan",
+                "address_line1": "***",
+                "address_line2": "***",
+                "city": "Petersburg",
+                "state_province": "Virginia",
+                "country": "United States",
+                "country_code": "US",
+                "mobile": null,
+                "zip": "23805",
+                "model_no": "DH6927-161",
+                "size": {
+                  "displayValue": "US 11",
+                  "displayOrder": 1,
+                  "US": "11",
+                  "UK": "10",
+                  "EU": "45"
+                },
+                "airway_bill_url": "https://storage.googleapis.com/kc-courier/ups_kc/213_1ZXXXXXXXXXXXXXXXX_label.pdf",
+                "on_hold": false,
+                "brand": "AIR JORDAN",
+                "courier_slug": "SF",
+                "track_no": "SF1660700333971",
+                "price": 230,
+                "currency": "USD",
+                "status": "order.canceled",
+                "cancel_reason": "seller.sla-failed",
+                "service_fee": "27.60",
+                "operation_fee": "15.00",
+                "income": "187.40",
+                "customer_order_reference": "KS1035454",
+                "created_at": "2023-11-27T20:57:14.000Z",
+                "ext_ref": null,
+                "payout": {
+                  "payout_id": null,
+                  "status": "order.canceled"
+                }
+              },
+              {
+                "order_id": 80199441,
+                "order_number": "KS1035416",
+                "stock_id": "S12345680",
+                "recipient_name": "Peter Pan",
+                "address_line1": "***",
+                "address_line2": "***",
+                "city": "Rutherford",
+                "state_province": "Tennessee",
+                "country": "United States",
+                "country_code": "US",
+                "mobile": null,
+                "zip": "38369",
+                "model_no": "DM0967-160",
+                "size": {
+                  "displayValue": "US 4Y",
+                  "displayOrder": 1,
+                  "US": "4",
+                  "UK": "3",
+                  "EU": "36"
+                },
+                "airway_bill_url": "https://storage.googleapis.com/kc-courier/ups_kc/213_1ZXXXXXXXXXXXXXXXX_label.pdf",
+                "on_hold": false,
+                "brand": "AIR JORDAN",
+                "courier_slug": "SF",
+                "track_no": "SF1660700333971",
+                "price": 136,
+                "currency": "USD",
+                "status": "order.packed",
+                "service_fee": "16.32",
+                "operation_fee": "15.00",
+                "income": "104.68",
+                "customer_order_reference": "KS1035372",
+                "created_at": "2023-11-27T20:36:10.000Z",
+                "ext_ref": null,
+                "payout": {
+                  "payout_id": null,
+                  "status": "order.processing"
+                }
+              },
+              {
+                "order_id": 80199220,
+                "order_number": "KS1035079",
+                "stock_id": "S12345681",
+                "recipient_name": "Peter Pan",
+                "address_line1": "***",
+                "address_line2": "***",
+                "city": "Homeland",
+                "state_province": "California",
+                "country": "United States",
+                "country_code": "US",
+                "mobile": null,
+                "zip": "92548",
+                "model_no": "DV1308-104",
+                "size": {
+                  "displayValue": "US 9.5",
+                  "displayOrder": 1,
+                  "US": "9.5",
+                  "UK": "8.5",
+                  "EU": "43"
+                },
+                "airway_bill_url": "https://storage.googleapis.com/kc-courier/ups_kc/213_1ZXXXXXXXXXXXXXXXX_label.pdf",
+                "on_hold": false,
+                "brand": "AIR JORDAN",
+                "courier_slug": "SF",
+                "track_no": "SF1660700333971",
+                "price": 122,
+                "currency": "USD",
+                "status": "order.confirmed",
+                "service_fee": "14.64",
+                "operation_fee": "15.00",
+                "income": "92.36",
+                "customer_order_reference": "KS1035079",
+                "created_at": "2023-11-27T19:27:30.000Z",
+                "ext_ref": null,
+                "payout": {
+                  "payout_id": null,
+                  "status": "order.processing"
+                }
+              },
+              {
+                "order_id": 80187688,
+                "order_number": "KS1019253",
+                "stock_id": "S12345678",
+                "recipient_name": "Peter Pan",
+                "address_line1": "***",
+                "address_line2": "***",
+                "city": "Reading",
+                "country": "United Kingdom",
+                "country_code": "GB",
+                "mobile": null,
+                "zip": "RG31 6YJ",
+                "model_no": "DD1391-103",
+                "size": {
+                  "displayValue": "US 10",
+                  "displayOrder": 1,
+                  "US": "10",
+                  "UK": "9",
+                  "EU": "44"
+                },
+                "airway_bill_url": "https://storage.googleapis.com/kc-courier/ups_kc/213_1ZXXXXXXXXXXXXXXXX_label.pdf",
+                "on_hold": false,
+                "brand": "NIKE",
+                "courier_slug": "DHL",
+                "track_no": "6911477484",
+                "price": 115,
+                "currency": "USD",
+                "status": "order.completed",
+                "service_fee": "13.80",
+                "operation_fee": "15.00",
+                "income": "86.20",
+                "customer_order_reference": "KS1019253",
+                "created_at": "2023-11-24T06:24:13.000Z",
+                "ext_ref": null,
+                "payout": {
+                  "payout_id": "240000330",
+                  "status": "seller.reviewing"
+                }
+              }
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "data"
+        ]
+      },
+      "SellerOutStockOrderRequest": {
+        "type": "object",
+        "properties": {
+          "order_id": {
+            "type": "string",
+            "description": "Order ID",
+            "example": "90000000"
+          }
+        },
+        "required": [
+          "order_id"
+        ]
+      },
+      "SellerDeliverOrderRequest": {
+        "type": "object",
+        "properties": {
+          "order_id": {
+            "type": "string",
+            "description": "Order ID",
+            "example": "90000000"
+          },
+          "courier_slug": {
+            "type": "string",
+            "description": "Seller courier used",
+            "example": null
+          },
+          "track_no": {
+            "type": "string",
+            "description": "Seller shipment tracking number",
+            "example": null
+          }
+        },
+        "required": [
+          "order_id"
+        ]
+      }
+    }
+  }
+}

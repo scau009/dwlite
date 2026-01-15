@@ -7,6 +7,7 @@ namespace App\Service\Fulfillment;
 use App\Entity\Fulfillment;
 use App\Entity\OutboundOrder;
 use App\Entity\OutboundOrderItem;
+use App\Service\OpenApi\WebhookService;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -15,6 +16,7 @@ use Psr\Log\LoggerInterface;
 class OutboundOrderCreationService
 {
     public function __construct(
+        private readonly WebhookService $webhookService,
         private readonly LoggerInterface $logger,
     ) {
     }
@@ -78,6 +80,24 @@ class OutboundOrderCreationService
             'itemCount' => $outbound->getItems()->count(),
             'totalQuantity' => $outbound->getTotalQuantity(),
         ]);
+
+        // Trigger webhook for warehouse
+        $this->webhookService->triggerWarehouseEvent(
+            \App\Entity\Webhook::EVENT_OUTBOUND_ORDER_CREATED,
+            $fulfillment->getWarehouse(),
+            [
+                'outbound_no' => $outbound->getOutboundNo(),
+                'fulfillment_no' => $fulfillment->getFulfillmentNo(),
+                'order_external_id' => $fulfillment->getOrder()->getExternalOrderId(),
+                'merchant_id' => $outbound->getMerchant()->getId(),
+                'merchant_name' => $outbound->getMerchant()->getName(),
+                'warehouse_id' => $fulfillment->getWarehouse()->getId(),
+                'warehouse_code' => $fulfillment->getWarehouse()->getCode(),
+                'total_quantity' => $outbound->getTotalQuantity(),
+                'items_count' => $outbound->getItems()->count(),
+                'status' => $outbound->getStatus(),
+            ]
+        );
 
         return $outbound;
     }

@@ -10,6 +10,7 @@ use App\Message\CreateSettlementMessage;
 use App\Repository\FulfillmentRepository;
 use App\Repository\SettlementRepository;
 use App\Service\BusinessNoGenerator;
+use App\Service\OpenApi\WebhookService;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Lock\LockFactory;
@@ -29,6 +30,7 @@ class CreateSettlementMessageHandler
         private SettlementRepository $settlementRepository,
         private BusinessNoGenerator $businessNoGenerator,
         private LockFactory $lockFactory,
+        private WebhookService $webhookService,
         private LoggerInterface $logger,
     ) {}
 
@@ -114,6 +116,25 @@ class CreateSettlementMessageHandler
                 'netAmount' => $settlement->getNetAmount(),
                 'scheduledSettleAt' => $settlement->getScheduledSettleAt()->format(\DateTimeInterface::ATOM),
             ]);
+
+            // Trigger webhook for merchant
+            $this->webhookService->triggerMerchantEvent(
+                \App\Entity\Webhook::EVENT_SETTLEMENT_CREATED,
+                $settlement->getMerchant(),
+                [
+                    'settlement_no' => $settlement->getSettlementNo(),
+                    'fulfillment_no' => $fulfillment->getFulfillmentNo(),
+                    'order_external_id' => $order->getExternalOrderId(),
+                    'sales_channel' => $order->getSalesChannel()->getCode(),
+                    'gross_amount' => $settlement->getGrossAmount(),
+                    'commission_amount' => $settlement->getCommissionAmount(),
+                    'net_amount' => $settlement->getNetAmount(),
+                    'currency' => $settlement->getCurrency(),
+                    'scheduled_settle_at' => $settlement->getScheduledSettleAt()->format(\DateTimeInterface::ATOM),
+                    'settlement_days' => $settlement->getSettlementDays(),
+                    'status' => $settlement->getStatus(),
+                ]
+            );
         } finally {
             $lock->release();
         }

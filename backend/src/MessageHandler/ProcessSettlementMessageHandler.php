@@ -9,6 +9,7 @@ use App\Message\ProcessSettlementMessage;
 use App\Repository\SettlementRepository;
 use App\Repository\WalletRepository;
 use App\Service\BusinessNoGenerator;
+use App\Service\OpenApi\WebhookService;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Lock\LockFactory;
@@ -28,6 +29,7 @@ class ProcessSettlementMessageHandler
         private WalletRepository $walletRepository,
         private BusinessNoGenerator $businessNoGenerator,
         private LockFactory $lockFactory,
+        private WebhookService $webhookService,
         private LoggerInterface $logger,
     ) {}
 
@@ -108,6 +110,26 @@ class ProcessSettlementMessageHandler
                 'balanceBefore' => $balanceBefore,
                 'balanceAfter' => $wallet->getBalance(),
             ]);
+
+            // Trigger webhook for merchant
+            $fulfillment = $settlement->getFulfillment();
+            $order = $settlement->getOrder();
+            $this->webhookService->triggerMerchantEvent(
+                \App\Entity\Webhook::EVENT_SETTLEMENT_COMPLETED,
+                $settlement->getMerchant(),
+                [
+                    'settlement_no' => $settlement->getSettlementNo(),
+                    'fulfillment_no' => $fulfillment?->getFulfillmentNo(),
+                    'order_external_id' => $order?->getExternalOrderId(),
+                    'net_amount' => $settlement->getNetAmount(),
+                    'currency' => $settlement->getCurrency(),
+                    'wallet_transaction_id' => $transaction->getId(),
+                    'balance_before' => $balanceBefore,
+                    'balance_after' => $wallet->getBalance(),
+                    'settled_at' => $settlement->getSettledAt()?->format(\DateTimeInterface::ATOM),
+                    'status' => $settlement->getStatus(),
+                ]
+            );
         } finally {
             $lock->release();
         }

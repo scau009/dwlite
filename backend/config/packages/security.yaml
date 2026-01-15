@@ -29,6 +29,12 @@ security:
             stateless: true
             security: false
 
+        open_api:
+            pattern: ^/api/v1/open/
+            stateless: true
+            custom_authenticators:
+                - App\Security\OpenApiAuthenticator
+
         api:
             pattern: ^/api
             stateless: true
@@ -46,7 +52,9 @@ security:
         - { path: ^/api/auth/forgot-password, roles: PUBLIC_ACCESS }
         - { path: ^/api/auth/reset-password, roles: PUBLIC_ACCESS }
         - { path: ^/api/auth/refresh, roles: PUBLIC_ACCESS }
-        # Protected endpoints
+        # Open API endpoints (API Key authentication)
+        - { path: ^/api/v1/open/, roles: IS_AUTHENTICATED_FULLY }
+        # Protected endpoints (JWT authentication)
         - { path: ^/api, roles: IS_AUTHENTICATED_FULLY }
         # Health and metrics endpoints
         - { path: ^/health, roles: PUBLIC_ACCESS }

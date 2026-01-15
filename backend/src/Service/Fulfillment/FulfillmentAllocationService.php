@@ -19,6 +19,7 @@ use App\Service\Fulfillment\Dto\MultiSourceSelectionResult;
 use App\Service\Fulfillment\Dto\SourceAllocation;
 use App\Message\ProcessConsignmentFulfillmentMessage;
 use App\Service\RuleEngine\RuleEngineService;
+use App\Service\OpenApi\WebhookService;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Lock\LockFactory;
@@ -42,6 +43,7 @@ class FulfillmentAllocationService
         private readonly RuleEngineService $ruleEngine,
         private readonly LockFactory $lockFactory,
         private readonly MessageBusInterface $messageBus,
+        private readonly WebhookService $webhookService,
         private readonly LoggerInterface $logger,
     ) {
     }
@@ -580,6 +582,26 @@ class FulfillmentAllocationService
 
         // 持久化
         $this->entityManager->persist($fulfillment);
+
+        // Trigger webhook for merchant (only for self-fulfillment)
+        if (!$group['isConsignment'] && $fulfillment->getMerchant() !== null) {
+            $this->webhookService->triggerMerchantEvent(
+                \App\Entity\Webhook::EVENT_FULFILLMENT_CREATED,
+                $fulfillment->getMerchant(),
+                [
+                    'fulfillment_no' => $fulfillment->getFulfillmentNo(),
+                    'order_external_id' => $order->getExternalOrderId(),
+                    'sales_channel' => $order->getSalesChannel()->getCode(),
+                    'warehouse_id' => $fulfillment->getWarehouse()->getId(),
+                    'warehouse_code' => $fulfillment->getWarehouse()->getCode(),
+                    'fulfillment_type' => $fulfillment->getFulfillmentType(),
+                    'deadline_at' => $fulfillment->getDeadlineAt()?->format(\DateTimeInterface::ATOM),
+                    'items_count' => $fulfillment->getItems()->count(),
+                    'total_amount' => $fulfillment->getTotalAmount(),
+                    'status' => $fulfillment->getStatus(),
+                ]
+            );
+        }
 
         return $fulfillment;
     }

@@ -22,6 +22,7 @@ use App\Repository\InboundOrderItemRepository;
 use App\Repository\InboundOrderRepository;
 use App\Repository\ProductSkuRepository;
 use App\Repository\WarehouseRepository;
+use App\Service\OpenApi\WebhookService;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 
@@ -34,6 +35,7 @@ class InboundOrderService
         private ProductSkuRepository $skuRepository,
         private WarehouseRepository $warehouseRepository,
         private InventoryService $inventoryService,
+        private WebhookService $webhookService,
         private EntityManagerInterface $entityManager,
         private LoggerInterface $logger,
     ) {
@@ -288,6 +290,23 @@ class InboundOrderService
             'order_no' => $order->getOrderNo(),
         ]);
 
+        // Trigger webhook for warehouse
+        $this->webhookService->triggerWarehouseEvent(
+            \App\Entity\Webhook::EVENT_INBOUND_ORDER_CREATED,
+            $order->getWarehouse(),
+            [
+                'order_no' => $order->getOrderNo(),
+                'merchant_id' => $order->getMerchant()->getId(),
+                'merchant_name' => $order->getMerchant()->getName(),
+                'warehouse_id' => $order->getWarehouse()->getId(),
+                'warehouse_code' => $order->getWarehouse()->getCode(),
+                'expected_arrival_date' => $order->getExpectedArrivalDate()?->format(\DateTimeInterface::ATOM),
+                'total_quantity' => $order->getTotalQuantity(),
+                'items_count' => $order->getItems()->count(),
+                'status' => $order->getStatus(),
+            ]
+        );
+
         return $order;
     }
 
@@ -348,6 +367,26 @@ class InboundOrderService
             'order_no' => $order->getOrderNo(),
             'tracking_number' => $dto->trackingNumber,
         ]);
+
+        // Trigger webhook for warehouse
+        $this->webhookService->triggerWarehouseEvent(
+            \App\Entity\Webhook::EVENT_INBOUND_ORDER_SHIPPED,
+            $order->getWarehouse(),
+            [
+                'order_no' => $order->getOrderNo(),
+                'merchant_id' => $order->getMerchant()->getId(),
+                'merchant_name' => $order->getMerchant()->getName(),
+                'warehouse_id' => $order->getWarehouse()->getId(),
+                'warehouse_code' => $order->getWarehouse()->getCode(),
+                'carrier_code' => $shipment->getCarrierCode(),
+                'carrier_name' => $shipment->getCarrierName(),
+                'tracking_number' => $shipment->getTrackingNumber(),
+                'box_count' => $shipment->getBoxCount(),
+                'estimated_arrival_date' => $shipment->getEstimatedArrivalDate()?->format(\DateTimeInterface::ATOM),
+                'total_quantity' => $order->getTotalQuantity(),
+                'status' => $order->getStatus(),
+            ]
+        );
 
         return $order;
     }
@@ -417,6 +456,24 @@ class InboundOrderService
                 $shipment->setStatus(InboundShipment::STATUS_DELIVERED);
                 $shipment->setDeliveredAt(new \DateTimeImmutable('now', new \DateTimeZone('UTC')));
             }
+
+            // Trigger webhook for merchant
+            $this->webhookService->triggerMerchantEvent(
+                \App\Entity\Webhook::EVENT_INBOUND_RECEIVING_COMPLETED,
+                $order->getMerchant(),
+                [
+                    'order_no' => $order->getOrderNo(),
+                    'warehouse_id' => $order->getWarehouse()->getId(),
+                    'warehouse_code' => $order->getWarehouse()->getCode(),
+                    'warehouse_name' => $order->getWarehouse()->getName(),
+                    'expected_quantity' => $order->getTotalQuantity(),
+                    'received_quantity' => $order->getTotalReceivedQuantity(),
+                    'damaged_quantity' => $order->getTotalDamagedQuantity(),
+                    'has_difference' => $order->hasQuantityDifference(),
+                    'status' => $order->getStatus(),
+                    'completed_at' => $order->getCompletedAt()?->format(\DateTimeInterface::ATOM),
+                ]
+            );
         } else {
             // 还有未收货商品，设置为收货中状态
             $order->setStatus(InboundOrder::STATUS_RECEIVING);
@@ -498,6 +555,24 @@ class InboundOrderService
             'type' => $dto->type,
             'items_count' => count($dto->items),
         ]);
+
+        // Trigger webhook for merchant
+        $this->webhookService->triggerMerchantEvent(
+            \App\Entity\Webhook::EVENT_INBOUND_EXCEPTION_REPORTED,
+            $order->getMerchant(),
+            [
+                'exception_no' => $exception->getExceptionNo(),
+                'order_no' => $order->getOrderNo(),
+                'warehouse_id' => $order->getWarehouse()->getId(),
+                'warehouse_code' => $order->getWarehouse()->getCode(),
+                'warehouse_name' => $order->getWarehouse()->getName(),
+                'exception_type' => $exception->getType(),
+                'description' => $exception->getDescription(),
+                'total_quantity' => $exception->getTotalQuantity(),
+                'items_count' => $exception->getItems()->count(),
+                'reported_at' => $exception->getReportedAt()->format(\DateTimeInterface::ATOM),
+            ]
+        );
 
         return $exception;
     }
@@ -792,6 +867,24 @@ class InboundOrderService
             'type' => $type,
             'items_count' => count($items),
         ]);
+
+        // Trigger webhook for merchant
+        $this->webhookService->triggerMerchantEvent(
+            \App\Entity\Webhook::EVENT_INBOUND_EXCEPTION_REPORTED,
+            $order->getMerchant(),
+            [
+                'exception_no' => $exception->getExceptionNo(),
+                'order_no' => $order->getOrderNo(),
+                'warehouse_id' => $order->getWarehouse()->getId(),
+                'warehouse_code' => $order->getWarehouse()->getCode(),
+                'warehouse_name' => $order->getWarehouse()->getName(),
+                'exception_type' => $exception->getType(),
+                'description' => $exception->getDescription(),
+                'total_quantity' => $exception->getTotalQuantity(),
+                'items_count' => $exception->getItems()->count(),
+                'reported_at' => $exception->getReportedAt()->format(\DateTimeInterface::ATOM),
+            ]
+        );
 
         return $exception;
     }
