@@ -203,8 +203,8 @@ class FulfillmentAllocationLog
         string $merchantId,
         string $sourceId,
         ?array $candidates = null
-    ): static {
-        $log = new static();
+    ): self {
+        $log = new self();
         $log->setOrder($order);
         $log->setOrderItem($orderItem);
         $log->setAttemptNumber($attemptNumber);
@@ -226,8 +226,8 @@ class FulfillmentAllocationLog
         string $result,
         string $failureReason,
         ?array $candidates = null
-    ): static {
-        $log = new static();
+    ): self {
+        $log = new self();
         $log->setOrder($order);
         $log->setOrderItem($orderItem);
         $log->setAttemptNumber($attemptNumber);

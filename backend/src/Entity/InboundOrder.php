@@ -89,12 +89,14 @@ class InboundOrder
     private ?string $cancelReason = null;  // 取消原因
 
     // 关联
+    /** @var Collection<int, InboundOrderItem> */
     #[ORM\OneToMany(targetEntity: InboundOrderItem::class, mappedBy: 'inboundOrder', cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $items;
 
     #[ORM\OneToOne(targetEntity: InboundShipment::class, mappedBy: 'inboundOrder', cascade: ['persist', 'remove'])]
     private ?InboundShipment $shipment = null;
 
+    /** @var Collection<int, InboundException> */
     #[ORM\OneToMany(targetEntity: InboundException::class, mappedBy: 'inboundOrder')]
     private Collection $exceptions;
 

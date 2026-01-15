@@ -93,6 +93,7 @@ class ApiKey
     #[ORM\Column(type: 'datetime_immutable')]
     private \DateTimeImmutable $updatedAt;
 
+    /** @var Collection<int, Webhook> */
     #[ORM\OneToMany(targetEntity: Webhook::class, mappedBy: 'apiKey', cascade: ['persist', 'remove'])]
     private Collection $webhooks;
 

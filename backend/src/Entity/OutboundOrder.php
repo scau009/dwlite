@@ -137,12 +137,13 @@ class OutboundOrder
     private ?string $remark = null;
 
     // 关联明细
+    /** @var Collection<int, OutboundOrderItem> */
     #[ORM\OneToMany(targetEntity: OutboundOrderItem::class, mappedBy: 'outboundOrder', cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $items;
 
-    // 面单（1:1 关联）
-    #[ORM\OneToOne(targetEntity: Waybill::class, mappedBy: 'outboundOrder', cascade: ['persist'])]
-    private ?Waybill $waybill = null;
+    // TODO: 面单功能待实现
+    // #[ORM\OneToOne(targetEntity: Waybill::class, mappedBy: 'outboundOrder', cascade: ['persist'])]
+    // private ?Waybill $waybill = null;
 
     #[ORM\Column(type: 'datetime_immutable')]
     private \DateTimeImmutable $createdAt;
@@ -510,17 +511,18 @@ class OutboundOrder
         return $this;
     }
 
-    public function getWaybill(): ?Waybill
-    {
-        return $this->waybill;
-    }
-
-    public function setWaybill(?Waybill $waybill): static
-    {
-        $this->waybill = $waybill;
-
-        return $this;
-    }
+    // TODO: 面单功能待实现
+    // public function getWaybill(): ?Waybill
+    // {
+    //     return $this->waybill;
+    // }
+    //
+    // public function setWaybill(?Waybill $waybill): static
+    // {
+    //     $this->waybill = $waybill;
+    //
+    //     return $this;
+    // }
 
     public function getCreatedAt(): \DateTimeImmutable
     {

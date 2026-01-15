@@ -32,6 +32,7 @@ class Tag
     #[ORM\Column(type: 'boolean', options: ['default' => true])]
     private bool $isActive = true;
 
+    /** @var Collection<int, Product> */
     #[ORM\ManyToMany(targetEntity: Product::class, mappedBy: 'tags')]
     private Collection $products;
 

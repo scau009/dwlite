@@ -53,9 +53,11 @@ class SalesChannel
     #[ORM\Column(type: 'string', length: 3, options: ['default' => 'CNY'])]
     private string $currency = 'CNY';
 
+    /** @var Collection<int, MerchantSalesChannel> */
     #[ORM\OneToMany(targetEntity: MerchantSalesChannel::class, mappedBy: 'salesChannel', cascade: ['persist', 'remove'])]
     private Collection $merchantChannels;
 
+    /** @var Collection<int, SalesChannelWarehouse> */
     #[ORM\OneToMany(targetEntity: SalesChannelWarehouse::class, mappedBy: 'salesChannel', cascade: ['persist', 'remove'])]
     private Collection $channelWarehouses;
 

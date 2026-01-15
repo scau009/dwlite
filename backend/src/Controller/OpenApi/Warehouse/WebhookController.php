@@ -75,7 +75,7 @@ class WebhookController extends AbstractController
                 'error' => [
                     'code' => 'INVALID_REQUEST',
                     'message' => 'Validation failed',
-                    'details' => array_map(fn($v) => (string) $v, iterator_to_array($violations)),
+                    'details' => array_map(fn($v) => $v->getMessage(), iterator_to_array($violations)),
                 ],
                 'requestId' => $request->attributes->get('request_id'),
             ], Response::HTTP_BAD_REQUEST);
@@ -87,7 +87,7 @@ class WebhookController extends AbstractController
         $webhook->setUrl($data['url']);
         $webhook->setEvents($data['events']);
 
-        if (isset($data['secret']) && $data['secret'] !== null) {
+        if (isset($data['secret']) && $data['secret'] !== '') {
             $webhook->setSecret($data['secret']);
         } else {
             // Generate a random secret if not provided
@@ -169,7 +169,7 @@ class WebhookController extends AbstractController
                 'error' => [
                     'code' => 'INVALID_REQUEST',
                     'message' => 'Validation failed',
-                    'details' => array_map(fn($v) => (string) $v, iterator_to_array($violations)),
+                    'details' => array_map(fn($v) => $v->getMessage(), iterator_to_array($violations)),
                 ],
                 'requestId' => $request->attributes->get('request_id'),
             ], Response::HTTP_BAD_REQUEST);

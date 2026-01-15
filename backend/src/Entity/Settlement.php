@@ -89,6 +89,7 @@ class Settlement
     private ?string $walletTransactionId = null;
 
     // 结算明细
+    /** @var Collection<int, SettlementItem> */
     #[ORM\OneToMany(targetEntity: SettlementItem::class, mappedBy: 'settlement', cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $items;
 

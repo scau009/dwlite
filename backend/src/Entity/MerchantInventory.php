@@ -78,6 +78,7 @@ class MerchantInventory
     private ?string $externalSkuId = null;  // 商家系统的 SKU ID（用于 API 对接）
 
     // 关联库存流水
+    /** @var Collection<int, InventoryTransaction> */
     #[ORM\OneToMany(targetEntity: InventoryTransaction::class, mappedBy: 'merchantInventory')]
     #[ORM\OrderBy(['createdAt' => 'DESC'])]
     private Collection $transactions;

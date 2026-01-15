@@ -109,6 +109,7 @@ class Warehouse
     #[ORM\Column(type: 'integer', options: ['default' => 0])]
     private int $sortOrder = 0;
 
+    /** @var Collection<int, SalesChannelWarehouse> */
     #[ORM\OneToMany(targetEntity: SalesChannelWarehouse::class, mappedBy: 'warehouse', cascade: ['persist', 'remove'])]
     private Collection $channelWarehouses;
 

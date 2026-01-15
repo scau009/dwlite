@@ -545,7 +545,7 @@ class ChannelProductSyncService
             currency: $sku->getCurrency(),
             attributes: [
                 'model_no' => $product->getStyleNumber(),
-                'size_system' => $sku->getSizeUnit()?->value ?? 'US',
+                'size_system' => $sku->getSizeUnit() !== null ? $sku->getSizeUnit()->value : 'US',
             ],
         );
 

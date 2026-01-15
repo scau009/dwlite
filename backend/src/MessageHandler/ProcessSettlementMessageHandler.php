@@ -119,8 +119,8 @@ class ProcessSettlementMessageHandler
                 $settlement->getMerchant(),
                 [
                     'settlement_no' => $settlement->getSettlementNo(),
-                    'fulfillment_no' => $fulfillment?->getFulfillmentNo(),
-                    'order_external_id' => $order?->getExternalOrderId(),
+                    'fulfillment_no' => $fulfillment->getFulfillmentNo(),
+                    'order_external_id' => $order->getExternalOrderId(),
                     'net_amount' => $settlement->getNetAmount(),
                     'currency' => $settlement->getCurrency(),
                     'wallet_transaction_id' => $transaction->getId(),

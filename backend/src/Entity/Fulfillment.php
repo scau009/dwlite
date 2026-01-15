@@ -129,6 +129,7 @@ class Fulfillment
     private ?array $excludedMerchantIds = null;
 
     // 关联
+    /** @var Collection<int, FulfillmentItem> */
     #[ORM\OneToMany(targetEntity: FulfillmentItem::class, mappedBy: 'fulfillment', cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $items;
 

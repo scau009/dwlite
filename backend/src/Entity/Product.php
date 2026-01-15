@@ -56,14 +56,17 @@ class Product
     #[ORM\Column(name: 'is_active', type: 'boolean', options: ['default' => true])]
     private bool $isActive = true;
 
+    /** @var Collection<int, Tag> */
     #[ORM\ManyToMany(targetEntity: Tag::class, inversedBy: 'products')]
     #[ORM\JoinTable(name: 'product_tags')]
     private Collection $tags;
 
+    /** @var Collection<int, ProductSku> */
     #[ORM\OneToMany(targetEntity: ProductSku::class, mappedBy: 'product', cascade: ['persist', 'remove'], orphanRemoval: true)]
     #[ORM\OrderBy(['sortOrder' => 'ASC'])]
     private Collection $skus;
 
+    /** @var Collection<int, ProductImage> */
     #[ORM\OneToMany(targetEntity: ProductImage::class, mappedBy: 'product', cascade: ['persist', 'remove'], orphanRemoval: true)]
     #[ORM\OrderBy(['sortOrder' => 'ASC'])]
     private Collection $images;

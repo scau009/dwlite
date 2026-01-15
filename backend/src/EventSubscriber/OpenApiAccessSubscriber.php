@@ -43,21 +43,14 @@ class OpenApiAccessSubscriber implements EventSubscriberInterface
         $classAttributes = $reflection->getAttributes(OpenApiOnly::class);
         $methodAttributes = $method->getAttributes(OpenApiOnly::class);
 
-        if (empty($classAttributes) && empty($methodAttributes)) {
+        if (count($classAttributes) === 0 && count($methodAttributes) === 0) {
             return;
         }
 
         // Get the OpenApiOnly attribute (method takes precedence)
-        $attribute = null;
-        if (!empty($methodAttributes)) {
-            $attribute = $methodAttributes[0]->newInstance();
-        } elseif (!empty($classAttributes)) {
-            $attribute = $classAttributes[0]->newInstance();
-        }
-
-        if ($attribute === null) {
-            return;
-        }
+        $attribute = count($methodAttributes) > 0
+            ? $methodAttributes[0]->newInstance()
+            : $classAttributes[0]->newInstance();
 
         // Get the current user
         $token = $this->tokenStorage->getToken();

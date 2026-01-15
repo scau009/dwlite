@@ -72,9 +72,11 @@ class Merchant
     #[ORM\Column(type: 'datetime_immutable')]
     private \DateTimeImmutable $updatedAt;
 
+    /** @var Collection<int, Wallet> */
     #[ORM\OneToMany(targetEntity: Wallet::class, mappedBy: 'merchant', cascade: ['persist', 'remove'])]
     private Collection $wallets;
 
+    /** @var Collection<int, MerchantSalesChannel> */
     #[ORM\OneToMany(targetEntity: MerchantSalesChannel::class, mappedBy: 'merchant', cascade: ['persist', 'remove'])]
     private Collection $salesChannels;
 

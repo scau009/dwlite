@@ -372,7 +372,7 @@ class ProductSyncService
 
             // Map size unit
             $sizeUnit = $this->mapSizeUnit($externalSku->sizeUnit);
-            $key = ($sizeUnit?->value ?? '').':'.$externalSku->sizeValue;
+            $key = ($sizeUnit !== null ? $sizeUnit->value : '').':'.$externalSku->sizeValue;
 
             // Skip if size already exists
             if (isset($existingSizes[$key])) {

@@ -98,6 +98,7 @@ class ChannelProduct
     private int $totalSoldQuantity = 0;  // 总销量
 
     // 关联来源
+    /** @var Collection<int, ChannelProductSource> */
     #[ORM\OneToMany(targetEntity: ChannelProductSource::class, mappedBy: 'channelProduct', cascade: ['persist', 'remove'], orphanRemoval: true)]
     #[ORM\OrderBy(['priority' => 'ASC'])]
     private Collection $sources;

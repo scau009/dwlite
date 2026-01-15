@@ -72,6 +72,7 @@ class Webhook
     #[ORM\Column(type: 'datetime_immutable')]
     private \DateTimeImmutable $updatedAt;
 
+    /** @var Collection<int, WebhookDelivery> */
     #[ORM\OneToMany(targetEntity: WebhookDelivery::class, mappedBy: 'webhook', cascade: ['persist', 'remove'])]
     #[ORM\OrderBy(['createdAt' => 'DESC'])]
     private Collection $deliveries;

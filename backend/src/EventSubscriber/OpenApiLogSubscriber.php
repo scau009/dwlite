@@ -3,7 +3,6 @@
 namespace App\EventSubscriber;
 
 use App\Entity\ApiKeyLog;
-use App\Repository\ApiKeyLogRepository;
 use App\Security\ApiKeyUser;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
@@ -21,7 +20,6 @@ class OpenApiLogSubscriber implements EventSubscriberInterface
 
     public function __construct(
         private readonly TokenStorageInterface $tokenStorage,
-        private readonly ApiKeyLogRepository $apiKeyLogRepository,
         private readonly EntityManagerInterface $entityManager
     ) {
     }

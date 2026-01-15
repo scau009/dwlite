@@ -376,8 +376,8 @@ class OutboundController extends AbstractController
         return [
             'outboundNo' => $order->getOutboundNo(),
             'fulfillmentNo' => $order->getFulfillment()?->getFulfillmentNo(),
-            'merchantId' => $order->getMerchant()?->getId(),
-            'merchantName' => $order->getMerchant()?->getName(),
+            'merchantId' => $order->getMerchant()->getId(),
+            'merchantName' => $order->getMerchant()->getName(),
             'status' => $order->getStatus(),
             'receiverName' => $order->getReceiverName(),
             'receiverPhone' => $order->getReceiverPhone(),

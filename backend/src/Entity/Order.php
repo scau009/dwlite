@@ -143,10 +143,12 @@ class Order
     private ?string $label = null;  // 渠道物流标签（COS URL）
 
     // 关联
+    /** @var Collection<int, OrderItem> */
     #[ORM\OneToMany(targetEntity: OrderItem::class, mappedBy: 'order', cascade: ['persist', 'remove'], orphanRemoval: true)]
     #[ORM\OrderBy(['id' => 'ASC'])]
     private Collection $items;
 
+    /** @var Collection<int, Fulfillment> */
     #[ORM\OneToMany(targetEntity: Fulfillment::class, mappedBy: 'order', cascade: ['persist'])]
     #[ORM\OrderBy(['createdAt' => 'ASC'])]
     private Collection $fulfillments;
