@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Modal, Form, Select, InputNumber, Input, App, Radio } from 'antd';
 import { channelWarehouseApi, type Warehouse } from '@/lib/channel-warehouse-api';
@@ -20,15 +20,7 @@ export function AddWarehouseModal({ open, channelId, onClose, onSuccess }: AddWa
   const [fetchingWarehouses, setFetchingWarehouses] = useState(false);
   const [priorityMode, setPriorityMode] = useState<'auto' | 'manual'>('auto');
 
-  useEffect(() => {
-    if (open && channelId) {
-      form.resetFields();
-      setPriorityMode('auto');
-      loadAvailableWarehouses();
-    }
-  }, [open, channelId, form]);
-
-  const loadAvailableWarehouses = async () => {
+  const loadAvailableWarehouses = useCallback(async () => {
     if (!channelId) return;
 
     setFetchingWarehouses(true);
@@ -41,7 +33,15 @@ export function AddWarehouseModal({ open, channelId, onClose, onSuccess }: AddWa
     } finally {
       setFetchingWarehouses(false);
     }
-  };
+  }, [channelId, message, t]);
+
+  useEffect(() => {
+    if (open && channelId) {
+      form.resetFields();
+      setPriorityMode('auto');
+      loadAvailableWarehouses();
+    }
+  }, [open, channelId, form, loadAvailableWarehouses]);
 
   const handleSubmit = async () => {
     if (!channelId) return;

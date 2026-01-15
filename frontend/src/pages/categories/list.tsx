@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {Table, Button, Tag, Switch, App, Popconfirm, Space, Card} from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
@@ -18,7 +18,7 @@ export function CategoriesListPage() {
   const [parentCategory, setParentCategory] = useState<CategoryTreeNode | null>(null);
   const [statusLoading, setStatusLoading] = useState<string | null>(null);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
     try {
       const result = await categoryApi.getCategoryTree();
@@ -29,11 +29,11 @@ export function CategoriesListPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [message, t]);
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [fetchData]);
 
   const handleStatusChange = async (category: CategoryTreeNode, isActive: boolean) => {
     setStatusLoading(category.id);

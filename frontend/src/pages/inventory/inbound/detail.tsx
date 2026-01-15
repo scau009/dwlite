@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import {
@@ -95,7 +95,7 @@ export function InboundOrderDetailPage() {
   const [editingCostItemId, setEditingCostItemId] = useState<string | null>(null);
   const [savingCost, setSavingCost] = useState(false);
 
-  const loadOrder = async () => {
+  const loadOrder = useCallback(async () => {
     if (!id) return;
     setLoading(true);
     try {
@@ -106,11 +106,11 @@ export function InboundOrderDetailPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, message, t]);
 
   useEffect(() => {
     loadOrder();
-  }, [id]);
+  }, [loadOrder]);
 
   // Get status label
   const getStatusLabel = (status: InboundOrderStatus) => {

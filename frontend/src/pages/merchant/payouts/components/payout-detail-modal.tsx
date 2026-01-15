@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Modal, Descriptions, Tag, Spin, Timeline } from 'antd';
 import {
@@ -25,13 +25,7 @@ export function PayoutDetailModal({ open, payoutId, onClose }: PayoutDetailModal
   const [payout, setPayout] = useState<PayoutDetail | null>(null);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    if (open && payoutId) {
-      loadPayout();
-    }
-  }, [open, payoutId]);
-
-  const loadPayout = async () => {
+  const loadPayout = useCallback(async () => {
     if (!payoutId) return;
     setLoading(true);
     try {
@@ -42,7 +36,13 @@ export function PayoutDetailModal({ open, payoutId, onClose }: PayoutDetailModal
     } finally {
       setLoading(false);
     }
-  };
+  }, [payoutId]);
+
+  useEffect(() => {
+    if (open && payoutId) {
+      loadPayout();
+    }
+  }, [open, payoutId, loadPayout]);
 
   const getTimelineItems = () => {
     if (!payout) return [];

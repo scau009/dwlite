@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import {
@@ -135,14 +135,7 @@ export function EditListingPage() {
   // Allocation mode state (editable)
   const [allocationMode, setAllocationMode] = useState<AllocationMode>('shared');
 
-  useEffect(() => {
-    if (id) {
-      loadListing();
-      loadLogs();
-    }
-  }, [id]);
-
-  const loadListing = async () => {
+  const loadListing = useCallback(async () => {
     if (!id) return;
     setLoading(true);
     try {
@@ -183,9 +176,9 @@ export function EditListingPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, form, message, t, navigate]);
 
-  const loadLogs = async () => {
+  const loadLogs = useCallback(async () => {
     if (!id) return;
     setLogsLoading(true);
     try {
@@ -196,7 +189,14 @@ export function EditListingPage() {
     } finally {
       setLogsLoading(false);
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    if (id) {
+      loadListing();
+      loadLogs();
+    }
+  }, [id, loadListing, loadLogs]);
 
   const handleSubmit = async () => {
     if (!id || !listing) return;

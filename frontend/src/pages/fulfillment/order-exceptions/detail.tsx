@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import {
@@ -62,7 +62,7 @@ export function OrderExceptionDetailPage() {
   const [resolutionOptions, setResolutionOptions] = useState<ResolutionOption[]>([]);
   const [form] = Form.useForm();
 
-  const loadException = async () => {
+  const loadException = useCallback(async () => {
     if (!id) return;
     setLoading(true);
     try {
@@ -73,7 +73,7 @@ export function OrderExceptionDetailPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, message, t]);
 
   const loadResolutionOptions = async () => {
     try {
@@ -87,7 +87,7 @@ export function OrderExceptionDetailPage() {
   useEffect(() => {
     loadException();
     loadResolutionOptions();
-  }, [id]);
+  }, [loadException]);
 
   // Get status label
   const getStatusLabel = (status: OrderExceptionStatus) => {

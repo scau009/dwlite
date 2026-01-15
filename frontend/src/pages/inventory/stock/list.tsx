@@ -96,10 +96,12 @@ export function MerchantStockListPage() {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Initial data load
     loadSummary();
+     
     loadWarehouses();
+     
     loadMerchantWarehouses();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const columns: ProColumns<MerchantInventoryItem>[] = [

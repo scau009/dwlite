@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import {
@@ -148,12 +148,7 @@ export function CreateListingPage() {
     [listingConfigs]
   );
 
-  // Load channels on mount
-  useEffect(() => {
-    loadChannels();
-  }, []);
-
-  const loadChannels = async () => {
+  const loadChannels = useCallback(async () => {
     setChannelsLoading(true);
     try {
       const result = await merchantListingApi.getAvailableChannels();
@@ -164,7 +159,12 @@ export function CreateListingPage() {
     } finally {
       setChannelsLoading(false);
     }
-  };
+  }, [message, t]);
+
+  // Load channels on mount
+  useEffect(() => {
+    loadChannels();
+  }, [loadChannels]);
 
   const handleChannelSelect = (channel: AvailableChannel) => {
     setSelectedChannel(channel);

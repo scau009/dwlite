@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import {
@@ -58,18 +58,7 @@ export function CreateOrderModal({
   const [submitting, setSubmitting] = useState(false);
   const [batchQuantity, setBatchQuantity] = useState<number>(1);
 
-  // Load warehouses when modal opens
-  useEffect(() => {
-    if (open) {
-      setCurrentStep(0);
-      setSelectedWarehouse(null);
-      setSkuSelections([]);
-      loadWarehouses();
-      initSkuSelections();
-    }
-  }, [open, products]);
-
-  const loadWarehouses = async () => {
+  const loadWarehouses = useCallback(async () => {
     setWarehouseLoading(true);
     try {
       const data = await inboundApi.getAvailableWarehouses();
@@ -80,9 +69,9 @@ export function CreateOrderModal({
     } finally {
       setWarehouseLoading(false);
     }
-  };
+  }, [message, t]);
 
-  const initSkuSelections = () => {
+  const initSkuSelections = useCallback(() => {
     const selections: SkuSelection[] = [];
     products.forEach((product) => {
       const activeSkus = product.skus.filter((s) => s.isActive);
@@ -98,7 +87,18 @@ export function CreateOrderModal({
       });
     });
     setSkuSelections(selections);
-  };
+  }, [products]);
+
+  // Load warehouses when modal opens
+  useEffect(() => {
+    if (open) {
+      setCurrentStep(0);
+      setSelectedWarehouse(null);
+      setSkuSelections([]);
+      loadWarehouses();
+      initSkuSelections();
+    }
+  }, [open, loadWarehouses, initSkuSelections]);
 
   const handleQuantityChange = (skuId: string, quantity: number | null) => {
     setSkuSelections((prev) =>

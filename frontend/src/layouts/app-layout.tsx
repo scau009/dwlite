@@ -19,17 +19,17 @@ export function AppLayout() {
   const { user, isMerchantApproved } = useAuth();
   const { isDark } = useTheme();
 
-  // If merchant is not approved, show the pending approval page
-  if (user?.accountType === 'merchant' && !isMerchantApproved) {
-    return <MerchantPendingApprovalPage />;
-  }
-
-  // eslint-disable-next-line react-hooks/preserve-manual-memoization
+  // Must call all hooks before any conditional returns
   const menuData = useMemo(() => {
     const allMenus = getMenuData(t);
     if (!user?.accountType) return allMenus;
     return filterMenuByAccess(allMenus, user.accountType);
-  }, [t, user?.accountType]);
+  }, [t, user]);
+
+  // If merchant is not approved, show the pending approval page
+  if (user?.accountType === 'merchant' && !isMerchantApproved) {
+    return <MerchantPendingApprovalPage />;
+  }
 
   return (
     <ProLayout

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import {
@@ -86,7 +86,7 @@ export function WarehouseOutboundDetailPage() {
     }
   };
 
-  const loadOrder = async () => {
+  const loadOrder = useCallback(async () => {
     if (!id) return;
     setLoading(true);
     try {
@@ -97,12 +97,12 @@ export function WarehouseOutboundDetailPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, message, t]);
 
   useEffect(() => {
     loadOrder();
     loadCarriers();
-  }, [id]);
+  }, [loadOrder]);
 
   // Get status label
   const getStatusLabel = (status: WarehouseOutboundStatus) => {

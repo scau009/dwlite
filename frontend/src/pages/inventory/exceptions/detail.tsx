@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import {
@@ -68,7 +68,7 @@ export function InboundExceptionDetailPage() {
   const [resolutionOptions, setResolutionOptions] = useState<{ value: string; label: string }[]>([]);
   const [form] = Form.useForm();
 
-  const loadException = async () => {
+  const loadException = useCallback(async () => {
     if (!id) return;
     setLoading(true);
     try {
@@ -79,7 +79,7 @@ export function InboundExceptionDetailPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, message, t]);
 
   const loadResolutionOptions = async () => {
     try {
@@ -93,7 +93,7 @@ export function InboundExceptionDetailPage() {
   useEffect(() => {
     loadException();
     loadResolutionOptions();
-  }, [id]);
+  }, [loadException]);
 
   // Get status label
   const getStatusLabel = (status: InboundExceptionStatus) => {

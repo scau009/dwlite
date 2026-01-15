@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Modal, Form, InputNumber, Select, Input, App, Alert } from 'antd';
 
@@ -23,7 +23,7 @@ export function CreatePayoutModal({
   const prevOpenRef = useRef(false);
 
   const availableBalance = parseFloat(summary?.availableBalance || '0');
-  const bankAccounts = summary?.bankAccounts || [];
+  const bankAccounts = useMemo(() => summary?.bankAccounts || [], [summary?.bankAccounts]);
 
   useEffect(() => {
     // Only reset form when modal is first opened (not on every bankAccounts change)

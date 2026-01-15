@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import {
@@ -77,7 +77,7 @@ export function WarehouseInboundDetailPage() {
   // Batch receive state
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
 
-  const loadOrder = async () => {
+  const loadOrder = useCallback(async () => {
     if (!id) return;
     setLoading(true);
     try {
@@ -89,11 +89,11 @@ export function WarehouseInboundDetailPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, message, t]);
 
   useEffect(() => {
     loadOrder();
-  }, [id]);
+  }, [loadOrder]);
 
   // Get status label
   const getStatusLabel = (status: WarehouseInboundStatus) => {
@@ -357,7 +357,7 @@ export function WarehouseInboundDetailPage() {
   ];
 
   // Exception status helpers
-  const getExceptionStatusLabel = (status: string) => {
+  const getExceptionStatusLabel = useCallback((status: string) => {
     const labels: Record<string, string> = {
       pending: t('warehouseOps.exceptionStatusPending'),
       processing: t('warehouseOps.exceptionStatusProcessing'),
@@ -365,9 +365,9 @@ export function WarehouseInboundDetailPage() {
       closed: t('warehouseOps.exceptionStatusClosed'),
     };
     return labels[status] || status;
-  };
+  }, [t]);
 
-  const getExceptionStatusColor = (status: string) => {
+  const getExceptionStatusColor = useCallback((status: string) => {
     const colors: Record<string, string> = {
       pending: 'warning',
       processing: 'processing',
@@ -375,12 +375,12 @@ export function WarehouseInboundDetailPage() {
       closed: 'default',
     };
     return colors[status] || 'default';
-  };
+  }, []);
 
-  const isPendingException = (status: string) => ['pending', 'processing'].includes(status);
+  const isPendingException = useCallback((status: string) => ['pending', 'processing'].includes(status), []);
 
   // Render exception card content
-  const renderExceptionContent = (exception: WarehouseInboundException) => {
+  const renderExceptionContent = useCallback((exception: WarehouseInboundException) => {
     const items = exception.items ?? [];
     const evidenceImages = exception.evidenceImages ?? [];
 
@@ -459,7 +459,7 @@ export function WarehouseInboundDetailPage() {
         )}
       </div>
     );
-  };
+  }, [t]);
 
   // Build exception collapse items
   const exceptionCollapseItems = useMemo(() => {
@@ -484,7 +484,7 @@ export function WarehouseInboundDetailPage() {
       children: renderExceptionContent(exception),
       className: isPendingException(exception.status) ? 'exception-pending' : '',
     }));
-  }, [order?.exceptions, t]);
+  }, [order?.exceptions, getExceptionStatusColor, getExceptionStatusLabel, isPendingException, renderExceptionContent]);
 
   // Default active keys: pending/processing exceptions
   const defaultActiveExceptionKeys = useMemo(() => {
@@ -492,7 +492,7 @@ export function WarehouseInboundDetailPage() {
     return order.exceptions
       .filter(e => isPendingException(e.status))
       .map(e => e.id);
-  }, [order?.exceptions]);
+  }, [order?.exceptions, isPendingException]);
 
   if (loading) {
     return (

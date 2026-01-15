@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { Card, Descriptions, Tag, Button, Spin, Empty, App, Timeline } from 'antd';
@@ -20,7 +20,7 @@ export function PayoutDetailPage() {
   const [payout, setPayout] = useState<PayoutDetail | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const loadPayout = async () => {
+  const loadPayout = useCallback(async () => {
     if (!id) return;
     setLoading(true);
     try {
@@ -31,11 +31,11 @@ export function PayoutDetailPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, message, t]);
 
   useEffect(() => {
     loadPayout();
-  }, [id]);
+  }, [loadPayout]);
 
   if (loading) {
     return (

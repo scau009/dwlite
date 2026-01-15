@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card, List, Avatar, Button, Empty, Spin, App } from 'antd';
 import { ShopOutlined, SendOutlined } from '@ant-design/icons';
@@ -23,7 +23,7 @@ export function AvailableChannelsTab({ onApplySuccess }: Props) {
   const [selectedChannel, setSelectedChannel] =
     useState<AvailableSalesChannel | null>(null);
 
-  const loadChannels = async () => {
+  const loadChannels = useCallback(async () => {
     setLoading(true);
     try {
       const result = await merchantChannelApi.getAvailableChannels();
@@ -33,11 +33,11 @@ export function AvailableChannelsTab({ onApplySuccess }: Props) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [message, t]);
 
   useEffect(() => {
     loadChannels();
-  }, []);
+  }, [loadChannels]);
 
   const handleApply = (channel: AvailableSalesChannel) => {
     setSelectedChannel(channel);

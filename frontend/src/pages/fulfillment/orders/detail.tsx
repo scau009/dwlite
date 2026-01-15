@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import {
@@ -70,7 +70,7 @@ export function PlatformOrderDetailPage() {
   const [order, setOrder] = useState<PlatformOrderDetail | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const loadOrder = async () => {
+  const loadOrder = useCallback(async () => {
     if (!id) return;
     setLoading(true);
     try {
@@ -81,11 +81,11 @@ export function PlatformOrderDetailPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, message, t]);
 
   useEffect(() => {
     loadOrder();
-  }, [id]);
+  }, [loadOrder]);
 
   // Navigate to exception detail
   const handleViewException = (exception: OrderExceptionSummary) => {

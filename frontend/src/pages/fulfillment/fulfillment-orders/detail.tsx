@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import {
@@ -65,7 +65,7 @@ export function FulfillmentOrderDetailPage() {
   const [fulfillment, setFulfillment] = useState<FulfillmentDetail | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const loadFulfillment = async () => {
+  const loadFulfillment = useCallback(async () => {
     if (!id) return;
     setLoading(true);
     try {
@@ -76,11 +76,11 @@ export function FulfillmentOrderDetailPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, message, t]);
 
   useEffect(() => {
     loadFulfillment();
-  }, [id]);
+  }, [loadFulfillment]);
 
   // Navigate to order detail
   const handleViewOrder = () => {

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import {
@@ -50,7 +50,7 @@ export function ProductDetailPage() {
   const [currencyModalOpen, setCurrencyModalOpen] = useState(false);
   const skusRef = useRef<ProductSkusRef>(null);
 
-  const loadProduct = async () => {
+  const loadProduct = useCallback(async () => {
     if (!id) return;
     setLoading(true);
     try {
@@ -61,11 +61,11 @@ export function ProductDetailPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, message, t]);
 
   useEffect(() => {
     loadProduct();
-  }, [id]);
+  }, [loadProduct]);
 
   const handleDelete = () => {
     modal.confirm({

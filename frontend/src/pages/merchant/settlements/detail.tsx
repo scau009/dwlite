@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { Card, Descriptions, Tag, Button, Spin, Empty, Table } from 'antd';
@@ -21,7 +21,7 @@ export function MerchantSettlementDetailPage() {
   const [settlement, setSettlement] = useState<SettlementDetail | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const loadSettlement = async () => {
+  const loadSettlement = useCallback(async () => {
     if (!id) return;
     setLoading(true);
     try {
@@ -32,11 +32,11 @@ export function MerchantSettlementDetailPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
 
   useEffect(() => {
     loadSettlement();
-  }, [id]);
+  }, [loadSettlement]);
 
   if (loading) {
     return (

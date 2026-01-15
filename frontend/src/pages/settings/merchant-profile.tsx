@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Card,
@@ -32,7 +32,7 @@ export function MerchantProfilePage() {
   const [saving, setSaving] = useState(false);
   const [editing, setEditing] = useState(false);
 
-  const loadProfile = async () => {
+  const loadProfile = useCallback(async () => {
     setLoading(true);
     try {
       const data = await merchantApi.getMyProfile();
@@ -43,11 +43,11 @@ export function MerchantProfilePage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [form, message, t]);
 
   useEffect(() => {
     loadProfile();
-  }, []);
+  }, [loadProfile]);
 
   const handleEdit = () => {
     setEditing(true);
