@@ -20,21 +20,21 @@ class MainSchedule implements ScheduleProviderInterface
 {
     public function __construct(
         private CacheInterface $cache,
-    ) {
+    )
+    {
     }
 
     public function getSchedule(): Schedule
     {
         return (new Schedule())
             ->with(
-                // Run cleanup every minute (for demo purposes)
-                // In production, use '1 hour', '1 day', or cron expressions
+            // Run cleanup every minute (for demo purposes)
+            // In production, use '1 hour', '1 day', or cron expressions
 
-                // KicksDB product sync - runs daily at 02:00 UTC
-                //                RecurringMessage::cron('0 2 * * *', new StartProductSyncMessage(
-                //                    KicksDbProvider::PROVIDER_NAME,
-                //                    new \DateTimeImmutable('now', new \DateTimeZone('UTC'))
-                //                )),
+            // KicksDB product sync - runs daily at 02:00 UTC
+                RecurringMessage::cron('40 22 * * *', new StartProductSyncMessage(
+                    KicksDbProvider::PROVIDER_NAME,
+                )),
 
                 // Channel product sync compensation - scan for stale pending products every 5 minutes
                 // This catches any products stuck in pending status due to message loss or processing failures
@@ -52,11 +52,11 @@ class MainSchedule implements ScheduleProviderInterface
                 // Settlement scanning - scan for pending settlements every 1 hour
                 RecurringMessage::every('1 hour', ScanPendingSettlementsMessage::create()),
 
-                // Examples of other schedule patterns:
-                // RecurringMessage::every('1 hour', new HourlyTaskMessage()),
-                // RecurringMessage::every('1 day', new DailyReportMessage()),
-                // RecurringMessage::cron('0 0 * * *', new MidnightTaskMessage()),  // Every day at midnight
-                // RecurringMessage::cron('*/5 * * * *', new Every5MinutesMessage()), // Every 5 minutes
+            // Examples of other schedule patterns:
+            // RecurringMessage::every('1 hour', new HourlyTaskMessage()),
+            // RecurringMessage::every('1 day', new DailyReportMessage()),
+            // RecurringMessage::cron('0 0 * * *', new MidnightTaskMessage()),  // Every day at midnight
+            // RecurringMessage::cron('*/5 * * * *', new Every5MinutesMessage()), // Every 5 minutes
             )
             ->stateful($this->cache);  // Prevent duplicate runs on restart
     }

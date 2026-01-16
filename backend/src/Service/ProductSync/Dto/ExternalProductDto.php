@@ -52,6 +52,11 @@ readonly class ExternalProductDto
         $avgPrice = (float) ($data['avg_price'] ?? 0);
         $retailPrice = (float) ($data['retail_price'] ?? 0);
 
+        // If avgPrice is 0 or unavailable, use retailPrice as reference price
+        if ($avgPrice <= 0 && $retailPrice > 0) {
+            $avgPrice = $retailPrice;
+        }
+
         if (isset($data['variants']) && is_array($data['variants'])) {
             foreach ($data['variants'] as $variant) {
                 // Skip hidden variants

@@ -102,7 +102,7 @@ export function PlatformRulesListPage() {
       ellipsis: true,
       render: (_, record) => (
         <Space>
-          <code className="text-xs bg-gray-100 px-2 py-1 rounded">{record.code}</code>
+          <code className="text-xs bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">{record.code}</code>
           {record.isSystem && (
             <Tooltip title={t('rules.systemRule')}>
               <LockOutlined className="text-gray-400" />

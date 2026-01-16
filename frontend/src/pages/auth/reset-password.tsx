@@ -20,11 +20,11 @@ export function ResetPasswordPage() {
       <Card>
         <Result
           status="error"
-          title="Invalid reset link"
-          subTitle="This password reset link is invalid or has expired."
+          title={t('auth.invalidResetLink')}
+          subTitle={t('auth.resetLinkExpired')}
           extra={
             <Link to="/forgot-password" className="text-blue-500 hover:underline">
-              Request a new reset link
+              {t('auth.requestNewLink')}
             </Link>
           }
         />
@@ -50,14 +50,14 @@ export function ResetPasswordPage() {
       await authApi.resetPassword({ token, password: values.password });
       navigate('/login', {
         state: {
-          message: 'Password reset successfully. Please log in with your new password.',
+          message: t('auth.resetSuccess'),
         },
       });
       return true;
     } catch (error) {
       const apiErr = error as ApiError;
       message.error(
-        apiErr.error || 'Password reset failed. The link may have expired.'
+        apiErr.error || t('auth.resetFailed')
       );
       return false;
     }
@@ -67,7 +67,7 @@ export function ResetPasswordPage() {
     <Card>
       <div className="text-center mb-6">
         <h2 className="text-2xl font-semibold">{t('auth.resetPassword')}</h2>
-        <p className="text-gray-500">Enter your new password below</p>
+        <p className="text-gray-500">{t('auth.resetPasswordSubtitle')}</p>
       </div>
 
       <ProForm
@@ -75,7 +75,7 @@ export function ResetPasswordPage() {
         onFinish={handleSubmit}
         submitter={{
           searchConfig: {
-            submitText: 'Reset password',
+            submitText: t('auth.resetPassword'),
           },
           resetButtonProps: { style: { display: 'none' } },
           submitButtonProps: { block: true, size: 'large' },
@@ -83,29 +83,29 @@ export function ResetPasswordPage() {
       >
         <ProFormText.Password
           name="password"
-          label="New Password"
+          label={t('auth.newPassword')}
           fieldProps={{
             size: 'large',
             prefix: <LockOutlined />,
           }}
-          rules={[{ required: true, message: 'Please enter your new password' }]}
-          extra="Min 8 characters with uppercase, lowercase, and number"
+          rules={[{ required: true, message: t('auth.enterNewPassword') }]}
+          extra={t('auth.passwordRequirements')}
         />
         <ProFormText.Password
           name="confirmPassword"
-          label="Confirm New Password"
+          label={t('auth.confirmNewPassword')}
           fieldProps={{
             size: 'large',
             prefix: <LockOutlined />,
           }}
           rules={[
-            { required: true, message: 'Please confirm your password' },
+            { required: true, message: t('auth.confirmPasswordRequired') },
             ({ getFieldValue }) => ({
               validator(_, value) {
                 if (!value || getFieldValue('password') === value) {
                   return Promise.resolve();
                 }
-                return Promise.reject(new Error('Passwords do not match'));
+                return Promise.reject(new Error(t('auth.passwordMismatch')));
               },
             }),
           ]}

@@ -17,7 +17,7 @@ export function VerifyEmailPage() {
     !token ? 'error' : 'loading'
   );
   const [message, setMessage] = useState(() =>
-    !token ? 'Invalid verification link. No token provided.' : ''
+    !token ? t('auth.invalidVerificationLink') : ''
   );
   const verifyAttempted = useRef(false);
 
@@ -41,7 +41,7 @@ export function VerifyEmailPage() {
         setStatus('error');
         const apiErr = error as { error?: string };
         setMessage(
-          apiErr.error || 'Email verification failed. The link may have expired.'
+          apiErr.error || t('auth.verificationError')
         );
       }
     };
@@ -61,11 +61,11 @@ export function VerifyEmailPage() {
       {status === 'success' && (
         <Result
           status="success"
-          title="Email verified!"
+          title={t('auth.emailVerified')}
           subTitle={message}
           extra={
             <Link to="/login" className="text-blue-500 hover:underline">
-              Go to login
+              {t('auth.goToLogin')}
             </Link>
           }
         />
@@ -74,11 +74,11 @@ export function VerifyEmailPage() {
       {status === 'error' && (
         <Result
           status="error"
-          title="Verification failed"
+          title={t('auth.verificationFailed')}
           subTitle={message}
           extra={
             <Link to="/login" className="text-blue-500 hover:underline">
-              Go to login
+              {t('auth.goToLogin')}
             </Link>
           }
         />

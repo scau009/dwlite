@@ -20,9 +20,7 @@ class HandleExpiredFulfillmentsMessageHandler
 
     public function __invoke(HandleExpiredFulfillmentsMessage $message): void
     {
-        $this->logger->info('Starting expired fulfillments scan', [
-            'scheduledAt' => $message->scheduledAt->format('c'),
-        ]);
+        $this->logger->info('Starting expired fulfillments scan');
 
         try {
             $count = $this->fulfillmentService->handleExpiredFulfillments();

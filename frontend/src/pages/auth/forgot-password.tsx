@@ -35,11 +35,11 @@ export function ForgotPasswordPage() {
       <Card>
         <Result
           status="success"
-          title="Check your email"
-          subTitle="If an account with that email exists, we've sent you a password reset link. Please check your inbox and spam folder."
+          title={t('auth.checkYourEmail')}
+          subTitle={t('auth.resetLinkSent')}
           extra={
             <Link to="/login" className="text-blue-500 hover:underline">
-              Back to login
+              {t('auth.backToLogin')}
             </Link>
           }
         />
@@ -52,7 +52,7 @@ export function ForgotPasswordPage() {
       <div className="text-center mb-6">
         <h2 className="text-2xl font-semibold">{t('auth.forgotPassword')}</h2>
         <p className="text-gray-500">
-          Enter your email address and we'll send you a reset link
+          {t('auth.forgotPasswordSubtitle')}
         </p>
       </div>
 
@@ -61,7 +61,7 @@ export function ForgotPasswordPage() {
         onFinish={handleSubmit}
         submitter={{
           searchConfig: {
-            submitText: 'Send reset link',
+            submitText: t('auth.sendResetLink'),
           },
           resetButtonProps: { style: { display: 'none' } },
           submitButtonProps: { block: true, size: 'large' },
@@ -74,17 +74,17 @@ export function ForgotPasswordPage() {
             size: 'large',
             prefix: <MailOutlined />,
           }}
-          placeholder="you@example.com"
+          placeholder={t('auth.emailPlaceholder')}
           rules={[
-            { required: true, message: 'Please enter your email' },
-            { type: 'email', message: 'Please enter a valid email' },
+            { required: true, message: t('auth.emailRequired') },
+            { type: 'email', message: t('auth.emailInvalid') },
           ]}
         />
       </ProForm>
 
       <div className="text-center mt-4">
         <Link to="/login" className="text-blue-500 hover:underline">
-          Back to login
+          {t('auth.backToLogin')}
         </Link>
       </div>
     </Card>

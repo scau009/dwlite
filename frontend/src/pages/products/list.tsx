@@ -84,13 +84,16 @@ function ProductCard({ product, selectable, selected, onSelect }: ProductCardPro
       styles={{ body: { padding: 12 } }}
       className={`h-full flex flex-col [&>.ant-card-cover]:shrink-0 [&>.ant-card-body]:flex-1 ${selected ? 'border-blue-500 border-2' : ''}`}
       cover={
-        <div className="aspect-square bg-gray-100 overflow-hidden relative [&_.ant-image]:w-full [&_.ant-image]:h-full [&_.ant-image-img]:w-full [&_.ant-image-img]:h-full [&_.ant-image-img]:object-cover">
+        <div className="aspect-[4/3] bg-gray-100 dark:bg-gray-800 overflow-hidden relative">
           {product.primaryImageUrl ? (
-            <Image
-              src={product.primaryImageUrl}
-              alt={product.name}
-              preview={false}
-            />
+            <div className="absolute inset-0 flex items-center justify-center p-2">
+              <Image
+                src={product.primaryImageUrl}
+                alt={product.name}
+                preview={false}
+                style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
+              />
+            </div>
           ) : (
             <div className="w-full h-full flex items-center justify-center text-gray-300 text-5xl">
               <ShoppingOutlined />
@@ -115,14 +118,14 @@ function ProductCard({ product, selectable, selected, onSelect }: ProductCardPro
       }
     >
       <div className="flex flex-col h-full">
-        {/* Title - fixed height for 2 lines */}
-        <div className="font-medium text-sm leading-tight line-clamp-2 h-[2.5rem]" title={product.name}>
+        {/* Title - fixed height for 2 lines with ellipsis */}
+        <div className="font-medium text-sm leading-tight line-clamp-2 h-[2.5rem] overflow-hidden" title={product.name}>
           {product.name}
         </div>
         {/* Style number */}
-        <div className="text-xs text-gray-400 font-mono truncate mt-1">{product.styleNumber}</div>
+        <div className="text-xs text-gray-500 dark:text-gray-300 font-mono truncate mt-1">{product.styleNumber}</div>
         {/* Price */}
-        <div className="font-semibold text-sm text-gray-900 mt-1">{priceDisplay()}</div>
+        <div className="font-semibold text-sm text-gray-900 dark:text-gray-100 mt-1">{priceDisplay()}</div>
         {/* Tags - push to bottom */}
         <div className="mt-auto pt-1.5">
           {product.tags && product.tags.length > 0 && (

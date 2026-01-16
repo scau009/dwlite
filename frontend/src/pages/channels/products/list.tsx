@@ -122,7 +122,7 @@ export function ChannelProductsListPage() {
           ) : (
             <Avatar shape="square" size={56} icon={<ShopOutlined />} className="flex-shrink-0" />
           )}
-          <code className="text-xs bg-gray-100 px-2 py-1 rounded">
+          <code className="text-xs bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">
             {record.productSku.styleNumber || record.productSku.skuCode}
           </code>
         </div>

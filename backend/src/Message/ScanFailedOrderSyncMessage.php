@@ -12,7 +12,6 @@ namespace App\Message;
 readonly class ScanFailedOrderSyncMessage
 {
     public function __construct(
-        public \DateTimeImmutable $scheduledAt,
         public ?string $salesChannelId = null,
         public int $thresholdMinutes = 15,
         public int $maxRetryCount = 5,
@@ -23,16 +22,16 @@ readonly class ScanFailedOrderSyncMessage
     public static function create(?string $salesChannelId = null): self
     {
         return new self(
-            scheduledAt: new \DateTimeImmutable('now', new \DateTimeZone('UTC')),
             salesChannelId: $salesChannelId,
         );
     }
 
     /**
-     * 获取阈值时间（只扫描此时间之前失败的订单）.
+     * 获取阈值时间（只扫描此时间之前失败的订单，在执行时计算）.
      */
     public function getThreshold(): \DateTimeImmutable
     {
-        return $this->scheduledAt->modify(sprintf('-%d minutes', $this->thresholdMinutes));
+        return (new \DateTimeImmutable('now', new \DateTimeZone('UTC')))
+            ->modify(sprintf('-%d minutes', $this->thresholdMinutes));
     }
 }

@@ -28,9 +28,7 @@ class ScheduleOrderPullMessageHandler
 
     public function __invoke(ScheduleOrderPullMessage $message): void
     {
-        $this->logger->info('Scheduling order pull for all channels', [
-            'scheduledAt' => $message->scheduledAt->format(\DateTimeInterface::ATOM),
-        ]);
+        $this->logger->info('Scheduling order pull for all channels');
 
         $activeChannels = $this->salesChannelRepo->findActive();
         $dispatchedCount = 0;

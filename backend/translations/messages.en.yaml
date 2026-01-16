@@ -169,6 +169,7 @@ admin:
 merchant:
   not_found: 'Merchant not found'
   profile_updated: 'Profile updated successfully'
+  profile_resubmitted: 'Profile updated and resubmitted for review'
   approval:
     not_verified: 'Please verify your email first'
     pending: 'Your merchant account is pending approval'
@@ -189,6 +190,8 @@ merchant_channel:
   cannot_cancel_or_disable: 'Cannot cancel or disable in current status'
   not_disabled: 'This channel is not disabled'
   not_active: 'This channel is not active, cannot fetch warehouses'
+  not_rejected: 'This channel application is not rejected'
+  resubmitted: 'Channel application resubmitted'
 
 # Wallet messages
 wallet:
@@ -333,3 +336,13 @@ listing:
   consignmentRequiresPlatformWarehouse: 'Consignment fulfillment requires platform warehouse'
   warehouseNotConfiguredForChannel: 'Warehouse is not configured for this channel'
   batchCreated: 'Successfully created %created% listing(s), failed %failed%'
+
+# API Key messages
+apiKeys:
+  maxLimitReached: 'Maximum API key limit reached. Each merchant can only have 1 API key.'
+  merchantNotApproved: 'Your merchant account must be approved before creating API keys.'
+  notFound: 'API key not found'
+  permissionsUpdated: 'Permissions updated successfully'
+  ipWhitelistUpdated: 'IP whitelist updated successfully'
+  secretRegenerated: 'Secret regenerated successfully'
+  deleted: 'API key deleted successfully'

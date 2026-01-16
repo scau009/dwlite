@@ -277,4 +277,45 @@ class ApiKeyService
     {
         return $this->apiKeyRepository->findActiveByKeyId($keyId);
     }
+
+    /**
+     * Get the API Key for a merchant (only one allowed).
+     */
+    public function getMerchantApiKey(Merchant $merchant): ?ApiKey
+    {
+        return $this->apiKeyRepository->findOneBy([
+            'merchant' => $merchant,
+            'type' => ApiKey::TYPE_MERCHANT,
+        ]);
+    }
+
+    /**
+     * Count the number of API Keys for a merchant.
+     */
+    public function countByMerchant(Merchant $merchant): int
+    {
+        return $this->apiKeyRepository->count([
+            'merchant' => $merchant,
+            'type' => ApiKey::TYPE_MERCHANT,
+        ]);
+    }
+
+    /**
+     * Regenerate the secret for an API Key.
+     *
+     * @return string The new plain secret (show to user once)
+     */
+    public function regenerateSecret(ApiKey $apiKey): string
+    {
+        $plainSecret = ApiKey::generateKeySecret();
+        $apiKey->setKeySecret($plainSecret);
+        $this->entityManager->flush();
+
+        $this->logger->info('Regenerated API key secret', [
+            'apiKeyId' => $apiKey->getId(),
+            'keyId' => $apiKey->getKeyId(),
+        ]);
+
+        return $plainSecret;
+    }
 }

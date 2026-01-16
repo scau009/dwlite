@@ -187,7 +187,7 @@ export function CreateOrderModal({
               <ShoppingOutlined style={{ fontSize: 24 }} />
             </div>
           )}
-          <code className="text-xs bg-gray-100 px-2 py-1 rounded">
+          <code className="text-xs bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">
             {record.productStyleNumber}
           </code>
         </div>

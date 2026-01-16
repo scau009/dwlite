@@ -234,7 +234,7 @@ export const merchantApi = {
    */
   updateMyProfile: async (
     data: UpdateMerchantProfileRequest
-  ): Promise<{ message: string; merchant: MerchantProfile }> => {
+  ): Promise<{ message: string; merchant: MerchantProfile; resubmitted?: boolean }> => {
     return apiFetch('/api/merchant/profile', {
       method: 'PUT',
       body: JSON.stringify(data),
@@ -279,4 +279,127 @@ export const merchantApi = {
       `/api/merchant/wallets/balance/transactions${query ? `?${query}` : ''}`
     );
   },
+
+  // ============ API Key Management ============
+
+  /**
+   * 获取商户的 API 密钥列表
+   */
+  getApiKeys: async (): Promise<{ data: MerchantApiKey[] }> => {
+    return apiFetch<{ data: MerchantApiKey[] }>('/api/merchant/api-keys');
+  },
+
+  /**
+   * 获取 API 密钥详情
+   */
+  getApiKey: async (id: string): Promise<MerchantApiKey> => {
+    return apiFetch<MerchantApiKey>(`/api/merchant/api-keys/${id}`);
+  },
+
+  /**
+   * 创建 API 密钥
+   */
+  createApiKey: async (data: CreateApiKeyRequest): Promise<CreateApiKeyResponse> => {
+    return apiFetch<CreateApiKeyResponse>('/api/merchant/api-keys', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  /**
+   * 更新 API 密钥权限
+   */
+  updateApiKeyPermissions: async (
+    id: string,
+    permissions: string[]
+  ): Promise<{ message: string; apiKey: MerchantApiKey }> => {
+    return apiFetch(`/api/merchant/api-keys/${id}/permissions`, {
+      method: 'PUT',
+      body: JSON.stringify({ permissions }),
+    });
+  },
+
+  /**
+   * 更新 API 密钥 IP 白名单
+   */
+  updateApiKeyIpWhitelist: async (
+    id: string,
+    ipWhitelist: string[] | null
+  ): Promise<{ message: string; apiKey: MerchantApiKey }> => {
+    return apiFetch(`/api/merchant/api-keys/${id}/ip-whitelist`, {
+      method: 'PUT',
+      body: JSON.stringify({ ipWhitelist }),
+    });
+  },
+
+  /**
+   * 重新生成 API 密钥 Secret
+   */
+  regenerateApiKeySecret: async (id: string): Promise<{ message: string; secret: string }> => {
+    return apiFetch(`/api/merchant/api-keys/${id}/regenerate-secret`, {
+      method: 'POST',
+    });
+  },
+
+  /**
+   * 停用 API 密钥
+   */
+  suspendApiKey: async (id: string): Promise<{ message: string; apiKey: MerchantApiKey }> => {
+    return apiFetch(`/api/merchant/api-keys/${id}/suspend`, {
+      method: 'POST',
+    });
+  },
+
+  /**
+   * 激活 API 密钥
+   */
+  activateApiKey: async (id: string): Promise<{ message: string; apiKey: MerchantApiKey }> => {
+    return apiFetch(`/api/merchant/api-keys/${id}/activate`, {
+      method: 'POST',
+    });
+  },
+
+  /**
+   * 删除 API 密钥
+   */
+  deleteApiKey: async (id: string): Promise<{ message: string }> => {
+    return apiFetch(`/api/merchant/api-keys/${id}`, {
+      method: 'DELETE',
+    });
+  },
+
+  /**
+   * 获取可用的权限列表
+   */
+  getAvailablePermissions: async (): Promise<{ permissions: string[] }> => {
+    return apiFetch<{ permissions: string[] }>('/api/merchant/api-keys/permissions');
+  },
 };
+
+// API Key Types
+export interface MerchantApiKey {
+  id: string;
+  keyId: string;
+  name: string;
+  type: string;
+  status: 'active' | 'suspended' | 'revoked';
+  permissions: string[];
+  ipWhitelist?: string[] | null;
+  lastUsedAt: string | null;
+  expiresAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateApiKeyRequest {
+  name: string;
+  permissions: string[];
+  ipWhitelist?: string[] | null;
+  expiresAt?: string | null;
+}
+
+export interface CreateApiKeyResponse {
+  message: string;
+  apiKey: MerchantApiKey;
+  secret: string;
+}

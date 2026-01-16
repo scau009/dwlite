@@ -177,7 +177,7 @@ export function AddInventoryPage() {
       key: 'styleNumber',
       width: 120,
       render: (text: string) => (
-        <code className="text-xs bg-gray-100 px-2 py-1 rounded">{text}</code>
+        <code className="text-xs bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">{text}</code>
       ),
     },
     {
@@ -273,7 +273,7 @@ export function AddInventoryPage() {
                   </div>
                 )}
                 <div className="flex-1 space-y-1">
-                  <code className="text-sm bg-gray-100 px-2 py-1 rounded">
+                  <code className="text-sm bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">
                     {selectedSku.product.styleNumber}
                   </code>
                   <div className="text-sm text-gray-600">

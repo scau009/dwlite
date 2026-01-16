@@ -66,7 +66,7 @@ export function ChannelFormModal({ open, channel, onClose, onSuccess }: ChannelF
       } else {
         form.resetFields();
         form.setFieldsValue({
-          status: 'active',
+          status: 'maintenance',
           sortOrder: 0,
           currency: 'CNY',
         });

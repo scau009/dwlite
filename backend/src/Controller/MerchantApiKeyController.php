@@ -24,6 +24,8 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 #[Route('/api/merchant/api-keys')]
 class MerchantApiKeyController extends AbstractController
 {
+    private const MAX_API_KEYS_PER_MERCHANT = 1;
+
     public function __construct(
         private MerchantRepository $merchantRepository,
         private ApiKeyRepository $apiKeyRepository,
@@ -85,6 +87,14 @@ class MerchantApiKeyController extends AbstractController
         // 检查商户状态
         if (!$merchant->isApproved()) {
             return $this->json(['error' => $this->translator->trans('merchant.not_approved')], Response::HTTP_FORBIDDEN);
+        }
+
+        // 检查 API Key 数量限制
+        $existingCount = $this->apiKeyService->countByMerchant($merchant);
+        if ($existingCount >= self::MAX_API_KEYS_PER_MERCHANT) {
+            return $this->json([
+                'error' => $this->translator->trans('apiKeys.maxLimitReached'),
+            ], Response::HTTP_BAD_REQUEST);
         }
 
         $result = $this->apiKeyService->createMerchantApiKey(
@@ -205,6 +215,30 @@ class MerchantApiKeyController extends AbstractController
         return $this->json([
             'message' => $this->translator->trans('api_key.activated'),
             'apiKey' => $this->serializeApiKey($apiKey),
+        ]);
+    }
+
+    /**
+     * 重新生成 API Key Secret.
+     */
+    #[Route('/{id}/regenerate-secret', name: 'merchant_api_key_regenerate_secret', methods: ['POST'])]
+    public function regenerateSecret(string $id, #[CurrentUser] User $user): JsonResponse
+    {
+        $merchant = $this->merchantRepository->findOneBy(['user' => $user]);
+        if (!$merchant) {
+            return $this->json(['error' => $this->translator->trans('merchant.not_found')], Response::HTTP_NOT_FOUND);
+        }
+
+        $apiKey = $this->apiKeyRepository->find($id);
+        if (!$apiKey || $apiKey->getMerchant()?->getId() !== $merchant->getId()) {
+            return $this->json(['error' => $this->translator->trans('api_key.not_found')], Response::HTTP_NOT_FOUND);
+        }
+
+        $newSecret = $this->apiKeyService->regenerateSecret($apiKey);
+
+        return $this->json([
+            'message' => $this->translator->trans('apiKeys.secretRegenerated'),
+            'secret' => $newSecret,
         ]);
     }
 

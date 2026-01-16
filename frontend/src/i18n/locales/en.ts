@@ -18,6 +18,8 @@ export default {
     select: 'Select',
     export: 'Export',
     import: 'Import',
+    copy: 'Copy',
+    copied: 'Copied',
     batchExport: 'Batch Export',
     batchImport: 'Batch Import',
     moreFilters: 'More Filters',
@@ -49,6 +51,8 @@ export default {
     apply: 'Apply',
     clickToEdit: 'Click to edit',
     quantity: 'Quantity',
+    channel: 'Channel',
+    loadError: 'Failed to load data',
   },
 
   // Navigation
@@ -137,6 +141,7 @@ export default {
     // Settings
     generalSettings: 'General',
     walletManagement: 'Wallet',
+    apiKeys: 'API Keys',
     merchantRules: 'Rules',
     userManagement: 'Users',
     roleManagement: 'Roles',
@@ -162,6 +167,48 @@ export default {
     resetPassword: 'Reset Password',
     verifyEmail: 'Verify Email',
     logout: 'Logout',
+    // Login page
+    loginSubtitle: 'Sign in to your account',
+    noAccount: "Don't have an account?",
+    // Register page
+    hasAccount: 'Already have an account?',
+    createAccount: 'Create account',
+    registerSubtitle: 'Enter your details to create a new account',
+    confirmPassword: 'Confirm Password',
+    passwordRequirements: 'Min 8 characters with uppercase, lowercase, and number',
+    // Form validation
+    emailRequired: 'Please enter your email',
+    emailInvalid: 'Please enter a valid email',
+    passwordRequired: 'Please enter your password',
+    confirmPasswordRequired: 'Please confirm your password',
+    passwordMismatch: 'Passwords do not match',
+    // Placeholder
+    emailPlaceholder: 'you@example.com',
+    // Error messages
+    loginFailed: 'Login failed. Please try again.',
+    registrationFailed: 'Registration failed. Please try again.',
+    // Forgot password page
+    forgotPasswordSubtitle: "Enter your email address and we'll send you a reset link",
+    sendResetLink: 'Send reset link',
+    checkYourEmail: 'Check your email',
+    resetLinkSent: "If an account with that email exists, we've sent you a password reset link. Please check your inbox and spam folder.",
+    backToLogin: 'Back to login',
+    // Reset password page
+    resetPasswordSubtitle: 'Enter your new password below',
+    newPassword: 'New Password',
+    confirmNewPassword: 'Confirm New Password',
+    enterNewPassword: 'Please enter your new password',
+    invalidResetLink: 'Invalid reset link',
+    resetLinkExpired: 'This password reset link is invalid or has expired.',
+    requestNewLink: 'Request a new reset link',
+    resetSuccess: 'Password reset successfully. Please log in with your new password.',
+    resetFailed: 'Password reset failed. The link may have expired.',
+    // Email verification page
+    emailVerified: 'Email verified!',
+    verificationFailed: 'Verification failed',
+    invalidVerificationLink: 'Invalid verification link. No token provided.',
+    verificationError: 'Email verification failed. The link may have expired.',
+    goToLogin: 'Go to login',
   },
 
   // Merchant approval
@@ -175,6 +222,7 @@ export default {
       disabledDescription: 'Your merchant account has been disabled. Please contact customer support for assistance.',
       rejectedReason: 'Rejection Reason',
       editProfile: 'Edit Profile',
+      resubmit: 'Edit Profile & Resubmit',
     },
   },
 
@@ -1309,6 +1357,10 @@ export default {
     merchantProfileDesc: 'Manage your merchant profile, contact info and address',
     merchantNotFound: 'Merchant not found',
     profileUpdated: 'Profile updated successfully',
+    profileResubmitted: 'Profile updated and resubmitted for review',
+    resubmitTitle: 'Resubmit for Review',
+    resubmitDescription: 'Your application was rejected. Please update your profile and save to resubmit for review.',
+    saveAndResubmit: 'Save & Resubmit',
     accountStatus: 'Account Status',
     approvedAt: 'Approved At',
     rejectedReason: 'Rejection Reason',
@@ -1332,6 +1384,70 @@ export default {
     depositTransactions: 'Deposit Transactions',
     balanceTransactions: 'Balance Transactions',
     walletNotInitialized: 'Wallet not initialized',
+  },
+
+  // API Keys
+  apiKeys: {
+    title: 'API Keys',
+    description: 'Manage your API keys for system integration',
+    create: 'Create API Key',
+    createTitle: 'Create API Key',
+    createWarning: 'The secret key will only be shown once. Please save it securely.',
+    name: 'Name',
+    nameLabel: 'Key Name',
+    namePlaceholder: 'e.g., ERP Integration',
+    nameRequired: 'Please enter a key name',
+    nameMaxLength: 'Key name cannot exceed 100 characters',
+    keyId: 'Key ID',
+    permissions: 'Permissions',
+    permissionsLabel: 'Permissions',
+    permissionsRequired: 'Please select at least one permission',
+    ipWhitelist: 'IP Whitelist',
+    ipWhitelistLabel: 'IP Whitelist (Optional)',
+    ipWhitelistHelp: 'Enter one IP address per line. Leave empty to allow all IPs.',
+    ipWhitelistPlaceholder: '192.168.1.1\n10.0.0.0',
+    noIpRestriction: 'No IP restriction',
+    status: 'Status',
+    statusActive: 'Active',
+    statusSuspended: 'Suspended',
+    statusRevoked: 'Revoked',
+    createdAt: 'Created At',
+    lastUsedAt: 'Last Used',
+    neverUsed: 'Never used',
+    secretWarningTitle: 'Save your API Secret',
+    secretWarningContent: 'This is the only time you will see this secret. Copy and save it securely.',
+    regenerateSecret: 'Regenerate Secret',
+    regenerateConfirmTitle: 'Regenerate Secret?',
+    regenerateConfirmContent: 'This will invalidate the current secret. All applications using this key will need to be updated.',
+    suspend: 'Suspend',
+    activate: 'Activate',
+    delete: 'Delete',
+    deleteConfirmTitle: 'Delete API Key?',
+    deleteConfirmContent: 'This action cannot be undone. All applications using this key will stop working.',
+    created: 'API key created successfully',
+    deleted: 'API key deleted successfully',
+    suspended: 'API key suspended',
+    activated: 'API key activated',
+    permissionsUpdated: 'Permissions updated',
+    ipWhitelistUpdated: 'IP whitelist updated',
+    secretRegenerated: 'Secret regenerated successfully',
+    maxLimitReached: 'Maximum API key limit reached',
+    emptyDescription: 'You don\'t have any API keys yet. Create one to integrate with external systems.',
+    editPermissionsTitle: 'Edit Permissions',
+    editIpWhitelistTitle: 'Edit IP Whitelist',
+    // Permissions
+    perm: {
+      inventoryRead: 'Inventory Read',
+      inventoryWrite: 'Inventory Write',
+      inboundRead: 'Inbound Read',
+      inboundWrite: 'Inbound Write',
+      fulfillmentRead: 'Fulfillment Read',
+      fulfillmentWrite: 'Fulfillment Write',
+      settlementRead: 'Settlement Read',
+      listingRead: 'Listing Read',
+      listingWrite: 'Listing Write',
+      webhookManage: 'Webhook Management',
+    },
   },
 
   // Merchant Stock Query
@@ -1666,6 +1782,12 @@ export default {
     channelEnabled: 'Channel enabled',
     // Status Description
     suspendedByAdmin: 'Suspended by admin',
+    // Resubmit
+    resubmit: 'Resubmit',
+    resubmitApplication: 'Resubmit Application',
+    resubmitSuccess: 'Application resubmitted',
+    resubmitHint: 'Your application was rejected. Please modify and resubmit for review.',
+    rejectedReason: 'Rejection Reason',
   },
 
   // Rules Engine
@@ -2096,6 +2218,16 @@ export default {
     listingStatusActive: 'Active',
     listingStatusPaused: 'Paused',
     listingStatusSoldOut: 'Sold Out',
+  },
+
+  // Order Exception (Dashboard)
+  orderException: {
+    exceptionNo: 'Exception No.',
+    type: 'Exception Type',
+    typeInventoryInsufficient: 'Inventory Insufficient',
+    typeAllocationFailed: 'Allocation Failed',
+    typeFulfillmentRejected: 'Fulfillment Rejected',
+    typeFulfillmentExpired: 'Fulfillment Expired',
   },
 
   // Fulfillment - Order Exceptions

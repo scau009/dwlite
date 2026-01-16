@@ -38,7 +38,6 @@ class StartProductSyncMessageHandler
 
         $this->logger->info('Starting product sync', [
             'provider' => $provider,
-            'scheduled_at' => $message->scheduledAt->format(\DateTimeInterface::ATOM),
         ]);
 
         // Check for running job

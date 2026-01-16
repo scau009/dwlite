@@ -154,7 +154,7 @@ export function MerchantsListPage() {
     {
       title: t('common.actions'),
       valueType: 'option',
-      width: 220,
+      width: 100,
       fixed: 'right',
       render: (_, record) => (
         <Space size="small">
@@ -167,7 +167,7 @@ export function MerchantsListPage() {
               {t('merchants.review')}
             </Button>
           )}
-          {record.status !== 'pending' && (
+          {(record.status === 'approved' || record.status === 'disabled') && (
             <>
               <Button
                 type="link"

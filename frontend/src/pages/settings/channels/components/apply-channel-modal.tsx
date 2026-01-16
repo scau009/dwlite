@@ -6,16 +6,28 @@ import { ShopOutlined } from '@ant-design/icons';
 import {
   merchantChannelApi,
   type AvailableSalesChannel,
-  type FulfillmentType
+  type FulfillmentType,
+  type MyMerchantChannel,
 } from '@/lib/merchant-channel-api';
 
 const { TextArea } = Input;
 
+interface ChannelInfo {
+  id: string;
+  name: string;
+  code: string;
+  logoUrl: string | null;
+  description?: string | null;
+}
+
 interface Props {
   open: boolean;
-  channel: AvailableSalesChannel | null;
+  channel: AvailableSalesChannel | ChannelInfo | null;
   onClose: () => void;
   onSuccess: () => void;
+  // Resubmit mode props
+  mode?: 'apply' | 'resubmit';
+  existingData?: MyMerchantChannel | null;
 }
 
 const fulfillmentOptions: { value: FulfillmentType; labelKey: string; descKey: string }[] = [
@@ -31,17 +43,34 @@ const fulfillmentOptions: { value: FulfillmentType; labelKey: string; descKey: s
   },
 ];
 
-export function ApplyChannelModal({ open, channel, onClose, onSuccess }: Props) {
+export function ApplyChannelModal({
+  open,
+  channel,
+  onClose,
+  onSuccess,
+  mode = 'apply',
+  existingData,
+}: Props) {
   const { t } = useTranslation();
   const { message } = App.useApp();
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
 
+  const isResubmit = mode === 'resubmit';
+
   useEffect(() => {
     if (open) {
-      form.resetFields();
+      if (isResubmit && existingData) {
+        // Prefill form with existing data
+        form.setFieldsValue({
+          fulfillmentTypes: existingData.requestedFulfillmentTypes,
+          remark: '', // Clear remark for new submission
+        });
+      } else {
+        form.resetFields();
+      }
     }
-  }, [open, form]);
+  }, [open, form, isResubmit, existingData]);
 
   const handleSubmit = async () => {
     if (!channel) return;
@@ -50,12 +79,20 @@ export function ApplyChannelModal({ open, channel, onClose, onSuccess }: Props) 
       const values = await form.validateFields();
       setLoading(true);
 
-      await merchantChannelApi.applyChannel({
-        salesChannelId: channel.id,
-        fulfillmentTypes: values.fulfillmentTypes,
-        remark: values.remark,
-      });
-      message.success(t('myChannels.applicationSubmitted'));
+      if (isResubmit && existingData) {
+        await merchantChannelApi.resubmitChannel(existingData.id, {
+          fulfillmentTypes: values.fulfillmentTypes,
+          remark: values.remark,
+        });
+        message.success(t('myChannels.resubmitSuccess'));
+      } else {
+        await merchantChannelApi.applyChannel({
+          salesChannelId: channel.id,
+          fulfillmentTypes: values.fulfillmentTypes,
+          remark: values.remark,
+        });
+        message.success(t('myChannels.applicationSubmitted'));
+      }
       form.resetFields();
       onSuccess();
     } catch (error) {
@@ -77,12 +114,12 @@ export function ApplyChannelModal({ open, channel, onClose, onSuccess }: Props) 
 
   return (
     <Modal
-      title={t('myChannels.applyForChannel')}
+      title={isResubmit ? t('myChannels.resubmitApplication') : t('myChannels.applyForChannel')}
       open={open}
       onOk={handleSubmit}
       onCancel={handleCancel}
       confirmLoading={loading}
-      okText={t('myChannels.submitApplication')}
+      okText={isResubmit ? t('myChannels.resubmit') : t('myChannels.submitApplication')}
       cancelText={t('common.cancel')}
       width={560}
     >
@@ -98,7 +135,7 @@ export function ApplyChannelModal({ open, channel, onClose, onSuccess }: Props) 
               <span>{channel.name}</span>
             </Space>
           </Descriptions.Item>
-          {channel.description && (
+          {'description' in channel && channel.description && (
             <Descriptions.Item label={t('channels.description')}>
               {channel.description}
             </Descriptions.Item>
@@ -106,9 +143,20 @@ export function ApplyChannelModal({ open, channel, onClose, onSuccess }: Props) 
         </Descriptions>
       </div>
 
+      {isResubmit && existingData?.remark && (
+        <div className="mb-6">
+          <Alert
+            message={t('myChannels.rejectedReason')}
+            description={existingData.remark}
+            type="error"
+            showIcon
+          />
+        </div>
+      )}
+
       <div className="mb-6">
         <Alert
-          message={t('myChannels.fulfillmentTypesHint')}
+          message={isResubmit ? t('myChannels.resubmitHint') : t('myChannels.fulfillmentTypesHint')}
           type="info"
           showIcon
         />

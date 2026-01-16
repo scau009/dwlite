@@ -11,15 +11,12 @@ namespace App\Message;
  */
 readonly class ScheduleOrderPullMessage
 {
-    public function __construct(
-        public \DateTimeImmutable $scheduledAt,
-    ) {
+    public function __construct()
+    {
     }
 
     public static function create(): self
     {
-        return new self(
-            scheduledAt: new \DateTimeImmutable('now', new \DateTimeZone('UTC')),
-        );
+        return new self();
     }
 }

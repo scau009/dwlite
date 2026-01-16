@@ -124,7 +124,7 @@ export function BrandsListPage() {
       width: 150,
       search: false,
       render: (_, record) => (
-        <code className="text-xs bg-gray-100 px-2 py-1 rounded">{record.slug}</code>
+        <code className="text-xs bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">{record.slug}</code>
       ),
     },
     {

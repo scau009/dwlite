@@ -9,13 +9,12 @@ namespace App\Message;
  */
 class HandleExpiredFulfillmentsMessage implements AsyncMessageInterface
 {
-    public function __construct(
-        public readonly \DateTimeImmutable $scheduledAt,
-    ) {
+    public function __construct()
+    {
     }
 
     public static function create(): self
     {
-        return new self(new \DateTimeImmutable('now', new \DateTimeZone('UTC')));
+        return new self();
     }
 }

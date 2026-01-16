@@ -26,8 +26,8 @@ export function MerchantPendingApprovalPage() {
     navigate('/login');
   };
 
-  const handleEditProfile = () => {
-    navigate('/settings/profile');
+  const handleResubmit = () => {
+    navigate('/settings/info');
   };
 
   const getStatusConfig = () => {
@@ -38,7 +38,6 @@ export function MerchantPendingApprovalPage() {
           status: 'warning' as const,
           title: t('merchant.approval.pendingTitle'),
           subTitle: t('merchant.approval.pendingDescription'),
-          showEditProfile: true,
         };
       case 'rejected':
         return {
@@ -46,7 +45,6 @@ export function MerchantPendingApprovalPage() {
           status: 'error' as const,
           title: t('merchant.approval.rejectedTitle'),
           subTitle: t('merchant.approval.rejectedDescription'),
-          showEditProfile: true,
         };
       case 'disabled':
         return {
@@ -54,7 +52,6 @@ export function MerchantPendingApprovalPage() {
           status: 'error' as const,
           title: t('merchant.approval.disabledTitle'),
           subTitle: t('merchant.approval.disabledDescription'),
-          showEditProfile: false,
         };
       default:
         return {
@@ -62,7 +59,6 @@ export function MerchantPendingApprovalPage() {
           status: 'warning' as const,
           title: t('merchant.approval.pendingTitle'),
           subTitle: t('merchant.approval.pendingDescription'),
-          showEditProfile: true,
         };
     }
   };
@@ -87,13 +83,13 @@ export function MerchantPendingApprovalPage() {
                 </div>
               )}
               <div className="flex justify-center gap-3">
-                {config.showEditProfile && (
+                {merchantStatus === 'rejected' && (
                   <Button
                     type="primary"
                     icon={<EditOutlined />}
-                    onClick={handleEditProfile}
+                    onClick={handleResubmit}
                   >
-                    {t('merchant.approval.editProfile')}
+                    {t('merchant.approval.resubmit')}
                   </Button>
                 )}
                 <Button icon={<LogoutOutlined />} onClick={handleLogout}>

@@ -9,6 +9,7 @@ RUN install-php-extensions \
     apcu \
     redis \
     bcmath \
+    gd \
     xdebug
 
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer

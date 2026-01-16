@@ -37,6 +37,7 @@ services:
     App\Service\Auth\PasswordResetService:
         arguments:
             $appUrl: '%env(FRONTEND_URL)%'
+            $passwordResetTemplateId: '%env(int:SES_PASSWORD_RESET_TEMPLATE_ID)%'
 
     Predis\Client:
         arguments:

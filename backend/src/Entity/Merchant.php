@@ -317,6 +317,14 @@ class Merchant
         return $this;
     }
 
+    public function resubmit(): static
+    {
+        $this->status = self::STATUS_PENDING;
+        $this->rejectedReason = null;
+
+        return $this;
+    }
+
     public function disable(): static
     {
         $this->status = self::STATUS_DISABLED;

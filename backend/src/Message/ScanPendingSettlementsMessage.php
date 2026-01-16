@@ -9,13 +9,12 @@ namespace App\Message;
  */
 readonly class ScanPendingSettlementsMessage implements AsyncMessageInterface
 {
-    public function __construct(
-        public \DateTimeImmutable $scheduledAt,
-    ) {
+    public function __construct()
+    {
     }
 
     public static function create(): self
     {
-        return new self(new \DateTimeImmutable('now', new \DateTimeZone('UTC')));
+        return new self();
     }
 }

@@ -202,6 +202,38 @@ class MerchantChannelController extends AbstractController
     }
 
     /**
+     * 重新提交被拒绝的渠道申请.
+     */
+    #[Route('/my-channels/{id}/resubmit', name: 'merchant_channel_resubmit', methods: ['POST'])]
+    public function resubmitChannel(
+        string $id,
+        #[CurrentUser] User $user,
+        #[MapRequestPayload] ApplyChannelRequest $dto
+    ): JsonResponse {
+        $merchant = $this->merchantRepository->findOneBy(['user' => $user]);
+        if (!$merchant) {
+            return $this->json(['error' => $this->translator->trans('merchant.not_found')], Response::HTTP_NOT_FOUND);
+        }
+
+        $mc = $this->merchantChannelRepository->find($id);
+        if (!$mc || $mc->getMerchant()->getId() !== $merchant->getId()) {
+            return $this->json(['error' => $this->translator->trans('merchant_channel.not_found')], Response::HTTP_NOT_FOUND);
+        }
+
+        if (!$mc->isRejected()) {
+            return $this->json(['error' => $this->translator->trans('merchant_channel.not_rejected')], Response::HTTP_BAD_REQUEST);
+        }
+
+        $mc->resubmit($dto->fulfillmentTypes, $dto->remark);
+        $this->merchantChannelRepository->save($mc, true);
+
+        return $this->json([
+            'message' => $this->translator->trans('merchant_channel.resubmitted'),
+            'merchantChannel' => $this->serializeMerchantChannel($mc),
+        ]);
+    }
+
+    /**
      * 获取渠道的可用仓库列表.
      */
     #[Route('/my-channels/{id}/warehouses', name: 'merchant_channel_warehouses', methods: ['GET'])]

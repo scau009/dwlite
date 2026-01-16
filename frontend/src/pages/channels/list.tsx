@@ -104,7 +104,7 @@ export function ChannelsListPage() {
       dataIndex: 'code',
       width: 120,
       render: (_, record) => (
-        <code className="text-xs bg-gray-100 px-2 py-1 rounded">{record.code}</code>
+        <code className="text-xs bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">{record.code}</code>
       ),
     },
     {
@@ -281,6 +281,7 @@ export function ChannelsListPage() {
           defaultPageSize: 20,
           showSizeChanger: true,
         }}
+        scroll={{ x: 1200 }}
       />
 
       <ChannelFormModal

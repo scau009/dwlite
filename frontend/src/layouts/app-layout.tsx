@@ -26,8 +26,12 @@ export function AppLayout() {
     return filterMenuByAccess(allMenus, user.accountType);
   }, [t, user]);
 
-  // If merchant is not approved, show the pending approval page
-  if (user?.accountType === 'merchant' && !isMerchantApproved) {
+  // Allow rejected merchants to access settings page to modify and resubmit
+  const isRejectedMerchant = user?.accountType === 'merchant' && user?.merchantStatus === 'rejected';
+  const isSettingsPath = location.pathname.startsWith('/settings');
+
+  // If merchant is not approved, show the pending approval page (except for rejected merchants accessing settings)
+  if (user?.accountType === 'merchant' && !isMerchantApproved && !(isRejectedMerchant && isSettingsPath)) {
     return <MerchantPendingApprovalPage />;
   }
 

@@ -482,7 +482,7 @@ export function CreateListingPage() {
           ) : (
             <Avatar shape="square" size={56} icon={<ShopOutlined />} className="flex-shrink-0" />
           )}
-          <code className="text-xs bg-gray-100 px-2 py-1 rounded">{config.product.styleNumber}</code>
+          <code className="text-xs bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">{config.product.styleNumber}</code>
         </div>
       ),
     },

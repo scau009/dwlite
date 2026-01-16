@@ -51,7 +51,7 @@ import {
   WarehouseOutboundDetailPage,
   WarehouseInventoryListPage,
 } from '@/pages/warehouse-ops';
-import { MerchantProfilePage, MerchantWalletPage } from '@/pages/settings';
+import { MerchantProfilePage, MerchantWalletPage, ApiKeysPage } from '@/pages/settings';
 import { MerchantRulesPage } from '@/pages/settings/rules';
 import { RuleFormPage } from '@/pages/settings/rules/form';
 import { PlatformRulesListPage, PlatformRuleFormPage } from '@/pages/platform-rules';
@@ -256,6 +256,7 @@ export const router = createBrowserRouter([
               // Settings
               { path: '/settings/info', element: <MerchantProfilePage /> },
               { path: '/settings/wallet', element: <MerchantWalletPage /> },
+              { path: '/settings/api-keys', element: <ApiKeysPage /> },
               { path: '/settings/users', element: <PlaceholderPage title="User Management" /> },
               { path: '/settings/roles', element: <PlaceholderPage title="Role Management" /> },
               { path: '/settings/logs', element: <PlaceholderPage title="Operation Logs" /> },

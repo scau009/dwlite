@@ -191,6 +191,7 @@ export function getMenuData(t: TFunction): AccessMenuDataItem[] {
       children: [
         { path: '/settings/info', name: t('menu.generalSettings'), access: 'merchant' },
         { path: '/settings/wallet', name: t('menu.walletManagement'), access: 'merchant' },
+        { path: '/settings/api-keys', name: t('menu.apiKeys'), access: 'merchant' },
       ],
     },
   ];

@@ -169,6 +169,7 @@ admin:
 merchant:
   not_found: '未找到商户信息'
   profile_updated: '商户信息更新成功'
+  profile_resubmitted: '资料已更新，已重新提交审核'
   approval:
     not_verified: '请先验证您的邮箱'
     pending: '您的商户账号正在等待审核'
@@ -189,6 +190,8 @@ merchant_channel:
   cannot_cancel_or_disable: '当前状态下无法取消或停用'
   not_disabled: '该渠道未停用'
   not_active: '该渠道未激活，无法获取仓库列表'
+  not_rejected: '该渠道申请不是被拒绝状态'
+  resubmitted: '渠道申请已重新提交'
 
 # Wallet messages
 wallet:
@@ -333,3 +336,13 @@ listing:
   consignmentRequiresPlatformWarehouse: '寄售履约需要平台仓库'
   warehouseNotConfiguredForChannel: '该仓库未配置在此渠道'
   batchCreated: '成功创建 %created% 条上架记录，失败 %failed% 条'
+
+# API Key messages
+apiKeys:
+  maxLimitReached: '已达到 API 密钥数量上限，每个商户只能创建 1 个 API 密钥。'
+  merchantNotApproved: '您的商户账号需要通过审核后才能创建 API 密钥。'
+  notFound: 'API 密钥不存在'
+  permissionsUpdated: '权限已更新'
+  ipWhitelistUpdated: 'IP 白名单已更新'
+  secretRegenerated: '密钥已重新生成'
+  deleted: 'API 密钥已删除'

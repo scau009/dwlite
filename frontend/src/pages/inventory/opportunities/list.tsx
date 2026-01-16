@@ -104,7 +104,7 @@ export function OpportunitiesListPage() {
       width: 120,
       search: false,
       render: (_, record) => (
-        <code className="text-xs bg-gray-100 px-2 py-1 rounded">
+        <code className="text-xs bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">
           {record.styleNumber}
         </code>
       ),

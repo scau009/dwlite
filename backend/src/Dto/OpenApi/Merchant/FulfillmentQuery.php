@@ -29,30 +29,3 @@ class FulfillmentQuery
     #[Assert\Length(max: 50)]
     public ?string $fulfillmentNo = null;
 }
-
-/**
- * Request to accept a fulfillment.
- */
-class AcceptFulfillmentRequest
-{
-    #[Assert\NotBlank]
-    #[Assert\DateTime]
-    public string $acceptedAt;
-
-    #[Assert\Length(max: 500)]
-    public ?string $notes = null;
-}
-
-/**
- * Request to reject a fulfillment.
- */
-class RejectFulfillmentRequest
-{
-    #[Assert\NotBlank]
-    #[Assert\Length(max: 500)]
-    public string $reason;
-
-    #[Assert\NotBlank]
-    #[Assert\DateTime]
-    public string $rejectedAt;
-}

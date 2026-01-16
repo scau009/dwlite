@@ -31,7 +31,6 @@ class ScanPendingSettlementsMessageHandler
 
         $this->logger->info('Scanning pending settlements', [
             'count' => count($settlements),
-            'scheduledAt' => $message->scheduledAt->format(\DateTimeInterface::ATOM),
         ]);
 
         foreach ($settlements as $settlement) {
