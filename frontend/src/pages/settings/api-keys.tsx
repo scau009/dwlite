@@ -9,10 +9,8 @@ import {
   Tag,
   Descriptions,
   Space,
-  Popconfirm,
   Typography,
   Alert,
-  Modal,
   Input,
 } from 'antd';
 import {
@@ -20,11 +18,7 @@ import {
   KeyOutlined,
   CopyOutlined,
   ReloadOutlined,
-  DeleteOutlined,
   ExclamationCircleOutlined,
-  CheckCircleOutlined,
-  StopOutlined,
-  PlayCircleOutlined,
 } from '@ant-design/icons';
 
 import {
@@ -32,24 +26,9 @@ import {
   type MerchantApiKey,
 } from '@/lib/merchant-api';
 import { CreateApiKeyModal } from './components/create-api-key-modal';
-import { EditPermissionsModal } from './components/edit-permissions-modal';
 import { EditIpWhitelistModal } from './components/edit-ip-whitelist-modal';
 
-const { Text, Paragraph } = Typography;
-
-// Permission labels mapping
-const PERMISSION_LABELS: Record<string, string> = {
-  'merchant_inventory:read': 'apiKeys.perm.inventoryRead',
-  'merchant_inventory:write': 'apiKeys.perm.inventoryWrite',
-  'merchant_inbound:read': 'apiKeys.perm.inboundRead',
-  'merchant_inbound:write': 'apiKeys.perm.inboundWrite',
-  'fulfillment:read': 'apiKeys.perm.fulfillmentRead',
-  'fulfillment:write': 'apiKeys.perm.fulfillmentWrite',
-  'settlement:read': 'apiKeys.perm.settlementRead',
-  'listing:read': 'apiKeys.perm.listingRead',
-  'listing:write': 'apiKeys.perm.listingWrite',
-  'webhook:manage': 'apiKeys.perm.webhookManage',
-};
+const { Text } = Typography;
 
 export function ApiKeysPage() {
   const { t } = useTranslation();
@@ -58,7 +37,6 @@ export function ApiKeysPage() {
   const [apiKeys, setApiKeys] = useState<MerchantApiKey[]>([]);
   const [loading, setLoading] = useState(true);
   const [createModalOpen, setCreateModalOpen] = useState(false);
-  const [editPermissionsOpen, setEditPermissionsOpen] = useState(false);
   const [editIpWhitelistOpen, setEditIpWhitelistOpen] = useState(false);
   const [selectedApiKey, setSelectedApiKey] = useState<MerchantApiKey | null>(null);
   const [newSecret, setNewSecret] = useState<string | null>(null);
@@ -106,51 +84,6 @@ export function ApiKeysPage() {
     });
   };
 
-  const handleDelete = async (apiKey: MerchantApiKey) => {
-    modal.confirm({
-      title: t('apiKeys.deleteConfirmTitle'),
-      icon: <ExclamationCircleOutlined />,
-      content: t('apiKeys.deleteConfirmContent'),
-      okText: t('common.confirm'),
-      cancelText: t('common.cancel'),
-      okButtonProps: { danger: true },
-      onOk: async () => {
-        try {
-          await merchantApi.deleteApiKey(apiKey.id);
-          message.success(t('apiKeys.deleted'));
-          loadApiKeys();
-        } catch {
-          message.error(t('common.error'));
-        }
-      },
-    });
-  };
-
-  const handleSuspend = async (apiKey: MerchantApiKey) => {
-    try {
-      await merchantApi.suspendApiKey(apiKey.id);
-      message.success(t('apiKeys.suspended'));
-      loadApiKeys();
-    } catch {
-      message.error(t('common.error'));
-    }
-  };
-
-  const handleActivate = async (apiKey: MerchantApiKey) => {
-    try {
-      await merchantApi.activateApiKey(apiKey.id);
-      message.success(t('apiKeys.activated'));
-      loadApiKeys();
-    } catch {
-      message.error(t('common.error'));
-    }
-  };
-
-  const handleEditPermissions = (apiKey: MerchantApiKey) => {
-    setSelectedApiKey(apiKey);
-    setEditPermissionsOpen(true);
-  };
-
   const handleEditIpWhitelist = (apiKey: MerchantApiKey) => {
     setSelectedApiKey(apiKey);
     setEditIpWhitelistOpen(true);
@@ -163,19 +96,6 @@ export function ApiKeysPage() {
 
   const hasApiKey = apiKeys.length > 0;
   const apiKey = apiKeys[0]; // Only one API key allowed
-
-  const getStatusTag = (status: string) => {
-    switch (status) {
-      case 'active':
-        return <Tag icon={<CheckCircleOutlined />} color="success">{t('apiKeys.statusActive')}</Tag>;
-      case 'suspended':
-        return <Tag icon={<StopOutlined />} color="warning">{t('apiKeys.statusSuspended')}</Tag>;
-      case 'revoked':
-        return <Tag icon={<StopOutlined />} color="error">{t('apiKeys.statusRevoked')}</Tag>;
-      default:
-        return <Tag>{status}</Tag>;
-    }
-  };
 
   return (
     <div className="space-y-4">
@@ -241,7 +161,6 @@ export function ApiKeysPage() {
                 <Space>
                   <KeyOutlined />
                   <Text strong>{apiKey.name}</Text>
-                  {getStatusTag(apiKey.status)}
                 </Space>
               </Descriptions.Item>
               <Descriptions.Item label={t('apiKeys.keyId')} span={2}>
@@ -259,28 +178,6 @@ export function ApiKeysPage() {
                 }
               </Descriptions.Item>
             </Descriptions>
-
-            {/* Permissions */}
-            <div className="mt-4">
-              <div className="flex justify-between items-center mb-2">
-                <Text strong>{t('apiKeys.permissions')}</Text>
-                <Button
-                  type="link"
-                  size="small"
-                  onClick={() => handleEditPermissions(apiKey)}
-                  disabled={apiKey.status === 'revoked'}
-                >
-                  {t('common.edit')}
-                </Button>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {apiKey.permissions.map((perm) => (
-                  <Tag key={perm} color="blue">
-                    {t(PERMISSION_LABELS[perm] || perm)}
-                  </Tag>
-                ))}
-              </div>
-            </div>
 
             {/* IP Whitelist */}
             <div className="mt-4">
@@ -308,46 +205,12 @@ export function ApiKeysPage() {
 
             {/* Actions */}
             <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
-              <Space wrap>
-                {apiKey.status === 'active' && (
-                  <Button
-                    icon={<StopOutlined />}
-                    onClick={() => handleSuspend(apiKey)}
-                  >
-                    {t('apiKeys.suspend')}
-                  </Button>
-                )}
-                {apiKey.status === 'suspended' && (
-                  <Button
-                    icon={<PlayCircleOutlined />}
-                    onClick={() => handleActivate(apiKey)}
-                  >
-                    {t('apiKeys.activate')}
-                  </Button>
-                )}
-                <Popconfirm
-                  title={t('apiKeys.regenerateConfirmTitle')}
-                  description={t('apiKeys.regenerateConfirmContent')}
-                  onConfirm={() => handleRegenerateSecret(apiKey)}
-                  okText={t('common.confirm')}
-                  cancelText={t('common.cancel')}
-                  disabled={apiKey.status === 'revoked'}
-                >
-                  <Button
-                    icon={<ReloadOutlined />}
-                    disabled={apiKey.status === 'revoked'}
-                  >
-                    {t('apiKeys.regenerateSecret')}
-                  </Button>
-                </Popconfirm>
-                <Button
-                  danger
-                  icon={<DeleteOutlined />}
-                  onClick={() => handleDelete(apiKey)}
-                >
-                  {t('apiKeys.delete')}
-                </Button>
-              </Space>
+              <Button
+                icon={<ReloadOutlined />}
+                onClick={() => handleRegenerateSecret(apiKey)}
+              >
+                {t('apiKeys.regenerateSecret')}
+              </Button>
             </div>
           </Card>
         ) : (
@@ -378,23 +241,6 @@ export function ApiKeysPage() {
         onClose={() => setCreateModalOpen(false)}
         onSuccess={handleCreateSuccess}
       />
-
-      {/* Edit Permissions Modal */}
-      {selectedApiKey && (
-        <EditPermissionsModal
-          open={editPermissionsOpen}
-          apiKey={selectedApiKey}
-          onClose={() => {
-            setEditPermissionsOpen(false);
-            setSelectedApiKey(null);
-          }}
-          onSuccess={() => {
-            setEditPermissionsOpen(false);
-            setSelectedApiKey(null);
-            loadApiKeys();
-          }}
-        />
-      )}
 
       {/* Edit IP Whitelist Modal */}
       {selectedApiKey && (
