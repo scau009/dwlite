@@ -22,6 +22,7 @@ import {
   PauseCircleOutlined,
   LinkOutlined,
   ExclamationCircleOutlined,
+  StopOutlined,
 } from '@ant-design/icons';
 import {
   channelProductApi,
@@ -52,6 +53,7 @@ const statusColorMap: Record<ChannelProductStatus, string> = {
   active: 'success',
   paused: 'warning',
   rejected: 'error',
+  delisted: 'default',
 };
 
 const syncStatusColorMap: Record<ChannelProductSyncStatus, string> = {
@@ -83,7 +85,7 @@ export function ChannelProductDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const { message } = App.useApp();
+  const { message, modal } = App.useApp();
   const actionRef = useRef<ActionType>(null);
 
   const [product, setProduct] = useState<ChannelProductDetail | null>(null);
@@ -173,6 +175,31 @@ export function ChannelProductDetailPage() {
     } finally {
       setActionLoading(false);
     }
+  };
+
+  const handleDelist = () => {
+    if (!id) return;
+    modal.confirm({
+      title: t('channelProducts.delistConfirmTitle'),
+      content: t('channelProducts.delistConfirmDescription'),
+      okText: t('common.confirm'),
+      cancelText: t('common.cancel'),
+      okButtonProps: { danger: true },
+      onOk: async () => {
+        setActionLoading(true);
+        try {
+          await channelProductApi.delistChannelProduct(id);
+          message.success(t('channelProducts.delisted'));
+          loadProduct();
+          actionRef.current?.reload();
+        } catch (error) {
+          const err = error as { error?: string };
+          message.error(err.error || t('common.error'));
+        } finally {
+          setActionLoading(false);
+        }
+      },
+    });
   };
 
   const getOperationLabel = (operation: SyncOperation): string => {
@@ -392,7 +419,7 @@ export function ChannelProductDetailPage() {
           {t('common.back')}
         </Button>
         <Space>
-          {product.status !== 'active' && (
+          {product.status !== 'active' && product.status !== 'delisted' && (
             <Button
               type="primary"
               icon={<PlayCircleOutlined />}
@@ -409,6 +436,16 @@ export function ChannelProductDetailPage() {
               onClick={handlePause}
             >
               {t('channelProducts.pause')}
+            </Button>
+          )}
+          {(product.status === 'active' || product.status === 'paused') && product.externalId && (
+            <Button
+              danger
+              icon={<StopOutlined />}
+              loading={actionLoading}
+              onClick={handleDelist}
+            >
+              {t('channelProducts.delist')}
             </Button>
           )}
           <Button

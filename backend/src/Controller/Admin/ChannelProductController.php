@@ -13,12 +13,14 @@ use App\Repository\ChannelProductSyncLogRepository;
 use App\Service\ChannelProductSyncService;
 use App\Service\CosService;
 use App\Service\Fulfillment\FulfillmentAllocationService;
+use App\Message\PushChannelProductMessage;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\MapQueryString;
+use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
@@ -33,6 +35,7 @@ class ChannelProductController extends AbstractController
         private EntityManagerInterface $entityManager,
         private TranslatorInterface $translator,
         private CosService $cosService,
+        private MessageBusInterface $messageBus,
     ) {
     }
 
@@ -108,6 +111,40 @@ class ChannelProductController extends AbstractController
 
         return $this->json([
             'message' => $this->translator->trans('admin.channelProduct.paused'),
+            'data' => $this->serializeChannelProduct($channelProduct),
+        ]);
+    }
+
+    #[Route('/{id}/delist', name: 'admin_channel_product_delist', methods: ['POST'])]
+    public function delist(string $id): JsonResponse
+    {
+        $channelProduct = $this->channelProductRepository->find($id);
+        if (!$channelProduct) {
+            return $this->json(['error' => $this->translator->trans('admin.channelProduct.notFound')], Response::HTTP_NOT_FOUND);
+        }
+
+        if ($channelProduct->isDelisted()) {
+            return $this->json(['error' => $this->translator->trans('admin.channelProduct.alreadyDelisted')], Response::HTTP_BAD_REQUEST);
+        }
+
+        // Only allow delist for active or paused products with externalId
+        if (!$channelProduct->isActive() && !$channelProduct->isPaused()) {
+            return $this->json(['error' => $this->translator->trans('admin.channelProduct.cannotDelistStatus')], Response::HTTP_BAD_REQUEST);
+        }
+
+        if (empty($channelProduct->getExternalId())) {
+            return $this->json(['error' => $this->translator->trans('admin.channelProduct.noExternalId')], Response::HTTP_BAD_REQUEST);
+        }
+
+        // Update status to delisted
+        $channelProduct->delist();
+        $this->entityManager->flush();
+
+        // Dispatch async message to call delist API on external channel
+        $this->messageBus->dispatch(PushChannelProductMessage::delist($channelProduct->getId()));
+
+        return $this->json([
+            'message' => $this->translator->trans('admin.channelProduct.delisted'),
             'data' => $this->serializeChannelProduct($channelProduct),
         ]);
     }

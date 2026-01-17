@@ -25,6 +25,7 @@ interface ChannelGatewayInterface
 {
     public const OPERATION_PUSH_PRODUCT = 'pushProduct';
     public const OPERATION_UPDATE_STOCK_PRICE = 'updateStockPrice';
+    public const OPERATION_DELIST = 'delistProduct';
     public const OPERATION_PULL_ORDERS = 'pullOrders';
     public const OPERATION_CONFIRM_ORDER = 'confirmOrder';
     public const OPERATION_SHIP_ORDER = 'shipOrder';
@@ -63,6 +64,15 @@ interface ChannelGatewayInterface
         ChannelGatewayContext $context,
         array $channelProducts
     ): UpdateStockPriceResponse;
+
+    /**
+     * Delist (remove) a product from the external channel.
+     * This removes the product listing from the external platform.
+     */
+    public function delistProduct(
+        ChannelGatewayContext $context,
+        ChannelProduct $channelProduct
+    ): ChannelResponse;
 
     /**
      * Pull orders from the external channel.

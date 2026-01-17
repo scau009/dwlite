@@ -106,6 +106,30 @@ class MockGateway extends AbstractChannelGateway
         );
     }
 
+    public function delistProduct(
+        ChannelGatewayContext $context,
+        ChannelProduct $channelProduct
+    ): ChannelResponse {
+        $this->logOperationStart('delistProduct', [
+            'channelProductId' => $channelProduct->getId(),
+            'externalId' => $channelProduct->getExternalId(),
+        ]);
+
+        if ($this->shouldSimulateFailure($context, 'delistProduct')) {
+            $this->handleApiError(500, 'MOCK_ERROR', 'Simulated delist product failure');
+        }
+
+        $this->logOperationSuccess('delistProduct', [
+            'channelProductId' => $channelProduct->getId(),
+        ]);
+
+        return $this->wrapResponse(
+            success: true,
+            externalId: $channelProduct->getExternalId(),
+            message: 'Product delisted successfully',
+        );
+    }
+
     public function pullOrders(
         ChannelGatewayContext $context,
         PullOrdersRequest $request

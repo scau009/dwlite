@@ -2187,6 +2187,7 @@ export default {
     statusActive: 'Active',
     statusPaused: 'Paused',
     statusRejected: 'Rejected',
+    statusDelisted: 'Delisted',
 
     // Sync Status
     syncPending: 'Pending',
@@ -2197,14 +2198,21 @@ export default {
     // Actions
     activate: 'Activate',
     pause: 'Pause',
+    delist: 'Delist',
+    relist: 'Relist',
     sync: 'Sync',
     triggerSync: 'Trigger sync to external channel',
 
     // Messages
     activated: 'Channel product activated',
     paused: 'Channel product paused',
+    delisted: 'Channel product delisted',
     syncTriggered: 'Sync triggered successfully',
     syncTriggeredWithCorrection: 'Sync triggered, corrected {{count}} source status(es)',
+
+    // Delist Confirmation
+    delistConfirmTitle: 'Confirm Delist',
+    delistConfirmDescription: 'This will remove the product from the external sales channel. Do you want to continue?',
 
     // Detail Page
     notFound: 'Channel product not found',

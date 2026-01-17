@@ -39,6 +39,7 @@ class ChannelProduct
     public const STATUS_ACTIVE = 'active';            // 已上架
     public const STATUS_PAUSED = 'paused';            // 已暂停
     public const STATUS_REJECTED = 'rejected';        // 已拒绝
+    public const STATUS_DELISTED = 'delisted';        // 已下架（从外部渠道移除）
 
     #[ORM\Id]
     #[ORM\Column(type: 'string', length: 26)]
@@ -379,6 +380,11 @@ class ChannelProduct
         return $this->status === self::STATUS_REJECTED;
     }
 
+    public function isDelisted(): bool
+    {
+        return $this->status === self::STATUS_DELISTED;
+    }
+
     public function isSynced(): bool
     {
         return $this->syncStatus === self::SYNC_STATUS_SYNCED;
@@ -522,6 +528,15 @@ class ChannelProduct
     public function pause(): void
     {
         $this->status = self::STATUS_PAUSED;
+        $this->markNeedsSync();
+    }
+
+    /**
+     * 下架商品（从外部渠道移除）.
+     */
+    public function delist(): void
+    {
+        $this->status = self::STATUS_DELISTED;
         $this->markNeedsSync();
     }
 }

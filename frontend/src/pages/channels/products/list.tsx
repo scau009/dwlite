@@ -21,6 +21,7 @@ const statusColorMap: Record<ChannelProductStatus, string> = {
   active: 'success',
   paused: 'warning',
   rejected: 'error',
+  delisted: 'default',
 };
 
 const syncStatusColorMap: Record<ChannelProductSyncStatus, string> = {
@@ -34,7 +35,7 @@ export function ChannelProductsListPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const actionRef = useRef<ActionType>(null);
-  const { message } = App.useApp();
+  const { message, modal } = App.useApp();
 
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [channels, setChannels] = useState<SalesChannel[]>([]);
@@ -96,6 +97,29 @@ export function ChannelProductsListPage() {
     } finally {
       setActionLoading(null);
     }
+  };
+
+  const handleDelist = (record: ChannelProduct) => {
+    modal.confirm({
+      title: t('channelProducts.delistConfirmTitle'),
+      content: t('channelProducts.delistConfirmDescription'),
+      okText: t('common.confirm'),
+      cancelText: t('common.cancel'),
+      okButtonProps: { danger: true },
+      onOk: async () => {
+        setActionLoading(record.id);
+        try {
+          await channelProductApi.delistChannelProduct(record.id);
+          message.success(t('channelProducts.delisted'));
+          actionRef.current?.reload();
+        } catch (error) {
+          const err = error as { error?: string };
+          message.error(err.error || t('common.error'));
+        } finally {
+          setActionLoading(null);
+        }
+      },
+    });
   };
 
   const columns: ProColumns<ChannelProduct>[] = [
@@ -185,6 +209,7 @@ export function ChannelProductsListPage() {
         active: { text: t('channelProducts.statusActive') },
         paused: { text: t('channelProducts.statusPaused') },
         rejected: { text: t('channelProducts.statusRejected') },
+        delisted: { text: t('channelProducts.statusDelisted') },
       },
       render: (_, record) => (
         <Tag color={statusColorMap[record.status]}>
@@ -251,16 +276,19 @@ export function ChannelProductsListPage() {
       fixed: 'right',
       render: (_, record) => {
         const isLoading = actionLoading === record.id;
+        const canDelist = (record.status === 'active' || record.status === 'paused') && record.externalId;
+        const canActivate = record.status !== 'active' && record.status !== 'rejected';
+        const isRelist = record.status === 'delisted';
         return (
           <Space size="small">
-            {record.status !== 'active' && (
+            {canActivate && (
               <Button
                 type="link"
                 size="small"
                 loading={isLoading}
                 onClick={() => handleActivate(record)}
               >
-                {t('channelProducts.activate')}
+                {isRelist ? t('channelProducts.relist') : t('channelProducts.activate')}
               </Button>
             )}
             {record.status === 'active' && (
@@ -271,6 +299,17 @@ export function ChannelProductsListPage() {
                 onClick={() => handlePause(record)}
               >
                 {t('channelProducts.pause')}
+              </Button>
+            )}
+            {canDelist && (
+              <Button
+                type="link"
+                size="small"
+                danger
+                loading={isLoading}
+                onClick={() => handleDelist(record)}
+              >
+                {t('channelProducts.delist')}
               </Button>
             )}
             <Button

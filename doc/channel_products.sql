@@ -16,7 +16,7 @@ CREATE TABLE `channel_products` (
     `sync_status` VARCHAR(20) NOT NULL DEFAULT 'pending' COMMENT 'pending, syncing, synced, failed',
     `last_synced_at` DATETIME NULL,
     `sync_error` TEXT NULL COMMENT 'Last sync error message',
-    `status` VARCHAR(20) NOT NULL DEFAULT 'draft' COMMENT 'draft, pending, active, paused, rejected',
+    `status` VARCHAR(20) NOT NULL DEFAULT 'draft' COMMENT 'draft, pending, active, paused, rejected, delisted',
     `total_sold_quantity` INT NOT NULL DEFAULT 0 COMMENT 'Total sold quantity',
     `created_at` DATETIME NOT NULL,
     `updated_at` DATETIME NOT NULL,

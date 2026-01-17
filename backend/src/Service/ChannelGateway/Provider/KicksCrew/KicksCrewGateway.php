@@ -43,6 +43,7 @@ class KicksCrewGateway extends AbstractChannelGateway
      */
     protected const SUPPORTED_OPERATIONS = [
         ChannelGatewayInterface::OPERATION_UPDATE_STOCK_PRICE,
+        ChannelGatewayInterface::OPERATION_DELIST,
         ChannelGatewayInterface::OPERATION_PULL_ORDERS,
         ChannelGatewayInterface::OPERATION_SHIP_ORDER,
     ];
@@ -192,6 +193,78 @@ class KicksCrewGateway extends AbstractChannelGateway
             );
         } catch (\Throwable $e) {
             $this->logOperationFailure('updateStockPrice', $e);
+            throw $e;
+        }
+    }
+
+    /**
+     * Delist (remove) a product from KC.
+     * Uses the deleteListings API to remove the listing.
+     */
+    public function delistProduct(
+        ChannelGatewayContext $context,
+        ChannelProduct $channelProduct
+    ): ChannelResponse {
+        $this->logOperationStart('delistProduct', [
+            'channelProductId' => $channelProduct->getId(),
+            'externalId' => $channelProduct->getExternalId(),
+        ]);
+
+        $apiKey = $this->getApiKey($context);
+
+        // Build the listing identifier for KC (model_no + size_system + size)
+        $productSku = $channelProduct->getProductSku();
+        $product = $productSku->getProduct();
+        $modelNo = $product->getStyleNumber();
+        $sizeValue = $productSku->getSizeValue();
+        $sizeSystem = $this->skuMapper->getSizeSystem($productSku->getSizeUnit());
+
+        if (empty($modelNo) || empty($sizeValue)) {
+            $this->logger->warning('[KICKSCREW] Cannot delist: missing model_no or size', [
+                'channelProductId' => $channelProduct->getId(),
+                'modelNo' => $modelNo,
+                'sizeValue' => $sizeValue,
+            ]);
+
+            return $this->wrapResponse(
+                success: false,
+                externalId: $channelProduct->getExternalId(),
+                message: 'Missing model_no or size',
+            );
+        }
+
+        try {
+            $response = $this->apiClient->deleteListings($apiKey, [
+                'items' => [
+                    [
+                        'model_no' => $modelNo,
+                        'size_system' => $sizeSystem,
+                        'size' => $sizeValue,
+                    ]
+                ]
+            ]);
+
+            $success = ($response['code'] ?? 1) === 0;
+
+            if ($success) {
+                $this->logOperationSuccess('delistProduct', [
+                    'channelProductId' => $channelProduct->getId(),
+                ]);
+            } else {
+                $this->logger->warning('[KICKSCREW] Delist returned non-zero code', [
+                    'channelProductId' => $channelProduct->getId(),
+                    'response' => $response,
+                ]);
+            }
+
+            return $this->wrapResponse(
+                success: $success,
+                externalId: $channelProduct->getExternalId(),
+                message: $success ? 'Product delisted successfully' : ($response['message'] ?? 'Delist failed'),
+                data: $response,
+            );
+        } catch (\Throwable $e) {
+            $this->logOperationFailure('delistProduct', $e);
             throw $e;
         }
     }

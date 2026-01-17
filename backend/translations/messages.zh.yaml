@@ -161,6 +161,19 @@ admin:
     has_merchants: '无法删除已关联商户的渠道'
     status_updated: '渠道状态已更新'
 
+  # Channel Product messages
+  channelProduct:
+    notFound: '渠道商品不存在'
+    alreadyActive: '渠道商品已处于激活状态'
+    alreadyPaused: '渠道商品已处于暂停状态'
+    alreadyDelisted: '渠道商品已下架'
+    cannotDelistStatus: '只能下架激活或暂停状态的商品'
+    noExternalId: '无法下架没有外部ID的商品'
+    activated: '渠道商品已激活'
+    paused: '渠道商品已暂停'
+    delisted: '渠道商品已下架'
+    syncTriggered: '已触发同步'
+
   # Warehouse messages
   warehouse:
     not_found: '仓库不存在'

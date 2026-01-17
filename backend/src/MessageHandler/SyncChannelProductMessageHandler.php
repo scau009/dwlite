@@ -140,12 +140,22 @@ class SyncChannelProductMessageHandler
      */
     private function shouldPushToChannel(ChannelProduct $channelProduct): bool
     {
-        // Only push if:
-        // 1. Product is active
-        // 2. Sync status is pending
-        // 3. Sales channel is configured for auto-sync (TODO: add config check)
-        return $channelProduct->getStatus() === ChannelProduct::STATUS_ACTIVE
-            && $channelProduct->getSyncStatus() === ChannelProduct::SYNC_STATUS_PENDING;
+        // Must have pending sync status
+        if ($channelProduct->getSyncStatus() !== ChannelProduct::SYNC_STATUS_PENDING) {
+            return false;
+        }
+
+        // Push if product is active (includes re-listing from delisted status)
+        if ($channelProduct->getStatus() === ChannelProduct::STATUS_ACTIVE) {
+            return true;
+        }
+
+        // Push if product is paused (to sync stock=0 to channel)
+        if ($channelProduct->getStatus() === ChannelProduct::STATUS_PAUSED) {
+            return true;
+        }
+
+        return false;
     }
 
     /**

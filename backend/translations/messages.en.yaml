@@ -161,6 +161,19 @@ admin:
     has_merchants: 'Cannot delete channel with associated merchants'
     status_updated: 'Channel status updated'
 
+  # Channel Product messages
+  channelProduct:
+    notFound: 'Channel product not found'
+    alreadyActive: 'Channel product is already active'
+    alreadyPaused: 'Channel product is already paused'
+    alreadyDelisted: 'Channel product is already delisted'
+    cannotDelistStatus: 'Can only delist active or paused products'
+    noExternalId: 'Cannot delist product without external ID'
+    activated: 'Channel product activated'
+    paused: 'Channel product paused'
+    delisted: 'Channel product delisted'
+    syncTriggered: 'Sync triggered'
+
   # Warehouse messages
   warehouse:
     not_found: 'Warehouse not found'

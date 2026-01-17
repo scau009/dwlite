@@ -241,6 +241,7 @@ class ChannelProductSyncService
             $response = match ($operation) {
                 ChannelProductSyncLog::OPERATION_PUSH_PRODUCT => $this->doPushProduct($gateway, $context, $channelProduct),
                 ChannelProductSyncLog::OPERATION_UPDATE_STOCK_PRICE => $this->doUpdateStockPrice($gateway, $context, $channelProduct),
+                ChannelProductSyncLog::OPERATION_DELIST => $this->doDelistProduct($gateway, $context, $channelProduct),
                 default => throw new \InvalidArgumentException(sprintf('Unknown operation: %s', $operation)),
             };
 
@@ -599,6 +600,22 @@ class ChannelProductSyncService
     private function doUpdateStockPrice(ChannelGatewayInterface $gateway, ChannelGatewayContext $context, ChannelProduct $channelProduct): array
     {
         $response = $gateway->updateStockPrice($context, [$channelProduct]);
+
+        return [
+            'success' => $response->success,
+            'message' => $response->message,
+            'data' => $response->data ?? [],
+        ];
+    }
+
+    /**
+     * Delist (remove) product from external channel.
+     *
+     * @return array{success: bool, message?: string, errorCode?: string, data?: array}
+     */
+    private function doDelistProduct(ChannelGatewayInterface $gateway, ChannelGatewayContext $context, ChannelProduct $channelProduct): array
+    {
+        $response = $gateway->delistProduct($context, $channelProduct);
 
         return [
             'success' => $response->success,
