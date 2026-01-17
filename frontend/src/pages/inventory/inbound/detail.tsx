@@ -129,6 +129,13 @@ export function InboundOrderDetailPage() {
 
   // Handle submit order
   const handleSubmit = () => {
+    // Check if all items have unit cost
+    const itemsWithoutCost = order?.items.filter(item => !item.unitCost || item.unitCost === '0');
+    if (itemsWithoutCost && itemsWithoutCost.length > 0) {
+      message.warning(t('inventory.unitCostRequiredForSubmit'));
+      return;
+    }
+
     modal.confirm({
       title: t('inventory.confirmSubmit'),
       content: t('inventory.confirmSubmitDesc'),
@@ -310,12 +317,6 @@ export function InboundOrderDetailPage() {
       dataIndex: ['productSku', 'skuName'],
       width: 80,
       render: (skuName: string | null) => skuName || '-',
-    },
-    {
-      title: t('inventory.colorName'),
-      dataIndex: ['productSku', 'colorName'],
-      width: 80,
-      render: (color: string | null) => color || '-',
     },
     {
       title: t('inventory.unitCost'),
@@ -559,7 +560,8 @@ export function InboundOrderDetailPage() {
 
   const isDraft = order.status === 'draft';
   const isPending = order.status === 'pending';
-  const canCancel = ['draft', 'pending', 'shipped'].includes(order.status);
+  // 只有草稿和待发货状态可以取消，已发货后不能取消
+  const canCancel = ['draft', 'pending'].includes(order.status);
   const showShipment = order.shipment !== null;
   const showExceptions = order.exceptions.length > 0;
 

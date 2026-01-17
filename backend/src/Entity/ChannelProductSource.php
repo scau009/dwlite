@@ -4,7 +4,6 @@ namespace App\Entity;
 
 use App\Repository\ChannelProductSourceRepository;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Uid\Ulid;
 
 /**
  * 渠道商品来源 - 关联平台商品与商家上架配置.
@@ -55,7 +54,6 @@ class ChannelProductSource
 
     public function __construct()
     {
-        $this->id = (string) new Ulid();
         $this->createdAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
         $this->updatedAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
     }
@@ -63,6 +61,13 @@ class ChannelProductSource
     public function getId(): string
     {
         return $this->id;
+    }
+
+    public function setId(string $id): static
+    {
+        $this->id = $id;
+
+        return $this;
     }
 
     public function getChannelProduct(): ChannelProduct

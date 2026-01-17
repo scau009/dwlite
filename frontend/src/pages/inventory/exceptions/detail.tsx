@@ -150,28 +150,53 @@ export function InboundExceptionDetailPage() {
   // Exception items columns
   const itemColumns: ColumnsType<ExceptionItem> = [
     {
+      title: t('inventory.productImage'),
+      dataIndex: 'productImage',
+      width: 80,
+      render: (image: string | null) =>
+        image ? (
+          <div className="w-12 h-12 bg-gray-50 flex items-center justify-center rounded">
+            <Image
+              src={image}
+              style={{ maxWidth: 48, maxHeight: 48, objectFit: 'contain' }}
+              preview={{ mask: false }}
+            />
+          </div>
+        ) : (
+          <div className="w-12 h-12 bg-gray-100 flex items-center justify-center text-gray-400 text-xs rounded">
+            {t('common.noImage')}
+          </div>
+        ),
+    },
+    {
       title: t('inventory.productName'),
       dataIndex: 'productName',
-      width: 200,
+      width: 180,
       ellipsis: true,
       render: (name: string | null) => name || '-',
     },
     {
+      title: t('inventory.styleNumber'),
+      dataIndex: 'styleNumber',
+      width: 120,
+      render: (styleNumber: string | null) => styleNumber ? <Text code>{styleNumber}</Text> : '-',
+    },
+    {
       title: t('inventory.colorName'),
       dataIndex: 'colorName',
-      width: 120,
+      width: 100,
       render: (color: string | null) => color || '-',
     },
     {
       title: t('inventory.skuName'),
       dataIndex: 'skuName',
-      width: 120,
+      width: 100,
       render: (sku: string | null) => sku ? <Text code>{sku}</Text> : '-',
     },
     {
       title: t('inventory.quantity'),
       dataIndex: 'quantity',
-      width: 100,
+      width: 80,
       align: 'center',
     },
   ];
@@ -253,14 +278,14 @@ export function InboundExceptionDetailPage() {
         </Descriptions>
 
         {exception.description && (
-          <div className="mt-3 pt-3 border-t">
+          <div className="mt-3">
             <Text type="secondary">{t('inventory.exceptionDescription')}:</Text>
             <p className="mt-1">{exception.description}</p>
           </div>
         )}
 
         {exception.resolution && (
-          <div className="mt-3 pt-3 border-t">
+          <div className="mt-3">
             <Text type="secondary">{t('inventory.resolution')}:</Text>
             <p className="mt-1">{exception.resolution}</p>
             {exception.resolutionNotes && (

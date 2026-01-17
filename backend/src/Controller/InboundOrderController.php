@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Dto\Inbound\AddInboundOrderItemRequest;
+use App\Dto\Inbound\BatchUpdateItemCostRequest;
 use App\Dto\Inbound\CompleteInboundReceivingRequest;
 use App\Dto\Inbound\CreateInboundExceptionRequest;
 use App\Dto\Inbound\CreateInboundOrderRequest;
@@ -404,6 +405,34 @@ class InboundOrderController extends AbstractController
     }
 
     /**
+     * 批量更新入库单明细的单件成本（入库完成前可用）.
+     */
+    #[Route('/orders/items/batch-cost', name: 'inbound_batch_update_item_cost', methods: ['PATCH'])]
+    public function batchUpdateItemCost(
+        #[CurrentUser] User $user,
+        #[MapRequestPayload] BatchUpdateItemCostRequest $dto
+    ): JsonResponse {
+        $merchant = $this->getCurrentMerchant($user);
+
+        try {
+            $items = $this->inboundOrderService->batchUpdateItemCost(
+                $merchant,
+                $dto->itemIds,
+                $dto->unitCost
+            );
+
+            return $this->json([
+                'message' => $this->translator->trans('inbound.item.batch_cost_updated', ['%count%' => count($items)]),
+                'data' => array_map([$this, 'serializeItem'], $items),
+            ]);
+        } catch (\InvalidArgumentException $e) {
+            return $this->json(['error' => $e->getMessage()], Response::HTTP_NOT_FOUND);
+        } catch (\LogicException $e) {
+            return $this->json(['error' => $e->getMessage()], Response::HTTP_BAD_REQUEST);
+        }
+    }
+
+    /**
      * 提交入库单.
      */
     #[Route('/orders/{id}/submit', name: 'inbound_submit_order', methods: ['POST'])]
@@ -498,6 +527,7 @@ class InboundOrderController extends AbstractController
 
     /**
      * 取消入库单.
+     * 只有草稿和待发货状态可以取消，已发货及之后的状态不允许取消.
      */
     #[Route('/orders/{id}/cancel', name: 'inbound_cancel_order', methods: ['POST'])]
     public function cancelOrder(
@@ -510,6 +540,13 @@ class InboundOrderController extends AbstractController
 
         if ($order === null || $order->getMerchant()->getId() !== $merchant->getId()) {
             return $this->json(['error' => 'Order not found'], Response::HTTP_NOT_FOUND);
+        }
+
+        // 检查订单是否可以取消
+        if (!$order->canCancel()) {
+            return $this->json([
+                'error' => $this->translator->trans('inbound.order.cannot_cancel_shipped'),
+            ], Response::HTTP_BAD_REQUEST);
         }
 
         $data = json_decode($request->getContent(), true) ?? [];
@@ -669,6 +706,7 @@ class InboundOrderController extends AbstractController
             'id' => $order->getId(),
             'orderNo' => $order->getOrderNo(),
             'status' => $order->getStatus(),
+            'currency' => $order->getCurrency(),
             'warehouse' => [
                 'id' => $order->getWarehouse()->getId(),
                 'name' => $order->getWarehouse()->getName(),
@@ -739,7 +777,7 @@ class InboundOrderController extends AbstractController
             'receivedQuantity' => $item->getReceivedQuantity(),
             'damagedQuantity' => $item->getDamagedQuantity(),
             'unitCost' => $item->getUnitCost(),
-            'currency' => $item->getProductSku()?->getCurrency() ?? 'CNY',
+            'currency' => $item->getCurrency(),
             'status' => $item->getStatus(),
             'warehouseRemark' => $item->getWarehouseRemark(),
             'receivedAt' => $item->getReceivedAt()?->format('c'),
@@ -773,6 +811,18 @@ class InboundOrderController extends AbstractController
      */
     private function serializeException($exception): array
     {
+        // 签名证据图片
+        $evidenceImages = [];
+        $rawImages = $exception->getEvidenceImages() ?? [];
+        foreach ($rawImages as $image) {
+            if ($image) {
+                $cosKey = $this->extractCosKey($image);
+                if ($cosKey) {
+                    $evidenceImages[] = $this->cosService->getSignedUrl($cosKey, 3600);
+                }
+            }
+        }
+
         return [
             'id' => $exception->getId(),
             'exceptionNo' => $exception->getExceptionNo(),
@@ -782,7 +832,7 @@ class InboundOrderController extends AbstractController
             'items' => array_map([$this, 'serializeExceptionItem'], $exception->getItems()->toArray()),
             'totalQuantity' => $exception->getTotalQuantity(),
             'description' => $exception->getDescription(),
-            'evidenceImages' => $exception->getEvidenceImages(),
+            'evidenceImages' => $evidenceImages,
             'resolution' => $exception->getResolution(),
             'resolutionNotes' => $exception->getResolutionNotes(),
             'resolvedAt' => $exception->getResolvedAt()?->format('c'),
@@ -795,12 +845,30 @@ class InboundOrderController extends AbstractController
      */
     private function serializeExceptionItem($item): array
     {
+        // 签名商品图片
+        $productImageUrl = null;
+        $productImage = $item->getProductImage();
+        if ($productImage) {
+            $cosKey = $this->extractCosKey($productImage);
+            if ($cosKey) {
+                $productImageUrl = $this->cosService->getSignedUrl(
+                    $cosKey,
+                    3600,
+                    'imageMogr2/thumbnail/80x80>'
+                );
+            }
+        }
+
+        // 通过关联的 InboundOrderItem 获取款号
+        $styleNumber = $item->getInboundOrderItem()?->getStyleNumber();
+
         return [
             'id' => $item->getId(),
             'skuName' => $item->getSkuName(),
+            'styleNumber' => $styleNumber,
             'colorName' => $item->getColorName(),
             'productName' => $item->getProductName(),
-            'productImage' => $item->getProductImage(),
+            'productImage' => $productImageUrl,
             'quantity' => $item->getQuantity(),
         ];
     }

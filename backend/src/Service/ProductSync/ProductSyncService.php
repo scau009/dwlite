@@ -13,6 +13,7 @@ use App\Repository\BrandRepository;
 use App\Repository\ProductExternalMappingRepository;
 use App\Repository\ProductRepository;
 use App\Repository\ProductSyncJobRepository;
+use App\Service\BusinessNoGenerator;
 use App\Service\CosService;
 use App\Service\ProductSync\Dto\ExternalProductDto;
 use App\Service\ProductSync\Dto\ExternalSkuDto;
@@ -38,6 +39,7 @@ class ProductSyncService
         private EntityManagerInterface $entityManager,
         private CosService $cosService,
         private LoggerInterface $logger,
+        private BusinessNoGenerator $businessNoGenerator,
     ) {
         $this->slugger = new AsciiSlugger();
     }
@@ -218,6 +220,7 @@ class ProductSyncService
     private function createProduct(ExternalProductDto $externalProduct): Product
     {
         $product = new Product();
+        $product->setId($this->businessNoGenerator->generateProductId());
         $product->setStyleNumber($externalProduct->styleId);
         $product->setName($externalProduct->title);
         $product->setSlug($this->generateUniqueSlug($externalProduct->title));
@@ -380,6 +383,7 @@ class ProductSyncService
             }
 
             $sku = new ProductSku();
+            $sku->setId($this->businessNoGenerator->generateProductSkuId());
             $sku->setProduct($product);
             $sku->setSizeUnit($sizeUnit);
             $sku->setSizeValue($externalSku->sizeValue);

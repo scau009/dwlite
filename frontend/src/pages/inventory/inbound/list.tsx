@@ -5,7 +5,6 @@ import { ProTable, type ActionType, type ProColumns } from '@ant-design/pro-comp
 import { Button, Tag, App, Space, Dropdown } from 'antd';
 import {
   PlusOutlined,
-  MoreOutlined,
 } from '@ant-design/icons';
 
 import { inboundApi, type InboundOrder, type InboundOrderStatus } from '@/lib/inbound-api';
@@ -121,16 +120,9 @@ export function InboundOrdersListPage() {
     });
   };
 
-  // Get action menu items based on order status
+  // Get action menu items based on order status (excluding view since it has a separate button)
   const getActionMenuItems = (order: InboundOrder) => {
     const items = [];
-
-    // View is always available
-    items.push({
-      key: 'view',
-      label: t('common.view'),
-      onClick: () => handleView(order),
-    });
 
     // Edit only for draft
     if (order.status === 'draft') {
@@ -150,8 +142,8 @@ export function InboundOrdersListPage() {
       });
     }
 
-    // Cancel for draft and pending
-    if (['draft', 'pending', 'shipped'].includes(order.status)) {
+    // Cancel for draft and pending (shipped orders cannot be cancelled)
+    if (['draft', 'pending'].includes(order.status)) {
       items.push({
         key: 'cancel',
         label: t('inventory.cancelOrder'),
@@ -284,6 +276,9 @@ export function InboundOrdersListPage() {
       fixed: 'right',
       render: (_, record) => {
         const isLoading = actionLoading === record.id;
+        const menuItems = getActionMenuItems(record);
+        const hasMoreActions = menuItems.length > 0;
+
         return (
           <Space size="small">
             <Button
@@ -293,18 +288,21 @@ export function InboundOrdersListPage() {
             >
               {t('common.view')}
             </Button>
-            <Dropdown
-              menu={{ items: getActionMenuItems(record) }}
-              trigger={['click']}
-              disabled={isLoading}
-            >
-              <Button
-                type="link"
-                size="small"
-                icon={<MoreOutlined />}
-                loading={isLoading}
-              />
-            </Dropdown>
+            {hasMoreActions && (
+              <Dropdown
+                menu={{ items: menuItems }}
+                trigger={['click']}
+                disabled={isLoading}
+              >
+                <Button
+                  type="link"
+                  size="small"
+                  loading={isLoading}
+                >
+                  {t('common.moreActions')}
+                </Button>
+              </Dropdown>
+            )}
           </Space>
         );
       },

@@ -88,7 +88,7 @@ function SortableImage({
       <img
         src={image.thumbnailUrl || image.url}
         alt=""
-        className="w-full h-full object-cover cursor-pointer"
+        className="w-full h-full object-contain cursor-pointer bg-gray-50 dark:bg-gray-800"
         onClick={() => onPreview(image.url)}
       />
       {/* Primary badge */}

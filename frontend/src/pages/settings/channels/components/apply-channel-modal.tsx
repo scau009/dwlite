@@ -124,7 +124,7 @@ export function ApplyChannelModal({
       width={560}
     >
       <div className="mb-6">
-        <Descriptions column={1} bordered size="small">
+        <Descriptions column={1} size="small">
           <Descriptions.Item label={t('channels.name')}>
             <Space>
               {channel.logoUrl ? (

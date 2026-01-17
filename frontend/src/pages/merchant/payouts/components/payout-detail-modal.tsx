@@ -165,7 +165,7 @@ export function PayoutDetailModal({ open, payoutId, onClose }: PayoutDetailModal
       ) : payout ? (
         <div className="flex flex-col gap-4">
           {/* Basic Info */}
-          <Descriptions column={2} bordered size="small">
+          <Descriptions column={2} size="small">
             <Descriptions.Item label={t('payouts.payoutNo')} span={2}>
               {payout.payoutNo}
             </Descriptions.Item>
@@ -180,7 +180,7 @@ export function PayoutDetailModal({ open, payoutId, onClose }: PayoutDetailModal
           </Descriptions>
 
           {/* Amount Info */}
-          <Descriptions column={3} bordered size="small">
+          <Descriptions column={3} size="small">
             <Descriptions.Item label={t('payouts.amount')}>
               ¥{parseFloat(payout.amount).toFixed(2)}
             </Descriptions.Item>
@@ -195,7 +195,7 @@ export function PayoutDetailModal({ open, payoutId, onClose }: PayoutDetailModal
           </Descriptions>
 
           {/* Bank Info */}
-          <Descriptions column={2} bordered size="small">
+          <Descriptions column={2} size="small">
             <Descriptions.Item label={t('payouts.bankName')}>
               {payout.bankName}
             </Descriptions.Item>
@@ -215,7 +215,7 @@ export function PayoutDetailModal({ open, payoutId, onClose }: PayoutDetailModal
 
           {/* Remark */}
           {payout.remark && (
-            <Descriptions column={1} bordered size="small">
+            <Descriptions column={1} size="small">
               <Descriptions.Item label={t('merchantPayouts.remark')}>
                 {payout.remark}
               </Descriptions.Item>

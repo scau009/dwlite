@@ -294,7 +294,7 @@ export function EditListingPage() {
                 key: 'changes',
                 label: t('listingManagement.changeDetails'),
                 children: (
-                  <Descriptions size="small" column={1} bordered>
+                  <Descriptions size="small" column={1}>
                     {record.changes.before &&
                       Object.entries(record.changes.before).map(([key, value]) => (
                         <Descriptions.Item
@@ -372,7 +372,7 @@ export function EditListingPage() {
 
       {/* Basic Info Card */}
       <Card title={t('listingManagement.listingInfo')} style={{ marginBottom: 16 }}>
-        <Descriptions column={{ xs: 1, sm: 2, md: 3 }} >
+        <Descriptions column={{ xs: 1, sm: 2, md: 3 }}>
           <Descriptions.Item label={t('listingManagement.product')} span={3}>
             <Space>
               {listing.product.imageUrl ? (

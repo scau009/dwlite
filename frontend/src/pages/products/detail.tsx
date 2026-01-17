@@ -25,6 +25,7 @@ import {
   type ProductDetail,
   type ProductStatus,
   type Currency,
+  CURRENCIES,
 } from '@/lib/product-api';
 import { ProductImages } from './components/product-images';
 import { ProductSkus, type ProductSkusRef } from './components/product-skus';
@@ -179,11 +180,16 @@ export function ProductDetailPage() {
           </Descriptions.Item>
           <Descriptions.Item label={t('products.skuCount')}>{product.skuCount}</Descriptions.Item>
           <Descriptions.Item label={t('products.priceRange')}>
-            {product.priceRange.min !== null
-              ? product.priceRange.min === product.priceRange.max
-                ? `¥${product.priceRange.min}`
-                : `¥${product.priceRange.min} - ¥${product.priceRange.max}`
-              : t('products.noPrice')}
+            {(() => {
+              const currency = product.skus[0]?.currency;
+              const symbol = CURRENCIES.find((c) => c.value === currency)?.symbol || '¥';
+              if (product.priceRange.min === null) {
+                return t('products.noPrice');
+              }
+              return product.priceRange.min === product.priceRange.max
+                ? `${symbol}${product.priceRange.min}`
+                : `${symbol}${product.priceRange.min} - ${symbol}${product.priceRange.max}`;
+            })()}
           </Descriptions.Item>
           <Descriptions.Item label={t('common.createdAt')}>
             {new Date(product.createdAt).toLocaleDateString()}

@@ -2,7 +2,7 @@
 -- Description: Platform channel products - aggregates merchant inventory for external sales channels
 
 CREATE TABLE `channel_products` (
-    `id` VARCHAR(26) NOT NULL PRIMARY KEY COMMENT 'ULID',
+    `id` VARCHAR(26) NOT NULL PRIMARY KEY COMMENT 'Business ID (CP{8-digit})',
     `sales_channel_id` VARCHAR(26) NOT NULL,
     `product_sku_id` VARCHAR(26) NOT NULL,
     `platform_price` DECIMAL(10,2) NOT NULL COMMENT 'Platform unified price',

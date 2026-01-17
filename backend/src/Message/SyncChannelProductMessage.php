@@ -21,6 +21,7 @@ readonly class SyncChannelProductMessage implements AsyncMessageInterface
         public ?string $inventoryListingId = null,
         public ?string $merchantId = null,
         public ?string $merchantInventoryId = null,
+        public ?string $dispatchTimestamp = null,
     ) {
     }
 
@@ -33,6 +34,7 @@ readonly class SyncChannelProductMessage implements AsyncMessageInterface
         ?string $inventoryListingId = null,
         ?string $merchantId = null,
         ?string $merchantInventoryId = null,
+        ?string $dispatchTimestamp = null,
     ): self {
         return new self(
             $channelProductId,
@@ -40,6 +42,7 @@ readonly class SyncChannelProductMessage implements AsyncMessageInterface
             $inventoryListingId,
             $merchantId,
             $merchantInventoryId,
+            $dispatchTimestamp,
         );
     }
 
@@ -49,5 +52,13 @@ readonly class SyncChannelProductMessage implements AsyncMessageInterface
     public function getTriggerSourceEnum(): SyncTriggerSource
     {
         return SyncTriggerSource::from($this->triggerSource);
+    }
+
+    /**
+     * Get dispatch timestamp.
+     */
+    public function getDispatchTimestamp(): ?string
+    {
+        return $this->dispatchTimestamp;
     }
 }

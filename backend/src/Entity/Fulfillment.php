@@ -146,16 +146,9 @@ class Fulfillment
     public function __construct()
     {
         $this->id = (string) new Ulid();
-        $this->fulfillmentNo = $this->generateFulfillmentNo();
         $this->items = new ArrayCollection();
         $this->createdAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
         $this->updatedAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
-    }
-
-    private function generateFulfillmentNo(): string
-    {
-        // 格式：FF + 年月日 + 6位随机数
-        return 'FF'.date('Ymd').str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
     }
 
     public function getId(): string

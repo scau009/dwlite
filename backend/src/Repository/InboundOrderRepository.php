@@ -130,11 +130,12 @@ class InboundOrderRepository extends ServiceEntityRepository
         $qb = $this->createQueryBuilder('io')
             ->andWhere('io.warehouse = :warehouse')
             ->setParameter('warehouse', $warehouse)
-            // 仓库视角：始终排除草稿和未发货状态
+            // 仓库视角：始终排除草稿、未发货和已取消状态
             ->andWhere('io.status NOT IN (:excludedStatuses)')
             ->setParameter('excludedStatuses', [
                 InboundOrder::STATUS_DRAFT,
                 InboundOrder::STATUS_PENDING,
+                InboundOrder::STATUS_CANCELLED,
             ])
             ->orderBy('io.createdAt', 'DESC');
 
@@ -283,5 +284,77 @@ class InboundOrderRepository extends ServiceEntityRepository
         }
 
         return $counts;
+    }
+
+    /**
+     * 管理端：分页查询入库单（支持筛选）.
+     *
+     * @return array{items: InboundOrder[], total: int}
+     */
+    public function findPaginatedWithFilters(int $page, int $limit, array $filters = []): array
+    {
+        $qb = $this->createQueryBuilder('io')
+            ->leftJoin('io.merchant', 'm')
+            ->leftJoin('io.warehouse', 'w')
+            ->orderBy('io.createdAt', 'DESC');
+
+        // 商户筛选
+        if (!empty($filters['merchantId'])) {
+            $qb->andWhere('io.merchant = :merchantId')
+                ->setParameter('merchantId', $filters['merchantId']);
+        }
+
+        // 仓库筛选
+        if (!empty($filters['warehouseId'])) {
+            $qb->andWhere('io.warehouse = :warehouseId')
+                ->setParameter('warehouseId', $filters['warehouseId']);
+        }
+
+        // 状态筛选
+        if (!empty($filters['status'])) {
+            $qb->andWhere('io.status = :status')
+                ->setParameter('status', $filters['status']);
+        }
+
+        // 订单号模糊搜索
+        if (!empty($filters['search'])) {
+            $qb->andWhere('io.orderNo LIKE :search')
+                ->setParameter('search', '%'.$filters['search'].'%');
+        }
+
+        // 运单号搜索
+        if (!empty($filters['trackingNumber'])) {
+            $qb->leftJoin('io.shipment', 's')
+                ->andWhere('s.trackingNumber LIKE :trackingNumber')
+                ->setParameter('trackingNumber', '%'.$filters['trackingNumber'].'%');
+        }
+
+        // 日期范围筛选
+        if (!empty($filters['startDate'])) {
+            $startDate = new \DateTimeImmutable($filters['startDate'], new \DateTimeZone('UTC'));
+            $qb->andWhere('io.createdAt >= :startDate')
+                ->setParameter('startDate', $startDate->setTime(0, 0, 0));
+        }
+
+        if (!empty($filters['endDate'])) {
+            $endDate = new \DateTimeImmutable($filters['endDate'], new \DateTimeZone('UTC'));
+            $qb->andWhere('io.createdAt <= :endDate')
+                ->setParameter('endDate', $endDate->setTime(23, 59, 59));
+        }
+
+        // 计算总数
+        $countQb = clone $qb;
+        $total = (int) $countQb->select('COUNT(io.id)')
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        // 分页
+        $qb->setFirstResult(($page - 1) * $limit)
+            ->setMaxResults($limit);
+
+        return [
+            'items' => $qb->getQuery()->getResult(),
+            'total' => $total,
+        ];
     }
 }

@@ -28,6 +28,7 @@ class InventoryListingService
         private TranslatorInterface $translator,
         private ListingOperationLogService $logService,
         private ChannelProductSyncService $syncService,
+        private BusinessNoGenerator $businessNoGenerator,
     ) {
     }
 
@@ -88,6 +89,7 @@ class InventoryListingService
 
         // Create the listing
         $listing = new InventoryListing();
+        $listing->setId($this->businessNoGenerator->generateInventoryListingId());
         $listing->setMerchantInventory($inventory);
         $listing->setMerchantSalesChannel($channel);
         $listing->setFulfillmentType($request->fulfillmentType);

@@ -23,6 +23,8 @@ import { RoleBasedDashboard } from '@/components/role-based-dashboard';
 import { ProfilePage } from '@/pages/profile';
 import { ProductsListPage, ProductDetailPage } from '@/pages/products';
 import { MerchantsListPage } from '@/pages/merchants';
+import { AdminApiKeysListPage } from '@/pages/api-keys';
+import { AdminInboundOrdersListPage, AdminInboundOrderDetailPage } from '@/pages/admin/inbound';
 import { BrandsListPage } from '@/pages/brands';
 import { ChannelsListPage, MerchantChannelsListPage, AvailableChannelsPage, MyChannelsPage } from '@/pages/channels';
 import { ChannelProductsListPage } from '@/pages/channels/products/list';
@@ -182,6 +184,11 @@ export const router = createBrowserRouter([
               { path: '/fulfillment/order-exceptions', element: <OrderExceptionsListPage /> },
               { path: '/fulfillment/order-exceptions/:id', element: <OrderExceptionDetailPage /> },
 
+              // Admin Inbound Management
+              { path: '/admin/inbound', element: <Navigate to="/admin/inbound/orders" replace /> },
+              { path: '/admin/inbound/orders', element: <AdminInboundOrdersListPage /> },
+              { path: '/admin/inbound/orders/:id', element: <AdminInboundOrderDetailPage /> },
+
               // Settlements
               { path: '/settlements', element: <Navigate to="/settlements/list" replace /> },
               { path: '/settlements/list', element: <SettlementsListPage /> },
@@ -205,7 +212,9 @@ export const router = createBrowserRouter([
               { path: '/inventory/exceptions/detail/:id', element: <InboundExceptionDetailPage /> },
 
               // Merchants
-              { path: '/merchants', element: <MerchantsListPage /> },
+              { path: '/merchants', element: <Navigate to="/merchants/list" replace /> },
+              { path: '/merchants/list', element: <MerchantsListPage /> },
+              { path: '/merchants/api-keys', element: <AdminApiKeysListPage /> },
 
               // Channels
               { path: '/channels', element: <Navigate to="/channels/list" replace /> },

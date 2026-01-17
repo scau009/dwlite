@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Service\ChannelGateway\Provider\Mock;
 
+use App\Entity\ChannelProduct;
 use App\Service\ChannelGateway\AbstractChannelGateway;
 use App\Service\ChannelGateway\ChannelGatewayContext;
 use App\Service\ChannelGateway\Dto\Request\ConfirmOrderRequest;
 use App\Service\ChannelGateway\Dto\Request\PullOrdersRequest;
 use App\Service\ChannelGateway\Dto\Request\PushProductRequest;
 use App\Service\ChannelGateway\Dto\Request\ShipOrderRequest;
-use App\Service\ChannelGateway\Dto\Request\UpdateStockPriceRequest;
 use App\Service\ChannelGateway\Dto\Response\ChannelResponse;
 use App\Service\ChannelGateway\Dto\Response\PulledOrderDto;
 use App\Service\ChannelGateway\Dto\Response\PulledOrderItemDto;
@@ -74,12 +74,15 @@ class MockGateway extends AbstractChannelGateway
         );
     }
 
+    /**
+     * @param ChannelProduct[] $channelProducts
+     */
     public function updateStockPrice(
         ChannelGatewayContext $context,
-        UpdateStockPriceRequest $request
+        array $channelProducts
     ): UpdateStockPriceResponse {
         $this->logOperationStart('updateStockPrice', [
-            'updates' => count($request->items),
+            'productCount' => count($channelProducts),
         ]);
 
         if ($this->shouldSimulateFailure($context, 'updateStockPrice')) {
@@ -87,8 +90,8 @@ class MockGateway extends AbstractChannelGateway
         }
 
         $results = [];
-        foreach ($request->items as $update) {
-            $results[$update->externalId] = true;
+        foreach ($channelProducts as $channelProduct) {
+            $results[$channelProduct->getId()] = true;
         }
 
         $this->logOperationSuccess('updateStockPrice', ['updatedCount' => count($results)]);

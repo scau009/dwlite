@@ -36,6 +36,7 @@ class InboundOrderService
         private WarehouseRepository $warehouseRepository,
         private InventoryService $inventoryService,
         private WebhookService $webhookService,
+        private BusinessNoGenerator $businessNoGenerator,
         private EntityManagerInterface $entityManager,
         private LoggerInterface $logger,
     ) {
@@ -56,7 +57,7 @@ class InboundOrderService
         $order = new InboundOrder();
         $order->setMerchant($merchant);
         $order->setWarehouse($warehouse);
-        $order->setOrderNo(InboundOrder::generateOrderNo());
+        $order->setOrderNo($this->businessNoGenerator->generateInboundOrderNo());
 
         if ($dto->merchantNotes !== null) {
             $order->setMerchantNotes($dto->merchantNotes);
@@ -64,6 +65,10 @@ class InboundOrderService
 
         if ($dto->expectedArrivalDate !== null) {
             $order->setExpectedArrivalDate(\DateTimeImmutable::createFromInterface($dto->expectedArrivalDate));
+        }
+
+        if ($dto->currency !== null) {
+            $order->setCurrency($dto->currency);
         }
 
         $this->entityManager->persist($order);
@@ -95,6 +100,10 @@ class InboundOrderService
 
         if ($dto->expectedArrivalDate !== null) {
             $order->setExpectedArrivalDate(\DateTimeImmutable::createFromInterface($dto->expectedArrivalDate));
+        }
+
+        if ($dto->currency !== null) {
+            $order->setCurrency($dto->currency);
         }
 
         $this->entityManager->flush();
@@ -224,6 +233,71 @@ class InboundOrderService
     }
 
     /**
+     * 批量更新入库单明细的单件成本（入库完成前可用）.
+     *
+     * @param string[] $itemIds
+     *
+     * @return InboundOrderItem[]
+     */
+    public function batchUpdateItemCost(
+        Merchant $merchant,
+        array $itemIds,
+        string $unitCost
+    ): array {
+        // Fetch all items in one query
+        $items = $this->itemRepository->findBy(['id' => $itemIds]);
+
+        if (count($items) === 0) {
+            throw new \InvalidArgumentException('No items found');
+        }
+
+        // Validate merchant ownership and order status for all items
+        $ordersToRecalculate = [];
+        foreach ($items as $item) {
+            $order = $item->getInboundOrder();
+
+            // Validate merchant ownership
+            if ($order->getMerchant()->getId() !== $merchant->getId()) {
+                throw new \InvalidArgumentException('Item not found or access denied');
+            }
+
+            // Validate order status (not completed/cancelled)
+            if (in_array($order->getStatus(), [
+                InboundOrder::STATUS_COMPLETED,
+                InboundOrder::STATUS_PARTIAL_COMPLETED,
+                InboundOrder::STATUS_CANCELLED,
+            ], true)) {
+                throw new \LogicException('Cannot update item cost after order completion');
+            }
+
+            // Update the item cost
+            $item->setUnitCost($unitCost);
+
+            // Track unique orders to recalculate totals
+            $orderId = $order->getId();
+            if (!isset($ordersToRecalculate[$orderId])) {
+                $ordersToRecalculate[$orderId] = $order;
+            }
+        }
+
+        // Recalculate totals once per order
+        foreach ($ordersToRecalculate as $order) {
+            $order->recalculateTotals();
+        }
+
+        // Single flush for all changes
+        $this->entityManager->flush();
+
+        $this->logger->info('Batch updated inbound order item costs', [
+            'item_count' => count($items),
+            'order_count' => count($ordersToRecalculate),
+            'unit_cost' => $unitCost,
+        ]);
+
+        return $items;
+    }
+
+    /**
      * 删除入库单明细.
      */
     public function removeItem(InboundOrderItem $item): void
@@ -282,6 +356,13 @@ class InboundOrderService
             throw new \LogicException('Cannot submit order without items');
         }
 
+        // Check all items have unit cost
+        foreach ($order->getItems() as $item) {
+            if ($item->getUnitCost() === null || $item->getUnitCost() === '') {
+                throw new \LogicException('All items must have a unit cost before submission');
+            }
+        }
+
         $order->submit();
         $this->entityManager->flush();
 
@@ -321,6 +402,7 @@ class InboundOrderService
     ): InboundOrder {
         // 创建物流信息
         $shipment = new InboundShipment();
+        $shipment->setId($this->businessNoGenerator->generateInboundShipmentId());
         $shipment->setInboundOrder($order);
         $shipment->setCarrierCode($dto->carrierCode);
         $shipment->setTrackingNumber($dto->trackingNumber);
@@ -504,6 +586,7 @@ class InboundOrderService
             $dto->type,
             $dto->description
         );
+        $exception->setExceptionNo($this->businessNoGenerator->generateInboundExceptionNo());
 
         if ($dto->evidenceImages !== null) {
             $exception->setEvidenceImages($dto->evidenceImages);
@@ -656,6 +739,7 @@ class InboundOrderService
 
     /**
      * 取消入库单.
+     * 只有草稿和待发货状态可以取消，已发货及之后的状态不允许取消.
      */
     public function cancelOrder(
         InboundOrder $order,
@@ -663,11 +747,8 @@ class InboundOrderService
         ?string $operatorId = null,
         ?string $operatorName = null
     ): InboundOrder {
-        // 如果已发货，需要回滚在途库存
-        if ($order->isShipped()) {
-            $this->inventoryService->rollbackInTransit($order, $operatorId, $operatorName);
-        }
-
+        // cancel() 方法会验证状态，只有 draft 和 pending 状态可以取消
+        // 这两个状态都没有创建在途库存，所以不需要回滚
         $order->cancel($reason);
         $this->entityManager->flush();
 
@@ -838,6 +919,7 @@ class InboundOrderService
 
         // 创建异常单
         $exception = InboundException::createForInboundOrder($order, $type, $description);
+        $exception->setExceptionNo($this->businessNoGenerator->generateInboundExceptionNo());
 
         if ($reportedBy !== null) {
             $exception->setReportedBy($reportedBy);

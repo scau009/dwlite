@@ -118,7 +118,7 @@ export function OperationLogList({ listingId, limit = 10 }: OperationLogListProp
                     key: 'changes',
                     label: t('listingManagement.changeDetails'),
                     children: (
-                      <Descriptions size="small" column={1} bordered>
+                      <Descriptions size="small" column={1}>
                         {log.changes.before &&
                           Object.entries(log.changes.before).map(([key, value]) => (
                             <Descriptions.Item

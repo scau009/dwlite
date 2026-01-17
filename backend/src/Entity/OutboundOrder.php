@@ -155,18 +155,9 @@ class OutboundOrder
     {
         $nowUtc = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
         $this->id = (string) new Ulid();
-        $this->outboundNo = $this->generateOutboundNo();
         $this->items = new ArrayCollection();
         $this->createdAt = $nowUtc;
         $this->updatedAt = $nowUtc;
-    }
-
-    private function generateOutboundNo(): string
-    {
-        // 格式：OB + 年月日 + 6位随机数
-        $dateUtc = (new \DateTimeImmutable('now', new \DateTimeZone('UTC')))->format('Ymd');
-
-        return 'OB'.$dateUtc.str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
     }
 
     public function getId(): string

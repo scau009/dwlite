@@ -20,6 +20,7 @@ use App\Service\Fulfillment\Dto\MultiSourceSelectionResult;
 use App\Service\Fulfillment\Dto\SourceAllocation;
 use App\Service\OpenApi\WebhookService;
 use App\Service\RuleEngine\RuleEngineService;
+use App\Service\BusinessNoGenerator;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Lock\LockFactory;
@@ -44,6 +45,7 @@ class FulfillmentAllocationService
         private readonly LockFactory $lockFactory,
         private readonly MessageBusInterface $messageBus,
         private readonly WebhookService $webhookService,
+        private readonly BusinessNoGenerator $businessNoGenerator,
         private readonly LoggerInterface $logger,
     ) {
     }
@@ -538,6 +540,7 @@ class FulfillmentAllocationService
 
         // 创建履约单
         $fulfillment = new Fulfillment();
+        $fulfillment->setFulfillmentNo($this->businessNoGenerator->generateFulfillmentNo());
         $fulfillment->setOrder($order);
         $fulfillment->setWarehouse($inventory->getWarehouse());
         $fulfillment->setAllocationSource(Fulfillment::ALLOCATION_SOURCE_AUTO);
@@ -699,6 +702,7 @@ class FulfillmentAllocationService
     private function createOrderException(Order $order, string $type, string $description): void
     {
         $exception = new OrderException();
+        $exception->setExceptionNo($this->businessNoGenerator->generateOrderExceptionNo());
         $exception->setOrder($order);
         $exception->setType($type);
         $exception->setDescription($description);

@@ -55,7 +55,7 @@ export function MerchantChannelDetailModal({ open, merchantChannel, onClose }: M
           <Spin />
         </div>
       ) : detail ? (
-        <Descriptions column={1} bordered size="small">
+        <Descriptions column={1} size="small">
           <Descriptions.Item label={t('merchantChannels.merchant')}>
             {detail.merchant.name}
           </Descriptions.Item>

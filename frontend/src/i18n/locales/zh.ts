@@ -5,6 +5,7 @@ export default {
     reset: '重置',
     query: '查询',
     add: '新增',
+    create: '创建',
     edit: '编辑',
     change: '更换',
     view: '查看',
@@ -32,6 +33,7 @@ export default {
     createdAt: '创建时间',
     updatedAt: '更新时间',
     actions: '操作',
+    moreActions: '更多操作',
     loading: '加载中...',
     noData: '暂无数据',
     showing: '显示 {{from}}-{{to}} 条，共 {{total}} 条',
@@ -53,6 +55,7 @@ export default {
     quantity: '数量',
     channel: '渠道',
     loadError: '加载数据失败',
+    optional: '可选',
   },
 
   // Navigation
@@ -64,6 +67,7 @@ export default {
     pricing: '价格管理',
     orders: '订单管理',
     fulfillment: '履约管理',
+    inboundManagement: '出入库管理',
     settlements: '结算中心',
     merchants: '商户管理',
     channels: '渠道管理',
@@ -106,6 +110,8 @@ export default {
     platformOrders: '渠道订单',
     fulfillmentOrders: '履约单列表',
     orderExceptions: '订单异常',
+    // Admin Inbound
+    adminInboundOrders: '入库单',
     // Settlements (Admin)
     settlementList: '结算单一览',
     payoutList: '提现申请',
@@ -120,6 +126,7 @@ export default {
     reports: '报表中心',
     // Merchants
     merchantList: '商户列表',
+    merchantApiKeys: '商户 API 密钥',
     // Channels
     channelList: '销售渠道',
     channelProducts: '渠道商品',
@@ -852,6 +859,7 @@ export default {
       autoPriority: '自动分配',
       manualPriority: '手动设置',
     },
+    consignmentWarehouseAlert: '若渠道支持寄售，请务必配置仓库',
   },
 
   // Merchant Channels
@@ -1019,6 +1027,8 @@ export default {
     merchantNotes: '商户备注',
     warehouseNotes: '仓库备注',
     cancelReason: '取消原因',
+    currency: '币种',
+    currencyRequired: '请选择币种',
     orderItems: '商品明细',
     orderTimeline: '订单时间线',
     shipmentInfo: '物流信息',
@@ -1134,6 +1144,7 @@ export default {
     // 确认对话框
     confirmSubmit: '确认提交',
     confirmSubmitDesc: '提交后将无法修改商品清单，确认提交吗？',
+    unitCostRequiredForSubmit: '提交前请填写所有商品的成本价',
     confirmCancel: '确认取消',
     confirmCancelDesc: '取消后将无法恢复，确认取消吗？',
     confirmDelete: '确认删除',
@@ -1251,6 +1262,15 @@ export default {
     resolutionRequired: '请选择处理方式',
     selectResolution: '选择处理方式',
     enterResolutionNotes: '请输入处理说明（选填）',
+  },
+
+  // Admin Inbound Management
+  adminInbound: {
+    title: '入库单管理',
+    merchant: '商户',
+    allMerchants: '全部商户',
+    allWarehouses: '全部仓库',
+    dateRange: '创建日期',
   },
 
   // Merchant Stock Query
@@ -1372,6 +1392,16 @@ export default {
     pendingReceiving: '待收货',
     completedToday: '今日完成',
 
+    // Inbound order status (warehouse perspective)
+    inboundStatusDraft: '草稿',
+    inboundStatusPending: '待发货',
+    inboundStatusShipped: '待收货',
+    inboundStatusArrived: '已到达',
+    inboundStatusReceiving: '收货中',
+    inboundStatusCompleted: '已完成',
+    inboundStatusPartialCompleted: '部分完成',
+    inboundStatusCancelled: '已取消',
+
     // Inbound Detail
     startReceiving: '开始收货',
     completeReceiving: '完成收货',
@@ -1481,8 +1511,13 @@ export default {
     // Dashboard
     dashboard: {
       title: '工作台',
+      inOutStats: '出入库统计',
       inboundStats: '入库统计',
       outboundStats: '出库统计',
+      pendingReceiving: '待收货',
+      pendingShipment: '待发货',
+      inboundToday: '今日入库',
+      outboundToday: '今日出库',
       trendTitle: '近7天入库/出库趋势',
       inboundCompleted: '入库完成',
       outboundCompleted: '出库完成',
@@ -1493,6 +1528,7 @@ export default {
     inventoryTitle: '库存查询',
     inventoryDescription: '查询本仓库的库存情况',
     productImage: '商品图片',
+    productInfo: '商品信息',
     styleNumber: '款号',
     color: '颜色',
     inTransit: '在途',
@@ -1572,6 +1608,10 @@ export default {
     createdAt: '创建时间',
     lastUsedAt: '最后使用',
     neverUsed: '从未使用',
+    expiresAt: '过期时间',
+    neverExpires: '永不过期',
+    noIpRestrictionDesc: '允许所有 IP 地址访问',
+    noPermissions: '无权限',
     secretWarningTitle: '保存您的 API 密钥',
     secretWarningContent: '这是您唯一一次看到此密钥的机会，请立即复制并妥善保存。',
     regenerateSecret: '重新生成密钥',
@@ -1606,6 +1646,26 @@ export default {
       listingWrite: '上架写入',
       webhookManage: 'Webhook 管理',
     },
+  },
+
+  // Admin API Keys Management
+  adminApiKeys: {
+    title: '商户 API 密钥',
+    description: '管理商户的 API 密钥',
+    create: '创建密钥',
+    createTitle: '创建 API 密钥',
+    selectMerchant: '选择商户',
+    searchMerchant: '搜索商户...',
+    searchMerchantPlaceholder: '输入商户名称搜索',
+    merchantRequired: '请选择商户',
+    owner: '所属商户',
+    expiresAt: '过期时间',
+    expiresAtHelp: '留空则永不过期',
+    noExpiration: '永不过期',
+    confirmActivate: '确认激活该密钥？',
+    confirmSuspend: '确认暂停该密钥？',
+    confirmDelete: '确认删除该密钥？',
+    statusUpdated: '状态已更新',
   },
 
   // Opportunities (Business Discovery)
@@ -2144,10 +2204,17 @@ export default {
 
     // Detail Page
     notFound: '渠道商品不存在',
+    productInfo: '商品信息',
+    channelInfo: '渠道信息',
     basicInfo: '基本信息',
     productName: '商品名称',
     skuCode: 'SKU编码',
+    styleNumber: '款号',
+    color: '颜色',
     stockMode: '库存模式',
+    stockModeAggregate: '聚合',
+    stockModeLowest: '最低价格',
+    stockModeFixed: '固定',
     sourcesCount: '数据源数量',
     syncLogs: '同步日志',
 

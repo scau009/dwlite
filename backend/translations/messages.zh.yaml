@@ -257,6 +257,8 @@ validation:
 
   # Inventory
   warehouse_not_found: '仓库不存在'
+  warehouse_id_required: '仓库ID不能为空'
+  currency_invalid: '无效的币种，支持的币种：CNY、USD、EUR、HKD、JPY'
   inventory_not_found: '库存记录不存在'
   inventory_not_owned: '库存不属于当前商户'
   inventory_warehouse_mismatch: '库存所在仓库与出库单仓库不匹配'
@@ -271,13 +273,16 @@ inbound:
     shipped: '已发货'
     received: '收货完成'
     cancelled: '入库单已取消'
+    cannot_cancel_shipped: '已发货的入库单不能取消'
     deleted: '入库单已删除'
     notes_updated: '备注更新成功'
+    unit_cost_required: '所有商品必须填写成本价才能提交'
   item:
     added: '商品添加成功'
     updated: '商品更新成功'
     removed: '商品删除成功'
     cost_updated: '成本更新成功'
+    batch_cost_updated: '已更新 %count% 个商品的成本'
   exception:
     created: '异常单创建成功'
     resolved: '异常单处理完成'

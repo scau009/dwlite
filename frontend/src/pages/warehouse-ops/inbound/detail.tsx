@@ -95,17 +95,17 @@ export function WarehouseInboundDetailPage() {
     loadOrder();
   }, [loadOrder]);
 
-  // Get status label
+  // Get status label (warehouse perspective)
   const getStatusLabel = (status: WarehouseInboundStatus) => {
     const labels: Record<WarehouseInboundStatus, string> = {
-      draft: t('inventory.statusDraft'),
-      pending: t('inventory.statusPending'),
-      shipped: t('inventory.statusShipped'),
-      arrived: t('inventory.statusArrived'),
-      receiving: t('inventory.statusReceiving'),
-      completed: t('inventory.statusCompleted'),
-      partial_completed: t('inventory.statusPartialCompleted'),
-      cancelled: t('inventory.statusCancelled'),
+      draft: t('warehouseOps.inboundStatusDraft'),
+      pending: t('warehouseOps.inboundStatusPending'),
+      shipped: t('warehouseOps.inboundStatusShipped'),
+      arrived: t('warehouseOps.inboundStatusArrived'),
+      receiving: t('warehouseOps.inboundStatusReceiving'),
+      completed: t('warehouseOps.inboundStatusCompleted'),
+      partial_completed: t('warehouseOps.inboundStatusPartialCompleted'),
+      cancelled: t('warehouseOps.inboundStatusCancelled'),
     };
     return labels[status] || status;
   };
@@ -268,7 +268,12 @@ export function WarehouseInboundDetailPage() {
       width: 80,
       render: (image: string | null) =>
         image ? (
-          <Image src={image} width={60} height={60} style={{ objectFit: 'cover' }} />
+          <Image
+            src={image}
+            width={60}
+            height={60}
+            style={{ objectFit: 'contain', background: '#f5f5f5' }}
+          />
         ) : (
           <div className="w-[60px] h-[60px] bg-gray-100 flex items-center justify-center text-gray-400">
             N/A
@@ -391,36 +396,54 @@ export function WarehouseInboundDetailPage() {
           <div className="text-gray-600 mt-4">{exception.description}</div>
         )}
 
-        {/* Exception Items */}
+        {/* Exception Items - Table Display */}
         {items.length > 0 && (
           <div>
             <Text type="secondary" className="text-xs block mb-2">{t('warehouseOps.exceptionItems')}</Text>
-            <div className="flex flex-wrap gap-2">
-              {items.map(item => (
-                <div key={item.id} className="flex gap-2 p-2 bg-gray-50 rounded border min-w-[180px]">
-                  {item.productImage ? (
-                    <img
-                      src={item.productImage}
-                      alt={item.productName || ''}
-                      className="w-10 h-10 object-cover rounded"
-                    />
+            <Table
+              size="small"
+              dataSource={items}
+              rowKey="id"
+              pagination={false}
+              columns={[
+                {
+                  title: t('inventory.productImage'),
+                  dataIndex: 'productImage',
+                  width: 70,
+                  render: (img: string | null) => img ? (
+                    <img src={img} className="w-[50px] h-[50px] object-contain bg-gray-50 rounded" />
                   ) : (
-                    <div className="w-10 h-10 bg-gray-200 flex items-center justify-center text-gray-400 text-xs rounded">
-                      N/A
-                    </div>
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm truncate">{item.productName || '-'}</div>
-                    <div className="text-xs text-gray-500">
-                      {item.skuName} / {item.colorName}
-                    </div>
-                    <div className="text-xs">
-                      <span className="text-red-500 font-medium">× {item.quantity}</span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+                    <div className="w-[50px] h-[50px] bg-gray-200 flex items-center justify-center text-gray-400 text-xs rounded">N/A</div>
+                  ),
+                },
+                {
+                  title: t('inventory.productName'),
+                  dataIndex: 'productName',
+                  width: 150,
+                  ellipsis: true,
+                  render: (name: string | null) => name || '-',
+                },
+                {
+                  title: t('inventory.styleNumber'),
+                  dataIndex: 'styleNumber',
+                  width: 120,
+                  render: (styleNumber: string | null) => styleNumber || '-',
+                },
+                {
+                  title: t('inventory.skuName'),
+                  dataIndex: 'skuName',
+                  width: 80,
+                  render: (sku: string | null) => sku || '-',
+                },
+                {
+                  title: t('common.quantity'),
+                  dataIndex: 'quantity',
+                  width: 80,
+                  align: 'center' as const,
+                  render: (qty: number) => <span className="text-red-500 font-medium">{qty}</span>,
+                },
+              ]}
+            />
           </div>
         )}
 
@@ -760,13 +783,12 @@ export function WarehouseInboundDetailPage() {
               {receivingItem.productImage ? (
                 <Image
                   src={receivingItem.productImage}
-                  width={60}
-                  height={60}
-                  style={{ objectFit: 'cover' }}
-                  preview={false}
+                  width={80}
+                  height={80}
+                  style={{ objectFit: 'contain', background: '#f5f5f5', borderRadius: 4 }}
                 />
               ) : (
-                <div className="w-[60px] h-[60px] bg-gray-200 flex items-center justify-center text-gray-400 rounded">
+                <div className="w-[80px] h-[80px] bg-gray-200 flex items-center justify-center text-gray-400 rounded">
                   N/A
                 </div>
               )}

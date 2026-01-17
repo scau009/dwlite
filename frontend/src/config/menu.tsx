@@ -54,11 +54,11 @@ export function getMenuData(t: TFunction): AccessMenuDataItem[] {
       icon: <InboxOutlined />,
       access: 'merchant',
       children: [
-        { path: '/inventory/warehouses', name: t('menu.merchantWarehouses'), access: 'merchant' },
-        { path: '/inventory/stock', name: t('menu.stockQuery'), access: 'merchant' },
         { path: '/inventory/inbound', name: t('menu.inboundOrders'), access: 'merchant' },
+        { path: '/inventory/stock', name: t('menu.stockQuery'), access: 'merchant' },
         { path: '/inventory/outbound', name: t('menu.outboundOrders'), access: 'merchant' },
         { path: '/inventory/exceptions', name: t('menu.inboundExceptions'), access: 'merchant' },
+        { path: '/inventory/warehouses', name: t('menu.merchantWarehouses'), access: 'merchant' },
       ],
     },
     {
@@ -103,7 +103,8 @@ export function getMenuData(t: TFunction): AccessMenuDataItem[] {
       icon: <TeamOutlined />,
       access: 'admin',
       children: [
-        { path: '/merchants', name: t('menu.merchantList') },
+        { path: '/merchants/list', name: t('menu.merchantList') },
+        { path: '/merchants/api-keys', name: t('menu.merchantApiKeys') },
       ],
     },
     {
@@ -131,6 +132,15 @@ export function getMenuData(t: TFunction): AccessMenuDataItem[] {
         { path: '/fulfillment/orders', name: t('menu.platformOrders'), access: 'admin' },
         { path: '/fulfillment/fulfillment-orders', name: t('menu.fulfillmentOrders'), access: 'admin' },
         { path: '/fulfillment/order-exceptions', name: t('menu.orderExceptions'), access: 'admin' },
+      ],
+    },
+    {
+      path: '/admin/inbound',
+      name: t('nav.inboundManagement'),
+      icon: <InboxOutlined />,
+      access: 'admin',
+      children: [
+        { path: '/admin/inbound/orders', name: t('menu.adminInboundOrders'), access: 'admin' },
       ],
     },
     {

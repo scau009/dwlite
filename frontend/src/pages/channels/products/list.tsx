@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { ProTable, type ActionType, type ProColumns } from '@ant-design/pro-components';
 import { Tag, App, Space, Button, Tooltip, Typography, Image, Avatar } from 'antd';
-import { SyncOutlined, PlayCircleOutlined, PauseCircleOutlined, LinkOutlined, ExclamationCircleOutlined, ShopOutlined } from '@ant-design/icons';
+import { LinkOutlined, ExclamationCircleOutlined, ShopOutlined } from '@ant-design/icons';
 
 import {
   channelProductApi,
@@ -247,49 +247,40 @@ export function ChannelProductsListPage() {
     {
       title: t('common.actions'),
       valueType: 'option',
-      width: 180,
+      width: 150,
       fixed: 'right',
       render: (_, record) => {
         const isLoading = actionLoading === record.id;
         return (
           <Space size="small">
             {record.status !== 'active' && (
-              <Tooltip title={t('channelProducts.activate')}>
-                <Button
-                  type="link"
-                  size="small"
-                  icon={<PlayCircleOutlined />}
-                  loading={isLoading}
-                  onClick={() => handleActivate(record)}
-                >
-                  {t('channelProducts.activate')}
-                </Button>
-              </Tooltip>
-            )}
-            {record.status === 'active' && (
-              <Tooltip title={t('channelProducts.pause')}>
-                <Button
-                  type="link"
-                  size="small"
-                  icon={<PauseCircleOutlined />}
-                  loading={isLoading}
-                  onClick={() => handlePause(record)}
-                >
-                  {t('channelProducts.pause')}
-                </Button>
-              </Tooltip>
-            )}
-            <Tooltip title={t('channelProducts.triggerSync')}>
               <Button
                 type="link"
                 size="small"
-                icon={<SyncOutlined />}
                 loading={isLoading}
-                onClick={() => handleSync(record)}
+                onClick={() => handleActivate(record)}
               >
-                {t('channelProducts.sync')}
+                {t('channelProducts.activate')}
               </Button>
-            </Tooltip>
+            )}
+            {record.status === 'active' && (
+              <Button
+                type="link"
+                size="small"
+                loading={isLoading}
+                onClick={() => handlePause(record)}
+              >
+                {t('channelProducts.pause')}
+              </Button>
+            )}
+            <Button
+              type="link"
+              size="small"
+              loading={isLoading}
+              onClick={() => handleSync(record)}
+            >
+              {t('channelProducts.sync')}
+            </Button>
           </Space>
         );
       },

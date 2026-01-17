@@ -19,6 +19,19 @@ class BusinessNoGenerator
     public const PREFIX_WITHDRAW = 'WD';            // 提现单
     public const PREFIX_REFUND = 'RF';              // 退款单
     public const PREFIX_SETTLEMENT = 'ST';          // 结算单
+    public const PREFIX_INBOUND_ORDER = 'IB';       // 入库单
+    public const PREFIX_PLATFORM_ORDER = 'PO';      // 平台订单
+    public const PREFIX_OUTBOUND_ORDER = 'OB';      // 出库单
+    public const PREFIX_FULFILLMENT = 'FF';         // 履约单
+    public const PREFIX_INBOUND_EXCEPTION = 'EX';   // 入库异常单
+    public const PREFIX_ORDER_EXCEPTION = 'OE';     // 订单异常单
+    public const PREFIX_PRODUCT = 'P';              // 商品
+    public const PREFIX_PRODUCT_SKU = 'S';          // SKU
+    public const PREFIX_USER = 'U';                 // 用户
+    public const PREFIX_CHANNEL_PRODUCT = 'CP';     // 渠道商品
+    public const PREFIX_CHANNEL_PRODUCT_SOURCE = 'CS';  // 渠道商品来源
+    public const PREFIX_INVENTORY_LISTING = 'IL';  // 上架配置
+    public const PREFIX_INBOUND_SHIPMENT = 'IS';   // 入库发货
 
     private const KEY_PREFIX = 'biz_seq:';
     private const SEQ_PAD_LENGTH = 5;  // 序号位数，00001-99999
@@ -98,5 +111,138 @@ class BusinessNoGenerator
     public function generateSettlementNo(): string
     {
         return $this->generate(self::PREFIX_SETTLEMENT);
+    }
+
+    /**
+     * 生成入库单编号.
+     */
+    public function generateInboundOrderNo(): string
+    {
+        return $this->generate(self::PREFIX_INBOUND_ORDER);
+    }
+
+    /**
+     * 生成平台订单编号.
+     */
+    public function generatePlatformOrderNo(): string
+    {
+        return $this->generate(self::PREFIX_PLATFORM_ORDER);
+    }
+
+    /**
+     * 生成出库单编号.
+     */
+    public function generateOutboundOrderNo(): string
+    {
+        return $this->generate(self::PREFIX_OUTBOUND_ORDER);
+    }
+
+    /**
+     * 生成履约单编号.
+     */
+    public function generateFulfillmentNo(): string
+    {
+        return $this->generate(self::PREFIX_FULFILLMENT);
+    }
+
+    /**
+     * 生成入库异常单编号.
+     */
+    public function generateInboundExceptionNo(): string
+    {
+        return $this->generate(self::PREFIX_INBOUND_EXCEPTION);
+    }
+
+    /**
+     * 生成订单异常单编号.
+     */
+    public function generateOrderExceptionNo(): string
+    {
+        return $this->generate(self::PREFIX_ORDER_EXCEPTION);
+    }
+
+    /**
+     * 生成商品ID.
+     *
+     * 格式: P{8位序号}，如 P00000001
+     */
+    public function generateProductId(): string
+    {
+        return $this->generateWithoutDate(self::PREFIX_PRODUCT);
+    }
+
+    /**
+     * 生成SKU ID.
+     *
+     * 格式: S{8位序号}，如 S00000001
+     */
+    public function generateProductSkuId(): string
+    {
+        return $this->generateWithoutDate(self::PREFIX_PRODUCT_SKU);
+    }
+
+    /**
+     * 生成用户ID.
+     *
+     * 格式: U{8位序号}，如 U00000001
+     */
+    public function generateUserId(): string
+    {
+        return $this->generateWithoutDate(self::PREFIX_USER);
+    }
+
+    /**
+     * 生成渠道商品ID.
+     *
+     * 格式: CP{8位序号}，如 CP00000001
+     */
+    public function generateChannelProductId(): string
+    {
+        return $this->generateWithoutDate(self::PREFIX_CHANNEL_PRODUCT);
+    }
+
+    /**
+     * 生成渠道商品来源ID.
+     *
+     * 格式: CS{8位序号}，如 CS00000001
+     */
+    public function generateChannelProductSourceId(): string
+    {
+        return $this->generateWithoutDate(self::PREFIX_CHANNEL_PRODUCT_SOURCE);
+    }
+
+    /**
+     * 生成上架配置ID.
+     *
+     * 格式: IL{8位序号}，如 IL00000001
+     */
+    public function generateInventoryListingId(): string
+    {
+        return $this->generateWithoutDate(self::PREFIX_INVENTORY_LISTING);
+    }
+
+    /**
+     * 生成入库发货ID.
+     *
+     * 格式: IS{8位序号}，如 IS00000001
+     */
+    public function generateInboundShipmentId(): string
+    {
+        return $this->generateWithoutDate(self::PREFIX_INBOUND_SHIPMENT);
+    }
+
+    /**
+     * 生成不含日期的业务编号.
+     *
+     * @param string $prefix 业务前缀
+     *
+     * @return string 生成的业务编号
+     */
+    private function generateWithoutDate(string $prefix): string
+    {
+        $key = 'business_no:'.$prefix;
+        $sequence = $this->redis->incr($key);
+
+        return $prefix.str_pad((string) $sequence, 8, '0', STR_PAD_LEFT);
     }
 }

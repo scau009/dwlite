@@ -24,6 +24,7 @@ use App\Repository\ProductImageRepository;
 use App\Repository\ProductRepository;
 use App\Repository\ProductSkuRepository;
 use App\Repository\TagRepository;
+use App\Service\BusinessNoGenerator;
 use App\Service\CosService;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -48,7 +49,9 @@ class ProductController extends AbstractController
         private CategoryRepository $categoryRepository,
         private TagRepository $tagRepository,
         private CosService $cosService,
-        private TranslatorInterface $translator, private readonly LoggerInterface $logger,
+        private TranslatorInterface $translator,
+        private LoggerInterface $logger,
+        private BusinessNoGenerator $businessNoGenerator,
     ) {
     }
 
@@ -128,6 +131,7 @@ class ProductController extends AbstractController
         }
 
         $product = new Product();
+        $product->setId($this->businessNoGenerator->generateProductId());
         $product->setName($dto->name);
         $product->setSlug($slug);
         $product->setStyleNumber($dto->styleNumber);
@@ -331,6 +335,7 @@ class ProductController extends AbstractController
         }
 
         $sku = new ProductSku();
+        $sku->setId($this->businessNoGenerator->generateProductSkuId());
         $sku->setProduct($product);
         $sku->setPrice($dto->price);
         $sku->setIsActive($dto->isActive);
@@ -437,6 +442,7 @@ class ProductController extends AbstractController
 
         foreach ($sizesToCreate as $index => $sizeValue) {
             $sku = new ProductSku();
+            $sku->setId($this->businessNoGenerator->generateProductSkuId());
             $sku->setProduct($product);
             $sku->setSizeUnit($requestedUnit);
             $sku->setSizeValue($sizeValue);

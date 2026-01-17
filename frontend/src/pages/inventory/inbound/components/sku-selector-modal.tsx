@@ -290,15 +290,15 @@ export function SkuSelectorModal({
         {/* Product info */}
         <div className="flex gap-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
           {product.primaryImageUrl ? (
-            <Image
-              src={product.primaryImageUrl}
-              width={80}
-              height={80}
-              style={{ objectFit: 'cover' }}
-              preview={false}
-            />
+            <div className="w-[80px] h-[80px] flex-shrink-0 flex items-center justify-center bg-white rounded">
+              <Image
+                src={product.primaryImageUrl}
+                style={{ maxWidth: 80, maxHeight: 80, objectFit: 'contain' }}
+                preview={false}
+              />
+            </div>
           ) : (
-            <div className="w-[80px] h-[80px] bg-gray-200 flex items-center justify-center text-gray-400">
+            <div className="w-[80px] h-[80px] flex-shrink-0 bg-gray-200 flex items-center justify-center text-gray-400 rounded">
               N/A
             </div>
           )}

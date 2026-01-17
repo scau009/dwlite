@@ -19,6 +19,7 @@ import {
   CopyOutlined,
   ReloadOutlined,
   ExclamationCircleOutlined,
+  EditOutlined,
 } from '@ant-design/icons';
 
 import {
@@ -29,6 +30,13 @@ import { CreateApiKeyModal } from './components/create-api-key-modal';
 import { EditIpWhitelistModal } from './components/edit-ip-whitelist-modal';
 
 const { Text } = Typography;
+
+// Status color mapping
+const statusColors: Record<string, string> = {
+  active: 'success',
+  suspended: 'warning',
+  revoked: 'error',
+};
 
 export function ApiKeysPage() {
   const { t } = useTranslation();
@@ -94,26 +102,47 @@ export function ApiKeysPage() {
     message.success(t('common.copied'));
   };
 
+  const getStatusLabel = (status: string) => {
+    const labels: Record<string, string> = {
+      active: t('apiKeys.statusActive'),
+      suspended: t('apiKeys.statusSuspended'),
+      revoked: t('apiKeys.statusRevoked'),
+    };
+    return labels[status] || status;
+  };
+
   const hasApiKey = apiKeys.length > 0;
   const apiKey = apiKeys[0]; // Only one API key allowed
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col gap-4">
       {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-xl font-semibold m-0">{t('apiKeys.title')}</h2>
-          <p className="text-gray-500 dark:text-gray-400 mt-1 mb-0">{t('apiKeys.description')}</p>
+      <div className="flex items-center justify-between flex-wrap gap-4">
+        <div className="flex items-center gap-4">
+          <span className="text-lg font-semibold">{t('apiKeys.title')}</span>
+          {hasApiKey && (
+            <Tag color={statusColors[apiKey.status]}>{getStatusLabel(apiKey.status)}</Tag>
+          )}
         </div>
-        {!hasApiKey && (
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={() => setCreateModalOpen(true)}
-          >
-            {t('apiKeys.create')}
-          </Button>
-        )}
+        <Space wrap>
+          {hasApiKey && apiKey.status !== 'revoked' && (
+            <Button
+              icon={<ReloadOutlined />}
+              onClick={() => handleRegenerateSecret(apiKey)}
+            >
+              {t('apiKeys.regenerateSecret')}
+            </Button>
+          )}
+          {!hasApiKey && (
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={() => setCreateModalOpen(true)}
+            >
+              {t('apiKeys.create')}
+            </Button>
+          )}
+        </Space>
       </div>
 
       {/* Secret Alert */}
@@ -144,75 +173,74 @@ export function ApiKeysPage() {
           }
           closable
           onClose={() => setNewSecret(null)}
-          className="!my-4"
         />
       )}
 
       <Spin spinning={loading}>
         {hasApiKey ? (
-          <Card>
-            {/* API Key Info */}
-            <Descriptions
-              column={{ xs: 1, sm: 2, md: 2 }}
-              bordered
-              size="small"
+          <div className="flex flex-col gap-4">
+            {/* Basic Info Card */}
+            <Card
+              title={t('detail.basicInfo')}
             >
-              <Descriptions.Item label={t('apiKeys.name')} span={2}>
-                <Space>
-                  <KeyOutlined />
+              <Descriptions column={{ xs: 1, sm: 2, md: 3 }} size="small">
+                <Descriptions.Item label={t('apiKeys.name')}>
                   <Text strong>{apiKey.name}</Text>
-                </Space>
-              </Descriptions.Item>
-              <Descriptions.Item label={t('apiKeys.keyId')} span={2}>
-                <Space>
+                </Descriptions.Item>
+                <Descriptions.Item label={t('apiKeys.keyId')}>
                   <Text code copyable>{apiKey.keyId}</Text>
-                </Space>
-              </Descriptions.Item>
-              <Descriptions.Item label={t('apiKeys.createdAt')}>
-                {new Date(apiKey.createdAt).toLocaleString()}
-              </Descriptions.Item>
-              <Descriptions.Item label={t('apiKeys.lastUsedAt')}>
-                {apiKey.lastUsedAt
-                  ? new Date(apiKey.lastUsedAt).toLocaleString()
-                  : <Text type="secondary">{t('apiKeys.neverUsed')}</Text>
-                }
-              </Descriptions.Item>
-            </Descriptions>
+                </Descriptions.Item>
+                <Descriptions.Item label={t('common.status')}>
+                  <Tag color={statusColors[apiKey.status]}>{getStatusLabel(apiKey.status)}</Tag>
+                </Descriptions.Item>
+                <Descriptions.Item label={t('apiKeys.createdAt')}>
+                  {new Date(apiKey.createdAt).toLocaleString()}
+                </Descriptions.Item>
+                <Descriptions.Item label={t('apiKeys.lastUsedAt')}>
+                  {apiKey.lastUsedAt
+                    ? new Date(apiKey.lastUsedAt).toLocaleString()
+                    : <Text type="secondary">{t('apiKeys.neverUsed')}</Text>
+                  }
+                </Descriptions.Item>
+                <Descriptions.Item label={t('apiKeys.expiresAt')}>
+                  {apiKey.expiresAt
+                    ? new Date(apiKey.expiresAt).toLocaleString()
+                    : <Text type="secondary">{t('apiKeys.neverExpires')}</Text>
+                  }
+                </Descriptions.Item>
+              </Descriptions>
+            </Card>
 
-            {/* IP Whitelist */}
-            <div className="mt-4">
-              <div className="flex justify-between items-center mb-2">
-                <Text strong>{t('apiKeys.ipWhitelist')}</Text>
-                <Button
-                  type="link"
-                  size="small"
-                  onClick={() => handleEditIpWhitelist(apiKey)}
-                  disabled={apiKey.status === 'revoked'}
-                >
-                  {t('common.edit')}
-                </Button>
-              </div>
+            {/* IP Whitelist Card */}
+            <Card
+              title={t('apiKeys.ipWhitelist')}
+              extra={
+                apiKey.status !== 'revoked' && (
+                  <Button
+                    type="link"
+                    icon={<EditOutlined />}
+                    onClick={() => handleEditIpWhitelist(apiKey)}
+                  >
+                    {t('common.edit')}
+                  </Button>
+                )
+              }
+            >
               {apiKey.ipWhitelist && apiKey.ipWhitelist.length > 0 ? (
                 <div className="flex flex-wrap gap-2">
                   {apiKey.ipWhitelist.map((ip) => (
-                    <Tag key={ip}>{ip}</Tag>
+                    <Tag key={ip} className="text-sm">{ip}</Tag>
                   ))}
                 </div>
               ) : (
-                <Text type="secondary">{t('apiKeys.noIpRestriction')}</Text>
+                <div className="text-center py-4">
+                  <Text type="secondary">{t('apiKeys.noIpRestriction')}</Text>
+                  <br />
+                  <Text type="secondary" className="text-xs">{t('apiKeys.noIpRestrictionDesc')}</Text>
+                </div>
               )}
-            </div>
-
-            {/* Actions */}
-            <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
-              <Button
-                icon={<ReloadOutlined />}
-                onClick={() => handleRegenerateSecret(apiKey)}
-              >
-                {t('apiKeys.regenerateSecret')}
-              </Button>
-            </div>
-          </Card>
+            </Card>
+          </div>
         ) : (
           <Card>
             <Empty

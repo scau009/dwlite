@@ -20,7 +20,7 @@ class OrderFactory
 
         $order = $test->createMock(Order::class);
         $order->method('getId')->willReturn($overrides['id'] ?? 'order-'.self::$counter);
-        $order->method('getOrderNo')->willReturn($overrides['orderNo'] ?? 'ORD'.date('Ymd').str_pad((string)self::$counter, 6, '0', STR_PAD_LEFT));
+        $order->method('getOrderNo')->willReturn($overrides['orderNo'] ?? 'PO'.date('Ymd').str_pad((string)self::$counter, 5, '0', STR_PAD_LEFT));
         $order->method('getExternalOrderNo')->willReturn($overrides['externalOrderNo'] ?? 'EXT'.self::$counter);
         $order->method('getStatus')->willReturn($overrides['status'] ?? Order::STATUS_PENDING);
         $order->method('getTotalAmount')->willReturn($overrides['totalAmount'] ?? '100.00');

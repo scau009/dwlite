@@ -18,8 +18,10 @@ use App\Repository\InboundOrderItemRepository;
 use App\Repository\InboundOrderRepository;
 use App\Repository\ProductSkuRepository;
 use App\Repository\WarehouseRepository;
+use App\Service\BusinessNoGenerator;
 use App\Service\InboundOrderService;
 use App\Service\InventoryService;
+use App\Service\OpenApi\WebhookService;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -33,6 +35,8 @@ class InboundOrderServiceTest extends TestCase
     private ProductSkuRepository&MockObject $skuRepository;
     private WarehouseRepository&MockObject $warehouseRepository;
     private InventoryService&MockObject $inventoryService;
+    private WebhookService&MockObject $webhookService;
+    private BusinessNoGenerator&MockObject $businessNoGenerator;
     private EntityManagerInterface&MockObject $entityManager;
     private LoggerInterface&MockObject $logger;
     private InboundOrderService $service;
@@ -45,8 +49,16 @@ class InboundOrderServiceTest extends TestCase
         $this->skuRepository = $this->createMock(ProductSkuRepository::class);
         $this->warehouseRepository = $this->createMock(WarehouseRepository::class);
         $this->inventoryService = $this->createMock(InventoryService::class);
+        $this->webhookService = $this->createMock(WebhookService::class);
+        $this->businessNoGenerator = $this->createMock(BusinessNoGenerator::class);
         $this->entityManager = $this->createMock(EntityManagerInterface::class);
         $this->logger = $this->createMock(LoggerInterface::class);
+
+        // Default mock for business number generation
+        $this->businessNoGenerator->method('generateInboundOrderNo')
+            ->willReturn('IB'.date('Ymd').'00001');
+        $this->businessNoGenerator->method('generateInboundExceptionNo')
+            ->willReturn('EX'.date('Ymd').'00001');
 
         $this->service = new InboundOrderService(
             $this->inboundOrderRepository,
@@ -55,6 +67,8 @@ class InboundOrderServiceTest extends TestCase
             $this->skuRepository,
             $this->warehouseRepository,
             $this->inventoryService,
+            $this->webhookService,
+            $this->businessNoGenerator,
             $this->entityManager,
             $this->logger,
         );
@@ -87,6 +101,38 @@ class InboundOrderServiceTest extends TestCase
         $result = $this->service->createInboundOrder($merchant, $dto);
 
         $this->assertInstanceOf(InboundOrder::class, $result);
+        $this->assertEquals('USD', $result->getCurrency()); // Default currency is USD
+    }
+
+    public function testCreateInboundOrderWithCustomCurrency(): void
+    {
+        $merchant = $this->createMock(Merchant::class);
+        $merchant->method('getId')->willReturn('merchant-123');
+
+        $warehouse = $this->createMock(Warehouse::class);
+        $warehouse->method('getId')->willReturn('warehouse-123');
+
+        $dto = new CreateInboundOrderRequest();
+        $dto->warehouseId = 'warehouse-123';
+        $dto->merchantNotes = 'Test notes';
+        $dto->currency = 'CNY';
+
+        $this->warehouseRepository->expects($this->once())
+            ->method('find')
+            ->with('warehouse-123')
+            ->willReturn($warehouse);
+
+        $this->entityManager->expects($this->once())
+            ->method('persist')
+            ->with($this->isInstanceOf(InboundOrder::class));
+
+        $this->entityManager->expects($this->once())
+            ->method('flush');
+
+        $result = $this->service->createInboundOrder($merchant, $dto);
+
+        $this->assertInstanceOf(InboundOrder::class, $result);
+        $this->assertEquals('CNY', $result->getCurrency());
     }
 
     public function testCreateInboundOrderWarehouseNotFound(): void
@@ -313,11 +359,6 @@ class InboundOrderServiceTest extends TestCase
         $order = $this->createMock(InboundOrder::class);
         $order->method('getId')->willReturn('order-123');
         $order->method('getOrderNo')->willReturn('IB20240115000001');
-        $order->method('isShipped')->willReturn(true);
-
-        $this->inventoryService->expects($this->once())
-            ->method('rollbackInTransit')
-            ->with($order, 'operator-123', 'Operator');
 
         $order->expects($this->once())
             ->method('cancel')

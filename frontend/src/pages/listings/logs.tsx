@@ -124,7 +124,7 @@ export function ListingLogsPage() {
                 key: 'changes',
                 label: t('listingManagement.changeDetails'),
                 children: (
-                  <Descriptions size="small" column={1} bordered>
+                  <Descriptions size="small" column={1}>
                     {record.changes.before &&
                       Object.entries(record.changes.before).map(([key, value]) => (
                         <Descriptions.Item

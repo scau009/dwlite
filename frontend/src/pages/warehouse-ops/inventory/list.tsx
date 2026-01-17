@@ -22,7 +22,7 @@ export function WarehouseInventoryListPage() {
       render: (_, record) => {
         const image = record.product?.primaryImage;
         return image ? (
-          <Image src={image} width={60} height={60} style={{ objectFit: 'cover' }} />
+          <Image src={image} width={60} height={60} style={{ objectFit: 'contain', background: '#f5f5f5' }} />
         ) : (
           <div className="w-[60px] h-[60px] bg-gray-100 flex items-center justify-center text-gray-400">
             N/A
@@ -31,22 +31,18 @@ export function WarehouseInventoryListPage() {
       },
     },
     {
-      title: t('warehouseOps.productName'),
+      title: t('warehouseOps.productInfo'),
       dataIndex: ['product', 'name'],
-      width: 180,
-      ellipsis: true,
+      width: 200,
       fieldProps: {
         placeholder: t('common.search') + '...',
       },
-    },
-    {
-      title: t('warehouseOps.styleNumber'),
-      dataIndex: 'styleNumber',
-      width: 120,
-      fieldProps: {
-        placeholder: t('common.search') + '...',
-      },
-      render: (_, record) => record.product?.styleNumber || '-',
+      render: (_, record) => (
+        <div className="flex flex-col">
+          <span className="truncate" title={record.product?.name}>{record.product?.name || '-'}</span>
+          <span className="text-gray-400 text-xs">{record.product?.styleNumber || '-'}</span>
+        </div>
+      ),
     },
     {
       title: t('warehouseOps.skuName'),

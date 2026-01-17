@@ -35,6 +35,7 @@ export interface InboundOrder {
   id: string;
   orderNo: string;
   status: InboundOrderStatus;
+  currency: string;
   warehouse: {
     id: string;
     name: string;
@@ -117,6 +118,7 @@ export interface InboundException {
 export interface ExceptionItem {
   id: string;
   skuName: string | null;
+  styleNumber: string | null;
   colorName: string | null;
   productName: string | null;
   productImage: string | null;
@@ -140,12 +142,14 @@ export interface CreateInboundOrderParams {
   warehouseId: string;
   expectedArrivalDate?: string;
   merchantNotes?: string;
+  currency?: string;
 }
 
 export interface UpdateInboundOrderParams {
   warehouseId?: string;
   expectedArrivalDate?: string;
   merchantNotes?: string;
+  currency?: string;
 }
 
 export interface AddOrderItemParams {
@@ -467,6 +471,22 @@ export const inboundApi = {
       {
         method: 'PATCH',
         body: JSON.stringify({ unitCost }),
+      }
+    );
+  },
+
+  /**
+   * Batch update inbound order items cost (available until order completion)
+   */
+  batchUpdateItemCost: async (
+    itemIds: string[],
+    unitCost: string
+  ): Promise<{ message: string; data: InboundOrderItem[] }> => {
+    return await apiFetch<{ message: string; data: InboundOrderItem[] }>(
+      '/api/inbound/orders/items/batch-cost',
+      {
+        method: 'PATCH',
+        body: JSON.stringify({ itemIds, unitCost }),
       }
     );
   },

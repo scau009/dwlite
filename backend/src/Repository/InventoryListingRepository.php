@@ -7,6 +7,7 @@ use App\Entity\Merchant;
 use App\Entity\MerchantInventory;
 use App\Entity\MerchantSalesChannel;
 use App\Entity\SalesChannel;
+use App\Service\BusinessNoGenerator;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -15,8 +16,10 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class InventoryListingRepository extends ServiceEntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
-    {
+    public function __construct(
+        ManagerRegistry $registry,
+        private BusinessNoGenerator $businessNoGenerator,
+    ) {
         parent::__construct($registry, InventoryListing::class);
     }
 
@@ -128,6 +131,7 @@ class InventoryListingRepository extends ServiceEntityRepository
 
         if ($listing === null) {
             $listing = new InventoryListing();
+            $listing->setId($this->businessNoGenerator->generateInventoryListingId());
             $listing->setMerchantInventory($inventory);
             $listing->setMerchantSalesChannel($channel);
         }

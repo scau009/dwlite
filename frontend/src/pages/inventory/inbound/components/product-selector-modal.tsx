@@ -100,7 +100,7 @@ export function ProductSelectorModal({
       width: 80,
       render: (url: string | null) =>
         url ? (
-          <Image src={url} width={60} height={60} style={{ objectFit: 'cover' }} />
+          <Image src={url} width={60} height={60} style={{ objectFit: 'contain' }} />
         ) : (
           <div className="w-[60px] h-[60px] bg-gray-100 flex items-center justify-center text-gray-400 text-xs">
             N/A

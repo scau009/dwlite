@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Modal, Form, Checkbox, App } from 'antd';
 
-import { merchantApi, type MerchantApiKey } from '@/lib/merchant-api';
+import { adminApiKeyApi, type AdminApiKey } from '@/lib/admin-api-key-api';
 
 // All available merchant permissions
 const ALL_PERMISSIONS = [
@@ -20,7 +20,7 @@ const ALL_PERMISSIONS = [
 
 interface EditPermissionsModalProps {
   open: boolean;
-  apiKey: MerchantApiKey;
+  apiKey: AdminApiKey;
   onClose: () => void;
   onSuccess: () => void;
 }
@@ -49,7 +49,7 @@ export function EditPermissionsModal({
       const values = await form.validateFields();
       setLoading(true);
 
-      await merchantApi.updateApiKeyPermissions(apiKey.id, values.permissions);
+      await adminApiKeyApi.updateApiKeyPermissions(apiKey.id, values.permissions);
       message.success(t('apiKeys.permissionsUpdated'));
       onSuccess();
     } catch (error) {

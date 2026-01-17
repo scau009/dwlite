@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Service\ChannelGateway;
 
+use App\Entity\ChannelProduct;
 use App\Service\ChannelGateway\Dto\Request\ConfirmOrderRequest;
 use App\Service\ChannelGateway\Dto\Request\PullOrdersRequest;
 use App\Service\ChannelGateway\Dto\Request\PushProductRequest;
 use App\Service\ChannelGateway\Dto\Request\ShipOrderRequest;
-use App\Service\ChannelGateway\Dto\Request\UpdateStockPriceRequest;
 use App\Service\ChannelGateway\Dto\Response\ChannelResponse;
 use App\Service\ChannelGateway\Dto\Response\PulledOrderDto;
 use App\Service\ChannelGateway\Dto\Response\PushProductResponse;
@@ -56,11 +56,12 @@ interface ChannelGatewayInterface
 
     /**
      * Update stock and price on the external channel.
-     * Supports partial updates (stock only, price only, or both).
+     *
+     * @param ChannelProduct[] $channelProducts Products to sync
      */
     public function updateStockPrice(
         ChannelGatewayContext $context,
-        UpdateStockPriceRequest $request
+        array $channelProducts
     ): UpdateStockPriceResponse;
 
     /**

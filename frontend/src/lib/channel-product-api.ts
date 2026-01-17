@@ -89,6 +89,7 @@ export interface ChannelProduct {
     imageUrl?: string | null;
     sizeUnit?: string | null;
     sizeValue?: string | null;
+    colorName?: string | null;
   };
   platformPrice: string;
   platformCompareAtPrice: string | null;

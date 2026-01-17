@@ -41,6 +41,7 @@ class OrderSyncService
         private readonly ChannelStatusMapper $statusMapper,
         private readonly OrderValidationService $validationService,
         private readonly FulfillmentCompletionService $fulfillmentCompletionService,
+        private readonly BusinessNoGenerator $businessNoGenerator,
         private readonly EntityManagerInterface $entityManager,
         private readonly MessageBusInterface $messageBus,
         private readonly LoggerInterface $logger,
@@ -397,6 +398,7 @@ class OrderSyncService
         $channelCode = $salesChannel->getCode();
 
         $order = new Order();
+        $order->setOrderNo($this->businessNoGenerator->generatePlatformOrderNo());
         $order->setSalesChannel($salesChannel);
         $order->setExternalOrderId($pulledOrder->externalOrderId);
         $order->setExternalOrderNo($pulledOrder->externalOrderNo);

@@ -257,6 +257,8 @@ validation:
 
   # Inventory
   warehouse_not_found: 'Warehouse not found'
+  warehouse_id_required: 'Warehouse ID is required'
+  currency_invalid: 'Invalid currency. Supported currencies: CNY, USD, EUR, HKD, JPY'
   inventory_not_found: 'Inventory record not found'
   inventory_not_owned: 'Inventory does not belong to current merchant'
   inventory_warehouse_mismatch: 'Inventory warehouse does not match order warehouse'
@@ -271,13 +273,16 @@ inbound:
     shipped: 'Order shipped'
     received: 'Receiving completed'
     cancelled: 'Inbound order cancelled'
+    cannot_cancel_shipped: 'Cannot cancel order that has been shipped'
     deleted: 'Inbound order deleted'
     notes_updated: 'Notes updated successfully'
+    unit_cost_required: 'All items must have a unit cost before submission'
   item:
     added: 'Item added successfully'
     updated: 'Item updated successfully'
     removed: 'Item removed successfully'
     cost_updated: 'Item cost updated successfully'
+    batch_cost_updated: 'Updated cost for %count% item(s)'
   exception:
     created: 'Exception created successfully'
     resolved: 'Exception resolved'

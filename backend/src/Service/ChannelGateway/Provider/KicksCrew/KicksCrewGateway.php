@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Service\ChannelGateway\Provider\KicksCrew;
 
+use App\Entity\ChannelProduct;
 use App\Entity\SalesChannel;
 use App\Repository\ChannelProductRepository;
 use App\Service\ChannelGateway\AbstractChannelGateway;
@@ -13,8 +14,6 @@ use App\Service\ChannelGateway\Dto\Request\ConfirmOrderRequest;
 use App\Service\ChannelGateway\Dto\Request\PullOrdersRequest;
 use App\Service\ChannelGateway\Dto\Request\PushProductRequest;
 use App\Service\ChannelGateway\Dto\Request\ShipOrderRequest;
-use App\Service\ChannelGateway\Dto\Request\StockPriceUpdateDto;
-use App\Service\ChannelGateway\Dto\Request\UpdateStockPriceRequest;
 use App\Service\ChannelGateway\Dto\Response\ChannelResponse;
 use App\Service\ChannelGateway\Dto\Response\PulledOrderDto;
 use App\Service\ChannelGateway\Dto\Response\PulledOrderItemDto;
@@ -132,28 +131,33 @@ class KicksCrewGateway extends AbstractChannelGateway
     /**
      * Update stock and price on KC.
      * Uses batch-update API for efficiency.
+     *
+     * @param ChannelGatewayContext $context
+     * @param ChannelProduct[] $channelProducts
+     * @return UpdateStockPriceResponse
+     * @throws \Throwable
      */
     public function updateStockPrice(
         ChannelGatewayContext $context,
-        UpdateStockPriceRequest $request
+        array $channelProducts
     ): UpdateStockPriceResponse {
         $this->logOperationStart('updateStockPrice', [
-            'itemCount' => count($request->items),
+            'productCount' => count($channelProducts),
         ]);
 
         $apiKey = $this->getApiKey($context);
         $items = [];
         $results = [];
 
-        foreach ($request->items as $update) {
-            // Parse externalId format: model_no:size_system:size or just use it directly
-            $item = $this->parseExternalIdToListingItem($update);
+        foreach ($channelProducts as $channelProduct) {
+            $item = $this->buildKcListingItemFromChannelProduct($channelProduct);
             if ($item !== null) {
                 $items[] = $item;
             }
         }
 
         if (empty($items)) {
+            $this->logger->info(sprintf('[%s] Nothing to save.', $context->getChannelCode()));
             return new UpdateStockPriceResponse(
                 success: true,
                 channelCode: self::CHANNEL_CODE,
@@ -167,9 +171,9 @@ class KicksCrewGateway extends AbstractChannelGateway
         try {
             $response = $this->apiClient->batchUpdateStock($apiKey, $items);
 
-            // Map results back to externalIds
-            foreach ($request->items as $update) {
-                $results[$update->externalId] = ($response['code'] ?? 1) === 0;
+            // Map results back to channel product IDs
+            foreach ($channelProducts as $channelProduct) {
+                $results[$channelProduct->getId()] = ($response['code'] ?? 1) === 0;
             }
 
             $successCount = count(array_filter($results));
@@ -370,32 +374,39 @@ class KicksCrewGateway extends AbstractChannelGateway
     }
 
     /**
-     * Parse externalId to KC listing item.
-     * Expected format: {model_no}:{size_system}:{size} or just listing_id.
+     * Build KC listing item from ChannelProduct entity.
+     *
+     * Extracts model_no, size_system, and size from the related ProductSku and Product entities.
      *
      * @return array<string, mixed>|null
      */
-    private function parseExternalIdToListingItem(StockPriceUpdateDto $update): ?array
+    private function buildKcListingItemFromChannelProduct(ChannelProduct $channelProduct): ?array
     {
-        $parts = explode(':', $update->externalId);
+        $productSku = $channelProduct->getProductSku();
+        $product = $productSku->getProduct();
 
-        if (count($parts) >= 3) {
-            // Format: model_no:size_system:size
-            return [
-                'model_no' => $parts[0],
-                'size_system' => $parts[1],
-                'size' => $parts[2],
-                'qty' => $update->stock ?? 0,
-                'price' => $update->price !== null ? $this->skuMapper->toKcPrice($update->price) : null,
-            ];
+        $modelNo = $product->getStyleNumber();
+        $sizeValue = $productSku->getSizeValue();
+        $sizeSystem = $this->skuMapper->getSizeSystem($productSku->getSizeUnit());
+
+        if (empty($modelNo) || empty($sizeValue)) {
+            $this->logger->warning('[KICKSCREW] Missing model_no or size', [
+                'channelProductId' => $channelProduct->getId(),
+                'modelNo' => $modelNo,
+                'sizeValue' => $sizeValue,
+            ]);
+            return null;
         }
 
-        // If we can't parse, skip this item
-        $this->logger->warning('[KICKSCREW] Cannot parse externalId format', [
-            'externalId' => $update->externalId,
-        ]);
-
-        return null;
+        return $this->skuMapper->toKcListingItem(
+            modelNo: $modelNo,
+            sizeSystem: $sizeSystem,
+            size: $sizeValue,
+            qty: $channelProduct->getStockQuantity(),
+            price: $this->skuMapper->toKcPrice($channelProduct->getPlatformPrice()),
+            extRef: $this->skuMapper->buildExtRef($channelProduct->getId()),
+            brand: $product->getBrand()?->getName(),
+        );
     }
 
     /**

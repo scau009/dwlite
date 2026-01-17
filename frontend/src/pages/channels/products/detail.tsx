@@ -35,7 +35,15 @@ import {
   type SyncTriggerSource,
   type AllocationMode,
   type FulfillmentType,
+  type StockMode,
 } from '@/lib/channel-product-api';
+
+// Stock mode i18n key mapping
+const stockModeI18nKeyMap: Record<StockMode, string> = {
+  aggregate: 'channelProducts.stockModeAggregate',
+  lowest: 'channelProducts.stockModeLowest',
+  fixed: 'channelProducts.stockModeFixed',
+};
 
 // Status color mapping
 const statusColorMap: Record<ChannelProductStatus, string> = {
@@ -228,14 +236,6 @@ export function ChannelProductDetailPage() {
       width: 60,
       render: (_, record) => (
         <span className="font-medium text-blue-600">#{record.allocationRank}</span>
-      ),
-    },
-    {
-      title: t('channelProducts.sourceScore'),
-      dataIndex: 'displayScore',
-      width: 70,
-      render: (_, record) => (
-        <span className="font-medium">{record.displayScore?.toFixed(1) ?? '-'}</span>
       ),
     },
     {
@@ -432,8 +432,8 @@ export function ChannelProductDetailPage() {
         />
       )}
 
-      {/* Basic Info */}
-      <Card title={t('channelProducts.basicInfo')}>
+      {/* Product Info */}
+      <Card title={t('channelProducts.productInfo')}>
         <div className="flex gap-6">
           {/* Product Image */}
           <div className="flex-shrink-0">
@@ -441,85 +441,104 @@ export function ChannelProductDetailPage() {
               <Image
                 src={product.productSku.imageUrl}
                 alt={product.productSku.productName}
-                width={160}
-                height={160}
+                width={60}
+                height={60}
                 style={{ objectFit: 'contain', borderRadius: 8 }}
                 fallback="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMIAAADDCAYAAADQvc6UAAABRWlDQ1BJQ0MgUHJvZmlsZQAAKJFjYGASSSwoyGFhYGDIzSspCnJ3UoiIjFJgf8LAwSDCIMogwMCcmFxc4BgQ4ANUwgCjUcG3awyMIPqyLsis7PPOq3QdDFcvjV3jOD1boQVTPQrgSkktTgbSf4A4LbmgqISBgTEFyFYuLykAsTuAbJEioKOA7DkgdjqEvQHEToKwj4DVhAQ5A9k3gGyB5IxEoBmML4BsnSQk8XQkNtReEOBxcfXxUQg1Mjc0dyHgXNJBSWpFCYh2zi+oLMpMzyhRcASGUqqCZ16yno6CkYGRAQMDKMwhqj/fAIcloxgHQqxAjIHBEugw5sUIsSQpBobtQPdLciLEVJYzMPBHMDBsayhILEqEO4DxG0txmrERhM29nYGBddr//5/DGRjYNRkY/l7////39v///y4Dmn+LgesAAGdJREFUeNrt3XuMXOV5xvHvmd3Z2fVt7XV8wWtvjB1fMBhCCCQhBJoQyJ9JVRqpUZqqlaomqpSqUtMmatIWNW2jtqlUKaSx0qhNo4QkpEpUQSEhCQHCLd5gwI69xvZ6fd+93tude+8f+7r2+rLZ8e7M7HJ+kvn+/PrMnDmO5s/znnPmKBmGIUREqvkBiCiEIiIhFBEJoYhICEVEIRQRCaGISAhFREIoIhJCEZEQioiEUEQkhCIiIRQRCaGISAhFREIoIhJCEZEQioiEUEQkhCIiIRQRCaGISAhFREIoIhJCEZEQioiEUEQkhCIiIRQRCaGISAhFREIoIhJCEZEQioiEUEQkhCIiIRQRCaGISAhFREIoIhJCEZEQioiEUEQkhCIiIRQRCaGISAhFREIoIhJCEZEQioiEUEQkhCIiIRQRCaGISAhFREIoIhJCEZEQioiEUEQkhCIiIRQRCaGISAhFREIoIhJCEZEQioiEUEQkhCIiIRQRCaGISAhFREIoIhJCEZEQioiEUEQkhCIiIRQRCaGISAhFREIoIhJCEZEQioiEUEQkhCIiIRQRCaGISAhFREIoIhJCEZEQioiEUEQkhCIiIRQRCaGISAhFREIoIhJCEZEQioiEUEQkhCIiIRQRCaGISAhFREIoIhJCEZEQioiEUEQkhCIiIRQRCaGISAhFREIoIhJCEZEQioiEUEQkhCIiIRQRCaGISAhFREIoIhJCEZEQioiEUEQkhCIiIRQRCaGISAhFREIoIhJCEZEQioiEUEQkhCIiIRQRCaGISAhFREIoIhJCEZEQioiEUEQkhCIiIRQRCaGISAhFREIoIhJCEZEQioiEUEQkhCIiIRQRCaGISAhFREIoIhJCEZEQioiEUEQkhCIiIRQRCaGISAhFREIoIhJCEZEQioiEUEQkhCIiIRQRCaGISAhFREIoIhJCEZEQioiEUEQkhCIiIRQRCaGISAhFREIoIhJCEZEQioiEUEQkhCIiIRQRCaGISAhFREIoIhJCEZEQioiEUEQkhCIiIRQRCaGISAhFREIoIhJCEZEQioiEUEQkhCIiIRQRCaGISAhFREIoIhJCEZEQioiEUEQkhCIiIRQRCaGISAhFREIoIhJCEZEQioiEUEQkhCIiIRQRCaGISAhFREIoIhJCEZEQioiEUEQkhCIiIRQRCaGISAhFREIoIhJCEZEQioiEUEQkhCIiIRQRCaGISAhFREIoIhJCEZEQioiEUEQkhCIiIRQRCaGISAhFREIoIhJCEZEQioiEUEQkhCIiIRQRCaGISAhFREIoIhJCEZEQioiEUEQkhCIiIRQRCaGISAhFREIoIhJCEZEQioiEUEQkhCIiIRQRCaGISAhFREIoIhJCEZEQioiEUEQkhCIiIRQRCaGISAhFREIoIhJCEZEQioiEUEQkhCIiIRQRCaGISAhFREIoIhJCEZEQioiEUEQkhCIiIRQRCaGISAhFREIoIhJCEZEQioj+P5PjOPR/IgDxbL8J"
               />
             ) : (
               <div
                 className="flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-lg"
-                style={{ width: 160, height: 160 }}
+                style={{ width: 120, height: 120 }}
               >
-                <ShoppingOutlined style={{ fontSize: 48, color: '#999' }} />
+                <ShoppingOutlined style={{ fontSize: 40, color: '#999' }} />
               </div>
             )}
           </div>
 
           {/* Product Details */}
           <div className="flex-1 min-w-0">
-            <Descriptions column={3} bordered size="small">
-              <Descriptions.Item label={t('channelProducts.productName')}>
+            <Descriptions column={3} size="small">
+              <Descriptions.Item label={t('channelProducts.productName')} span={2}>
                 {product.productSku.productName}
+              </Descriptions.Item>
+              <Descriptions.Item label={t('channelProducts.styleNumber')}>
+                <code className="text-sm bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded">
+                  {product.productSku.styleNumber || '-'}
+                </code>
               </Descriptions.Item>
               <Descriptions.Item label={t('channelProducts.skuCode')}>
                 {product.productSku.skuCode}
               </Descriptions.Item>
-              <Descriptions.Item label={t('channelProducts.salesChannel')}>
-                <Tag>{product.salesChannel.name}</Tag>
-              </Descriptions.Item>
-
-              <Descriptions.Item label={t('channelProducts.platformPrice')}>
-                <span className="font-semibold">${product.platformPrice}</span>
-              </Descriptions.Item>
-              <Descriptions.Item label={t('channelProducts.stockQuantity')}>
-                <span className={product.stockQuantity === 0 ? 'text-red-500' : ''}>
-                  {product.stockQuantity}
-                </span>
-              </Descriptions.Item>
-              <Descriptions.Item label={t('channelProducts.stockMode')}>
-                {product.stockMode}
-              </Descriptions.Item>
-
-              <Descriptions.Item label={t('channelProducts.status')}>
-                <Tag color={statusColorMap[product.status]}>
-                  {t(`channelProducts.status${product.status.charAt(0).toUpperCase() + product.status.slice(1)}`)}
-                </Tag>
-              </Descriptions.Item>
-              <Descriptions.Item label={t('channelProducts.syncStatus')}>
-                <Tag color={syncStatusColorMap[product.syncStatus]}>
-                  {t(`channelProducts.sync${product.syncStatus.charAt(0).toUpperCase() + product.syncStatus.slice(1)}`)}
-                </Tag>
-              </Descriptions.Item>
-              <Descriptions.Item label={t('channelProducts.lastSyncedAt')}>
-                {product.lastSyncedAt
-                  ? new Date(product.lastSyncedAt).toLocaleString()
+              <Descriptions.Item label={t('channelProducts.size')}>
+                {product.productSku.sizeUnit && product.productSku.sizeValue
+                  ? `${product.productSku.sizeUnit} ${product.productSku.sizeValue}`
                   : '-'}
               </Descriptions.Item>
-
-              <Descriptions.Item label={t('channelProducts.externalId')} span={2}>
-                {product.externalId ? (
-                  product.externalUrl ? (
-                    <a
-                      href={product.externalUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      {product.externalId} <LinkOutlined />
-                    </a>
-                  ) : (
-                    product.externalId
-                  )
-                ) : (
-                  '-'
-                )}
-              </Descriptions.Item>
-              <Descriptions.Item label={t('channelProducts.sourcesCount')}>
-                {product.activeSourcesCount} / {product.sourcesCount}
+              <Descriptions.Item label={t('channelProducts.color')}>
+                {product.productSku.colorName || '-'}
               </Descriptions.Item>
             </Descriptions>
           </div>
         </div>
+      </Card>
+
+      {/* Channel Info */}
+      <Card title={t('channelProducts.channelInfo')}>
+        <Descriptions column={3} size="small">
+          <Descriptions.Item label={t('channelProducts.salesChannel')}>
+            <Tag>{product.salesChannel.name}</Tag>
+          </Descriptions.Item>
+          <Descriptions.Item label={t('channelProducts.status')}>
+            <Tag color={statusColorMap[product.status]}>
+              {t(`channelProducts.status${product.status.charAt(0).toUpperCase() + product.status.slice(1)}`)}
+            </Tag>
+          </Descriptions.Item>
+          <Descriptions.Item label={t('channelProducts.syncStatus')}>
+            <Tag color={syncStatusColorMap[product.syncStatus]}>
+              {t(`channelProducts.sync${product.syncStatus.charAt(0).toUpperCase() + product.syncStatus.slice(1)}`)}
+            </Tag>
+          </Descriptions.Item>
+
+          <Descriptions.Item label={t('channelProducts.platformPrice')}>
+            <span className="font-semibold">${product.platformPrice}</span>
+          </Descriptions.Item>
+          <Descriptions.Item label={t('channelProducts.stockQuantity')}>
+            <span className={product.stockQuantity === 0 ? 'text-red-500' : ''}>
+              {product.stockQuantity}
+            </span>
+          </Descriptions.Item>
+          <Descriptions.Item label={t('channelProducts.stockMode')}>
+            {t(stockModeI18nKeyMap[product.stockMode])}
+          </Descriptions.Item>
+
+          <Descriptions.Item label={t('channelProducts.externalId')} span={2}>
+            {product.externalId ? (
+              product.externalUrl ? (
+                <a
+                  href={product.externalUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {product.externalId} <LinkOutlined />
+                </a>
+              ) : (
+                product.externalId
+              )
+            ) : (
+              '-'
+            )}
+          </Descriptions.Item>
+          <Descriptions.Item label={t('channelProducts.sourcesCount')}>
+            {product.activeSourcesCount} / {product.sourcesCount}
+          </Descriptions.Item>
+
+          <Descriptions.Item label={t('channelProducts.lastSyncedAt')} span={3}>
+            {product.lastSyncedAt
+              ? new Date(product.lastSyncedAt).toLocaleString()
+              : '-'}
+          </Descriptions.Item>
+        </Descriptions>
       </Card>
 
       {/* Inventory Sources */}

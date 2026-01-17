@@ -11,11 +11,10 @@ class CreateMerchantApiKeyRequest
     public string $name = '';
 
     /**
-     * Permissions array.
+     * Permissions array (optional, defaults to all merchant permissions).
      *
      * @var array<string>
      */
-    #[Assert\NotBlank(message: 'validation.permissions_required')]
     #[Assert\Type(type: 'array', message: 'validation.permissions_must_be_array')]
     public array $permissions = [];
 

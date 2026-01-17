@@ -6,7 +6,6 @@ use App\Repository\ChannelProductRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Uid\Ulid;
 
 /**
  * 渠道商品 - 平台侧.
@@ -111,7 +110,6 @@ class ChannelProduct
 
     public function __construct()
     {
-        $this->id = (string) new Ulid();
         $this->sources = new ArrayCollection();
         $this->createdAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
         $this->updatedAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
@@ -120,6 +118,13 @@ class ChannelProduct
     public function getId(): string
     {
         return $this->id;
+    }
+
+    public function setId(string $id): static
+    {
+        $this->id = $id;
+
+        return $this;
     }
 
     public function getSalesChannel(): SalesChannel
@@ -432,19 +437,39 @@ class ChannelProduct
     }
 
     /**
-     * 最低库存计算.
+     * 最低价格库存计算.
+     *
+     * 找到最低价格，然后把所有价格等于最低价格的来源的库存加起来
      */
     private function calculateLowestStock(Collection $sources): int
     {
-        $lowest = PHP_INT_MAX;
+        if ($sources->isEmpty()) {
+            return 0;
+        }
+
+        // 第一步：找到最低价格
+        $lowestPrice = null;
         foreach ($sources as $source) {
-            $qty = $source->getInventoryListing()->getAvailableQuantity();
-            if ($qty < $lowest) {
-                $lowest = $qty;
+            $price = $source->getInventoryListing()->getPrice();
+            if ($lowestPrice === null || bccomp($price, $lowestPrice, 2) < 0) {
+                $lowestPrice = $price;
             }
         }
 
-        return $lowest === PHP_INT_MAX ? 0 : $lowest;
+        if ($lowestPrice === null) {
+            return 0;
+        }
+
+        // 第二步：把所有价格等于最低价格的来源的库存加起来
+        $totalStock = 0;
+        foreach ($sources as $source) {
+            $price = $source->getInventoryListing()->getPrice();
+            if (bccomp($price, $lowestPrice, 2) === 0) {
+                $totalStock += $source->getInventoryListing()->getAvailableQuantity();
+            }
+        }
+
+        return $totalStock;
     }
 
     /**

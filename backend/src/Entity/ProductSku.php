@@ -5,7 +5,6 @@ namespace App\Entity;
 use App\Enum\SizeUnit;
 use App\Repository\ProductSkuRepository;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Uid\Ulid;
 
 #[ORM\Entity(repositoryClass: ProductSkuRepository::class)]
 #[ORM\Table(name: 'product_skus')]
@@ -54,7 +53,6 @@ class ProductSku
 
     public function __construct()
     {
-        $this->id = (string) new Ulid();
         $this->createdAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
         $this->updatedAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
     }
@@ -62,6 +60,13 @@ class ProductSku
     public function getId(): string
     {
         return $this->id;
+    }
+
+    public function setId(string $id): static
+    {
+        $this->id = $id;
+
+        return $this;
     }
 
     public function getProduct(): Product

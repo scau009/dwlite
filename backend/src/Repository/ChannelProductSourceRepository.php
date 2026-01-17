@@ -6,6 +6,7 @@ use App\Entity\ChannelProduct;
 use App\Entity\ChannelProductSource;
 use App\Entity\InventoryListing;
 use App\Entity\Merchant;
+use App\Service\BusinessNoGenerator;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -14,8 +15,10 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class ChannelProductSourceRepository extends ServiceEntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
-    {
+    public function __construct(
+        ManagerRegistry $registry,
+        private BusinessNoGenerator $businessNoGenerator,
+    ) {
         parent::__construct($registry, ChannelProductSource::class);
     }
 
@@ -88,6 +91,7 @@ class ChannelProductSourceRepository extends ServiceEntityRepository
 
         if ($source === null) {
             $source = new ChannelProductSource();
+            $source->setId($this->businessNoGenerator->generateChannelProductSourceId());
             $source->setChannelProduct($product);
             $source->setInventoryListing($listing);
         }

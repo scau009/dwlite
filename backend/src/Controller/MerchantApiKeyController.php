@@ -48,7 +48,7 @@ class MerchantApiKeyController extends AbstractController
         $apiKeys = $this->apiKeyRepository->findByMerchant($merchant);
 
         return $this->json([
-            'data' => array_map(fn (ApiKey $k) => $this->serializeApiKey($k), $apiKeys),
+            'data' => array_map(fn (ApiKey $k) => $this->serializeApiKey($k, true), $apiKeys),
         ]);
     }
 
@@ -97,10 +97,13 @@ class MerchantApiKeyController extends AbstractController
             ], Response::HTTP_BAD_REQUEST);
         }
 
+        // Use default permissions if not provided
+        $permissions = !empty($dto->permissions) ? $dto->permissions : ApiKey::getDefaultMerchantPermissions();
+
         $result = $this->apiKeyService->createMerchantApiKey(
             $merchant,
             $dto->name,
-            $dto->permissions,
+            $permissions,
             $user,
             $dto->expiresAt,
             $dto->ipWhitelist
@@ -166,7 +169,7 @@ class MerchantApiKeyController extends AbstractController
 
         return $this->json([
             'message' => $this->translator->trans('api_key.ip_whitelist_updated'),
-            'apiKey' => $this->serializeApiKey($apiKey),
+            'apiKey' => $this->serializeApiKey($apiKey, true),
         ]);
     }
 

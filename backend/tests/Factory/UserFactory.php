@@ -17,7 +17,7 @@ class UserFactory
         ++self::$counter;
 
         $user = $test->createMock(User::class);
-        $user->method('getId')->willReturn($overrides['id'] ?? 'user-'.self::$counter);
+        $user->method('getId')->willReturn($overrides['id'] ?? 'U'.str_pad((string) self::$counter, 8, '0', STR_PAD_LEFT));
         $user->method('getEmail')->willReturn($overrides['email'] ?? 'user'.self::$counter.'@example.com');
         $user->method('getRoles')->willReturn($overrides['roles'] ?? ['ROLE_USER']);
         $user->method('getAccountType')->willReturn($overrides['accountType'] ?? User::ACCOUNT_TYPE_MERCHANT);

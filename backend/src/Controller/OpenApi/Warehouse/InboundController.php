@@ -357,6 +357,7 @@ class InboundController extends AbstractController
             'merchantId' => $order->getMerchant()->getId(),
             'merchantName' => $order->getMerchant()->getName(),
             'status' => $order->getStatus(),
+            'currency' => $order->getCurrency(),
             'totalSkuCount' => $order->getTotalSkuCount(),
             'totalQuantity' => $order->getTotalQuantity(),
             'receivedQuantity' => $order->getReceivedQuantity(),

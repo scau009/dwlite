@@ -162,18 +162,11 @@ class Order
     public function __construct()
     {
         $this->id = (string) new Ulid();
-        $this->orderNo = $this->generateOrderNo();
         $this->items = new ArrayCollection();
         $this->fulfillments = new ArrayCollection();
         $this->syncedAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
         $this->createdAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
         $this->updatedAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
-    }
-
-    private function generateOrderNo(): string
-    {
-        // 格式：PO + 年月日 + 6位随机数，如 PO20241217123456
-        return 'PO'.date('Ymd').str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
     }
 
     public function getId(): string

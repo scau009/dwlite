@@ -23,7 +23,7 @@ class FulfillmentFactory
 
         $fulfillment = $test->createMock(Fulfillment::class);
         $fulfillment->method('getId')->willReturn($overrides['id'] ?? 'fulfillment-'.self::$counter);
-        $fulfillment->method('getFulfillmentNo')->willReturn($overrides['fulfillmentNo'] ?? 'FF'.date('Ymd').str_pad((string)self::$counter, 6, '0', STR_PAD_LEFT));
+        $fulfillment->method('getFulfillmentNo')->willReturn($overrides['fulfillmentNo'] ?? 'FF'.date('Ymd').str_pad((string)self::$counter, 5, '0', STR_PAD_LEFT));
         $fulfillment->method('getType')->willReturn($overrides['type'] ?? Fulfillment::TYPE_PLATFORM_WAREHOUSE);
         $fulfillment->method('getStatus')->willReturn($overrides['status'] ?? Fulfillment::STATUS_PENDING);
         $fulfillment->method('isPlatformWarehouse')->willReturn(($overrides['type'] ?? Fulfillment::TYPE_PLATFORM_WAREHOUSE) === Fulfillment::TYPE_PLATFORM_WAREHOUSE);

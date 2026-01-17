@@ -5,6 +5,7 @@ export default {
     reset: 'Reset',
     query: 'Query',
     add: 'Add',
+    create: 'Create',
     edit: 'Edit',
     change: 'Change',
     view: 'View',
@@ -32,6 +33,7 @@ export default {
     createdAt: 'Created At',
     updatedAt: 'Updated At',
     actions: 'Actions',
+    moreActions: 'More',
     loading: 'Loading...',
     noData: 'No Data',
     showing: 'Showing {{from}}-{{to}} of {{total}}',
@@ -53,6 +55,7 @@ export default {
     quantity: 'Quantity',
     channel: 'Channel',
     loadError: 'Failed to load data',
+    optional: 'Optional',
   },
 
   // Navigation
@@ -64,6 +67,7 @@ export default {
     pricing: 'Pricing',
     orders: 'Orders',
     fulfillment: 'Fulfillment',
+    inboundManagement: 'Inbound Management',
     settlements: 'Settlements',
     merchants: 'Merchants',
     channels: 'Channels',
@@ -106,6 +110,8 @@ export default {
     platformOrders: 'Channel Orders',
     fulfillmentOrders: 'Fulfillment Orders',
     orderExceptions: 'Order Exceptions',
+    // Admin Inbound
+    adminInboundOrders: 'Inbound Orders',
     // Settlements (Admin)
     settlementList: 'Settlement List',
     payoutList: 'Payouts',
@@ -120,6 +126,7 @@ export default {
     reports: 'Reports',
     // Merchants
     merchantList: 'Merchant List',
+    merchantApiKeys: 'Merchant API Keys',
     // Channels
     channelList: 'Sales Channels',
     channelProducts: 'Channel Products',
@@ -803,6 +810,7 @@ export default {
       autoPriority: 'Auto assign',
       manualPriority: 'Manual',
     },
+    consignmentWarehouseAlert: 'If a channel supports consignment, please make sure to configure warehouses',
   },
 
   // Merchant Channels
@@ -970,6 +978,8 @@ export default {
     merchantNotes: 'Merchant Notes',
     warehouseNotes: 'Warehouse Notes',
     cancelReason: 'Cancel Reason',
+    currency: 'Currency',
+    currencyRequired: 'Please select currency',
     orderItems: 'Order Items',
     orderTimeline: 'Order Timeline',
     shipmentInfo: 'Shipment Info',
@@ -1082,6 +1092,7 @@ export default {
     // Confirm Dialogs
     confirmSubmit: 'Confirm Submit',
     confirmSubmitDesc: 'After submission, you cannot modify the item list. Confirm submit?',
+    unitCostRequiredForSubmit: 'Please fill in the unit cost for all items before submitting',
     confirmCancel: 'Confirm Cancel',
     confirmCancelDesc: 'This operation cannot be undone. Confirm cancel?',
     confirmDelete: 'Confirm Delete',
@@ -1214,6 +1225,16 @@ export default {
     pendingReceiving: 'Pending Receiving',
     completedToday: 'Completed Today',
 
+    // Inbound order status (warehouse perspective)
+    inboundStatusDraft: 'Draft',
+    inboundStatusPending: 'Pending Shipment',
+    inboundStatusShipped: 'Pending Receiving',
+    inboundStatusArrived: 'Arrived',
+    inboundStatusReceiving: 'Receiving',
+    inboundStatusCompleted: 'Completed',
+    inboundStatusPartialCompleted: 'Partial Completed',
+    inboundStatusCancelled: 'Cancelled',
+
     // Inbound Detail
     startReceiving: 'Start Receiving',
     completeReceiving: 'Complete Receiving',
@@ -1323,8 +1344,13 @@ export default {
     // Dashboard
     dashboard: {
       title: 'Dashboard',
+      inOutStats: 'Inbound & Outbound Statistics',
       inboundStats: 'Inbound Statistics',
       outboundStats: 'Outbound Statistics',
+      pendingReceiving: 'Pending Receiving',
+      pendingShipment: 'Pending Shipment',
+      inboundToday: 'Inbound Today',
+      outboundToday: 'Outbound Today',
       trendTitle: '7-Day Inbound/Outbound Trend',
       inboundCompleted: 'Inbound Completed',
       outboundCompleted: 'Outbound Completed',
@@ -1335,6 +1361,7 @@ export default {
     inventoryTitle: 'Inventory Query',
     inventoryDescription: 'View inventory for this warehouse',
     productImage: 'Image',
+    productInfo: 'Product Info',
     styleNumber: 'Style No',
     color: 'Color',
     inTransit: 'In Transit',
@@ -1414,6 +1441,10 @@ export default {
     createdAt: 'Created At',
     lastUsedAt: 'Last Used',
     neverUsed: 'Never used',
+    expiresAt: 'Expires At',
+    neverExpires: 'Never expires',
+    noIpRestrictionDesc: 'All IP addresses are allowed',
+    noPermissions: 'No permissions',
     secretWarningTitle: 'Save your API Secret',
     secretWarningContent: 'This is the only time you will see this secret. Copy and save it securely.',
     regenerateSecret: 'Regenerate Secret',
@@ -1448,6 +1479,35 @@ export default {
       listingWrite: 'Listing Write',
       webhookManage: 'Webhook Management',
     },
+  },
+
+  // Admin API Keys Management
+  adminApiKeys: {
+    title: 'Merchant API Keys',
+    description: 'Manage API keys for merchants',
+    create: 'Create API Key',
+    createTitle: 'Create API Key',
+    selectMerchant: 'Select Merchant',
+    searchMerchant: 'Search merchant...',
+    searchMerchantPlaceholder: 'Enter merchant name to search',
+    merchantRequired: 'Please select a merchant',
+    owner: 'Owner',
+    expiresAt: 'Expiration',
+    expiresAtHelp: 'Leave empty for no expiration',
+    noExpiration: 'No expiration',
+    confirmActivate: 'Confirm activation?',
+    confirmSuspend: 'Confirm suspension?',
+    confirmDelete: 'Confirm deletion?',
+    statusUpdated: 'Status updated',
+  },
+
+  // Admin Inbound Management
+  adminInbound: {
+    title: 'Inbound Orders',
+    merchant: 'Merchant',
+    allMerchants: 'All Merchants',
+    allWarehouses: 'All Warehouses',
+    dateRange: 'Created Date',
   },
 
   // Merchant Stock Query
@@ -2148,10 +2208,17 @@ export default {
 
     // Detail Page
     notFound: 'Channel product not found',
+    productInfo: 'Product Information',
+    channelInfo: 'Channel Information',
     basicInfo: 'Basic Information',
     productName: 'Product Name',
     skuCode: 'SKU Code',
+    styleNumber: 'Style Number',
+    color: 'Color',
     stockMode: 'Stock Mode',
+    stockModeAggregate: 'Aggregate',
+    stockModeLowest: 'Lowest Price',
+    stockModeFixed: 'Fixed',
     sourcesCount: 'Sources Count',
     syncLogs: 'Sync Logs',
 

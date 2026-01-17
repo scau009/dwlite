@@ -170,7 +170,7 @@ class ApiKeyController extends AbstractController
 
         return $this->json([
             'message' => $this->translator->trans('api_key.ip_whitelist_updated'),
-            'apiKey' => $this->serializeApiKey($apiKey),
+            'apiKey' => $this->serializeApiKey($apiKey, true),
         ]);
     }
 

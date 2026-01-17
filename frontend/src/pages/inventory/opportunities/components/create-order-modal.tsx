@@ -4,13 +4,12 @@ import { useTranslation } from 'react-i18next';
 import {
   Modal,
   Steps,
-  TreeSelect,
+  Select,
   Table,
   InputNumber,
   Button,
   Space,
   App,
-  Avatar,
   Empty,
   Image,
 } from 'antd';
@@ -199,7 +198,9 @@ export function CreateOrderModal({
       width: 100,
       render: (_: unknown, record: SkuSelection) => (
         <span className="text-sm">
-          {record.sku.sizeValue || '-'}
+          {record.sku.sizeValue
+            ? `${record.sku.sizeUnit ? `${record.sku.sizeUnit} ` : ''}${record.sku.sizeValue}`
+            : '-'}
         </span>
       ),
     },
@@ -248,31 +249,19 @@ export function CreateOrderModal({
   const validSelectionsCount = skuSelections.filter((s) => s.quantity > 0).length;
   const totalQuantity = skuSelections.reduce((sum, s) => sum + s.quantity, 0);
 
-  // Transform warehouse groups to tree data
-  const treeData = useMemo(() => {
-    return warehouseGroups.map((group) => ({
-      title: (
-        <div className="flex items-center gap-2">
-          {group.channel.logoUrl && (
-            <Avatar src={group.channel.logoUrl} size={16} />
-          )}
-          <span className="font-medium">{group.channel.name}</span>
-        </div>
-      ),
-      value: `channel-${group.channel.id}`,
-      selectable: false,
-      children: group.warehouses.map((warehouse) => ({
-        title: (
-          <div className="flex flex-col">
-            <span>{warehouse.name} ({warehouse.code})</span>
-            <span className="text-xs text-gray-400">
-              {warehouse.city || warehouse.province || warehouse.fullAddress}
-            </span>
-          </div>
-        ),
-        value: warehouse.id,
-      })),
-    }));
+  // Transform warehouse groups to flat options
+  const warehouseOptions = useMemo(() => {
+    const options: { label: string; value: string }[] = [];
+    warehouseGroups.forEach((group) => {
+      group.warehouses.forEach((warehouse) => {
+        const location = warehouse.city || warehouse.province || '';
+        options.push({
+          label: `${warehouse.name} (${warehouse.code})${location ? ` - ${location}` : ''}`,
+          value: warehouse.id,
+        });
+      });
+    });
+    return options;
   }, [warehouseGroups]);
 
   return (
@@ -299,20 +288,17 @@ export function CreateOrderModal({
             <label className="block text-sm font-medium mb-2">
               {t('opportunities.selectWarehouse')}
             </label>
-            <TreeSelect
+            <Select
               className="w-full"
               placeholder={t('opportunities.selectWarehousePlaceholder')}
               loading={warehouseLoading}
               value={selectedWarehouse}
               onChange={setSelectedWarehouse}
-              treeData={treeData}
-              treeDefaultExpandAll
+              options={warehouseOptions}
               showSearch
-              treeLine
-              filterTreeNode={(input, node) => {
-                const title = node?.title?.toString() || '';
-                return title.toLowerCase().includes(input.toLowerCase());
-              }}
+              filterOption={(input, option) =>
+                (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+              }
             />
           </div>
           <div className="flex justify-end mt-6">

@@ -393,7 +393,7 @@ export interface MerchantApiKey {
 
 export interface CreateApiKeyRequest {
   name: string;
-  permissions: string[];
+  permissions?: string[];
   ipWhitelist?: string[] | null;
   expiresAt?: string | null;
 }

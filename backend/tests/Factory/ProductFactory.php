@@ -20,7 +20,7 @@ class ProductFactory
         ++self::$counter;
 
         $product = $test->createMock(Product::class);
-        $product->method('getId')->willReturn($overrides['id'] ?? 'product-'.self::$counter);
+        $product->method('getId')->willReturn($overrides['id'] ?? 'P'.str_pad((string) self::$counter, 8, '0', STR_PAD_LEFT));
         $product->method('getName')->willReturn($overrides['name'] ?? 'Test Product '.self::$counter);
         $product->method('getStyleNumber')->willReturn($overrides['styleNumber'] ?? 'STYLE'.str_pad((string)self::$counter, 3, '0', STR_PAD_LEFT));
         $product->method('getColor')->willReturn($overrides['color'] ?? 'Black');
@@ -53,7 +53,7 @@ class ProductSkuFactory
         ++self::$counter;
 
         $sku = $test->createMock(ProductSku::class);
-        $sku->method('getId')->willReturn($overrides['id'] ?? 'sku-'.self::$counter);
+        $sku->method('getId')->willReturn($overrides['id'] ?? 'S'.str_pad((string) self::$counter, 8, '0', STR_PAD_LEFT));
         $sku->method('getSizeValue')->willReturn($overrides['sizeValue'] ?? 'US '.self::$counter);
         $sku->method('getSizeUnit')->willReturn($overrides['sizeUnit'] ?? 'US');
         $sku->method('getPrice')->willReturn($overrides['price'] ?? '100.00');

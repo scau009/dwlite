@@ -4,7 +4,6 @@ namespace App\Entity;
 
 use App\Repository\InventoryListingRepository;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Uid\Ulid;
 
 /**
  * 库存上架配置 - 商家侧.
@@ -98,7 +97,6 @@ class InventoryListing
 
     public function __construct()
     {
-        $this->id = (string) new Ulid();
         $this->createdAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
         $this->updatedAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
     }
@@ -106,6 +104,13 @@ class InventoryListing
     public function getId(): string
     {
         return $this->id;
+    }
+
+    public function setId(string $id): static
+    {
+        $this->id = $id;
+
+        return $this;
     }
 
     public function getMerchantInventory(): MerchantInventory

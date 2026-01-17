@@ -5,7 +5,6 @@ import { ProTable, type ActionType, type ProColumns } from '@ant-design/pro-comp
 import { Tag, Statistic, Card, Row, Col, Image, Tooltip, Button } from 'antd';
 import {
   InboxOutlined,
-  ShoppingOutlined,
   ExclamationCircleOutlined,
   TruckOutlined,
   LockOutlined,
@@ -298,16 +297,7 @@ export function MerchantStockListPage() {
     <div className="space-y-4">
       {/* Summary Cards */}
       <Row gutter={16} className="mb-4">
-        <Col xs={12} sm={6} lg={4}>
-          <Card size="small">
-            <Statistic
-              title={t('merchantStock.totalSkuCount')}
-              value={summary?.totalSkuCount || 0}
-              prefix={<ShoppingOutlined />}
-            />
-          </Card>
-        </Col>
-        <Col xs={12} sm={6} lg={4}>
+        <Col xs={12} sm={6} lg={6}>
           <Card size="small">
             <Statistic
               title={t('merchantStock.totalInTransit')}
@@ -317,7 +307,7 @@ export function MerchantStockListPage() {
             />
           </Card>
         </Col>
-        <Col xs={12} sm={6} lg={4}>
+        <Col xs={12} sm={6} lg={6}>
           <Card size="small">
             <Statistic
               title={t('merchantStock.totalAvailable')}
@@ -327,7 +317,7 @@ export function MerchantStockListPage() {
             />
           </Card>
         </Col>
-        <Col xs={12} sm={6} lg={4}>
+        <Col xs={12} sm={6} lg={6}>
           <Card size="small">
             <Statistic
               title={t('merchantStock.totalReserved')}
@@ -337,22 +327,13 @@ export function MerchantStockListPage() {
             />
           </Card>
         </Col>
-        <Col xs={12} sm={6} lg={4}>
+        <Col xs={12} sm={6} lg={6}>
           <Card size="small">
             <Statistic
               title={t('merchantStock.totalDamaged')}
               value={summary?.totalDamaged || 0}
               prefix={<ExclamationCircleOutlined />}
               valueStyle={{ color: '#ff4d4f' }}
-            />
-          </Card>
-        </Col>
-        <Col xs={12} sm={6} lg={4}>
-          <Card size="small">
-            <Statistic
-              title={t('merchantStock.warehouseCount')}
-              value={summary?.warehouseCount || 0}
-              prefix={<InboxOutlined />}
             />
           </Card>
         </Col>

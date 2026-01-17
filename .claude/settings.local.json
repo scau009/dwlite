@@ -33,7 +33,8 @@
       "Bash(docker logs:*)",
       "Bash(php -l:*)",
       "Bash(php vendor/bin/phpstan analyse:*)",
-      "Bash(vendor/bin/phpunit:*)"
+      "Bash(vendor/bin/phpunit:*)",
+      "Bash(php bin/console:*)"
     ]
   }
 }

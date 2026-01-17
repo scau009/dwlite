@@ -21,7 +21,7 @@ interface ProductBasicInfoModalProps {
 interface FormValues {
   name: string;
   styleNumber: string;
-  season: string;
+  season?: string;
   color?: string;
   brandId?: string;
   categoryId?: string;
@@ -163,12 +163,6 @@ export function ProductBasicInfoModal({
               <Form.Item
                 name="season"
                 label={t('products.season')}
-                rules={[
-                  {
-                    required: true,
-                    message: t('validation.required', { field: t('products.season') }),
-                  },
-                ]}
               >
                 <Input placeholder="2024SS" />
               </Form.Item>

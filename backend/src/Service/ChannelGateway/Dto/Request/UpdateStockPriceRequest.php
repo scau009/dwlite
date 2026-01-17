@@ -6,6 +6,10 @@ namespace App\Service\ChannelGateway\Dto\Request;
 
 /**
  * Request DTO for updating stock and/or price on external channel.
+ *
+ * @deprecated This class is no longer used. The updateStockPrice method now
+ *             accepts ChannelProduct[] directly instead. Will be removed in
+ *             a future version.
  */
 readonly class UpdateStockPriceRequest
 {
@@ -20,6 +24,10 @@ readonly class UpdateStockPriceRequest
 
 /**
  * Single item stock/price update.
+ *
+ * @deprecated This class is no longer used. The updateStockPrice method now
+ *             accepts ChannelProduct[] directly instead. Will be removed in
+ *             a future version.
  */
 readonly class StockPriceUpdateDto
 {

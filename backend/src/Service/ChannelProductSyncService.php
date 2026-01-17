@@ -21,13 +21,12 @@ use App\Service\ChannelGateway\ChannelGatewayRegistry;
 use App\Service\ChannelGateway\Dto\Request\ProductImageDto;
 use App\Service\ChannelGateway\Dto\Request\ProductSkuDto;
 use App\Service\ChannelGateway\Dto\Request\PushProductRequest;
-use App\Service\ChannelGateway\Dto\Request\StockPriceUpdateDto;
-use App\Service\ChannelGateway\Dto\Request\UpdateStockPriceRequest;
 use App\Service\ChannelGateway\Exception\ChannelGatewayException;
 use Doctrine\ORM\EntityManagerInterface;
 use Predis\Client as RedisClient;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
+use Symfony\Component\Messenger\Stamp\DelayStamp;
 
 /**
  * Core service for channel product synchronization.
@@ -51,6 +50,7 @@ class ChannelProductSyncService
         private MessageBusInterface $messageBus,
         private RedisClient $redis,
         private LoggerInterface $logger,
+        private BusinessNoGenerator $businessNoGenerator,
     ) {
     }
 
@@ -308,6 +308,7 @@ class ChannelProductSyncService
         if ($channelProduct === null) {
             // Create new
             $channelProduct = new ChannelProduct();
+            $channelProduct->setId($this->businessNoGenerator->generateChannelProductId());
             $channelProduct->setSalesChannel($salesChannel);
             $channelProduct->setProductSku($productSku);
             $channelProduct->setPlatformPrice($listing->getPrice());
@@ -350,6 +351,7 @@ class ChannelProductSyncService
 
         if ($source === null) {
             $source = new ChannelProductSource();
+            $source->setId($this->businessNoGenerator->generateChannelProductSourceId());
             $source->setChannelProduct($channelProduct);
             $source->setInventoryListing($listing);
             $source->setPriority(0);
@@ -462,7 +464,12 @@ class ChannelProductSyncService
     }
 
     /**
-     * Dispatch sync message with debounce.
+     * Dispatch sync message with delay (trailing debounce).
+     *
+     * 使用延迟消息实现尾部防抖：
+     * - 每次变动派发一个延迟 N 秒的消息，并记录时间戳
+     * - 消息处理器检查时间戳，只处理最新的请求
+     * - 这样可以确保所有变动都被正确处理，同时避免频繁同步
      */
     private function dispatchWithDebounce(
         ChannelProduct $channelProduct,
@@ -471,33 +478,57 @@ class ChannelProductSyncService
         ?string $merchantId,
         ?string $merchantInventoryId,
     ): void {
-        $lockKey = sprintf('sync:debounce:%s', $channelProduct->getId());
+        $timestampKey = sprintf('sync:timestamp:%s', $channelProduct->getId());
+        $currentTimestamp = (string) microtime(true);
 
-        // Check debounce
-        if ($this->redis->exists($lockKey)) {
-            $this->logger->debug('Sync debounced', [
-                'channelProductId' => $channelProduct->getId(),
-            ]);
+        // 记录最新的请求时间戳
+        $this->redis->set($timestampKey, $currentTimestamp);
+        // 设置过期时间，防止 key 堆积
+        $this->redis->expire($timestampKey, self::DEBOUNCE_TTL_SECONDS + 10);
 
-            return;
-        }
-
-        // Set debounce lock
-        $this->redis->setex($lockKey, self::DEBOUNCE_TTL_SECONDS, '1');
-
-        // Dispatch message
-        $this->messageBus->dispatch(SyncChannelProductMessage::create(
+        // 派发延迟消息
+        $message = SyncChannelProductMessage::create(
             $channelProduct->getId(),
             $triggerSource,
             $inventoryListingId,
             $merchantId,
             $merchantInventoryId,
-        ));
+            $currentTimestamp,
+        );
 
-        $this->logger->info('Dispatched sync message', [
+        $this->messageBus->dispatch(
+            $message,
+            [new DelayStamp(self::DEBOUNCE_TTL_SECONDS * 1000)]  // 毫秒
+        );
+
+        $this->logger->debug('Dispatched delayed sync message', [
             'channelProductId' => $channelProduct->getId(),
             'triggerSource' => $triggerSource->value,
+            'timestamp' => $currentTimestamp,
+            'delaySeconds' => self::DEBOUNCE_TTL_SECONDS,
         ]);
+    }
+
+    /**
+     * 检查消息是否应该被处理（是否是最新的请求）.
+     */
+    public function shouldProcessMessage(SyncChannelProductMessage $message): bool
+    {
+        $timestampKey = sprintf('sync:timestamp:%s', $message->channelProductId);
+        $latestTimestamp = $this->redis->get($timestampKey);
+
+        // 如果没有记录的时间戳，或者消息的时间戳是最新的，则处理
+        if ($latestTimestamp === null || $message->getDispatchTimestamp() === $latestTimestamp) {
+            return true;
+        }
+
+        $this->logger->debug('Skipping outdated sync message', [
+            'channelProductId' => $message->channelProductId,
+            'messageTimestamp' => $message->getDispatchTimestamp(),
+            'latestTimestamp' => $latestTimestamp,
+        ]);
+
+        return false;
     }
 
     /**
@@ -565,18 +596,9 @@ class ChannelProductSyncService
      *
      * @return array{success: bool, message?: string, errorCode?: string, data?: array}
      */
-    private function doUpdateStockPrice($gateway, ChannelGatewayContext $context, ChannelProduct $channelProduct): array
+    private function doUpdateStockPrice(ChannelGatewayInterface $gateway, ChannelGatewayContext $context, ChannelProduct $channelProduct): array
     {
-        $request = new UpdateStockPriceRequest([
-            new StockPriceUpdateDto(
-                externalId: $channelProduct->getExternalId() ?? '',
-                stock: $channelProduct->getStockQuantity(),
-                price: $channelProduct->getPlatformPrice(),
-                compareAtPrice: $channelProduct->getPlatformCompareAtPrice(),
-            ),
-        ]);
-
-        $response = $gateway->updateStockPrice($context, $request);
+        $response = $gateway->updateStockPrice($context, [$channelProduct]);
 
         return [
             'success' => $response->success,

@@ -154,7 +154,7 @@ export function OrderExceptionDetailPage() {
   // Render exception details
   const renderDetails = (details: Record<string, unknown>) => {
     return (
-      <Descriptions column={{ xs: 1, sm: 2 }} size="small" bordered>
+      <Descriptions column={{ xs: 1, sm: 2 }} size="small">
         {Object.entries(details).map(([key, value]) => (
           <Descriptions.Item key={key} label={key}>
             {typeof value === 'object' ? JSON.stringify(value) : String(value)}

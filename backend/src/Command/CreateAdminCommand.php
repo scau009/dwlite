@@ -4,6 +4,7 @@ namespace App\Command;
 
 use App\Entity\User;
 use App\Repository\UserRepository;
+use App\Service\BusinessNoGenerator;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\QuestionHelper;
@@ -24,6 +25,7 @@ class CreateAdminCommand extends Command
     public function __construct(
         private UserRepository $userRepository,
         private UserPasswordHasherInterface $passwordHasher,
+        private BusinessNoGenerator $businessNoGenerator,
     ) {
         parent::__construct();
     }
@@ -113,6 +115,7 @@ class CreateAdminCommand extends Command
 
         // Create admin user
         $user = new User();
+        $user->setId($this->businessNoGenerator->generateUserId());
         $user->setEmail($email);
         $user->setPassword($this->passwordHasher->hashPassword($user, $password));
         $user->setRoles(['ROLE_ADMIN']);

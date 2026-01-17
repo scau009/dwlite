@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Dto\Admin\Query\PaginationQuery;
 use App\Dto\Merchant\ApplyChannelRequest;
+use App\Dto\Merchant\ResubmitChannelRequest;
 use App\Entity\MerchantSalesChannel;
 use App\Entity\SalesChannel;
 use App\Entity\User;
@@ -208,7 +209,7 @@ class MerchantChannelController extends AbstractController
     public function resubmitChannel(
         string $id,
         #[CurrentUser] User $user,
-        #[MapRequestPayload] ApplyChannelRequest $dto
+        #[MapRequestPayload] ResubmitChannelRequest $dto
     ): JsonResponse {
         $merchant = $this->merchantRepository->findOneBy(['user' => $user]);
         if (!$merchant) {

@@ -31,12 +31,9 @@ export function BatchUpdateCostModal({
 
     setLoading(true);
     try {
-      // Update all selected items
-      await Promise.all(
-        items.map(item =>
-          inboundApi.updateInboundOrderItemCost(item.id, cost.toString())
-        )
-      );
+      // Use batch API to update all items in a single request
+      const itemIds = items.map(item => item.id);
+      await inboundApi.batchUpdateItemCost(itemIds, cost.toString());
       message.success(t('inventory.batchCostUpdated', { count: items.length }));
       onSuccess();
     } catch (error) {

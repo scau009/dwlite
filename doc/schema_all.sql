@@ -788,6 +788,7 @@ CREATE TABLE `inbound_orders` (
     `total_sku_count` INT NOT NULL DEFAULT 0,
     `total_quantity` INT NOT NULL DEFAULT 0,
     `received_quantity` INT NOT NULL DEFAULT 0,
+    `currency` VARCHAR(3) NOT NULL DEFAULT 'USD' COMMENT 'Cost currency (CNY, USD, EUR, HKD, JPY)',
     `expected_arrival_date` DATE NULL,
     `submitted_at` DATETIME NULL,
     `shipped_at` DATETIME NULL,

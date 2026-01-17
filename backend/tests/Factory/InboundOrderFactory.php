@@ -22,13 +22,14 @@ class InboundOrderFactory
 
         $order = $test->createMock(InboundOrder::class);
         $order->method('getId')->willReturn($overrides['id'] ?? 'inbound-'.self::$counter);
-        $order->method('getOrderNo')->willReturn($overrides['orderNo'] ?? 'IB'.date('Ymd').str_pad((string)self::$counter, 6, '0', STR_PAD_LEFT));
+        $order->method('getOrderNo')->willReturn($overrides['orderNo'] ?? 'IB'.date('Ymd').str_pad((string)self::$counter, 5, '0', STR_PAD_LEFT));
         $order->method('getStatus')->willReturn($overrides['status'] ?? InboundOrder::STATUS_DRAFT);
         $order->method('isDraft')->willReturn(($overrides['status'] ?? InboundOrder::STATUS_DRAFT) === InboundOrder::STATUS_DRAFT);
         $order->method('isShipped')->willReturn(($overrides['status'] ?? InboundOrder::STATUS_DRAFT) === InboundOrder::STATUS_SHIPPED);
         $order->method('getTotalExpectedQuantity')->willReturn($overrides['expectedQuantity'] ?? 0);
         $order->method('getTotalReceivedQuantity')->willReturn($overrides['receivedQuantity'] ?? 0);
         $order->method('getMerchantNotes')->willReturn($overrides['merchantNotes'] ?? null);
+        $order->method('getCurrency')->willReturn($overrides['currency'] ?? 'USD');
 
         if (isset($overrides['merchant'])) {
             $order->method('getMerchant')->willReturn($overrides['merchant']);
@@ -73,6 +74,7 @@ class InboundOrderItemFactory
         $item->method('getReceivedQuantity')->willReturn($overrides['receivedQuantity'] ?? 0);
         $item->method('getDamagedQuantity')->willReturn($overrides['damagedQuantity'] ?? 0);
         $item->method('getUnitCost')->willReturn($overrides['unitCost'] ?? '50.00');
+        $item->method('getCurrency')->willReturn($overrides['currency'] ?? 'USD');
         $item->method('getStatus')->willReturn($overrides['status'] ?? InboundOrderItem::STATUS_PENDING);
         $item->method('getStyleNumber')->willReturn($overrides['styleNumber'] ?? 'STYLE001');
         $item->method('getSkuName')->willReturn($overrides['skuName'] ?? 'US 10');

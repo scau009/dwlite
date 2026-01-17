@@ -8,6 +8,7 @@ use App\Entity\Fulfillment;
 use App\Entity\FulfillmentItem;
 use App\Entity\OutboundOrder;
 use App\Entity\OutboundOrderItem;
+use App\Service\BusinessNoGenerator;
 use App\Service\OpenApi\WebhookService;
 use Psr\Log\LoggerInterface;
 
@@ -17,6 +18,7 @@ use Psr\Log\LoggerInterface;
 class OutboundOrderCreationService
 {
     public function __construct(
+        private readonly BusinessNoGenerator $businessNoGenerator,
         private readonly WebhookService $webhookService,
         private readonly LoggerInterface $logger,
     ) {
@@ -43,6 +45,7 @@ class OutboundOrderCreationService
 
         // 1. 创建出库单
         $outbound = OutboundOrder::createFromFulfillment($fulfillment);
+        $outbound->setOutboundNo($this->businessNoGenerator->generateOutboundOrderNo());
 
         // 2. 从 FulfillmentItem 获取商户（寄售履约单的 merchant 字段为 null）
         /** @var FulfillmentItem $firstItem */

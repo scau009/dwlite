@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ProTable, type ActionType, type ProColumns } from '@ant-design/pro-components';
-import { Button, Tag, App, Popconfirm, Space, Avatar, Select } from 'antd';
+import { Button, Tag, App, Popconfirm, Space, Avatar, Select, Alert } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 
 import { channelApi, type SalesChannel } from '@/lib/channel-api';
@@ -229,7 +229,13 @@ export function ChannelsListPage() {
   ];
 
   return (
-    <div className="space-y-4">
+    <div>
+      <Alert
+        message={t('channels.consignmentWarehouseAlert')}
+        type="info"
+        showIcon
+        style={{ marginBottom: 16 }}
+      />
       <ProTable<SalesChannel>
         actionRef={actionRef}
         columns={columns}

@@ -27,17 +27,17 @@ export function WarehouseInboundListPage() {
   const navigate = useNavigate();
   const actionRef = useRef<ActionType>(null);
 
-  // Get status label
+  // Get status label (warehouse perspective)
   const getStatusLabel = (status: WarehouseInboundStatus) => {
     const labels: Record<WarehouseInboundStatus, string> = {
-      draft: t('inventory.statusDraft'),
-      pending: t('inventory.statusPending'),
-      shipped: t('inventory.statusShipped'),
-      arrived: t('inventory.statusArrived'),
-      receiving: t('inventory.statusReceiving'),
-      completed: t('inventory.statusCompleted'),
-      partial_completed: t('inventory.statusPartialCompleted'),
-      cancelled: t('inventory.statusCancelled'),
+      draft: t('warehouseOps.inboundStatusDraft'),
+      pending: t('warehouseOps.inboundStatusPending'),
+      shipped: t('warehouseOps.inboundStatusShipped'),
+      arrived: t('warehouseOps.inboundStatusArrived'),
+      receiving: t('warehouseOps.inboundStatusReceiving'),
+      completed: t('warehouseOps.inboundStatusCompleted'),
+      partial_completed: t('warehouseOps.inboundStatusPartialCompleted'),
+      cancelled: t('warehouseOps.inboundStatusCancelled'),
     };
     return labels[status] || status;
   };
@@ -69,11 +69,11 @@ export function WarehouseInboundListPage() {
       width: 120,
       valueType: 'select',
       valueEnum: {
-        shipped: { text: t('inventory.statusShipped') },
-        arrived: { text: t('inventory.statusArrived') },
-        receiving: { text: t('inventory.statusReceiving') },
-        completed: { text: t('inventory.statusCompleted') },
-        partial_completed: { text: t('inventory.statusPartialCompleted') },
+        shipped: { text: t('warehouseOps.inboundStatusShipped') },
+        arrived: { text: t('warehouseOps.inboundStatusArrived') },
+        receiving: { text: t('warehouseOps.inboundStatusReceiving') },
+        completed: { text: t('warehouseOps.inboundStatusCompleted') },
+        partial_completed: { text: t('warehouseOps.inboundStatusPartialCompleted') },
       },
       render: (_, record) => (
         <Tag color={statusColors[record.status]}>{getStatusLabel(record.status)}</Tag>
@@ -180,6 +180,9 @@ export function WarehouseInboundListPage() {
         search={{
           labelWidth: 'auto',
           defaultCollapsed: false,
+        }}
+        form={{
+          syncToUrl: true,
         }}
         options={{
           density: true,

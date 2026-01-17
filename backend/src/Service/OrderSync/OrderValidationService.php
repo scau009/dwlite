@@ -7,6 +7,7 @@ namespace App\Service\OrderSync;
 use App\Entity\Order;
 use App\Entity\OrderException;
 use App\Repository\OrderExceptionRepository;
+use App\Service\BusinessNoGenerator;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 
@@ -17,6 +18,7 @@ class OrderValidationService
 {
     public function __construct(
         private readonly OrderExceptionRepository $exceptionRepo,
+        private readonly BusinessNoGenerator $businessNoGenerator,
         private readonly EntityManagerInterface $entityManager,
         private readonly LoggerInterface $logger,
     ) {
@@ -44,6 +46,7 @@ class OrderValidationService
                         'productName' => $item->getExternalProductName(),
                     ]
                 );
+                $exception->setExceptionNo($this->businessNoGenerator->generateOrderExceptionNo());
                 $exceptions[] = $exception;
                 $this->entityManager->persist($exception);
 
@@ -76,6 +79,7 @@ class OrderValidationService
                         'available' => $channelProduct->getStockQuantity(),
                     ]
                 );
+                $exception->setExceptionNo($this->businessNoGenerator->generateOrderExceptionNo());
                 $exceptions[] = $exception;
                 $this->entityManager->persist($exception);
 
@@ -110,6 +114,7 @@ class OrderValidationService
                         'difference' => bcsub($platformPrice, $orderUnitPrice, 2),
                     ]
                 );
+                $exception->setExceptionNo($this->businessNoGenerator->generateOrderExceptionNo());
                 $exceptions[] = $exception;
                 $this->entityManager->persist($exception);
 

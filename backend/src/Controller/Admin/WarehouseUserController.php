@@ -8,6 +8,7 @@ use App\Dto\Admin\UpdateWarehouseUserRequest;
 use App\Entity\User;
 use App\Repository\UserRepository;
 use App\Repository\WarehouseRepository;
+use App\Service\BusinessNoGenerator;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -33,6 +34,7 @@ class WarehouseUserController extends AbstractController
         private EntityManagerInterface $entityManager,
         private UserPasswordHasherInterface $passwordHasher,
         private TranslatorInterface $translator,
+        private BusinessNoGenerator $businessNoGenerator,
     ) {
     }
 
@@ -92,6 +94,7 @@ class WarehouseUserController extends AbstractController
 
         // 创建用户
         $user = new User();
+        $user->setId($this->businessNoGenerator->generateUserId());
         $user->setEmail($dto->email);
         $user->setPassword($this->passwordHasher->hashPassword($user, $dto->password));
         $user->setAccountType(User::ACCOUNT_TYPE_WAREHOUSE);

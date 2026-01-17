@@ -310,14 +310,6 @@ class OrderException
     }
 
     /**
-     * 生成异常单号.
-     */
-    public static function generateExceptionNo(): string
-    {
-        return 'OE'.date('Ymd').strtoupper(substr((string) new Ulid(), -8));
-    }
-
-    /**
      * 从订单创建异常单.
      */
     public static function createForOrder(
@@ -327,7 +319,6 @@ class OrderException
         ?array $details = null
     ): self {
         $exception = new self();
-        $exception->exceptionNo = self::generateExceptionNo();
         $exception->order = $order;
         $exception->type = $type;
         $exception->description = $description;

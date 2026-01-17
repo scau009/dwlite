@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\ChannelProduct;
 use App\Entity\ProductSku;
 use App\Entity\SalesChannel;
+use App\Service\BusinessNoGenerator;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -13,8 +14,10 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class ChannelProductRepository extends ServiceEntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
-    {
+    public function __construct(
+        ManagerRegistry $registry,
+        private BusinessNoGenerator $businessNoGenerator,
+    ) {
         parent::__construct($registry, ChannelProduct::class);
     }
 
@@ -70,6 +73,7 @@ class ChannelProductRepository extends ServiceEntityRepository
 
         if ($product === null) {
             $product = new ChannelProduct();
+            $product->setId($this->businessNoGenerator->generateChannelProductId());
             $product->setSalesChannel($channel);
             $product->setProductSku($sku);
         }
