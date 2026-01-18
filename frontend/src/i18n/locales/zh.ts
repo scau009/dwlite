@@ -2518,6 +2518,11 @@ export default {
     productName: '商品名称',
     quantity: '数量',
     unitPrice: '单价',
+    // 操作
+    settle: '立即结算',
+    confirmSettle: '确认结算',
+    confirmSettleMessage: '确定要立即结算该结算单吗？这将立即将款项入账到商户钱包。',
+    settleSuccess: '结算成功',
   },
 
   // Payouts

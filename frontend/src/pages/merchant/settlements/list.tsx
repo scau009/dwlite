@@ -12,6 +12,7 @@ import {
   SETTLEMENT_STATUS_LABELS,
   SETTLEMENT_STATUS_COLORS,
 } from '@/lib/merchant-settlement-api';
+import { getCurrencySymbol } from '@/lib/merchant-listing-api';
 
 export function MerchantSettlementsListPage() {
   const { t } = useTranslation();
@@ -56,7 +57,7 @@ export function MerchantSettlementsListPage() {
       dataIndex: 'grossAmount',
       width: 120,
       search: false,
-      render: (_, record) => `¥${parseFloat(record.grossAmount).toFixed(2)}`,
+      render: (_, record) => `${getCurrencySymbol(record.currency)}${parseFloat(record.grossAmount).toFixed(2)}`,
     },
     {
       title: t('settlements.commissionRate'),
@@ -71,7 +72,7 @@ export function MerchantSettlementsListPage() {
       width: 120,
       search: false,
       render: (_, record) => (
-        <span className="text-red-500">-¥{parseFloat(record.commissionAmount).toFixed(2)}</span>
+        <span className="text-red-500">{getCurrencySymbol(record.currency)}{parseFloat(record.commissionAmount).toFixed(2)}</span>
       ),
     },
     {
@@ -80,7 +81,7 @@ export function MerchantSettlementsListPage() {
       width: 120,
       search: false,
       render: (_, record) => (
-        <span className="text-green-600 font-medium">¥{parseFloat(record.netAmount).toFixed(2)}</span>
+        <span className="text-green-600 font-medium">{getCurrencySymbol(record.currency)}{parseFloat(record.netAmount).toFixed(2)}</span>
       ),
     },
     {

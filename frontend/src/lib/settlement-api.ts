@@ -177,6 +177,12 @@ export const settlementApi = {
     return apiFetch<PayoutDetail>(`/api/admin/payouts/${id}`);
   },
 
+  settle: async (id: string): Promise<{ success: boolean; message: string }> => {
+    return apiFetch<{ success: boolean; message: string }>(`/api/admin/settlements/${id}/settle`, {
+      method: 'POST',
+    });
+  },
+
   approvePayout: async (id: string): Promise<{ message: string; payout: Payout }> => {
     return apiFetch<{ message: string; payout: Payout }>(`/api/admin/payouts/${id}/approve`, {
       method: 'POST',

@@ -38,9 +38,10 @@ class FulfillmentController extends AbstractController
      */
     #[Route('', name: 'list', methods: ['GET'])]
     public function list(
-        #[MapQueryString] FulfillmentQuery $query,
+        #[MapQueryString] ?FulfillmentQuery $query,
         Request $request
     ): JsonResponse {
+        $query ??= new FulfillmentQuery();
         /** @var Merchant $merchant */
         $merchant = $request->attributes->get('merchant');
 

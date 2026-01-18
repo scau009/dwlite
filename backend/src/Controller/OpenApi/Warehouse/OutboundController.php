@@ -40,9 +40,10 @@ class OutboundController extends AbstractController
      */
     #[Route('/orders', name: 'list', methods: ['GET'])]
     public function list(
-        #[MapQueryString] OutboundOrderListQuery $query,
+        #[MapQueryString] ?OutboundOrderListQuery $query,
         Request $request
     ): JsonResponse {
+        $query ??= new OutboundOrderListQuery();
         /** @var Warehouse $warehouse */
         $warehouse = $request->attributes->get('warehouse');
 

@@ -44,9 +44,10 @@ class ListingController extends AbstractController
      */
     #[Route('', name: 'list', methods: ['GET'])]
     public function list(
-        #[MapQueryString] ListingQuery $query,
+        #[MapQueryString] ?ListingQuery $query,
         Request $request
     ): JsonResponse {
+        $query ??= new ListingQuery();
         /** @var Merchant $merchant */
         $merchant = $request->attributes->get('merchant');
 

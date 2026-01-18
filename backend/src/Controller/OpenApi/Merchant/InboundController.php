@@ -33,9 +33,10 @@ class InboundController extends AbstractController
      */
     #[Route('/orders', name: 'list', methods: ['GET'])]
     public function list(
-        #[MapQueryString] InboundOrderQuery $query,
+        #[MapQueryString] ?InboundOrderQuery $query,
         Request $request
     ): JsonResponse {
+        $query ??= new InboundOrderQuery();
         /** @var Merchant $merchant */
         $merchant = $request->attributes->get('merchant');
 

@@ -2521,6 +2521,11 @@ export default {
     productName: 'Product Name',
     quantity: 'Qty',
     unitPrice: 'Unit Price',
+    // Actions
+    settle: 'Settle Now',
+    confirmSettle: 'Confirm Settlement',
+    confirmSettleMessage: 'Are you sure you want to settle this settlement now? This will credit the merchant\'s wallet immediately.',
+    settleSuccess: 'Settlement processed successfully',
   },
 
   // Payouts

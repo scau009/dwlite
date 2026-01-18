@@ -39,9 +39,10 @@ class InventoryController extends AbstractController
      */
     #[Route('', name: 'list', methods: ['GET'])]
     public function list(
-        #[MapQueryString] InventoryQuery $query,
+        #[MapQueryString] ?InventoryQuery $query,
         Request $request
     ): JsonResponse {
+        $query ??= new InventoryQuery();
         /** @var Warehouse $warehouse */
         $warehouse = $request->attributes->get('warehouse');
 

@@ -33,9 +33,10 @@ class SettlementController extends AbstractController
      */
     #[Route('', name: 'list', methods: ['GET'])]
     public function list(
-        #[MapQueryString] SettlementQuery $query,
+        #[MapQueryString] ?SettlementQuery $query,
         Request $request
     ): JsonResponse {
+        $query ??= new SettlementQuery();
         /** @var Merchant $merchant */
         $merchant = $request->attributes->get('merchant');
 

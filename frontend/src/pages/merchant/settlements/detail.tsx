@@ -12,6 +12,7 @@ import {
   SETTLEMENT_STATUS_LABELS,
   SETTLEMENT_STATUS_COLORS,
 } from '@/lib/merchant-settlement-api';
+import { getCurrencySymbol } from '@/lib/merchant-listing-api';
 
 export function MerchantSettlementDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -50,6 +51,8 @@ export function MerchantSettlementDetailPage() {
     return <Empty description={t('common.noData')} />;
   }
 
+  const currencySymbol = getCurrencySymbol(settlement.currency);
+
   const itemColumns: ColumnsType<SettlementItem> = [
     {
       title: t('settlements.skuCode'),
@@ -72,14 +75,14 @@ export function MerchantSettlementDetailPage() {
       dataIndex: 'unitPrice',
       width: 100,
       align: 'right',
-      render: (val: string) => `¥${parseFloat(val).toFixed(2)}`,
+      render: (val: string) => `${currencySymbol}${parseFloat(val).toFixed(2)}`,
     },
     {
       title: t('settlements.grossAmount'),
       dataIndex: 'grossAmount',
       width: 120,
       align: 'right',
-      render: (val: string) => `¥${parseFloat(val).toFixed(2)}`,
+      render: (val: string) => `${currencySymbol}${parseFloat(val).toFixed(2)}`,
     },
     {
       title: t('settlements.commissionRate'),
@@ -93,7 +96,7 @@ export function MerchantSettlementDetailPage() {
       dataIndex: 'commissionAmount',
       width: 120,
       align: 'right',
-      render: (val: string) => <span className="text-red-500">-¥{parseFloat(val).toFixed(2)}</span>,
+      render: (val: string) => <span className="text-red-500">{currencySymbol}{parseFloat(val).toFixed(2)}</span>,
     },
     {
       title: t('settlements.netAmount'),
@@ -101,7 +104,7 @@ export function MerchantSettlementDetailPage() {
       width: 120,
       align: 'right',
       render: (val: string) => (
-        <span className="text-green-600 font-medium">¥{parseFloat(val).toFixed(2)}</span>
+        <span className="text-green-600 font-medium">{currencySymbol}{parseFloat(val).toFixed(2)}</span>
       ),
     },
   ];
@@ -145,17 +148,17 @@ export function MerchantSettlementDetailPage() {
       <Card title={t('settlements.amountInfo')}>
         <Descriptions column={{ xs: 1, sm: 2, md: 3 }}>
           <Descriptions.Item label={t('settlements.grossAmount')}>
-            <span className="text-lg">¥{parseFloat(settlement.grossAmount).toFixed(2)}</span>
+            <span className="text-lg">{currencySymbol}{parseFloat(settlement.grossAmount).toFixed(2)}</span>
           </Descriptions.Item>
           <Descriptions.Item label={t('settlements.commissionRate')}>
             {settlement.commissionRate}%
           </Descriptions.Item>
           <Descriptions.Item label={t('settlements.commissionAmount')}>
-            <span className="text-red-500">-¥{parseFloat(settlement.commissionAmount).toFixed(2)}</span>
+            <span className="text-red-500">{currencySymbol}{parseFloat(settlement.commissionAmount).toFixed(2)}</span>
           </Descriptions.Item>
           <Descriptions.Item label={t('settlements.netAmount')}>
             <span className="text-lg text-green-600 font-medium">
-              ¥{parseFloat(settlement.netAmount).toFixed(2)}
+              {currencySymbol}{parseFloat(settlement.netAmount).toFixed(2)}
             </span>
           </Descriptions.Item>
         </Descriptions>

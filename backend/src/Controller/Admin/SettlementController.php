@@ -10,6 +10,7 @@ use App\Entity\Settlement;
 use App\Entity\SettlementItem;
 use App\Repository\SettlementItemRepository;
 use App\Repository\SettlementRepository;
+use App\Service\Settlement\SettlementService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -24,6 +25,7 @@ class SettlementController extends AbstractController
     public function __construct(
         private SettlementRepository $settlementRepository,
         private SettlementItemRepository $settlementItemRepository,
+        private SettlementService $settlementService,
         private TranslatorInterface $translator,
     ) {
     }
@@ -58,6 +60,30 @@ class SettlementController extends AbstractController
         return $this->json([
             ...$this->serializeSettlement($settlement, true),
             'items' => array_map(fn (SettlementItem $item) => $this->serializeSettlementItem($item), $items),
+        ]);
+    }
+
+    #[Route('/{id}/settle', name: 'admin_settlement_settle', methods: ['POST'])]
+    public function settle(string $id): JsonResponse
+    {
+        $settlement = $this->settlementRepository->find($id);
+        if (!$settlement) {
+            return $this->json(['error' => $this->translator->trans('admin.settlement.not_found')], Response::HTTP_NOT_FOUND);
+        }
+
+        if (!$settlement->isPending()) {
+            return $this->json(['error' => $this->translator->trans('admin.settlement.not_pending')], Response::HTTP_BAD_REQUEST);
+        }
+
+        try {
+            $this->settlementService->settle($settlement, force: true);
+        } catch (\RuntimeException $e) {
+            return $this->json(['error' => $e->getMessage()], Response::HTTP_BAD_REQUEST);
+        }
+
+        return $this->json([
+            'success' => true,
+            'message' => $this->translator->trans('admin.settlement.settle_success'),
         ]);
     }
 
