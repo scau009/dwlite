@@ -84,41 +84,56 @@ class SettlementService
                 throw new \RuntimeException('Balance wallet not found');
             }
 
-            // Record balance before
-            $balanceBefore = $wallet->getBalance();
+            // Wrap database operations in a transaction for atomicity
+            $this->entityManager->beginTransaction();
 
-            // Credit wallet
-            $wallet->credit($settlement->getNetAmount());
+            try {
+                // Record balance before
+                $balanceBefore = $wallet->getBalance();
 
-            // Create wallet transaction record
-            $transaction = new WalletTransaction();
-            $transaction->setTransactionNo($this->businessNoGenerator->generateWalletTransactionNo())
-                ->setWallet($wallet)
-                ->setType(WalletTransaction::TYPE_CREDIT)
-                ->setAmount($settlement->getNetAmount())
-                ->setBalanceBefore($balanceBefore)
-                ->setBalanceAfter($wallet->getBalance())
-                ->setBizType(WalletTransaction::BIZ_SETTLEMENT)
-                ->setBizId($settlement->getId())
-                ->setRemark(sprintf('结算单 %s 入账', $settlement->getSettlementNo()));
+                // Credit wallet
+                $wallet->credit($settlement->getNetAmount());
 
-            // Mark settlement as settled
-            $settlement->markSettled($transaction->getId());
+                // Create wallet transaction record
+                $transaction = new WalletTransaction();
+                $transaction->setTransactionNo($this->businessNoGenerator->generateWalletTransactionNo())
+                    ->setWallet($wallet)
+                    ->setType(WalletTransaction::TYPE_CREDIT)
+                    ->setAmount($settlement->getNetAmount())
+                    ->setBalanceBefore($balanceBefore)
+                    ->setBalanceAfter($wallet->getBalance())
+                    ->setBizType(WalletTransaction::BIZ_SETTLEMENT)
+                    ->setBizId($settlement->getId())
+                    ->setRemark(sprintf('结算单 %s 入账', $settlement->getSettlementNo()));
 
-            $this->entityManager->persist($transaction);
-            $this->entityManager->flush();
+                // Mark settlement as settled
+                $settlement->markSettled($transaction->getId());
 
-            $this->logger->info('Settlement processed', [
-                'settlementId' => $settlement->getId(),
-                'settlementNo' => $settlement->getSettlementNo(),
-                'netAmount' => $settlement->getNetAmount(),
-                'transactionId' => $transaction->getId(),
-                'balanceBefore' => $balanceBefore,
-                'balanceAfter' => $wallet->getBalance(),
-                'force' => $force,
-            ]);
+                // Persist all changes
+                $this->entityManager->persist($transaction);
+                $this->entityManager->flush();
+                $this->entityManager->commit();
 
-            // Trigger webhook for merchant
+                $this->logger->info('Settlement processed', [
+                    'settlementId' => $settlement->getId(),
+                    'settlementNo' => $settlement->getSettlementNo(),
+                    'netAmount' => $settlement->getNetAmount(),
+                    'transactionId' => $transaction->getId(),
+                    'balanceBefore' => $balanceBefore,
+                    'balanceAfter' => $wallet->getBalance(),
+                    'force' => $force,
+                ]);
+            } catch (\Exception $e) {
+                $this->entityManager->rollback();
+                $this->logger->error('Settlement processing failed, transaction rolled back', [
+                    'settlementId' => $settlement->getId(),
+                    'error' => $e->getMessage(),
+                ]);
+
+                throw $e;
+            }
+
+            // Trigger webhook for merchant (outside transaction - webhook failures should not rollback settlement)
             $fulfillment = $settlement->getFulfillment();
             $order = $settlement->getOrder();
             $this->webhookService->triggerMerchantEvent(

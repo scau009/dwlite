@@ -16,13 +16,14 @@ use App\Message\ProcessConsignmentFulfillmentMessage;
 use App\Repository\ChannelProductSourceRepository;
 use App\Repository\InventoryReservationRepository;
 use App\Repository\PlatformRuleRepository;
+use App\Service\BusinessNoGenerator;
 use App\Service\Fulfillment\Dto\AllocationResult;
 use App\Service\Fulfillment\Dto\MultiSourceSelectionResult;
 use App\Service\Fulfillment\Dto\SourceAllocation;
 use App\Service\InventoryReservationService;
 use App\Service\OpenApi\WebhookService;
+use App\Service\RuleEngine\PlatformRuleService;
 use App\Service\RuleEngine\RuleEngineService;
-use App\Service\BusinessNoGenerator;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Lock\LockFactory;
@@ -50,6 +51,7 @@ class FulfillmentAllocationService
         private readonly MessageBusInterface $messageBus,
         private readonly WebhookService $webhookService,
         private readonly BusinessNoGenerator $businessNoGenerator,
+        private readonly PlatformRuleService $platformRuleService,
         private readonly LoggerInterface $logger,
     ) {
     }
@@ -574,6 +576,24 @@ class FulfillmentAllocationService
 
             // 快照来源信息
             $fulfillmentItem->snapshotFromSource($allocation->source);
+
+            // 设置结算价格和佣金率
+            $settlementPrice = $fulfillmentItem->getListPrice() ?? '0.00';
+            $fulfillmentItem->setSettlementPrice($settlementPrice);
+
+            // 从平台规则获取佣金率
+            $merchant = $fulfillmentItem->getMerchant();
+            if ($merchant !== null) {
+                $channelCode = $order->getSalesChannel()->getCode();
+                $commissionRate = $this->platformRuleService->getSettlementFeeRate(
+                    $merchant->getId(),
+                    $channelCode
+                );
+                $fulfillmentItem->setCommissionRate($commissionRate);
+
+                // 计算佣金金额
+                $fulfillmentItem->calculateSettlement();
+            }
 
             $fulfillment->addItem($fulfillmentItem);
 
