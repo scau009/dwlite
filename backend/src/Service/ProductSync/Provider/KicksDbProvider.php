@@ -178,4 +178,113 @@ class KicksDbProvider implements ProductDataProviderInterface
     {
         return self::BASE_URL;
     }
+
+    /**
+     * Fetch products using cursor-based pagination.
+     *
+     * @param int|null    $afterRank         Cursor position (rank value)
+     * @param int         $pageSize          Items per page
+     * @param string|null $productTypeFilter Optional product type filter (e.g., 'sneakers', 'apparel', null for all)
+     *
+     * @return array{result: PaginatedResultDto, lastRank: int|null}
+     */
+    public function fetchProductsWithCursor(
+        ?int $afterRank = null,
+        int $pageSize = 100,
+        ?string $productTypeFilter = null,
+    ): array {
+        $this->logger->info('Fetching products from KicksDB with cursor', [
+            'after_rank' => $afterRank,
+            'page_size' => $pageSize,
+            'product_type_filter' => $productTypeFilter,
+            'market' => $this->market,
+            'currency' => $this->currency,
+        ]);
+
+        $result = $this->apiClient->getStockXProductsWithCursor(
+            afterRank: $afterRank,
+            pageSize: $pageSize,
+            productTypeFilter: $productTypeFilter,
+            market: $this->market,
+            currency: $this->currency,
+        );
+
+        $products = [];
+        foreach ($result['products'] as $productData) {
+            try {
+                $products[] = ExternalProductDto::fromKicksDb($productData, $this->currency);
+            } catch (\Exception $e) {
+                $this->logger->warning('Failed to parse product from KicksDB', [
+                    'product_id' => $productData['id'] ?? 'unknown',
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+
+        $this->logger->info('Fetched products from KicksDB with cursor', [
+            'after_rank' => $afterRank,
+            'fetched_count' => count($products),
+            'total_count' => $result['totalCount'],
+            'has_next_page' => $result['hasNextPage'],
+            'last_rank' => $result['lastRank'],
+        ]);
+
+        $paginatedResult = new PaginatedResultDto(
+            products: $products,
+            totalCount: $result['totalCount'],
+            pageNumber: 1,
+            pageSize: $result['pageSize'],
+            hasNextPage: $result['hasNextPage'],
+            lastRank: $result['lastRank'],
+        );
+
+        return [
+            'result' => $paginatedResult,
+            'lastRank' => $result['lastRank'],
+        ];
+    }
+
+    /**
+     * Fetch all products using cursor-based pagination.
+     * Returns a Generator that yields PaginatedResultDto for each batch.
+     *
+     * @param int         $batchSize         Products per batch (max 100)
+     * @param string|null $productTypeFilter Optional product type filter (e.g., 'sneakers', 'apparel', null for all)
+     *
+     * @return \Generator<PaginatedResultDto>
+     */
+    public function fetchAllProducts(int $batchSize = 100, ?string $productTypeFilter = null): \Generator
+    {
+        $this->logger->info('Starting full product scan from KicksDB', [
+            'batch_size' => $batchSize,
+            'product_type_filter' => $productTypeFilter,
+        ]);
+
+        $afterRank = null;
+        $batchNumber = 0;
+
+        do {
+            ++$batchNumber;
+
+            $this->logger->debug('Fetching batch', [
+                'batch_number' => $batchNumber,
+                'after_rank' => $afterRank,
+            ]);
+
+            $response = $this->fetchProductsWithCursor(
+                afterRank: $afterRank,
+                pageSize: $batchSize,
+                productTypeFilter: $productTypeFilter,
+            );
+
+            $result = $response['result'];
+            $afterRank = $response['lastRank'];
+
+            yield $result;
+        } while ($result->hasNextPage && $afterRank !== null);
+
+        $this->logger->info('Completed full product scan from KicksDB', [
+            'total_batches' => $batchNumber,
+        ]);
+    }
 }

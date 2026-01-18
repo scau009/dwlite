@@ -15,7 +15,7 @@ groups:
       # Rule 1: Any Error Log Detected
       # Triggers when any ERROR level log appears in the last 5 minutes
       - uid: error-log-any
-        title: Error Log Detected
+        title: 检测到错误日志
         condition: C
         data:
           # Query A: Count ERROR logs in last 5 minutes
@@ -62,8 +62,8 @@ groups:
         execErrState: Error
         for: 0s
         annotations:
-          summary: "Error log detected in Symfony application"
-          description: "{{ $values.B }} error(s) occurred in the last 5 minutes. Check Grafana Loki for details."
+          summary: "应用出现错误日志"
+          description: "过去 5 分钟内发生 {{ $values.B }} 个错误"
           runbook_url: "http://localhost:3000/explore?orgId=1&left=%7B%22datasource%22:%22loki%22,%22queries%22:%5B%7B%22expr%22:%22%7Bjob%3D%5C%22symfony%5C%22,%20level%3D%5C%22ERROR%5C%22%7D%22%7D%5D%7D"
         labels:
           severity: high
@@ -72,7 +72,7 @@ groups:
       # Rule 2: High Frequency Error Alert
       # Triggers when more than 10 errors occur in 5 minutes
       - uid: error-log-high-frequency
-        title: High Frequency Errors
+        title: 高频错误告警
         condition: C
         data:
           - refId: A
@@ -116,8 +116,8 @@ groups:
         execErrState: Error
         for: 0s
         annotations:
-          summary: "High frequency of errors detected"
-          description: "{{ $values.B }} errors in the last 5 minutes (threshold: 10). This indicates a potential system issue requiring immediate attention."
+          summary: "错误数量过多"
+          description: "过去 5 分钟内发生 {{ $values.B }} 个错误（阈值: 10），系统可能存在严重问题"
           runbook_url: "http://localhost:3000/explore?orgId=1&left=%7B%22datasource%22:%22loki%22,%22queries%22:%5B%7B%22expr%22:%22%7Bjob%3D%5C%22symfony%5C%22,%20level%3D%5C%22ERROR%5C%22%7D%22%7D%5D%7D"
         labels:
           severity: critical
@@ -126,7 +126,7 @@ groups:
       # Rule 3: Error Rate Spike Alert
       # Triggers when error rate increases significantly compared to previous period
       - uid: error-log-spike
-        title: Error Rate Spike
+        title: 错误率突增
         condition: C
         data:
           # Current 5-minute error count
@@ -163,8 +163,8 @@ groups:
         execErrState: Error
         for: 0s
         annotations:
-          summary: "Sudden spike in error rate"
-          description: "Error rate has increased more than 3x compared to the previous 5 minutes. Current: {{ $values.A }}, Previous: {{ $values.B }}"
+          summary: "错误率异常上升"
+          description: "错误数量较前 5 分钟增长超过 3 倍。当前: {{ $values.A }}，之前: {{ $values.B }}"
           runbook_url: "http://localhost:3000/explore?orgId=1&left=%7B%22datasource%22:%22loki%22,%22queries%22:%5B%7B%22expr%22:%22%7Bjob%3D%5C%22symfony%5C%22,%20level%3D%5C%22ERROR%5C%22%7D%22%7D%5D%7D"
         labels:
           severity: critical
@@ -180,7 +180,7 @@ groups:
     rules:
       # High Warning Count
       - uid: warning-log-high
-        title: High Warning Log Count
+        title: 警告日志过多
         condition: C
         data:
           - refId: A
@@ -224,8 +224,8 @@ groups:
         execErrState: Error
         for: 5m
         annotations:
-          summary: "High number of warning logs"
-          description: "{{ $values.B }} warnings in the last 5 minutes (threshold: 50). Review warnings to prevent potential errors."
+          summary: "警告日志数量异常"
+          description: "过去 5 分钟内产生 {{ $values.B }} 条警告（阈值: 50），建议排查潜在问题"
           runbook_url: "http://localhost:3000/explore?orgId=1&left=%7B%22datasource%22:%22loki%22,%22queries%22:%5B%7B%22expr%22:%22%7Bjob%3D%5C%22symfony%5C%22,%20level%3D%5C%22WARNING%5C%22%7D%22%7D%5D%7D"
         labels:
           severity: medium
@@ -241,7 +241,7 @@ groups:
     rules:
       # No Logs Received (Application Down)
       - uid: app-no-logs
-        title: No Application Logs
+        title: 应用无日志输出
         condition: C
         data:
           - refId: A
@@ -285,8 +285,8 @@ groups:
         execErrState: Alerting
         for: 5m
         annotations:
-          summary: "No logs received from application"
-          description: "No logs have been received from the Symfony application in the last 5 minutes. The application may be down or logging may be broken."
+          summary: "应用可能已停止运行"
+          description: "过去 5 分钟内未收到任何日志，应用可能已宕机或日志系统异常"
           runbook_url: "http://localhost:8000/health"
         labels:
           severity: critical

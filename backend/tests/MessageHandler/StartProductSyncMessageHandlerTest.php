@@ -6,13 +6,15 @@ namespace App\Tests\MessageHandler;
 
 use App\Entity\ProductSyncJob;
 use App\Message\StartProductSyncMessage;
+use App\Message\SyncProductBatchMessage;
 use App\Message\SyncProductPageMessage;
 use App\MessageHandler\StartProductSyncMessageHandler;
 use App\Repository\ProductSyncJobRepository;
-use App\Service\ProductSync\Dto\ProductPageResult;
+use App\Service\ProductSync\Dto\PaginatedResultDto;
 use App\Service\ProductSync\ProductDataProviderInterface;
 use App\Service\ProductSync\ProductDataProviderRegistry;
 use App\Service\ProductSync\ProductSyncService;
+use App\Service\ProductSync\Provider\KicksDbProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
@@ -45,12 +47,9 @@ class StartProductSyncMessageHandlerTest extends TestCase
         );
     }
 
-    public function testHandleSuccessfulSync(): void
+    public function testHandleSuccessfulSyncForNonKicksDbProvider(): void
     {
-        $message = new StartProductSyncMessage(
-            'goat',
-            new \DateTimeImmutable('now', new \DateTimeZone('UTC'))
-        );
+        $message = new StartProductSyncMessage('goat');
 
         $this->syncJobRepository->expects($this->once())
             ->method('findRunningByProvider')
@@ -64,11 +63,12 @@ class StartProductSyncMessageHandlerTest extends TestCase
 
         $provider = $this->createMock(ProductDataProviderInterface::class);
 
-        $firstPage = new ProductPageResult(
+        $firstPage = new PaginatedResultDto(
             products: [],
+            totalCount: 250,
             pageNumber: 1,
             pageSize: 100,
-            totalCount: 250
+            hasNextPage: true,
         );
 
         $provider->expects($this->once())
@@ -102,12 +102,54 @@ class StartProductSyncMessageHandlerTest extends TestCase
         ($this->handler)($message);
     }
 
+    public function testHandleKicksDbUsesCursorBasedPagination(): void
+    {
+        $message = new StartProductSyncMessage(KicksDbProvider::PROVIDER_NAME);
+
+        $this->syncJobRepository->expects($this->once())
+            ->method('findRunningByProvider')
+            ->with(KicksDbProvider::PROVIDER_NAME)
+            ->willReturn(null);
+
+        $this->providerRegistry->expects($this->once())
+            ->method('has')
+            ->with(KicksDbProvider::PROVIDER_NAME)
+            ->willReturn(true);
+
+        $job = $this->createMock(ProductSyncJob::class);
+        $job->method('getId')->willReturn('job-kicksdb-123');
+        $job->expects($this->once())->method('start');
+
+        $this->syncService->expects($this->once())
+            ->method('createSyncJob')
+            ->with(KicksDbProvider::PROVIDER_NAME)
+            ->willReturn($job);
+
+        // Should NOT call startJob (cursor-based doesn't know total pages)
+        $this->syncService->expects($this->never())
+            ->method('startJob');
+
+        // Should dispatch a single batch message (not page messages)
+        $this->messageBus->expects($this->once())
+            ->method('dispatch')
+            ->with($this->callback(function ($message) {
+                return $message instanceof SyncProductBatchMessage
+                    && $message->provider === KicksDbProvider::PROVIDER_NAME
+                    && $message->afterRank === null
+                    && $message->batchNumber === 1;
+            }))
+            ->willReturn(new Envelope(new SyncProductBatchMessage('job-kicksdb-123', KicksDbProvider::PROVIDER_NAME)));
+
+        $this->syncJobRepository->expects($this->once())
+            ->method('save')
+            ->with($job, true);
+
+        ($this->handler)($message);
+    }
+
     public function testHandleSkipsWhenJobAlreadyRunning(): void
     {
-        $message = new StartProductSyncMessage(
-            'goat',
-            new \DateTimeImmutable('now', new \DateTimeZone('UTC'))
-        );
+        $message = new StartProductSyncMessage('goat');
 
         $runningJob = $this->createMock(ProductSyncJob::class);
         $runningJob->method('getId')->willReturn('job-existing');
@@ -127,10 +169,7 @@ class StartProductSyncMessageHandlerTest extends TestCase
 
     public function testHandleUnknownProvider(): void
     {
-        $message = new StartProductSyncMessage(
-            'unknown',
-            new \DateTimeImmutable('now', new \DateTimeZone('UTC'))
-        );
+        $message = new StartProductSyncMessage('unknown');
 
         $this->syncJobRepository->expects($this->once())
             ->method('findRunningByProvider')
@@ -149,21 +188,19 @@ class StartProductSyncMessageHandlerTest extends TestCase
 
     public function testHandleNoProducts(): void
     {
-        $message = new StartProductSyncMessage(
-            'goat',
-            new \DateTimeImmutable('now', new \DateTimeZone('UTC'))
-        );
+        $message = new StartProductSyncMessage('goat');
 
         $this->syncJobRepository->method('findRunningByProvider')->willReturn(null);
         $this->providerRegistry->method('has')->willReturn(true);
 
         $provider = $this->createMock(ProductDataProviderInterface::class);
 
-        $firstPage = new ProductPageResult(
+        $firstPage = new PaginatedResultDto(
             products: [],
+            totalCount: 0,
             pageNumber: 1,
             pageSize: 100,
-            totalCount: 0
+            hasNextPage: false,
         );
 
         $provider->expects($this->once())
@@ -187,10 +224,7 @@ class StartProductSyncMessageHandlerTest extends TestCase
 
     public function testHandleException(): void
     {
-        $message = new StartProductSyncMessage(
-            'goat',
-            new \DateTimeImmutable('now', new \DateTimeZone('UTC'))
-        );
+        $message = new StartProductSyncMessage('goat');
 
         $this->syncJobRepository->method('findRunningByProvider')->willReturn(null);
         $this->providerRegistry->method('has')->willReturn(true);

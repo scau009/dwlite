@@ -142,6 +142,103 @@ class KicksDbApiClient
     }
 
     /**
+     * Fetch StockX products using rank-based cursor pagination.
+     * This allows fetching beyond the page limit.
+     *
+     * @param int|null    $afterRank          Fetch products with rank greater than this value (cursor)
+     * @param int         $pageSize           Items per page (max 100)
+     * @param string|null $productTypeFilter  Product type filter (e.g., 'sneakers', 'apparel', null for all)
+     * @param string      $market             Market code (e.g., 'US', 'UK')
+     * @param string      $currency           Currency code (e.g., 'USD', 'EUR')
+     * @param bool        $displayVariants    Include variants in response
+     * @param bool        $displayPrices      Include prices in variants
+     * @param bool        $displayIdentifiers Include identifiers (UPC/GTIN) in variants
+     *
+     * @return array{products: array, hasNextPage: bool, totalCount: int, pageSize: int, lastRank: int|null}
+     */
+    public function getStockXProductsWithCursor(
+        ?int $afterRank = null,
+        int $pageSize = 100,
+        ?string $productTypeFilter = null,
+        string $market = self::MARKET_US,
+        string $currency = self::CURRENCY_USD,
+        bool $displayVariants = true,
+        bool $displayPrices = true,
+        bool $displayIdentifiers = true,
+    ): array {
+        $this->waitForRateLimit();
+
+        $queryParams = [
+            'page' => 1,
+            'limit' => min($pageSize, 100),
+            'sort' => 'rank:asc',
+            'market' => $market,
+            'currency' => $currency,
+            'display[variants]' => $displayVariants ? 'true' : 'false',
+            'display[prices]' => $displayPrices ? 'true' : 'false',
+            'display[identifiers]' => $displayIdentifiers ? 'true' : 'false',
+            'display[statistics]' => 'false',
+        ];
+
+        // Build filter expression
+        $filters = [];
+        if ($afterRank !== null) {
+            $filters[] = "rank > {$afterRank}";
+        }
+        if ($productTypeFilter !== null) {
+            $filters[] = "product_type = '{$productTypeFilter}'";
+        }
+
+        if (!empty($filters)) {
+            $queryParams['filters'] = implode(' AND ', $filters);
+        }
+
+        try {
+            $response = $this->httpClient->request('GET', self::BASE_URL.'/stockx/products', [
+                'headers' => $this->getHeaders(),
+                'query' => $queryParams,
+            ]);
+
+            $statusCode = $response->getStatusCode();
+            if ($statusCode !== 200) {
+                $this->handleApiError($response, 'getStockXProductsWithCursor');
+            }
+
+            $data = $response->toArray();
+            $products = $data['data'] ?? [];
+            $totalCount = $data['meta']['total'] ?? 0;
+
+            // Extract the last rank for cursor pagination
+            $lastRank = null;
+            if (!empty($products)) {
+                $lastProduct = end($products);
+                $lastRank = $lastProduct['rank'] ?? null;
+            }
+
+            $this->logger->debug('KicksDB API returned products (cursor mode)', [
+                'after_rank' => $afterRank,
+                'count' => count($products),
+                'total' => $totalCount,
+                'last_rank' => $lastRank,
+            ]);
+
+            return [
+                'products' => $products,
+                'hasNextPage' => count($products) >= $pageSize && $lastRank !== null,
+                'totalCount' => $totalCount,
+                'pageSize' => $pageSize,
+                'lastRank' => $lastRank,
+            ];
+        } catch (HttpExceptionInterface $e) {
+            $this->logger->error('KicksDB API HTTP error (cursor mode)', [
+                'error' => $e->getMessage(),
+                'after_rank' => $afterRank,
+            ]);
+            throw new \RuntimeException('KicksDB API request failed: '.$e->getMessage(), 0, $e);
+        }
+    }
+
+    /**
      * Fetch a single product by ID.
      *
      * @param string $productId           The StockX product ID

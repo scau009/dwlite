@@ -13,6 +13,7 @@ readonly class PaginatedResultDto
      * @param int                  $pageNumber  Current page number (1-based)
      * @param int                  $pageSize    Number of products per page
      * @param bool                 $hasNextPage Whether there are more pages
+     * @param int|null             $lastRank    Last product's rank for cursor-based pagination
      */
     public function __construct(
         public array $products,
@@ -20,6 +21,7 @@ readonly class PaginatedResultDto
         public int $pageNumber,
         public int $pageSize,
         public bool $hasNextPage,
+        public ?int $lastRank = null,
     ) {
     }
 

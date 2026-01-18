@@ -15,31 +15,23 @@ contactPoints:
           # Configure ALERT_EMAIL_TO in .env file
           addresses: ${ALERT_EMAIL_TO}
           singleEmail: false
+          subject: |
+            [DWLite] {{ .GroupLabels.alertname }}
           message: |
-            {{ len .Alerts.Firing }} alert(s) firing, {{ len .Alerts.Resolved }} resolved.
-
             {{ range .Alerts.Firing }}
-            =====================================
-            Alert: {{ .Labels.alertname }}
-            Severity: {{ .Labels.severity }}
-            Time: {{ .StartsAt.Format "2006-01-02 15:04:05 UTC" }}
+            【告警】{{ .Annotations.summary }}
+            时间: {{ .StartsAt.Format "2006-01-02 15:04:05" }}
+            级别: {{ .Labels.severity }}
 
-            Summary: {{ .Annotations.summary }}
-            Description: {{ .Annotations.description }}
+            {{ .Annotations.description }}
 
-            Labels:
-            {{ range .Labels.SortedPairs }}  - {{ .Name }}: {{ .Value }}
+            查看日志: {{ .Annotations.runbook_url }}
+            ---
             {{ end }}
-
-            View in Grafana: {{ .DashboardURL }}
-            Silence: {{ .SilenceURL }}
-            =====================================
-            {{ end }}
-
             {{ if .Alerts.Resolved }}
-            Resolved Alerts:
+            【已恢复】
             {{ range .Alerts.Resolved }}
-            - {{ .Labels.alertname }}: {{ .Annotations.summary }}
+            - {{ .Annotations.summary }}
             {{ end }}
             {{ end }}
 
@@ -54,20 +46,14 @@ contactPoints:
           addresses: ${ALERT_EMAIL_TO}
           singleEmail: false
           subject: |
-            [CRITICAL] {{ .GroupLabels.alertname }} - DWLite Alert
+            [DWLite 紧急] {{ .GroupLabels.alertname }}
           message: |
-            CRITICAL ALERT - Immediate Action Required
-
             {{ range .Alerts.Firing }}
-            ================================================
-            Alert: {{ .Labels.alertname }}
-            Severity: CRITICAL
-            Time: {{ .StartsAt.Format "2006-01-02 15:04:05 UTC" }}
+            【紧急告警】{{ .Annotations.summary }}
+            时间: {{ .StartsAt.Format "2006-01-02 15:04:05" }}
 
-            Summary: {{ .Annotations.summary }}
-            Description: {{ .Annotations.description }}
+            {{ .Annotations.description }}
 
-            View in Grafana: {{ .DashboardURL }}
-            Silence this alert: {{ .SilenceURL }}
-            ================================================
+            查看日志: {{ .Annotations.runbook_url }}
+            ---
             {{ end }}
