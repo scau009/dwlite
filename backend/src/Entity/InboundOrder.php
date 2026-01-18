@@ -13,11 +13,11 @@ use Symfony\Component\Uid\Ulid;
  */
 #[ORM\Entity(repositoryClass: InboundOrderRepository::class)]
 #[ORM\Table(name: 'inbound_orders')]
-#[ORM\Index(name: 'idx_inbound_order_no', columns: ['orderNo'])]
+#[ORM\Index(name: 'idx_inbound_order_no', columns: ['order_no'])]
 #[ORM\Index(name: 'idx_inbound_merchant', columns: ['merchant_id'])]
 #[ORM\Index(name: 'idx_inbound_warehouse', columns: ['warehouse_id'])]
 #[ORM\Index(name: 'idx_inbound_status', columns: ['status'])]
-#[ORM\Index(name: 'idx_inbound_created', columns: ['createdAt'])]
+#[ORM\Index(name: 'idx_inbound_created', columns: ['created_at'])]
 #[ORM\HasLifecycleCallbacks]
 class InboundOrder
 {

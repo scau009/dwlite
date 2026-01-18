@@ -56,6 +56,9 @@ export default {
     channel: 'Channel',
     loadError: 'Failed to load data',
     optional: 'Optional',
+    merchant: 'Merchant',
+    warehouse: 'Warehouse',
+    remark: 'Remark',
   },
 
   // Navigation
@@ -68,6 +71,7 @@ export default {
     orders: 'Orders',
     fulfillment: 'Fulfillment',
     inboundManagement: 'Inbound Management',
+    inventoryManagement: 'Inventory Management',
     settlements: 'Settlements',
     merchants: 'Merchants',
     channels: 'Channels',
@@ -112,6 +116,7 @@ export default {
     orderExceptions: 'Order Exceptions',
     // Admin Inbound
     adminInboundOrders: 'Inbound Orders',
+    adminOutboundOrders: 'Outbound Orders',
     // Settlements (Admin)
     settlementList: 'Settlement List',
     payoutList: 'Payouts',
@@ -1340,6 +1345,9 @@ export default {
     receiverInfo: 'Receiver Info',
     shippedAt: 'Shipped At',
     cancelReason: 'Cancel Reason',
+    viewShippingLabel: 'View Shipping Label',
+    shippingLabel: 'Shipping Label',
+    downloadLabel: 'Download',
 
     // Dashboard
     dashboard: {
@@ -1510,6 +1518,24 @@ export default {
     dateRange: 'Created Date',
   },
 
+  // Admin Outbound Management
+  adminOutbound: {
+    title: 'Outbound Orders',
+    merchant: 'Merchant',
+    allMerchants: 'All Merchants',
+    allWarehouses: 'All Warehouses',
+    outboundType: 'Type',
+    typeSales: 'Sales',
+    typeReturnToMerchant: 'Return to Merchant',
+    typeTransfer: 'Transfer',
+    typeScrap: 'Scrap',
+    receiverInfo: 'Receiver Info',
+    shippingInfo: 'Shipping Info',
+    fulfillmentInfo: 'Fulfillment',
+    merchantAndWarehouse: 'Merchant & Warehouse',
+    searchOutboundNo: 'Search outbound order number...',
+  },
+
   // Merchant Stock Query
   merchantStock: {
     title: 'Stock Query',
@@ -1661,6 +1687,7 @@ export default {
     description: 'View and manage your outbound orders',
 
     // Fields
+    outboundNo: 'Outbound No',
     orderNo: 'Outbound No',
     outboundType: 'Type',
     receiver: 'Receiver',
@@ -1737,6 +1764,11 @@ export default {
     postalCode: 'Postal Code',
     cancelledAt: 'Cancelled At',
     cancelReason: 'Cancel Reason',
+    pickingStartedAt: 'Picking Started At',
+    pickingCompletedAt: 'Picking Completed At',
+    packingStartedAt: 'Packing Started At',
+    packingCompletedAt: 'Packing Completed At',
+    shippedAt: 'Shipped At',
     stockType: 'Stock Type',
 
     // Timeline Events
@@ -2331,6 +2363,9 @@ export default {
     orderItems: 'Order Items',
     relatedExceptions: 'Related Exceptions',
     viewException: 'View Exception',
+    viewShippingLabel: 'View Label',
+    pendingShippingLabel: 'Pending Label',
+    shippingLabel: 'Shipping Label',
     noExceptions: 'No Exceptions',
     productImage: 'Image',
     productName: 'Product Name',

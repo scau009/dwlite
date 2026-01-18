@@ -11,6 +11,7 @@ CREATE TABLE `merchant_inventories` (
     `quantity_in_transit` INT NOT NULL DEFAULT 0 COMMENT '在途数量（已发货未入库）',
     `quantity_available` INT NOT NULL DEFAULT 0 COMMENT '可用库存（可以被销售）',
     `quantity_reserved` INT NOT NULL DEFAULT 0 COMMENT '锁定库存（已被订单占用，待出库）',
+    `quantity_pending_reserve` INT NOT NULL DEFAULT 0 COMMENT '待确认预留（软锁定，履约分配后）',
     `quantity_damaged` INT NOT NULL DEFAULT 0 COMMENT '损坏库存（不可销售）',
     `quantity_allocated` INT NOT NULL DEFAULT 0 COMMENT '渠道独占分配的库存（全托管模式）',
 

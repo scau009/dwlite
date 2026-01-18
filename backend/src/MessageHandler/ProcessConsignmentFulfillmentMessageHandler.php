@@ -6,6 +6,7 @@ namespace App\MessageHandler;
 
 use App\Message\ProcessConsignmentFulfillmentMessage;
 use App\Repository\FulfillmentRepository;
+use App\Service\Fulfillment\FulfillmentService;
 use App\Service\Fulfillment\OutboundOrderCreationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
@@ -24,6 +25,7 @@ class ProcessConsignmentFulfillmentMessageHandler
     public function __construct(
         private readonly FulfillmentRepository $fulfillmentRepository,
         private readonly OutboundOrderCreationService $outboundOrderCreationService,
+        private readonly FulfillmentService $fulfillmentService,
         private readonly EntityManagerInterface $entityManager,
         private readonly LoggerInterface $logger,
     ) {
@@ -67,6 +69,9 @@ class ProcessConsignmentFulfillmentMessageHandler
         try {
             // 1. 标记履约单为处理中
             $fulfillment->markProcessing();
+
+            // 1.1 同步订单状态为履约中
+            $this->fulfillmentService->updateOrderStatusToFulfilling($fulfillment->getOrder());
 
             // 2. 创建出库单
             $outboundOrder = $this->outboundOrderCreationService->createFromFulfillment($fulfillment);

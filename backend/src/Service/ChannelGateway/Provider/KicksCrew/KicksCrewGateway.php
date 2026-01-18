@@ -133,9 +133,8 @@ class KicksCrewGateway extends AbstractChannelGateway
      * Update stock and price on KC.
      * Uses batch-update API for efficiency.
      *
-     * @param ChannelGatewayContext $context
      * @param ChannelProduct[] $channelProducts
-     * @return UpdateStockPriceResponse
+     *
      * @throws \Throwable
      */
     public function updateStockPrice(
@@ -159,6 +158,7 @@ class KicksCrewGateway extends AbstractChannelGateway
 
         if (empty($items)) {
             $this->logger->info(sprintf('[%s] Nothing to save.', $context->getChannelCode()));
+
             return new UpdateStockPriceResponse(
                 success: true,
                 channelCode: self::CHANNEL_CODE,
@@ -240,8 +240,8 @@ class KicksCrewGateway extends AbstractChannelGateway
                         'model_no' => $modelNo,
                         'size_system' => $sizeSystem,
                         'size' => $sizeValue,
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
             $success = ($response['code'] ?? 1) === 0;
@@ -431,6 +431,16 @@ class KicksCrewGateway extends AbstractChannelGateway
     }
 
     /**
+     * Get the API client instance.
+     *
+     * This is exposed for use by console commands that need direct API access.
+     */
+    public function getApiClient(): KicksCrewApiClient
+    {
+        return $this->apiClient;
+    }
+
+    /**
      * Get API key from context.
      *
      * @throws ChannelApiException
@@ -468,6 +478,7 @@ class KicksCrewGateway extends AbstractChannelGateway
                 'modelNo' => $modelNo,
                 'sizeValue' => $sizeValue,
             ]);
+
             return null;
         }
 
@@ -484,8 +495,10 @@ class KicksCrewGateway extends AbstractChannelGateway
 
     /**
      * Map KC order to PulledOrderDto.
+     *
+     * This method is public to allow direct order mapping from console commands.
      */
-    private function mapKcOrderToPulledOrder(array $kcOrder, SalesChannel $salesChannel): ?PulledOrderDto
+    public function mapKcOrderToPulledOrder(array $kcOrder, SalesChannel $salesChannel): ?PulledOrderDto
     {
         try {
             $status = $this->mapKcStatusToSystemStatus($kcOrder['status'] ?? '');

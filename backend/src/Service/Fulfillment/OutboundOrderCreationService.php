@@ -8,7 +8,9 @@ use App\Entity\Fulfillment;
 use App\Entity\FulfillmentItem;
 use App\Entity\OutboundOrder;
 use App\Entity\OutboundOrderItem;
+use App\Repository\InventoryReservationRepository;
 use App\Service\BusinessNoGenerator;
+use App\Service\InventoryReservationService;
 use App\Service\OpenApi\WebhookService;
 use Psr\Log\LoggerInterface;
 
@@ -19,6 +21,8 @@ class OutboundOrderCreationService
 {
     public function __construct(
         private readonly BusinessNoGenerator $businessNoGenerator,
+        private readonly InventoryReservationRepository $reservationRepository,
+        private readonly InventoryReservationService $reservationService,
         private readonly WebhookService $webhookService,
         private readonly LoggerInterface $logger,
     ) {
@@ -77,6 +81,9 @@ class OutboundOrderCreationService
         // 4. 提交出库单 (draft → pending)
         $outbound->submit();
 
+        // 5. 锁定库存预留（allocated → locked）
+        $this->lockReservationsForFulfillment($fulfillment);
+
         $this->logger->info('OutboundOrder created from fulfillment', [
             'outboundOrderId' => $outbound->getId(),
             'outboundNo' => $outbound->getOutboundNo(),
@@ -105,5 +112,42 @@ class OutboundOrderCreationService
         );
 
         return $outbound;
+    }
+
+    /**
+     * 锁定履约单关联的库存预留.
+     *
+     * 将预留状态从 allocated 转换为 locked（硬锁定）
+     */
+    private function lockReservationsForFulfillment(Fulfillment $fulfillment): void
+    {
+        $reservations = $this->reservationRepository->findByFulfillment($fulfillment);
+
+        foreach ($reservations as $reservation) {
+            if (!$reservation->isAllocated()) {
+                $this->logger->warning('Reservation not in allocated status, skipping lock', [
+                    'reservationId' => $reservation->getId(),
+                    'status' => $reservation->getStatus(),
+                    'fulfillmentId' => $fulfillment->getId(),
+                ]);
+                continue;
+            }
+
+            try {
+                $this->reservationService->lockReservation($reservation);
+                $this->logger->info('Reservation locked for outbound submission', [
+                    'reservationId' => $reservation->getId(),
+                    'fulfillmentId' => $fulfillment->getId(),
+                    'quantity' => $reservation->getQuantity(),
+                ]);
+            } catch (\LogicException $e) {
+                $this->logger->error('Failed to lock reservation', [
+                    'reservationId' => $reservation->getId(),
+                    'fulfillmentId' => $fulfillment->getId(),
+                    'error' => $e->getMessage(),
+                ]);
+                // 继续处理，不中断流程（向后兼容）
+            }
+        }
     }
 }

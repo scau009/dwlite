@@ -25,6 +25,7 @@ import { ProductsListPage, ProductDetailPage } from '@/pages/products';
 import { MerchantsListPage } from '@/pages/merchants';
 import { AdminApiKeysListPage } from '@/pages/api-keys';
 import { AdminInboundOrdersListPage, AdminInboundOrderDetailPage } from '@/pages/admin/inbound';
+import { AdminOutboundOrdersListPage, AdminOutboundOrderDetailPage } from '@/pages/admin/outbound';
 import { BrandsListPage } from '@/pages/brands';
 import { ChannelsListPage, MerchantChannelsListPage, AvailableChannelsPage, MyChannelsPage } from '@/pages/channels';
 import { ChannelProductsListPage } from '@/pages/channels/products/list';
@@ -188,6 +189,11 @@ export const router = createBrowserRouter([
               { path: '/admin/inbound', element: <Navigate to="/admin/inbound/orders" replace /> },
               { path: '/admin/inbound/orders', element: <AdminInboundOrdersListPage /> },
               { path: '/admin/inbound/orders/:id', element: <AdminInboundOrderDetailPage /> },
+
+              // Admin Outbound Management
+              { path: '/admin/outbound', element: <Navigate to="/admin/outbound/orders" replace /> },
+              { path: '/admin/outbound/orders', element: <AdminOutboundOrdersListPage /> },
+              { path: '/admin/outbound/orders/:id', element: <AdminOutboundOrderDetailPage /> },
 
               // Settlements
               { path: '/settlements', element: <Navigate to="/settlements/list" replace /> },

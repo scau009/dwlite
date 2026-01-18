@@ -7,6 +7,7 @@ use App\Entity\OutboundOrder;
 use App\Entity\Warehouse;
 use App\Repository\OutboundOrderRepository;
 use App\Service\CosService;
+use App\Service\Fulfillment\FulfillmentService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -29,6 +30,7 @@ class OutboundController extends AbstractController
         private EntityManagerInterface $entityManager,
         private TranslatorInterface $translator,
         private CosService $cosService,
+        private FulfillmentService $fulfillmentService,
     ) {
     }
 
@@ -200,6 +202,13 @@ class OutboundController extends AbstractController
         }
 
         $order->markShipped($carrier, $trackingNumber);
+
+        // 同步更新渠道订单状态
+        $fulfillment = $order->getFulfillment();
+        if ($fulfillment !== null) {
+            $this->fulfillmentService->updateOrderStatusAfterShipping($fulfillment->getOrder());
+        }
+
         $this->entityManager->flush();
 
         return $this->json([
@@ -285,6 +294,27 @@ class OutboundController extends AbstractController
         $data['packingStartedAt'] = $order->getPackingStartedAt()?->format('c');
         $data['packingCompletedAt'] = $order->getPackingCompletedAt()?->format('c');
 
+        // 物流面单（从关联订单获取）
+        $data['shippingLabel'] = null;
+        $fulfillment = $order->getFulfillment();
+        if ($fulfillment !== null) {
+            $relatedOrder = $fulfillment->getOrder();
+            if ($relatedOrder !== null) {
+                $labelPath = $relatedOrder->getLabel();
+                if ($labelPath !== null && $labelPath !== '') {
+                    $cosKey = $this->extractCosKey($labelPath);
+                    if ($cosKey !== null) {
+                        $data['shippingLabel'] = $this->cosService->getSignedUrl(
+                            $cosKey,
+                            3600,
+                            null,
+                            true  // inline display
+                        );
+                    }
+                }
+            }
+        }
+
         // 明细
         $data['items'] = array_map(function ($item) {
             // 签名图片 URL
@@ -305,6 +335,7 @@ class OutboundController extends AbstractController
                 'id' => $item->getId(),
                 'productSkuId' => $item->getProductSku()?->getId(),
                 'skuName' => $item->getSkuName(),
+                'sizeUnit' => $item->getProductSku()?->getSizeUnit()?->value,
                 'styleNumber' => $item->getStyleNumber(),
                 'colorName' => $item->getColorName(),
                 'productName' => $item->getProductName(),

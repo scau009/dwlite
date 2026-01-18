@@ -437,12 +437,6 @@ class DebugOrderAllocationCommand extends Command
             'Excluded Merchants: '.(empty($excludedMerchantIds) ? 'None' : implode(', ', $excludedMerchantIds)),
         ]);
 
-        if (!$io->confirm('Proceed with allocation?', false)) {
-            $io->note('Allocation cancelled.');
-
-            return Command::SUCCESS;
-        }
-
         try {
             // Option 1: Direct allocation (synchronous)
             $io->writeln('Executing allocation...');

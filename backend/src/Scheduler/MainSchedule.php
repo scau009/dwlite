@@ -2,6 +2,7 @@
 
 namespace App\Scheduler;
 
+use App\Message\ExpireReservationsMessage;
 use App\Message\HandleExpiredFulfillmentsMessage;
 use App\Message\ScanFailedOrderSyncMessage;
 use App\Message\ScanPendingSettlementsMessage;
@@ -20,18 +21,18 @@ class MainSchedule implements ScheduleProviderInterface
 {
     public function __construct(
         private CacheInterface $cache,
-    )
-    {
+        private string $environment,
+    ) {
     }
 
     public function getSchedule(): Schedule
     {
-        return (new Schedule())
-            ->with(
-            // Run cleanup every minute (for demo purposes)
-            // In production, use '1 hour', '1 day', or cron expressions
+        $schedule = new Schedule();
 
-            // KicksDB product sync - runs daily at 02:00 UTC
+        // Only register scheduled tasks in production environment
+        if ($this->environment === 'prod') {
+            $schedule->with(
+                // KicksDB product sync - runs daily at 22:40 UTC
                 RecurringMessage::cron('40 22 * * *', new StartProductSyncMessage(
                     KicksDbProvider::PROVIDER_NAME,
                 )),
@@ -52,12 +53,14 @@ class MainSchedule implements ScheduleProviderInterface
                 // Settlement scanning - scan for pending settlements every 1 hour
                 RecurringMessage::every('1 hour', ScanPendingSettlementsMessage::create()),
 
-            // Examples of other schedule patterns:
-            // RecurringMessage::every('1 hour', new HourlyTaskMessage()),
-            // RecurringMessage::every('1 day', new DailyReportMessage()),
-            // RecurringMessage::cron('0 0 * * *', new MidnightTaskMessage()),  // Every day at midnight
-            // RecurringMessage::cron('*/5 * * * *', new Every5MinutesMessage()), // Every 5 minutes
-            )
-            ->stateful($this->cache);  // Prevent duplicate runs on restart
+                // Inventory reservation expiration - expire overdue reservations every 1 minute
+                RecurringMessage::every('1 minute', new ExpireReservationsMessage(
+                    new \DateTimeImmutable('now', new \DateTimeZone('UTC')),
+                    100  // process up to 100 expired reservations per run
+                )),
+            );
+        }
+
+        return $schedule->stateful($this->cache);  // Prevent duplicate runs on restart
     }
 }

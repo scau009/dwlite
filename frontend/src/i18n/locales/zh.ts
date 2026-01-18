@@ -56,6 +56,9 @@ export default {
     channel: '渠道',
     loadError: '加载数据失败',
     optional: '可选',
+    merchant: '商户',
+    warehouse: '仓库',
+    remark: '备注',
   },
 
   // Navigation
@@ -68,6 +71,7 @@ export default {
     orders: '订单管理',
     fulfillment: '履约管理',
     inboundManagement: '出入库管理',
+    inventoryManagement: '出入库管理',
     settlements: '结算中心',
     merchants: '商户管理',
     channels: '渠道管理',
@@ -112,6 +116,8 @@ export default {
     orderExceptions: '订单异常',
     // Admin Inbound
     adminInboundOrders: '入库单',
+    // Admin Outbound
+    adminOutboundOrders: '出库单',
     // Settlements (Admin)
     settlementList: '结算单一览',
     payoutList: '提现申请',
@@ -1273,6 +1279,24 @@ export default {
     dateRange: '创建日期',
   },
 
+  // Admin Outbound Management
+  adminOutbound: {
+    title: '出库单管理',
+    merchant: '商户',
+    allMerchants: '全部商户',
+    allWarehouses: '全部仓库',
+    outboundType: '出库类型',
+    typeSales: '销售出库',
+    typeReturnToMerchant: '退还商户',
+    typeTransfer: '调拨出库',
+    typeScrap: '报废出库',
+    receiverInfo: '收件人信息',
+    shippingInfo: '物流信息',
+    fulfillmentInfo: '履约信息',
+    merchantAndWarehouse: '商户 & 仓库',
+    searchOutboundNo: '搜索出库单号...',
+  },
+
   // Merchant Stock Query
   merchantStock: {
     title: '库存查询',
@@ -1507,6 +1531,9 @@ export default {
     receiverInfo: '收件人信息',
     shippedAt: '发货时间',
     cancelReason: '取消原因',
+    viewShippingLabel: '查看面单',
+    shippingLabel: '物流面单',
+    downloadLabel: '下载',
 
     // Dashboard
     dashboard: {
@@ -1716,6 +1743,7 @@ export default {
     description: '查看和管理您的出库单',
 
     // Fields
+    outboundNo: '出库单号',
     orderNo: '出库单号',
     outboundType: '出库类型',
     receiver: '收件人',
@@ -1792,6 +1820,11 @@ export default {
     postalCode: '邮编',
     cancelledAt: '取消时间',
     cancelReason: '取消原因',
+    pickingStartedAt: '开始拣货时间',
+    pickingCompletedAt: '拣货完成时间',
+    packingStartedAt: '开始打包时间',
+    packingCompletedAt: '打包完成时间',
+    shippedAt: '发货时间',
     stockType: '库存类型',
 
     // Timeline Events
@@ -2327,6 +2360,9 @@ export default {
     orderItems: '商品信息',
     relatedExceptions: '关联异常',
     viewException: '查看异常',
+    viewShippingLabel: '查看面单',
+    pendingShippingLabel: '待获取面单',
+    shippingLabel: '面单',
     noExceptions: '无异常',
     productImage: '商品图片',
     productName: '商品名称',

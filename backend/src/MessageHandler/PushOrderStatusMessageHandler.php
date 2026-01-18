@@ -8,6 +8,7 @@ use App\Message\AllocateOrderMessage;
 use App\Message\PushOrderStatusMessage;
 use App\Repository\OrderRepository;
 use App\Service\ChannelGateway\Exception\ChannelGatewayException;
+use App\Service\InventoryReservationService;
 use App\Service\OrderSync\OrderValidationService;
 use App\Service\OrderSyncService;
 use Psr\Log\LoggerInterface;
@@ -24,6 +25,7 @@ class PushOrderStatusMessageHandler
         private readonly OrderRepository $orderRepo,
         private readonly OrderSyncService $orderSyncService,
         private readonly OrderValidationService $validationService,
+        private readonly InventoryReservationService $reservationService,
         private readonly LockFactory $lockFactory,
         private readonly MessageBusInterface $messageBus,
         private readonly LoggerInterface $logger,
@@ -97,12 +99,30 @@ class PushOrderStatusMessageHandler
                     'durationMs' => $syncLog->getDurationMs(),
                 ]);
 
-                // 确认成功后，触发订单分配流程
-                if ($message->operation === PushOrderStatusMessage::OP_CONFIRM && $order->canAllocate()) {
-                    $this->messageBus->dispatch(new AllocateOrderMessage($order->getId()));
-                    $this->logger->info('Order allocation triggered after confirmation', [
-                        'orderId' => $order->getId(),
-                    ]);
+                // 确认成功后，创建库存预留并触发订单分配流程
+                if ($message->operation === PushOrderStatusMessage::OP_CONFIRM) {
+                    // 创建库存预留（第一层：ChannelProduct 层）
+                    try {
+                        $reservations = $this->reservationService->createReservationsForOrder($order);
+                        $this->logger->info('Inventory reservations created for order', [
+                            'orderId' => $order->getId(),
+                            'reservationCount' => count($reservations),
+                        ]);
+                    } catch (\LogicException $e) {
+                        $this->logger->error('Failed to create inventory reservations', [
+                            'orderId' => $order->getId(),
+                            'error' => $e->getMessage(),
+                        ]);
+                        // 即使预留失败，仍然尝试分配（保持向后兼容）
+                    }
+
+                    // 触发订单分配流程
+                    if ($order->canAllocate()) {
+                        $this->messageBus->dispatch(new AllocateOrderMessage($order->getId()));
+                        $this->logger->info('Order allocation triggered after confirmation', [
+                            'orderId' => $order->getId(),
+                        ]);
+                    }
                 }
             } else {
                 $this->logger->warning('Order status push failed', [

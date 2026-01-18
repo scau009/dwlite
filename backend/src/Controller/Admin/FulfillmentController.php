@@ -128,6 +128,12 @@ class FulfillmentController extends AbstractController
                 'id' => $outboundOrder->getId(),
                 'orderNo' => $outboundOrder->getOutboundNo(),
                 'status' => $outboundOrder->getStatus(),
+                'pickingStartedAt' => $outboundOrder->getPickingStartedAt()?->format(\DateTimeInterface::ATOM),
+                'pickingCompletedAt' => $outboundOrder->getPickingCompletedAt()?->format(\DateTimeInterface::ATOM),
+                'packingStartedAt' => $outboundOrder->getPackingStartedAt()?->format(\DateTimeInterface::ATOM),
+                'packingCompletedAt' => $outboundOrder->getPackingCompletedAt()?->format(\DateTimeInterface::ATOM),
+                'shippedAt' => $outboundOrder->getShippedAt()?->format(\DateTimeInterface::ATOM),
+                'cancelledAt' => $outboundOrder->getCancelledAt()?->format(\DateTimeInterface::ATOM),
             ] : null;
         }
 

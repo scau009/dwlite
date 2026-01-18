@@ -271,4 +271,81 @@ class OutboundOrderRepository extends ServiceEntityRepository
 
         return $counts;
     }
+
+    /**
+     * 管理端：分页查询出库单（支持筛选）.
+     *
+     * @return array{items: OutboundOrder[], total: int}
+     */
+    public function findPaginatedWithFilters(int $page, int $limit, array $filters = []): array
+    {
+        $qb = $this->createQueryBuilder('o')
+            ->leftJoin('o.merchant', 'm')
+            ->leftJoin('o.warehouse', 'w')
+            ->orderBy('o.createdAt', 'DESC');
+
+        // 商户筛选
+        if (!empty($filters['merchantId'])) {
+            $qb->andWhere('o.merchant = :merchantId')
+                ->setParameter('merchantId', $filters['merchantId']);
+        }
+
+        // 仓库筛选
+        if (!empty($filters['warehouseId'])) {
+            $qb->andWhere('o.warehouse = :warehouseId')
+                ->setParameter('warehouseId', $filters['warehouseId']);
+        }
+
+        // 状态筛选
+        if (!empty($filters['status'])) {
+            $qb->andWhere('o.status = :status')
+                ->setParameter('status', $filters['status']);
+        }
+
+        // 出库类型筛选
+        if (!empty($filters['outboundType'])) {
+            $qb->andWhere('o.outboundType = :outboundType')
+                ->setParameter('outboundType', $filters['outboundType']);
+        }
+
+        // 出库单号或收件人模糊搜索
+        if (!empty($filters['search'])) {
+            $qb->andWhere('(o.outboundNo LIKE :search OR o.receiverName LIKE :search)')
+                ->setParameter('search', '%'.$filters['search'].'%');
+        }
+
+        // 运单号搜索
+        if (!empty($filters['trackingNumber'])) {
+            $qb->andWhere('o.trackingNumber LIKE :trackingNumber')
+                ->setParameter('trackingNumber', '%'.$filters['trackingNumber'].'%');
+        }
+
+        // 日期范围筛选
+        if (!empty($filters['startDate'])) {
+            $startDate = new \DateTimeImmutable($filters['startDate'], new \DateTimeZone('UTC'));
+            $qb->andWhere('o.createdAt >= :startDate')
+                ->setParameter('startDate', $startDate->setTime(0, 0, 0));
+        }
+
+        if (!empty($filters['endDate'])) {
+            $endDate = new \DateTimeImmutable($filters['endDate'], new \DateTimeZone('UTC'));
+            $qb->andWhere('o.createdAt <= :endDate')
+                ->setParameter('endDate', $endDate->setTime(23, 59, 59));
+        }
+
+        // 计算总数
+        $countQb = clone $qb;
+        $total = (int) $countQb->select('COUNT(o.id)')
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        // 分页
+        $qb->setFirstResult(($page - 1) * $limit)
+            ->setMaxResults($limit);
+
+        return [
+            'items' => $qb->getQuery()->getResult(),
+            'total' => $total,
+        ];
+    }
 }

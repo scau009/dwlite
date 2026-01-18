@@ -97,6 +97,7 @@ export interface PlatformOrderDetail extends PlatformOrder {
   cancelledAt: string | null;
   syncedAt: string;
   updatedAt: string;
+  label: string | null;
   items: OrderItem[];
   exceptions: OrderExceptionSummary[];
 }

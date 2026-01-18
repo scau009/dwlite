@@ -13,8 +13,8 @@ use Symfony\Component\Uid\Ulid;
 #[ORM\Table(name: 'inventory_transactions')]
 #[ORM\Index(name: 'idx_inv_trans_inventory', columns: ['merchant_inventory_id'])]
 #[ORM\Index(name: 'idx_inv_trans_type', columns: ['type'])]
-#[ORM\Index(name: 'idx_inv_trans_reference', columns: ['referenceType', 'referenceId'])]
-#[ORM\Index(name: 'idx_inv_trans_created', columns: ['createdAt'])]
+#[ORM\Index(name: 'idx_inv_trans_reference', columns: ['reference_type', 'reference_id'])]
+#[ORM\Index(name: 'idx_inv_trans_created', columns: ['created_at'])]
 class InventoryTransaction
 {
     // 变动类型
@@ -25,6 +25,8 @@ class InventoryTransaction
     public const TYPE_OUTBOUND_RESERVE = 'outbound_reserve';     // 出库锁定（订单占用）
     public const TYPE_OUTBOUND_RELEASE = 'outbound_release';     // 出库释放（订单取消）
     public const TYPE_OUTBOUND_SHIP = 'outbound_ship';           // 出库发货
+    public const TYPE_PENDING_RESERVE = 'pending_reserve';       // 待确认预留（软锁定）
+    public const TYPE_PENDING_RELEASE = 'pending_release';       // 待确认预留释放
     public const TYPE_ADJUSTMENT_ADD = 'adjustment_add';         // 盘点增加
     public const TYPE_ADJUSTMENT_SUB = 'adjustment_sub';         // 盘点减少
     public const TYPE_TRANSFER_OUT = 'transfer_out';             // 调拨出库
@@ -302,6 +304,8 @@ class InventoryTransaction
             self::TYPE_OUTBOUND_RESERVE => '订单锁定',
             self::TYPE_OUTBOUND_RELEASE => '订单释放',
             self::TYPE_OUTBOUND_SHIP => '出库发货',
+            self::TYPE_PENDING_RESERVE => '待确认预留',
+            self::TYPE_PENDING_RELEASE => '待确认释放',
             self::TYPE_ADJUSTMENT_ADD => '盘点增加',
             self::TYPE_ADJUSTMENT_SUB => '盘点减少',
             self::TYPE_TRANSFER_OUT => '调拨出库',

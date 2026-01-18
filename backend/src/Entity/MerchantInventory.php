@@ -47,6 +47,9 @@ class MerchantInventory
     private int $quantityReserved = 0;  // 锁定库存（已被订单占用，待出库）
 
     #[ORM\Column(type: 'integer', options: ['default' => 0])]
+    private int $quantityPendingReserve = 0;  // 待确认预留（软锁定，履约分配后）
+
+    #[ORM\Column(type: 'integer', options: ['default' => 0])]
     private int $quantityDamaged = 0;  // 损坏库存（不可销售）
 
     #[ORM\Column(type: 'integer', options: ['default' => 0])]
@@ -170,6 +173,18 @@ class MerchantInventory
     public function setQuantityReserved(int $quantityReserved): static
     {
         $this->quantityReserved = $quantityReserved;
+
+        return $this;
+    }
+
+    public function getQuantityPendingReserve(): int
+    {
+        return $this->quantityPendingReserve;
+    }
+
+    public function setQuantityPendingReserve(int $quantityPendingReserve): static
+    {
+        $this->quantityPendingReserve = $quantityPendingReserve;
 
         return $this;
     }
@@ -389,6 +404,64 @@ class MerchantInventory
         }
         $this->quantityAvailable -= $quantity;
         $this->quantityReserved += $quantity;
+    }
+
+    /**
+     * 获取有效可用库存（可用 - 待确认预留）.
+     */
+    public function getEffectiveAvailable(): int
+    {
+        return max(0, $this->quantityAvailable - $this->quantityPendingReserve);
+    }
+
+    /**
+     * 软锁定库存（履约分配时调用）.
+     */
+    public function pendingReserve(int $quantity): void
+    {
+        if ($quantity > $this->getEffectiveAvailable()) {
+            throw new \LogicException('Insufficient effective available inventory');
+        }
+        $this->quantityPendingReserve += $quantity;
+    }
+
+    /**
+     * 确认待确认预留（出库单提交时调用，软锁定 -> 硬锁定）.
+     */
+    public function confirmPendingReserve(int $quantity): void
+    {
+        if ($quantity > $this->quantityPendingReserve) {
+            throw new \LogicException('Cannot confirm more than pending reserve');
+        }
+        if ($quantity > $this->quantityAvailable) {
+            throw new \LogicException('Insufficient available inventory for confirmation');
+        }
+        $this->quantityPendingReserve -= $quantity;
+        $this->quantityAvailable -= $quantity;
+        $this->quantityReserved += $quantity;
+    }
+
+    /**
+     * 释放待确认预留（分配失败/取消时调用）.
+     */
+    public function releasePendingReserve(int $quantity): void
+    {
+        if ($quantity > $this->quantityPendingReserve) {
+            throw new \LogicException('Cannot release more than pending reserve');
+        }
+        $this->quantityPendingReserve -= $quantity;
+    }
+
+    /**
+     * 释放已锁定库存（reserved -> available）.
+     */
+    public function releaseReserved(int $quantity): void
+    {
+        if ($quantity > $this->quantityReserved) {
+            throw new \LogicException('Cannot release more than reserved');
+        }
+        $this->quantityReserved -= $quantity;
+        $this->quantityAvailable += $quantity;
     }
 
     /**

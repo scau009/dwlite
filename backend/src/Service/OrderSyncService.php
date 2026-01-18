@@ -489,6 +489,16 @@ class OrderSyncService
             // 更新订单时间戳
             $this->updateOrderTimestamps($order, $newStatus);
 
+            // 订单签收时，触发关联履约单签收
+            if ($newStatus === Order::STATUS_DELIVERED) {
+                $deliveredCount = $this->deliverOrderFulfillments($order);
+                $this->logger->info('Order delivered, fulfillments updated', [
+                    'orderId' => $order->getId(),
+                    'oldStatus' => $oldStatus,
+                    'deliveredFulfillments' => $deliveredCount,
+                ]);
+            }
+
             // 订单完成时，触发关联履约单完成
             if ($newStatus === Order::STATUS_COMPLETED) {
                 $completedCount = $this->fulfillmentCompletionService->completeOrderFulfillments($order);
@@ -530,6 +540,34 @@ class OrderSyncService
             Order::STATUS_CANCELLED => $order->getCancelledAt() === null ? $order->setCancelledAt($now) : null,
             default => null,
         };
+    }
+
+    /**
+     * 将订单关联的已发货履约单标记为已签收.
+     *
+     * 只有已发货（SHIPPED）状态的履约单会被标记为已签收（DELIVERED）。
+     *
+     * @return int 标记签收的履约单数量
+     */
+    private function deliverOrderFulfillments(Order $order): int
+    {
+        $deliveredCount = 0;
+
+        foreach ($order->getFulfillments() as $fulfillment) {
+            // 只有已发货的履约单才能标记为已签收
+            if ($fulfillment->isShipped()) {
+                $fulfillment->markDelivered();
+                ++$deliveredCount;
+
+                $this->logger->info('Fulfillment marked as delivered', [
+                    'fulfillmentId' => $fulfillment->getId(),
+                    'fulfillmentNo' => $fulfillment->getFulfillmentNo(),
+                    'orderId' => $order->getId(),
+                ]);
+            }
+        }
+
+        return $deliveredCount;
     }
 
     /**

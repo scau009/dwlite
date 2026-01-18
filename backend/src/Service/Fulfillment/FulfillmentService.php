@@ -351,14 +351,48 @@ class FulfillmentService
     }
 
     /**
+     * 履约单开始处理时同步订单状态为履约中.
+     *
+     * 当任意履约单从 PENDING 转为 PROCESSING 时，订单应从 ALLOCATED 转为 FULFILLING
+     */
+    public function updateOrderStatusToFulfilling(\App\Entity\Order $order): void
+    {
+        // 只有订单处于 ALLOCATED 状态时才需要更新
+        if (!$order->isAllocated()) {
+            $this->logger->debug('Order status not updated to FULFILLING: not in ALLOCATED state', [
+                'orderId' => $order->getId(),
+                'currentStatus' => $order->getStatus(),
+            ]);
+
+            return;
+        }
+
+        $order->markFulfilling();
+
+        $this->logger->info('Order status updated to FULFILLING', [
+            'orderId' => $order->getId(),
+            'orderNo' => $order->getOrderNo(),
+        ]);
+    }
+
+    /**
      * 发货后更新订单状态.
      */
-    private function updateOrderStatusAfterShipping(\App\Entity\Order $order): void
+    public function updateOrderStatusAfterShipping(\App\Entity\Order $order): void
     {
+        // 检查订单是否已经发货或更后的状态
+        if ($order->isShipped() || $order->isCompleted()) {
+            return;
+        }
+
         // 检查所有履约单是否都已发货
         $allShipped = true;
         foreach ($order->getFulfillments() as $fulfillment) {
-            if (!$fulfillment->isShipped() && !$fulfillment->isDelivered() && !$fulfillment->isCancelled()) {
+            // 跳过已取消的履约单
+            if ($fulfillment->isCancelled()) {
+                continue;
+            }
+            if (!$fulfillment->isShipped() && !$fulfillment->isDelivered() && !$fulfillment->isCompleted()) {
                 $allShipped = false;
                 break;
             }
@@ -366,6 +400,10 @@ class FulfillmentService
 
         if ($allShipped) {
             $order->markShipped();
+            $this->logger->info('Order status updated to SHIPPED', [
+                'orderId' => $order->getId(),
+                'orderNo' => $order->getOrderNo(),
+            ]);
         }
     }
 }

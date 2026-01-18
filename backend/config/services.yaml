@@ -107,6 +107,11 @@ services:
                 tag: 'app.channel_gateway'
                 index_by: 'key'
 
+    # Scheduler - only runs tasks in production environment
+    App\Scheduler\MainSchedule:
+        arguments:
+            $environment: '%kernel.environment%'
+
 # Development environment: use SymfonyMailerService (MailHog)
 when@dev:
     services:

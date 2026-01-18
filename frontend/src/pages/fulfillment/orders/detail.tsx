@@ -17,6 +17,7 @@ import {
 import {
   ArrowLeftOutlined,
   ExclamationCircleOutlined,
+  FileTextOutlined,
 } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 
@@ -156,12 +157,14 @@ export function PlatformOrderDetailPage() {
       dataIndex: 'unitPrice',
       width: 100,
       align: 'right',
+      render: (price) => `${order?.currency ?? ''} ${price}`,
     },
     {
       title: t('fulfillment.totalPrice'),
       dataIndex: 'totalPrice',
       width: 100,
       align: 'right',
+      render: (price) => `${order?.currency ?? ''} ${price}`,
     },
     {
       title: t('fulfillment.allocationStatus'),
@@ -265,6 +268,19 @@ export function PlatformOrderDetailPage() {
           </Space>
           <Tag color={orderStatusColors[order.status]}>{order.statusLabel}</Tag>
         </div>
+        {order.label && (
+          <Button
+            icon={<FileTextOutlined />}
+            onClick={() => window.open(order.label, '_blank')}
+          >
+            {t('fulfillment.viewShippingLabel')}
+          </Button>
+        )}
+        {!order.label && (
+          <Button icon={<FileTextOutlined />} disabled>
+            {t('fulfillment.pendingShippingLabel')}
+          </Button>
+        )}
       </div>
 
       {/* Basic Info */}

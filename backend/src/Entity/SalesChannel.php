@@ -143,7 +143,7 @@ class SalesChannel
 
     public function getConfigValue(string $key, mixed $default = null): mixed
     {
-        return $this->config[$key] ?? $default;
+        return $this->config[$key]['value'] ?? $default;
     }
 
     public function getConfigSchema(): ?array

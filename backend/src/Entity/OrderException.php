@@ -26,6 +26,7 @@ class OrderException
     public const TYPE_PRODUCT_NOT_MATCHED = 'product_not_matched';        // 商品未匹配
     public const TYPE_NO_MERCHANT_AVAILABLE = 'no_merchant_available';    // 无商户可履约
     public const TYPE_ALLOCATION_EXHAUSTED = 'allocation_exhausted';      // 所有商户已尝试
+    public const TYPE_RESERVATION_EXPIRED = 'reservation_expired';        // 库存预留过期
     public const TYPE_OTHER = 'other';                                    // 其他
 
     // 状态
@@ -274,6 +275,9 @@ class OrderException
             self::TYPE_INVENTORY_INSUFFICIENT => '平台库存不足',
             self::TYPE_PRICE_BELOW_PLATFORM => '价格低于平台价',
             self::TYPE_PRODUCT_NOT_MATCHED => '商品未匹配',
+            self::TYPE_NO_MERCHANT_AVAILABLE => '无商户可履约',
+            self::TYPE_ALLOCATION_EXHAUSTED => '所有商户已尝试',
+            self::TYPE_RESERVATION_EXPIRED => '库存预留过期',
             self::TYPE_OTHER => '其他',
             default => $this->type,
         };
@@ -338,6 +342,9 @@ class OrderException
             ['value' => self::TYPE_INVENTORY_INSUFFICIENT, 'label' => '平台库存不足'],
             ['value' => self::TYPE_PRICE_BELOW_PLATFORM, 'label' => '价格低于平台价'],
             ['value' => self::TYPE_PRODUCT_NOT_MATCHED, 'label' => '商品未匹配'],
+            ['value' => self::TYPE_NO_MERCHANT_AVAILABLE, 'label' => '无商户可履约'],
+            ['value' => self::TYPE_ALLOCATION_EXHAUSTED, 'label' => '所有商户已尝试'],
+            ['value' => self::TYPE_RESERVATION_EXPIRED, 'label' => '库存预留过期'],
             ['value' => self::TYPE_OTHER, 'label' => '其他'],
         ];
     }

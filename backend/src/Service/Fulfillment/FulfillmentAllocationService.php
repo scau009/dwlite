@@ -14,10 +14,12 @@ use App\Entity\OrderItem;
 use App\Entity\PlatformRule;
 use App\Message\ProcessConsignmentFulfillmentMessage;
 use App\Repository\ChannelProductSourceRepository;
+use App\Repository\InventoryReservationRepository;
 use App\Repository\PlatformRuleRepository;
 use App\Service\Fulfillment\Dto\AllocationResult;
 use App\Service\Fulfillment\Dto\MultiSourceSelectionResult;
 use App\Service\Fulfillment\Dto\SourceAllocation;
+use App\Service\InventoryReservationService;
 use App\Service\OpenApi\WebhookService;
 use App\Service\RuleEngine\RuleEngineService;
 use App\Service\BusinessNoGenerator;
@@ -40,8 +42,10 @@ class FulfillmentAllocationService
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly ChannelProductSourceRepository $sourceRepository,
+        private readonly InventoryReservationRepository $reservationRepository,
         private readonly PlatformRuleRepository $ruleRepository,
         private readonly RuleEngineService $ruleEngine,
+        private readonly InventoryReservationService $reservationService,
         private readonly LockFactory $lockFactory,
         private readonly MessageBusInterface $messageBus,
         private readonly WebhookService $webhookService,
@@ -578,6 +582,31 @@ class FulfillmentAllocationService
 
             // 记录来源销售
             $allocation->source->recordSale($allocation->quantity);
+
+            // 分配预留（第二层：MerchantInventory 层）
+            $reservation = $this->reservationRepository->findActiveByOrderItem($orderItem);
+            if ($reservation !== null && $reservation->isReserved()) {
+                try {
+                    $this->reservationService->allocateReservation(
+                        $reservation,
+                        $inventory,
+                        $fulfillment,
+                        $fulfillmentItem
+                    );
+                    $this->logger->info('Reservation allocated to fulfillment item', [
+                        'reservationId' => $reservation->getId(),
+                        'fulfillmentItemId' => $fulfillmentItem->getId(),
+                        'quantity' => $reservation->getQuantity(),
+                    ]);
+                } catch (\LogicException $e) {
+                    $this->logger->error('Failed to allocate reservation', [
+                        'reservationId' => $reservation->getId(),
+                        'fulfillmentItemId' => $fulfillmentItem->getId(),
+                        'error' => $e->getMessage(),
+                    ]);
+                    // 继续处理，不中断分配流程
+                }
+            }
         }
 
         // 添加到订单

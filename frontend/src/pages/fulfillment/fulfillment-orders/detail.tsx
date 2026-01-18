@@ -56,6 +56,17 @@ const typeColors: Record<FulfillmentType, string> = {
   merchant_warehouse: 'purple',
 };
 
+// Outbound order status color mapping
+const outboundStatusColors: Record<string, string> = {
+  draft: 'default',
+  pending: 'warning',
+  picking: 'processing',
+  packing: 'processing',
+  ready: 'cyan',
+  shipped: 'success',
+  cancelled: 'default',
+};
+
 export function FulfillmentOrderDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -356,15 +367,6 @@ export function FulfillmentOrderDetailPage() {
           <Space>
             <span className="text-lg font-semibold">{fulfillment.fulfillmentNo}</span>
           </Space>
-          <Tag color={statusColors[fulfillment.status]}>{fulfillment.statusLabel}</Tag>
-          <Tag color={typeColors[fulfillment.fulfillmentType]}>
-            {fulfillment.fulfillmentTypeLabel}
-          </Tag>
-          {fulfillment.isOverdue && fulfillment.status === 'pending' && (
-            <Tag icon={<WarningOutlined />} color="error">
-              {t('fulfillmentOrder.overdue')}
-            </Tag>
-          )}
         </div>
       </div>
 
@@ -474,11 +476,43 @@ export function FulfillmentOrderDetailPage() {
       {fulfillment.outboundOrder && (
         <Card title={t('fulfillmentOrder.outboundOrder')}>
           <Descriptions column={{ xs: 1, sm: 2, md: 3 }} size="small">
-            <Descriptions.Item label={t('inventory.outboundNo')}>
+            <Descriptions.Item label={t('outbound.orderNo')}>
               <Link onClick={handleViewOutbound}>{fulfillment.outboundOrder.orderNo}</Link>
             </Descriptions.Item>
             <Descriptions.Item label={t('common.status')}>
-              {fulfillment.outboundOrder.status}
+              <Tag color={outboundStatusColors[fulfillment.outboundOrder.status]}>
+                {t(`outbound.status${fulfillment.outboundOrder.status.charAt(0).toUpperCase() + fulfillment.outboundOrder.status.slice(1)}`)}
+              </Tag>
+            </Descriptions.Item>
+            <Descriptions.Item label={t('outbound.pickingStartedAt')}>
+              {fulfillment.outboundOrder.pickingStartedAt
+                ? new Date(fulfillment.outboundOrder.pickingStartedAt).toLocaleString()
+                : '-'}
+            </Descriptions.Item>
+            <Descriptions.Item label={t('outbound.pickingCompletedAt')}>
+              {fulfillment.outboundOrder.pickingCompletedAt
+                ? new Date(fulfillment.outboundOrder.pickingCompletedAt).toLocaleString()
+                : '-'}
+            </Descriptions.Item>
+            <Descriptions.Item label={t('outbound.packingStartedAt')}>
+              {fulfillment.outboundOrder.packingStartedAt
+                ? new Date(fulfillment.outboundOrder.packingStartedAt).toLocaleString()
+                : '-'}
+            </Descriptions.Item>
+            <Descriptions.Item label={t('outbound.packingCompletedAt')}>
+              {fulfillment.outboundOrder.packingCompletedAt
+                ? new Date(fulfillment.outboundOrder.packingCompletedAt).toLocaleString()
+                : '-'}
+            </Descriptions.Item>
+            <Descriptions.Item label={t('outbound.shippedAt')}>
+              {fulfillment.outboundOrder.shippedAt
+                ? new Date(fulfillment.outboundOrder.shippedAt).toLocaleString()
+                : '-'}
+            </Descriptions.Item>
+            <Descriptions.Item label={t('outbound.cancelledAt')}>
+              {fulfillment.outboundOrder.cancelledAt
+                ? new Date(fulfillment.outboundOrder.cancelledAt).toLocaleString()
+                : '-'}
             </Descriptions.Item>
           </Descriptions>
         </Card>

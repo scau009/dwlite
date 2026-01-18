@@ -10,6 +10,7 @@ use App\Service\ChannelGateway\ChannelGatewayContext;
 use App\Service\ChannelGateway\ChannelGatewayInterface;
 use App\Service\ChannelGateway\ChannelGatewayRegistry;
 use App\Service\ChannelGateway\Dto\Request\PullOrdersRequest;
+use App\Service\ChannelGateway\Provider\KicksCrew\KicksCrewGateway;
 use App\Service\OrderSyncService;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -40,6 +41,7 @@ class TestOrderPullCommand extends Command
             ->addOption('days', null, InputOption::VALUE_OPTIONAL, 'Days to look back', '24')
             ->addOption('api-key', null, InputOption::VALUE_OPTIONAL, 'API key for direct testing (overrides channel config)')
             ->addOption('page', null, InputOption::VALUE_OPTIONAL, 'Page number', '1')
+            ->addOption('order-id', null, InputOption::VALUE_OPTIONAL, 'Sync a specific order by external order ID')
             ->addOption('dry-run', null, InputOption::VALUE_NONE, 'Only fetch and display, do not save to database');
     }
 
@@ -52,6 +54,7 @@ class TestOrderPullCommand extends Command
         $apiKey = $input->getOption('api-key');
         $page = (int) $input->getOption('page');
         $dryRun = $input->getOption('dry-run');
+        $orderId = $input->getOption('order-id');
 
         $io->title("Testing Order Pull - Channel: {$channelCode}");
 
@@ -88,17 +91,6 @@ class TestOrderPullCommand extends Command
 
         $io->success("Gateway found: {$gateway->getChannelName()}");
 
-        // Build time range
-        $endTime = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
-        $startTime = $endTime->modify("-{$days} days");
-
-        $io->section('Time Range');
-        $io->info([
-            "Start: {$startTime->format(\DateTimeInterface::ATOM)}",
-            "End: {$endTime->format(\DateTimeInterface::ATOM)}",
-            "Lookback: {$days} hours",
-        ]);
-
         // If API key provided, override channel config
         if ($apiKey !== null) {
             $io->note('Using provided API key (overriding channel config)');
@@ -115,11 +107,152 @@ class TestOrderPullCommand extends Command
             return Command::FAILURE;
         }
 
+        // Single order sync mode
+        if ($orderId !== null) {
+            return $this->executeSingleOrderSync($io, $gateway, $salesChannel, $orderId, $dryRun);
+        }
+
+        // Build time range for batch sync
+        $endTime = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
+        $startTime = $endTime->modify("-{$days} days");
+
+        $io->section('Time Range');
+        $io->info([
+            "Start: {$startTime->format(\DateTimeInterface::ATOM)}",
+            "End: {$endTime->format(\DateTimeInterface::ATOM)}",
+            "Lookback: {$days} hours",
+        ]);
+
         if ($dryRun) {
             return $this->executeDryRun($io, $gateway, $salesChannel, $startTime, $endTime, $page);
         }
 
         return $this->executeFullSync($io, $salesChannel, $startTime, $endTime, $page);
+    }
+
+    private function executeSingleOrderSync(
+        SymfonyStyle $io,
+        ChannelGatewayInterface $gateway,
+        SalesChannel $salesChannel,
+        string $orderId,
+        bool $dryRun,
+    ): int {
+        $io->section("Single Order Sync - Order ID: {$orderId}");
+
+        // Check if gateway is KicksCrewGateway (only supported gateway for single order sync)
+        if (!$gateway instanceof KicksCrewGateway) {
+            $io->error('Single order sync is only supported for KICKSCREW channel currently');
+
+            return Command::FAILURE;
+        }
+
+        try {
+            $apiKey = $salesChannel->getConfigValue('api_key');
+            $apiClient = $gateway->getApiClient();
+
+            $io->info('Fetching order from API...');
+            $response = $apiClient->getOrder($apiKey, (int) $orderId);
+
+            if (($response['code'] ?? 1) !== 0) {
+                $io->error([
+                    'API returned an error:',
+                    $response['message'] ?? 'Unknown error',
+                ]);
+
+                return Command::FAILURE;
+            }
+
+            $kcOrder = $response['data'][0] ?? null;
+            if ($kcOrder === null) {
+                $io->error("Order not found: {$orderId}");
+
+                return Command::FAILURE;
+            }
+
+            // Check if order is on hold
+            if ($kcOrder['on_hold'] ?? false) {
+                $io->warning("Order {$orderId} is on hold and cannot be processed");
+
+                return Command::FAILURE;
+            }
+
+            // Map KC order to PulledOrderDto
+            $pulledOrder = $gateway->mapKcOrderToPulledOrder($kcOrder, $salesChannel);
+            if ($pulledOrder === null) {
+                $io->error('Failed to map order data');
+
+                return Command::FAILURE;
+            }
+
+            $io->success('Order fetched successfully');
+
+            if ($dryRun) {
+                // Display order details in table format
+                $io->section('Order Details (Dry Run)');
+
+                $itemInfo = '';
+                if (!empty($pulledOrder->items)) {
+                    $firstItem = $pulledOrder->items[0];
+                    $itemInfo = sprintf('%s (Size: %s)', $firstItem->skuCode ?? $firstItem->externalProductId, $firstItem->sizeValue ?? 'N/A');
+                }
+
+                $io->table(
+                    ['Order ID', 'Order No', 'Status', 'Amount', 'Item', 'Placed At'],
+                    [[
+                        $pulledOrder->externalOrderId,
+                        $pulledOrder->externalOrderNo ?? '-',
+                        $pulledOrder->status,
+                        $pulledOrder->totalAmount.' '.$pulledOrder->currency,
+                        $itemInfo,
+                        $pulledOrder->placedAt->format('Y-m-d H:i:s'),
+                    ]]
+                );
+
+                // Show receiver info
+                $io->section('Receiver');
+                $io->table(
+                    ['Name', 'Phone', 'Address', 'City', 'Postal Code'],
+                    [[
+                        $pulledOrder->receiver->name,
+                        $pulledOrder->receiver->phone,
+                        $pulledOrder->receiver->address,
+                        $pulledOrder->receiver->city ?? '-',
+                        $pulledOrder->receiver->postalCode ?? '-',
+                    ]]
+                );
+
+                // Show raw data if verbose
+                if ($io->isVerbose()) {
+                    $io->section('Raw Data');
+                    $io->writeln(json_encode($pulledOrder->rawData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+                }
+
+                return Command::SUCCESS;
+            }
+
+            // Full sync: process the order
+            $io->info('Processing order...');
+            $result = $this->orderSyncService->processChannelOrder($salesChannel, $pulledOrder);
+
+            $io->success([
+                'Order sync completed!',
+                "Result: {$result}",
+                "External Order ID: {$pulledOrder->externalOrderId}",
+            ]);
+
+            return Command::SUCCESS;
+        } catch (\Throwable $e) {
+            $io->error([
+                'Failed to sync order:',
+                $e->getMessage(),
+            ]);
+
+            if ($io->isVerbose()) {
+                $io->writeln($e->getTraceAsString());
+            }
+
+            return Command::FAILURE;
+        }
     }
 
     private function executeDryRun(

@@ -136,11 +136,12 @@ export function getMenuData(t: TFunction): AccessMenuDataItem[] {
     },
     {
       path: '/admin/inbound',
-      name: t('nav.inboundManagement'),
+      name: t('nav.inventoryManagement'),
       icon: <InboxOutlined />,
       access: 'admin',
       children: [
         { path: '/admin/inbound/orders', name: t('menu.adminInboundOrders'), access: 'admin' },
+        { path: '/admin/outbound/orders', name: t('menu.adminOutboundOrders'), access: 'admin' },
       ],
     },
     {

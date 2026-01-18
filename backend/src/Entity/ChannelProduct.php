@@ -68,6 +68,9 @@ class ChannelProduct
     private int $stockQuantity = 0;  // 计算后的对外库存
 
     #[ORM\Column(type: 'integer', options: ['default' => 0])]
+    private int $quantityReserved = 0;  // 已预留数量（订单占用）
+
+    #[ORM\Column(type: 'integer', options: ['default' => 0])]
     private int $safetyBuffer = 0;  // 安全缓冲（防超卖）
 
     #[ORM\Column(type: 'integer', nullable: true)]
@@ -198,6 +201,45 @@ class ChannelProduct
         $this->stockQuantity = $stockQuantity;
 
         return $this;
+    }
+
+    public function getQuantityReserved(): int
+    {
+        return $this->quantityReserved;
+    }
+
+    public function setQuantityReserved(int $quantityReserved): static
+    {
+        $this->quantityReserved = $quantityReserved;
+
+        return $this;
+    }
+
+    /**
+     * 获取有效可售库存（对外库存 - 已预留）.
+     */
+    public function getEffectiveStock(): int
+    {
+        return max(0, $this->stockQuantity - $this->quantityReserved);
+    }
+
+    /**
+     * 预留库存（订单占用）.
+     */
+    public function reserve(int $quantity): void
+    {
+        if ($quantity > $this->getEffectiveStock()) {
+            throw new \LogicException('Insufficient effective stock for channel product');
+        }
+        $this->quantityReserved += $quantity;
+    }
+
+    /**
+     * 释放预留库存.
+     */
+    public function releaseReserve(int $quantity): void
+    {
+        $this->quantityReserved = max(0, $this->quantityReserved - $quantity);
     }
 
     public function getSafetyBuffer(): int

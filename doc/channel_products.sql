@@ -9,6 +9,7 @@ CREATE TABLE `channel_products` (
     `platform_compare_at_price` DECIMAL(10,2) NULL COMMENT 'Platform compare-at price',
     `stock_mode` VARCHAR(20) NOT NULL DEFAULT 'aggregate' COMMENT 'aggregate, lowest, fixed',
     `stock_quantity` INT NOT NULL DEFAULT 0 COMMENT 'Calculated external stock',
+    `quantity_reserved` INT NOT NULL DEFAULT 0 COMMENT 'Reserved quantity by orders',
     `safety_buffer` INT NOT NULL DEFAULT 0 COMMENT 'Safety buffer to prevent overselling',
     `fixed_stock` INT NULL COMMENT 'Fixed stock value (when stock_mode=fixed)',
     `external_id` VARCHAR(100) NULL COMMENT 'External platform product ID',

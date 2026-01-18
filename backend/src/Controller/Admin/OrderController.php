@@ -11,6 +11,7 @@ use App\Entity\OrderException;
 use App\Entity\OrderItem;
 use App\Repository\OrderExceptionRepository;
 use App\Repository\OrderRepository;
+use App\Service\CosService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Attribute\MapQueryString;
@@ -23,6 +24,7 @@ class OrderController extends AbstractController
     public function __construct(
         private readonly OrderRepository $orderRepository,
         private readonly OrderExceptionRepository $exceptionRepository,
+        private readonly CosService $cosService,
     ) {
     }
 
@@ -127,6 +129,7 @@ class OrderController extends AbstractController
             $data['cancelledAt'] = $order->getCancelledAt()?->format(\DateTimeInterface::ATOM);
             $data['syncedAt'] = $order->getSyncedAt()->format(\DateTimeInterface::ATOM);
             $data['updatedAt'] = $order->getUpdatedAt()->format(\DateTimeInterface::ATOM);
+            $data['label'] = $this->getSignedLabelUrl($order->getLabel());
 
             // 订单明细
             $data['items'] = array_map(
@@ -224,5 +227,40 @@ class OrderController extends AbstractController
             OrderItem::ALLOCATION_FAILED => '分配失败',
             default => $allocationStatus,
         };
+    }
+
+    /**
+     * Get signed URL for shipping label.
+     */
+    private function getSignedLabelUrl(?string $label): ?string
+    {
+        if ($label === null || $label === '') {
+            return null;
+        }
+
+        $cosKey = $this->extractCosKey($label);
+        if ($cosKey === null) {
+            return $label;
+        }
+
+        // Use inline=true to display in browser instead of download
+        return $this->cosService->getSignedUrl($cosKey, 3600, null, true);
+    }
+
+    /**
+     * Extract COS key from URL or path.
+     */
+    private function extractCosKey(string $pathOrUrl): ?string
+    {
+        if (!str_starts_with($pathOrUrl, 'http')) {
+            return $pathOrUrl;
+        }
+
+        $parsed = parse_url($pathOrUrl);
+        if ($parsed && isset($parsed['path'])) {
+            return ltrim($parsed['path'], '/');
+        }
+
+        return null;
     }
 }

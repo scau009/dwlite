@@ -80,6 +80,12 @@ export interface OutboundOrderRef {
   id: string;
   orderNo: string;
   status: string;
+  pickingStartedAt?: string;
+  pickingCompletedAt?: string;
+  packingStartedAt?: string;
+  packingCompletedAt?: string;
+  shippedAt?: string;
+  cancelledAt?: string;
 }
 
 export interface OrderDetailRef extends OrderRef {
