@@ -67,12 +67,7 @@ class InventoryReservationService
         // 2. 检查 ChannelProduct 有效库存
         $effectiveStock = $channelProduct->getEffectiveStock();
         if ($effectiveStock < $quantity) {
-            throw new \LogicException(sprintf(
-                'Insufficient effective stock for channel product %s: available=%d, required=%d',
-                $channelProduct->getId(),
-                $effectiveStock,
-                $quantity
-            ));
+            throw new \LogicException(sprintf('Insufficient effective stock for channel product %s: available=%d, required=%d', $channelProduct->getId(), $effectiveStock, $quantity));
         }
 
         // 3. 创建预留记录
@@ -116,22 +111,13 @@ class InventoryReservationService
     ): void {
         // 验证状态
         if (!$reservation->isReserved()) {
-            throw new \LogicException(sprintf(
-                'Reservation %s is not in reserved status, current: %s',
-                $reservation->getId(),
-                $reservation->getStatus()
-            ));
+            throw new \LogicException(sprintf('Reservation %s is not in reserved status, current: %s', $reservation->getId(), $reservation->getStatus()));
         }
 
         // 检查 MerchantInventory 有效可用库存
         $effectiveAvailable = $inventory->getEffectiveAvailable();
         if ($effectiveAvailable < $reservation->getQuantity()) {
-            throw new \LogicException(sprintf(
-                'Insufficient effective available inventory %s: available=%d, required=%d',
-                $inventory->getId(),
-                $effectiveAvailable,
-                $reservation->getQuantity()
-            ));
+            throw new \LogicException(sprintf('Insufficient effective available inventory %s: available=%d, required=%d', $inventory->getId(), $effectiveAvailable, $reservation->getQuantity()));
         }
 
         // 更新预留记录
@@ -167,11 +153,7 @@ class InventoryReservationService
     {
         // 验证状态
         if (!$reservation->isAllocated()) {
-            throw new \LogicException(sprintf(
-                'Reservation %s is not in allocated status, current: %s',
-                $reservation->getId(),
-                $reservation->getStatus()
-            ));
+            throw new \LogicException(sprintf('Reservation %s is not in allocated status, current: %s', $reservation->getId(), $reservation->getStatus()));
         }
 
         $inventory = $reservation->getInventory();
@@ -282,11 +264,7 @@ class InventoryReservationService
     public function completeReservation(InventoryReservation $reservation): void
     {
         if (!$reservation->isLocked()) {
-            throw new \LogicException(sprintf(
-                'Reservation %s is not in locked status, current: %s',
-                $reservation->getId(),
-                $reservation->getStatus()
-            ));
+            throw new \LogicException(sprintf('Reservation %s is not in locked status, current: %s', $reservation->getId(), $reservation->getStatus()));
         }
 
         $channelProduct = $reservation->getChannelProduct();

@@ -47,7 +47,7 @@ export function VerifyEmailPage() {
     };
 
     verifyEmail();
-  }, [token]);
+  }, [token, t]);
 
   return (
     <Card>

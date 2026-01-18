@@ -271,7 +271,7 @@ export function PlatformOrderDetailPage() {
         {order.label && (
           <Button
             icon={<FileTextOutlined />}
-            onClick={() => window.open(order.label, '_blank')}
+            onClick={() => window.open(order.label ?? undefined, '_blank')}
           >
             {t('fulfillment.viewShippingLabel')}
           </Button>

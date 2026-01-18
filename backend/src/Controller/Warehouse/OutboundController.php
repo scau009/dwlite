@@ -299,18 +299,16 @@ class OutboundController extends AbstractController
         $fulfillment = $order->getFulfillment();
         if ($fulfillment !== null) {
             $relatedOrder = $fulfillment->getOrder();
-            if ($relatedOrder !== null) {
-                $labelPath = $relatedOrder->getLabel();
-                if ($labelPath !== null && $labelPath !== '') {
-                    $cosKey = $this->extractCosKey($labelPath);
-                    if ($cosKey !== null) {
-                        $data['shippingLabel'] = $this->cosService->getSignedUrl(
-                            $cosKey,
-                            3600,
-                            null,
-                            true  // inline display
-                        );
-                    }
+            $labelPath = $relatedOrder->getLabel();
+            if ($labelPath !== null && $labelPath !== '') {
+                $cosKey = $this->extractCosKey($labelPath);
+                if ($cosKey !== null) {
+                    $data['shippingLabel'] = $this->cosService->getSignedUrl(
+                        $cosKey,
+                        3600,
+                        null,
+                        true  // inline display
+                    );
                 }
             }
         }

@@ -34,10 +34,7 @@ class TriggerProductSyncCommand extends Command
         $io = new SymfonyStyle($input, $output);
         $provider = $input->getArgument('provider');
 
-        $message = new StartProductSyncMessage(
-            $provider,
-            new \DateTimeImmutable('now', new \DateTimeZone('UTC'))
-        );
+        $message = new StartProductSyncMessage($provider);
 
         $this->messageBus->dispatch($message);
 
