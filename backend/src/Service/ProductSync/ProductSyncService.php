@@ -126,6 +126,22 @@ class ProductSyncService
             $product = $this->productRepository->findByStyleNumber($externalProduct->styleId);
 
             if ($product !== null) {
+                // Check if this product already has a mapping from this provider
+                $existingMapping = $this->mappingRepository->findByProductAndProvider($product, $provider);
+                if ($existingMapping !== null) {
+                    // Product already mapped to this provider (different external_id, same styleNumber)
+                    // Skip this external product to avoid duplicate mapping
+                    $job->incrementSkippedProducts();
+                    $this->logger->debug('Skipping duplicate product mapping', [
+                        'product_id' => $product->getId(),
+                        'external_id' => $externalProduct->externalId,
+                        'existing_external_id' => $existingMapping->getExternalId(),
+                        'style_number' => $externalProduct->styleId,
+                    ]);
+
+                    return null;
+                }
+
                 // Product exists but not mapped - create mapping
                 $this->updateProduct($product, $externalProduct);
                 $this->createMapping($product, $provider, $externalProduct);

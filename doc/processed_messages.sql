@@ -16,6 +16,7 @@ CREATE TABLE `processed_messages` (
     `failure_type` VARCHAR(255) NULL COMMENT '失败类型(异常类名)',
     `failure_message` TEXT NULL COMMENT '失败消息',
     `results` JSON NULL COMMENT '处理结果',
+    `message_content` TEXT NULL COMMENT '消息内容(JSON序列化)',
     PRIMARY KEY (`id`),
     INDEX `idx_run_id` (`run_id`),
     INDEX `idx_message_type` (`message_type`),

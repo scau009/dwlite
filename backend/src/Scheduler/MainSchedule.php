@@ -31,7 +31,7 @@ class MainSchedule implements ScheduleProviderInterface
 
         // Only register scheduled tasks in production environment
         if ($this->environment === 'prod') {
-            $schedule->with(
+            $schedule->add(
                 // KicksDB product sync - runs daily at 22:40 UTC
                 RecurringMessage::cron('40 22 * * *', new StartProductSyncMessage(
                     KicksDbProvider::PROVIDER_NAME,
@@ -58,6 +58,12 @@ class MainSchedule implements ScheduleProviderInterface
                     new \DateTimeImmutable('now', new \DateTimeZone('UTC')),
                     100  // process up to 100 expired reservations per run
                 )),
+            );
+        } else {
+            $schedule->add(
+                RecurringMessage::cron('40 22 * * *', new StartProductSyncMessage(
+                    KicksDbProvider::PROVIDER_NAME,
+                ))
             );
         }
 

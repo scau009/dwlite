@@ -105,7 +105,7 @@ class StartProductSyncMessageHandler
             provider: KicksDbProvider::PROVIDER_NAME,
             afterRank: null,
             batchSize: 100,
-            productTypeFilter: null, // Fetch all product types
+            productTypeFilter: 'sneakers', // Only sync sneakers
             batchNumber: 1,
         ));
 

@@ -171,7 +171,7 @@ class KicksDbApiClient
         $queryParams = [
             'page' => 1,
             'limit' => min($pageSize, 100),
-            'sort' => 'rank:asc',
+            'sort' => self::SORT_RANK,
             'market' => $market,
             'currency' => $currency,
             'display[variants]' => $displayVariants ? 'true' : 'false',
