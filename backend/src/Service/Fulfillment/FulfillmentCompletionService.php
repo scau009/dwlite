@@ -9,6 +9,7 @@ use App\Entity\Order;
 use App\Message\CreateSettlementMessage;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
+use Symfony\Component\Messenger\Stamp\DispatchAfterCurrentBusStamp;
 
 /**
  * 履约单完成服务 - 处理订单完成时触发履约单完成的逻辑.
@@ -38,8 +39,11 @@ class FulfillmentCompletionService
                 $fulfillment->markCompleted();
                 ++$completedCount;
 
-                // 派发创建结算单消息
-                $this->messageBus->dispatch(CreateSettlementMessage::create($fulfillment->getId()));
+                // 派发创建结算单消息（使用 DispatchAfterCurrentBusStamp 确保消息在事务提交后才分发）
+                $this->messageBus->dispatch(
+                    CreateSettlementMessage::create($fulfillment->getId()),
+                    [new DispatchAfterCurrentBusStamp()]
+                );
 
                 $this->logger->info('Fulfillment marked as completed', [
                     'fulfillmentId' => $fulfillment->getId(),

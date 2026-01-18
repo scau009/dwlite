@@ -125,6 +125,44 @@ class PlatformRuleService
     }
 
     /**
+     * 获取结算费率（百分比）.
+     *
+     * 从规则引擎获取佣金费率，用于创建结算单
+     *
+     * @return string 费率百分比字符串（例如 "5.00" 表示 5%），若无规则则返回默认值 "5.00"
+     */
+    public function getSettlementFeeRate(
+        string $merchantId,
+        string $channelCode,
+        ?string $channelProductId = null,
+    ): string {
+        $rules = $this->collectSettlementRules($merchantId, $channelProductId);
+
+        if (empty($rules)) {
+            return '5.00'; // 默认 5%
+        }
+
+        $context = [
+            'merchantId' => $merchantId,
+            'channelCode' => $channelCode,
+            'orderAmount' => 0.0, // 费率计算不需要金额
+        ];
+
+        $result = $this->ruleEngine->executeRuleChain(
+            $rules,
+            $context,
+            0.0, // 初始值
+            RuleExecutionLog::CONTEXT_SETTLEMENT,
+            $channelProductId
+        );
+
+        // 限制费率在有效范围内 (0-100%)
+        $rate = max(0, min(100, (float) $result));
+
+        return bcmul((string) $rate, '1', 2);
+    }
+
+    /**
      * 获取平台规则列表.
      *
      * @return array{data: PlatformRule[], total: int}

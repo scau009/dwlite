@@ -80,7 +80,8 @@ class SettlementWorkflowTest extends TestCase
             ->with($merchant)
             ->willReturn($wallet);
 
-        $balanceBefore = $wallet->getBalance();
+        $foundWallet = $this->walletRepo->findBalanceWallet($merchant);
+        $balanceBefore = $foundWallet->getBalance();
 
         $wallet->expects($this->once())
             ->method('credit')
