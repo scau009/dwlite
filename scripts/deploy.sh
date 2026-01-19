@@ -19,7 +19,10 @@ set -e
 # Optional Environment Variables:
 #   - REGISTRY: Docker registry URL (default: ccr.ccs.tencentyun.com/dwlite/)
 #   - PROJECT_DIR: Project directory (default: /opt/dwlite)
-#   - ENV_FILE_CONTENT: Content for .env file
+#
+# Prerequisites:
+#   - .env.prod file must exist in PROJECT_DIR with all required environment variables
+#   - See .env.prod.example for the template
 # ========================================
 
 # Configuration
@@ -101,20 +104,11 @@ docker pull "${REGISTRY}dwlite-frontend:${TAG}" || error_exit "Failed to pull fr
 
 log_info "Successfully pulled all images"
 
-# Create/update .env file if content provided
-if [ -n "$ENV_FILE_CONTENT" ]; then
-    log_section "Updating Environment Configuration"
-    # Decode from base64 if ENV_FILE_BASE64 is set, otherwise use content directly
-    if [ -n "$ENV_FILE_BASE64" ]; then
-        echo "$ENV_FILE_CONTENT" | base64 -d > .env
-        log_info ".env file updated (from base64)"
-    else
-        echo "$ENV_FILE_CONTENT" > .env
-        log_info ".env file updated"
-    fi
-else
-    log_warn ".env file not provided, using existing configuration"
+# Check that .env.prod file exists
+if [ ! -f ".env.prod" ]; then
+    error_exit ".env.prod file not found in $PROJECT_DIR. Please create it from .env.prod.example"
 fi
+log_info ".env.prod file found"
 
 # Ensure docker-compose.prod.yml exists
 if [ ! -f "docker-compose.prod.yml" ]; then
