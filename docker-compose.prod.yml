@@ -63,6 +63,20 @@ services:
       - DATABASE_URL=${DATABASE_URL}
       - MAILER_DSN=${MAILER_DSN:-smtp://localhost:1025}
       - REDIS_URL=${REDIS_URL:-redis://redis:6379}
+      - FRONTEND_URL=${FRONTEND_URL}
+      - SES_SECRET_ID=${SES_SECRET_ID}
+      - SES_SECRET_KEY=${SES_SECRET_KEY}
+      - SES_REGION=${SES_REGION:-ap-guangzhou}
+      - SES_FROM_EMAIL=${SES_FROM_EMAIL}
+      - SES_FROM_NAME=${SES_FROM_NAME:-DWLite}
+      - SES_VERIFICATION_TEMPLATE_ID=${SES_VERIFICATION_TEMPLATE_ID}
+      - SES_PASSWORD_RESET_TEMPLATE_ID=${SES_PASSWORD_RESET_TEMPLATE_ID:-0}
+      - COS_SECRET_ID=${COS_SECRET_ID}
+      - COS_SECRET_KEY=${COS_SECRET_KEY}
+      - COS_REGION=${COS_REGION:-ap-guangzhou}
+      - COS_BUCKET=${COS_BUCKET}
+      - COS_CDN_DOMAIN=${COS_CDN_DOMAIN}
+      - KICKSDB_API_KEY=${KICKSDB_API_KEY}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     command: php bin/console messenger:consume async --time-limit=3600 --memory-limit=128M -vv
@@ -90,6 +104,20 @@ services:
       - DATABASE_URL=${DATABASE_URL}
       - MAILER_DSN=${MAILER_DSN:-smtp://localhost:1025}
       - REDIS_URL=${REDIS_URL:-redis://redis:6379}
+      - FRONTEND_URL=${FRONTEND_URL}
+      - SES_SECRET_ID=${SES_SECRET_ID}
+      - SES_SECRET_KEY=${SES_SECRET_KEY}
+      - SES_REGION=${SES_REGION:-ap-guangzhou}
+      - SES_FROM_EMAIL=${SES_FROM_EMAIL}
+      - SES_FROM_NAME=${SES_FROM_NAME:-DWLite}
+      - SES_VERIFICATION_TEMPLATE_ID=${SES_VERIFICATION_TEMPLATE_ID}
+      - SES_PASSWORD_RESET_TEMPLATE_ID=${SES_PASSWORD_RESET_TEMPLATE_ID:-0}
+      - COS_SECRET_ID=${COS_SECRET_ID}
+      - COS_SECRET_KEY=${COS_SECRET_KEY}
+      - COS_REGION=${COS_REGION:-ap-guangzhou}
+      - COS_BUCKET=${COS_BUCKET}
+      - COS_CDN_DOMAIN=${COS_CDN_DOMAIN}
+      - KICKSDB_API_KEY=${KICKSDB_API_KEY}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     command: php bin/console messenger:consume scheduler_default --time-limit=3600 --memory-limit=128M -vv
