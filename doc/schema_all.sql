@@ -1,6 +1,6 @@
 -- =============================================================================
 -- DWLite Database Schema - Consolidated DDL
--- Generated: 2026-01-15
+-- Generated: 2026-01-19
 -- Description: All table definitions in dependency order
 -- =============================================================================
 
@@ -145,6 +145,7 @@ CREATE TABLE `processed_messages` (
     `failure_type` VARCHAR(255) NULL COMMENT '失败类型(异常类名)',
     `failure_message` TEXT NULL COMMENT '失败消息',
     `results` JSON NULL COMMENT '处理结果',
+    `message_content` TEXT NULL COMMENT '消息内容(JSON序列化)',
     PRIMARY KEY (`id`),
     INDEX `idx_run_id` (`run_id`),
     INDEX `idx_message_type` (`message_type`),
@@ -648,6 +649,7 @@ CREATE TABLE `merchant_inventories` (
     `quantity_in_transit` INT NOT NULL DEFAULT 0,
     `quantity_available` INT NOT NULL DEFAULT 0,
     `quantity_reserved` INT NOT NULL DEFAULT 0,
+    `quantity_pending_reserve` INT NOT NULL DEFAULT 0 COMMENT '待确认预留（软锁定，履约分配后）',
     `quantity_damaged` INT NOT NULL DEFAULT 0,
     `quantity_allocated` INT NOT NULL DEFAULT 0 COMMENT '渠道独占分配的库存',
     `average_cost` DECIMAL(10,2) NULL,
@@ -936,6 +938,7 @@ CREATE TABLE `channel_products` (
     `platform_compare_at_price` DECIMAL(10,2) NULL,
     `stock_mode` VARCHAR(20) NOT NULL DEFAULT 'aggregate' COMMENT 'aggregate, lowest, fixed',
     `stock_quantity` INT NOT NULL DEFAULT 0,
+    `quantity_reserved` INT NOT NULL DEFAULT 0 COMMENT 'Reserved quantity by orders',
     `safety_buffer` INT NOT NULL DEFAULT 0,
     `fixed_stock` INT NULL,
     `external_id` VARCHAR(100) NULL,
@@ -943,7 +946,7 @@ CREATE TABLE `channel_products` (
     `sync_status` VARCHAR(20) NOT NULL DEFAULT 'pending' COMMENT 'pending, syncing, synced, failed',
     `last_synced_at` DATETIME NULL,
     `sync_error` TEXT NULL,
-    `status` VARCHAR(20) NOT NULL DEFAULT 'draft' COMMENT 'draft, pending, active, paused, rejected',
+    `status` VARCHAR(20) NOT NULL DEFAULT 'draft' COMMENT 'draft, pending, active, paused, rejected, delisted',
     `total_sold_quantity` INT NOT NULL DEFAULT 0,
     `created_at` DATETIME NOT NULL,
     `updated_at` DATETIME NOT NULL,
@@ -1214,6 +1217,41 @@ CREATE TABLE `fulfillment_allocation_logs` (
     CONSTRAINT `fk_fal_order_item` FOREIGN KEY (`order_item_id`) REFERENCES `order_items` (`id`) ON DELETE CASCADE,
     CONSTRAINT `fk_fal_merchant` FOREIGN KEY (`selected_merchant_id`) REFERENCES `merchants` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Fulfillment allocation audit logs';
+
+-- -----------------------------------------------------------------------------
+-- inventory_reservations
+-- -----------------------------------------------------------------------------
+CREATE TABLE `inventory_reservations` (
+    `id` VARCHAR(26) NOT NULL PRIMARY KEY COMMENT 'ULID',
+    `channel_product_id` VARCHAR(26) NOT NULL COMMENT 'Channel product ID',
+    `order_id` VARCHAR(26) NOT NULL COMMENT 'Order ID',
+    `order_item_id` VARCHAR(26) NOT NULL COMMENT 'Order item ID',
+    `quantity` INT NOT NULL COMMENT 'Reserved quantity',
+    `inventory_id` VARCHAR(26) NULL COMMENT 'Actual inventory ID (filled after allocation)',
+    `fulfillment_id` VARCHAR(26) NULL COMMENT 'Fulfillment ID (filled after allocation)',
+    `fulfillment_item_id` VARCHAR(26) NULL COMMENT 'Fulfillment item ID (filled after allocation)',
+    `status` VARCHAR(20) NOT NULL DEFAULT 'reserved' COMMENT 'reserved, allocated, locked, released, expired, completed',
+    `expires_at` DATETIME NOT NULL COMMENT 'Reservation expiry time (UTC)',
+    `allocated_at` DATETIME NULL COMMENT 'Allocation time',
+    `locked_at` DATETIME NULL COMMENT 'Lock time',
+    `released_at` DATETIME NULL COMMENT 'Release time',
+    `completed_at` DATETIME NULL COMMENT 'Completion time',
+    `created_at` DATETIME NOT NULL,
+    `updated_at` DATETIME NOT NULL,
+    INDEX `idx_reservation_channel_product` (`channel_product_id`, `status`),
+    INDEX `idx_reservation_inventory` (`inventory_id`, `status`),
+    INDEX `idx_reservation_order` (`order_id`),
+    INDEX `idx_reservation_order_item` (`order_item_id`),
+    INDEX `idx_reservation_fulfillment` (`fulfillment_id`),
+    INDEX `idx_reservation_expires` (`expires_at`, `status`),
+    INDEX `idx_reservation_status` (`status`),
+    CONSTRAINT `fk_reservation_channel_product` FOREIGN KEY (`channel_product_id`) REFERENCES `channel_products` (`id`),
+    CONSTRAINT `fk_reservation_order` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`),
+    CONSTRAINT `fk_reservation_order_item` FOREIGN KEY (`order_item_id`) REFERENCES `order_items` (`id`),
+    CONSTRAINT `fk_reservation_inventory` FOREIGN KEY (`inventory_id`) REFERENCES `merchant_inventories` (`id`),
+    CONSTRAINT `fk_reservation_fulfillment` FOREIGN KEY (`fulfillment_id`) REFERENCES `fulfillments` (`id`),
+    CONSTRAINT `fk_reservation_fulfillment_item` FOREIGN KEY (`fulfillment_item_id`) REFERENCES `fulfillment_items` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Inventory reservations (two-layer)';
 
 -- =============================================================================
 -- PHASE 13: Outbound Orders
