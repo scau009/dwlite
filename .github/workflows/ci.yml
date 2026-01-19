@@ -159,16 +159,30 @@ jobs:
         run: |
           REGISTRY=ccr.ccs.tencentyun.com/dwlite/
 
-          # Build base image if needed
-          if ! docker pull ${REGISTRY}dwlite-php-base:latest 2>/dev/null; then
+          # Calculate hash of Dockerfile.base to detect changes
+          BASE_HASH=$(sha256sum backend/Dockerfile.base | cut -c1-12)
+          echo "Dockerfile.base hash: ${BASE_HASH}"
+
+          # Build base image if it doesn't exist or if Dockerfile.base has changed
+          NEED_BUILD=false
+          if ! docker pull ${REGISTRY}dwlite-php-base:${BASE_HASH} 2>/dev/null; then
+            NEED_BUILD=true
+            echo "Base image with hash ${BASE_HASH} not found, will build..."
+          fi
+
+          if [ "$NEED_BUILD" = true ]; then
             echo "Building base image..."
             docker buildx build \
               --file backend/Dockerfile.base \
               --tag ${REGISTRY}dwlite-php-base:latest \
+              --tag ${REGISTRY}dwlite-php-base:${BASE_HASH} \
               --push \
               --cache-from type=registry,ref=${REGISTRY}dwlite-php-base:buildcache \
               --cache-to type=registry,ref=${REGISTRY}dwlite-php-base:buildcache,mode=max \
               backend/
+          else
+            echo "Base image with hash ${BASE_HASH} exists, skipping build"
+            docker pull ${REGISTRY}dwlite-php-base:latest
           fi
 
           # Build backend image with all tags
