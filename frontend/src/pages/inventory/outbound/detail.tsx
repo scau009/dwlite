@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import {
@@ -75,7 +75,7 @@ export function OutboundOrderDetailPage() {
   const [submitting, setSubmitting] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
-  const loadOrder = async () => {
+  const loadOrder = useCallback(async () => {
     if (!id) return;
     setLoading(true);
     try {
@@ -86,11 +86,11 @@ export function OutboundOrderDetailPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, message, t]);
 
   useEffect(() => {
     loadOrder();
-  }, [id]);
+  }, [loadOrder]);
 
   // Get status label
   const getStatusLabel = (status: OutboundOrderStatus) => {
@@ -121,7 +121,7 @@ export function OutboundOrderDetailPage() {
   const existingSkuCodes = useMemo(() => {
     if (!order) return [];
     return order.items.map(item => `${item.styleNumber}-${item.skuName}`);
-  }, [order?.items]);
+  }, [order]);
 
   // Handle add item modal success
   const handleAddItemSuccess = () => {

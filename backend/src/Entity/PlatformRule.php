@@ -20,15 +20,17 @@ use Symfony\Component\Uid\Ulid;
 class PlatformRule
 {
     // 规则类型
-    public const TYPE_PRICING = 'pricing';                // 加价规则
-    public const TYPE_STOCK_PRIORITY = 'stock_priority';  // 库存优先级规则
-    public const TYPE_SETTLEMENT_FEE = 'settlement_fee';  // 结算费率规则
+    public const TYPE_PRICING = 'pricing';                          // 加价规则
+    public const TYPE_STOCK_PRIORITY = 'stock_priority';            // 库存优先级规则
+    public const TYPE_SETTLEMENT_FEE = 'settlement_fee';            // 结算费率规则
+    public const TYPE_FULFILLMENT_ALLOCATION = 'fulfillment_allocation';  // 履约分配规则
 
     // 规则分类
-    public const CATEGORY_MARKUP = 'markup';        // 加价
-    public const CATEGORY_DISCOUNT = 'discount';    // 折扣
-    public const CATEGORY_PRIORITY = 'priority';    // 优先级
-    public const CATEGORY_FEE_RATE = 'fee_rate';    // 费率
+    public const CATEGORY_MARKUP = 'markup';              // 加价
+    public const CATEGORY_DISCOUNT = 'discount';          // 折扣
+    public const CATEGORY_PRIORITY = 'priority';          // 优先级
+    public const CATEGORY_FEE_RATE = 'fee_rate';          // 费率
+    public const CATEGORY_ALLOCATION_SCORE = 'allocation_score';  // 分配评分
 
     #[ORM\Id]
     #[ORM\Column(type: 'string', length: 26)]
@@ -311,6 +313,11 @@ class PlatformRule
     public function isSettlementFeeRule(): bool
     {
         return $this->type === self::TYPE_SETTLEMENT_FEE;
+    }
+
+    public function isFulfillmentAllocationRule(): bool
+    {
+        return $this->type === self::TYPE_FULFILLMENT_ALLOCATION;
     }
 
     public function canBeDeleted(): bool

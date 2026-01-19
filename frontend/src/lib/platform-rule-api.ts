@@ -66,7 +66,7 @@ export interface PlatformRuleListParams {
 }
 
 export interface CreatePlatformRuleParams {
-  code: string;
+  code?: string;
   name: string;
   description?: string;
   type: 'pricing' | 'stock_priority' | 'settlement_fee';
@@ -224,14 +224,17 @@ export const platformRuleApi = {
       functions: Record<string, { signature: string; description: string; example: string }>;
     }>(`/api/admin/platform-rules/reference?type=${type}`);
 
-    // Transform object format to array format
+    // Transform object format to array format, handle empty/null cases
+    const variables = response.variables || {};
+    const functions = response.functions || {};
+
     return {
-      variables: Object.entries(response.variables).map(([name, v]) => ({
+      variables: Object.entries(variables).map(([name, v]) => ({
         name,
         type: v.type,
         description: v.description,
       })),
-      functions: Object.entries(response.functions).map(([name, f]) => ({
+      functions: Object.entries(functions).map(([name, f]) => ({
         name,
         signature: f.signature,
         description: f.description,

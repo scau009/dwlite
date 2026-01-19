@@ -379,6 +379,14 @@ class ChannelProductSyncLog
     }
 
     /**
+     * Check if sync was skipped.
+     */
+    public function isSkipped(): bool
+    {
+        return $this->status === self::STATUS_SKIPPED;
+    }
+
+    /**
      * Calculate duration in milliseconds.
      */
     private function calculateDuration(): int

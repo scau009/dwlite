@@ -1,11 +1,11 @@
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router';
 import { ProTable, type ActionType, type ProColumns } from '@ant-design/pro-components';
 import { Button, Tag, Switch, App, Popconfirm, Space, Tabs, Typography, Tooltip } from 'antd';
 import { PlusOutlined, SettingOutlined, LockOutlined } from '@ant-design/icons';
 
 import { platformRuleApi, type PlatformRule } from '@/lib/platform-rule-api';
-import { RuleFormModal } from './components/rule-form-modal';
 import { AssignmentDrawer } from './components/assignment-drawer';
 
 const { Paragraph } = Typography;
@@ -14,12 +14,11 @@ type PlatformRuleType = 'pricing' | 'stock_priority' | 'settlement_fee';
 
 export function PlatformRulesListPage() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const actionRef = useRef<ActionType>(null);
   const { message, modal } = App.useApp();
 
   const [ruleType, setRuleType] = useState<PlatformRuleType>('pricing');
-  const [formModalOpen, setFormModalOpen] = useState(false);
-  const [editingRule, setEditingRule] = useState<PlatformRule | null>(null);
   const [assignmentDrawerOpen, setAssignmentDrawerOpen] = useState(false);
   const [selectedRule, setSelectedRule] = useState<PlatformRule | null>(null);
   const [statusLoading, setStatusLoading] = useState<string | null>(null);
@@ -43,13 +42,11 @@ export function PlatformRulesListPage() {
   };
 
   const handleAdd = () => {
-    setEditingRule(null);
-    setFormModalOpen(true);
+    navigate(`/platform-rules/create?type=${ruleType}`);
   };
 
   const handleEdit = (rule: PlatformRule) => {
-    setEditingRule(rule);
-    setFormModalOpen(true);
+    navigate(`/platform-rules/${rule.id}/edit?type=${ruleType}`);
   };
 
   const handleManageAssignments = (rule: PlatformRule) => {
@@ -105,7 +102,7 @@ export function PlatformRulesListPage() {
       ellipsis: true,
       render: (_, record) => (
         <Space>
-          <code className="text-xs bg-gray-100 px-2 py-1 rounded">{record.code}</code>
+          <code className="text-xs bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">{record.code}</code>
           {record.isSystem && (
             <Tooltip title={t('rules.systemRule')}>
               <LockOutlined className="text-gray-400" />
@@ -316,21 +313,6 @@ export function PlatformRulesListPage() {
           showSizeChanger: true,
         }}
         scroll={{ x: 1300 }}
-      />
-
-      <RuleFormModal
-        open={formModalOpen}
-        rule={editingRule}
-        ruleType={ruleType}
-        onClose={() => {
-          setFormModalOpen(false);
-          setEditingRule(null);
-        }}
-        onSuccess={() => {
-          setFormModalOpen(false);
-          setEditingRule(null);
-          actionRef.current?.reload();
-        }}
       />
 
       <AssignmentDrawer

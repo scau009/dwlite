@@ -13,6 +13,7 @@ use App\Repository\MerchantInventoryRepository;
 use App\Repository\MerchantRepository;
 use App\Repository\OutboundOrderRepository;
 use App\Repository\WarehouseRepository;
+use App\Service\BusinessNoGenerator;
 use App\Service\CosService;
 use App\Service\InventoryService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -36,6 +37,7 @@ class MerchantOutboundController extends AbstractController
         private WarehouseRepository $warehouseRepository,
         private MerchantInventoryRepository $inventoryRepository,
         private InventoryService $inventoryService,
+        private BusinessNoGenerator $businessNoGenerator,
         private CosService $cosService,
         private EntityManagerInterface $entityManager,
         private TranslatorInterface $translator,
@@ -165,6 +167,7 @@ class MerchantOutboundController extends AbstractController
 
         // 创建草稿出库单
         $outboundOrder = new OutboundOrder();
+        $outboundOrder->setOutboundNo($this->businessNoGenerator->generateOutboundOrderNo());
         $outboundOrder->setMerchant($merchant);
         $outboundOrder->setWarehouse($warehouse);
         $outboundOrder->setOutboundType(OutboundOrder::TYPE_RETURN_TO_MERCHANT);

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import {
@@ -10,8 +10,8 @@ import {
   Button,
   Space,
   App,
-  Avatar,
   Empty,
+  Image,
 } from 'antd';
 import { ShoppingOutlined } from '@ant-design/icons';
 
@@ -19,7 +19,7 @@ import {
   inboundApi,
   type InboundProduct,
   type InboundProductSku,
-  type AvailableWarehouse,
+  type WarehouseGroup,
 } from '@/lib/inbound-api';
 import { getCurrencySymbol } from '@/lib/merchant-listing-api';
 
@@ -33,6 +33,7 @@ interface CreateOrderModalProps {
 interface SkuSelection {
   productId: string;
   productName: string;
+  productStyleNumber: string;
   productImage: string | null;
   sku: InboundProductSku;
   quantity: number;
@@ -49,12 +50,43 @@ export function CreateOrderModal({
   const { message } = App.useApp();
 
   const [currentStep, setCurrentStep] = useState(0);
-  const [warehouses, setWarehouses] = useState<AvailableWarehouse[]>([]);
+  const [warehouseGroups, setWarehouseGroups] = useState<WarehouseGroup[]>([]);
   const [warehouseLoading, setWarehouseLoading] = useState(false);
   const [selectedWarehouse, setSelectedWarehouse] = useState<string | null>(null);
   const [skuSelections, setSkuSelections] = useState<SkuSelection[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [batchQuantity, setBatchQuantity] = useState<number>(1);
+
+  const loadWarehouses = useCallback(async () => {
+    setWarehouseLoading(true);
+    try {
+      const data = await inboundApi.getAvailableWarehouses();
+      setWarehouseGroups(data);
+    } catch (error) {
+      console.error('Failed to load warehouses:', error);
+      message.error(t('common.error'));
+    } finally {
+      setWarehouseLoading(false);
+    }
+  }, [message, t]);
+
+  const initSkuSelections = useCallback(() => {
+    const selections: SkuSelection[] = [];
+    products.forEach((product) => {
+      const activeSkus = product.skus.filter((s) => s.isActive);
+      activeSkus.forEach((sku) => {
+        selections.push({
+          productId: product.id,
+          productName: product.name,
+          productStyleNumber: product.styleNumber,
+          productImage: product.primaryImageUrl,
+          sku,
+          quantity: 1,
+        });
+      });
+    });
+    setSkuSelections(selections);
+  }, [products]);
 
   // Load warehouses when modal opens
   useEffect(() => {
@@ -65,37 +97,7 @@ export function CreateOrderModal({
       loadWarehouses();
       initSkuSelections();
     }
-  }, [open, products]);
-
-  const loadWarehouses = async () => {
-    setWarehouseLoading(true);
-    try {
-      const data = await inboundApi.getAvailableWarehouses();
-      setWarehouses(data);
-    } catch (error) {
-      console.error('Failed to load warehouses:', error);
-      message.error(t('common.error'));
-    } finally {
-      setWarehouseLoading(false);
-    }
-  };
-
-  const initSkuSelections = () => {
-    const selections: SkuSelection[] = [];
-    products.forEach((product) => {
-      const activeSkus = product.skus.filter((s) => s.isActive);
-      activeSkus.forEach((sku) => {
-        selections.push({
-          productId: product.id,
-          productName: product.name,
-          productImage: product.primaryImageUrl,
-          sku,
-          quantity: 1,
-        });
-      });
-    });
-    setSkuSelections(selections);
-  };
+  }, [open, loadWarehouses, initSkuSelections]);
 
   const handleQuantityChange = (skuId: string, quantity: number | null) => {
     setSkuSelections((prev) =>
@@ -169,31 +171,37 @@ export function CreateOrderModal({
       key: 'product',
       width: 200,
       render: (_: unknown, record: SkuSelection) => (
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           {record.productImage ? (
-            <Avatar src={record.productImage} shape="square" size={40} />
+            <div className="w-14 h-14 flex items-center justify-center bg-gray-100 rounded flex-shrink-0">
+              <Image
+                src={record.productImage}
+                alt={record.productName}
+                preview={false}
+                style={{ maxWidth: 56, maxHeight: 56, objectFit: 'contain' }}
+              />
+            </div>
           ) : (
-            <Avatar shape="square" size={40} icon={<ShoppingOutlined />} />
+            <div className="w-14 h-14 flex items-center justify-center bg-gray-100 rounded text-gray-400 flex-shrink-0">
+              <ShoppingOutlined style={{ fontSize: 24 }} />
+            </div>
           )}
-          <div className="min-w-0">
-            <div className="text-sm font-medium truncate">{record.productName}</div>
-          </div>
+          <code className="text-xs bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">
+            {record.productStyleNumber}
+          </code>
         </div>
       ),
     },
     {
-      title: t('opportunities.sku'),
-      key: 'sku',
-      width: 150,
+      title: t('opportunities.size'),
+      key: 'size',
+      width: 100,
       render: (_: unknown, record: SkuSelection) => (
-        <div>
-          <div className="text-sm">{record.sku.skuName || '-'}</div>
-          {record.sku.sizeValue && (
-            <div className="text-xs text-gray-500">
-              {record.sku.sizeUnit} {record.sku.sizeValue}
-            </div>
-          )}
-        </div>
+        <span className="text-sm">
+          {record.sku.sizeValue
+            ? `${record.sku.sizeUnit ? `${record.sku.sizeUnit} ` : ''}${record.sku.sizeValue}`
+            : '-'}
+        </span>
       ),
     },
     {
@@ -241,6 +249,21 @@ export function CreateOrderModal({
   const validSelectionsCount = skuSelections.filter((s) => s.quantity > 0).length;
   const totalQuantity = skuSelections.reduce((sum, s) => sum + s.quantity, 0);
 
+  // Transform warehouse groups to flat options
+  const warehouseOptions = useMemo(() => {
+    const options: { label: string; value: string }[] = [];
+    warehouseGroups.forEach((group) => {
+      group.warehouses.forEach((warehouse) => {
+        const location = warehouse.city || warehouse.province || '';
+        options.push({
+          label: `${warehouse.name} (${warehouse.code})${location ? ` - ${location}` : ''}`,
+          value: warehouse.id,
+        });
+      });
+    });
+    return options;
+  }, [warehouseGroups]);
+
   return (
     <Modal
       title={t('opportunities.createOrderTitle')}
@@ -271,10 +294,11 @@ export function CreateOrderModal({
               loading={warehouseLoading}
               value={selectedWarehouse}
               onChange={setSelectedWarehouse}
-              options={warehouses.map((w) => ({
-                label: `${w.name} (${w.code})`,
-                value: w.id,
-              }))}
+              options={warehouseOptions}
+              showSearch
+              filterOption={(input, option) =>
+                (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+              }
             />
           </div>
           <div className="flex justify-end mt-6">

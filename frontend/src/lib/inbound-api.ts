@@ -35,6 +35,7 @@ export interface InboundOrder {
   id: string;
   orderNo: string;
   status: InboundOrderStatus;
+  currency: string;
   warehouse: {
     id: string;
     name: string;
@@ -76,6 +77,7 @@ export interface InboundOrderItem {
   receivedQuantity: number;
   damagedQuantity: number;
   unitCost: string | null;
+  currency: string;
   status: string;
   warehouseRemark: string | null;
   receivedAt: string | null;
@@ -116,6 +118,7 @@ export interface InboundException {
 export interface ExceptionItem {
   id: string;
   skuName: string | null;
+  styleNumber: string | null;
   colorName: string | null;
   productName: string | null;
   productImage: string | null;
@@ -139,12 +142,14 @@ export interface CreateInboundOrderParams {
   warehouseId: string;
   expectedArrivalDate?: string;
   merchantNotes?: string;
+  currency?: string;
 }
 
 export interface UpdateInboundOrderParams {
   warehouseId?: string;
   expectedArrivalDate?: string;
   merchantNotes?: string;
+  currency?: string;
 }
 
 export interface AddOrderItemParams {
@@ -192,6 +197,18 @@ export interface AvailableWarehouse {
   province: string | null;
 }
 
+export interface ChannelInfo {
+  id: string;
+  code: string;
+  name: string;
+  logoUrl: string | null;
+}
+
+export interface WarehouseGroup {
+  channel: ChannelInfo;
+  warehouses: AvailableWarehouse[];
+}
+
 export interface InboundProductSku {
   id: string;
   skuName: string | null;
@@ -236,10 +253,10 @@ export const inboundApi = {
   // ========== Warehouses ==========
 
   /**
-   * Get available warehouses for inbound orders
+   * Get available warehouses for inbound orders (grouped by sales channel)
    */
-  getAvailableWarehouses: async (): Promise<AvailableWarehouse[]> => {
-    const response = await apiFetch<{ data: AvailableWarehouse[] }>('/api/inbound/warehouses');
+  getAvailableWarehouses: async (): Promise<WarehouseGroup[]> => {
+    const response = await apiFetch<{ data: WarehouseGroup[] }>('/api/inbound/warehouses');
     return response.data || [];
   },
 
@@ -458,6 +475,22 @@ export const inboundApi = {
     );
   },
 
+  /**
+   * Batch update inbound order items cost (available until order completion)
+   */
+  batchUpdateItemCost: async (
+    itemIds: string[],
+    unitCost: string
+  ): Promise<{ message: string; data: InboundOrderItem[] }> => {
+    return await apiFetch<{ message: string; data: InboundOrderItem[] }>(
+      '/api/inbound/orders/items/batch-cost',
+      {
+        method: 'PATCH',
+        body: JSON.stringify({ itemIds, unitCost }),
+      }
+    );
+  },
+
   // ========== Inbound Shipments ==========
 
   /**
@@ -594,6 +627,7 @@ export interface MerchantInventoryItem {
   quantityDamaged: number;
   quantityAllocated: number;
   averageCost: string | null;
+  currency: string;
   safetyStock: number | null;
   isBelowSafetyStock: boolean;
   lastInboundAt: string | null;
@@ -635,6 +669,78 @@ export interface InventoryWarehouse {
   name: string;
 }
 
+export interface MerchantWarehouse {
+  id: string;
+  code: string;
+  name: string;
+  shortName: string | null;
+}
+
+export interface CreateInventoryRequest {
+  warehouseId: string;
+  productSkuId: string;
+  quantity: number;
+  unitCost?: string;
+  costCurrency?: string;
+  notes?: string;
+}
+
+export type AdjustmentType = 'set' | 'increase' | 'decrease';
+
+export interface AdjustInventoryRequest {
+  adjustmentType: AdjustmentType;
+  quantity: number;
+  unitCost?: string;
+  notes?: string;
+}
+
+export type ConflictStrategy = 'skip' | 'override' | 'add';
+
+export interface ImportInventoryPreviewItem {
+  rowNumber: number;
+  skuCode: string;
+  quantity: number;
+  unitCost: string | null;
+  costCurrency: string;
+  isValid: boolean;
+  errorMessage: string | null;
+  productSkuId: string | null;
+  productName: string | null;
+  skuName: string | null;
+  exists: boolean;
+}
+
+export interface ImportInventoryPreviewResponse {
+  data: {
+    items: ImportInventoryPreviewItem[];
+    summary: {
+      total: number;
+      valid: number;
+      invalid: number;
+    };
+  };
+}
+
+export interface ImportInventoryConfirmItem {
+  skuCode: string;
+  productSkuId: string;
+  quantity: number;
+  unitCost?: string;
+  costCurrency?: string;
+}
+
+export interface ImportInventoryConfirmRequest {
+  warehouseId: string;
+  conflictStrategy: ConflictStrategy;
+  items: ImportInventoryConfirmItem[];
+}
+
+export interface ImportInventoryResult {
+  imported: number;
+  skipped: number;
+  errors: Record<string, string>;
+}
+
 // ========== Merchant Inventory API ==========
 
 export const merchantInventoryApi = {
@@ -670,5 +776,103 @@ export const merchantInventoryApi = {
    */
   getWarehouses: async (): Promise<{ data: InventoryWarehouse[] }> => {
     return await apiFetch<{ data: InventoryWarehouse[] }>('/api/merchant/inventory/warehouses');
+  },
+
+  /**
+   * Get merchant's logical warehouses (for adding inventory)
+   */
+  getMerchantWarehouses: async (): Promise<{ data: MerchantWarehouse[] }> => {
+    return await apiFetch<{ data: MerchantWarehouse[] }>('/api/merchant/inventory/merchant-warehouses');
+  },
+
+  /**
+   * Create inventory in a logical warehouse
+   */
+  createInventory: async (
+    params: CreateInventoryRequest
+  ): Promise<{ message: string; data: MerchantInventoryItem }> => {
+    return await apiFetch<{ message: string; data: MerchantInventoryItem }>(
+      '/api/merchant/inventory',
+      {
+        method: 'POST',
+        body: JSON.stringify(params),
+      }
+    );
+  },
+
+  /**
+   * Adjust inventory in a logical warehouse
+   */
+  adjustInventory: async (
+    inventoryId: string,
+    params: AdjustInventoryRequest
+  ): Promise<{ message: string; data: MerchantInventoryItem }> => {
+    return await apiFetch<{ message: string; data: MerchantInventoryItem }>(
+      `/api/merchant/inventory/${inventoryId}/adjust`,
+      {
+        method: 'PUT',
+        body: JSON.stringify(params),
+      }
+    );
+  },
+
+  /**
+   * Download import template
+   */
+  downloadImportTemplate: async (): Promise<Blob> => {
+    const response = await fetch('/api/merchant/inventory/import-template', {
+      method: 'GET',
+      credentials: 'include',
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('auth_token') || ''}`,
+      },
+    });
+    if (!response.ok) {
+      throw new Error('Failed to download template');
+    }
+    return response.blob();
+  },
+
+  /**
+   * Preview import file
+   */
+  previewImport: async (
+    file: File,
+    warehouseId: string
+  ): Promise<ImportInventoryPreviewResponse> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('warehouseId', warehouseId);
+
+    const response = await fetch('/api/merchant/inventory/import-preview', {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('auth_token') || ''}`,
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to preview import');
+    }
+
+    return response.json();
+  },
+
+  /**
+   * Confirm import
+   */
+  confirmImport: async (
+    params: ImportInventoryConfirmRequest
+  ): Promise<{ message: string; data: ImportInventoryResult }> => {
+    return await apiFetch<{ message: string; data: ImportInventoryResult }>(
+      '/api/merchant/inventory/import',
+      {
+        method: 'POST',
+        body: JSON.stringify(params),
+      }
+    );
   },
 };

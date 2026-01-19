@@ -1,0 +1,2389 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "DWLite Open API",
+        "description": "\u7403\u978b\u4f9b\u5e94\u94fe\u8d44\u6e90\u64ae\u5408\u4e0e\u6e20\u9053\u5206\u9500\u5e73\u53f0 Open API\n\n## \u8ba4\u8bc1\u65b9\u5f0f\n\n\u6240\u6709 API \u8bf7\u6c42\u9700\u8981\u4ee5\u4e0b Header:\n- `X-Api-Key`: API Key ID\n- `X-Timestamp`: Unix \u65f6\u95f4\u6233\uff08\u79d2\uff09\n- `X-Nonce`: \u552f\u4e00 UUID\uff08\u9632\u91cd\u653e\uff09\n- `X-Signature`: HMAC-SHA256 \u7b7e\u540d\n\n## \u7b7e\u540d\u7b97\u6cd5\n\n```\ncanonical = METHOD + \"\\n\" + PATH + \"\\n\" + TIMESTAMP + \"\\n\" + NONCE + \"\\n\" + SHA256(BODY)\nsignature = \"sha256=\" + HMAC-SHA256(canonical, API_SECRET)\n```\n\n## \u54cd\u5e94\u683c\u5f0f\n\n\u6210\u529f\u54cd\u5e94:\n```json\n{\n    \"success\": true,\n    \"data\": { ... },\n    \"requestId\": \"uuid\"\n}\n```\n\n\u9519\u8bef\u54cd\u5e94:\n```json\n{\n    \"success\": false,\n    \"error\": {\n        \"code\": \"ERROR_CODE\",\n        \"message\": \"\u9519\u8bef\u63cf\u8ff0\"\n    },\n    \"requestId\": \"uuid\"\n}\n```\n",
+        "contact": {
+            "name": "DWLite API Support"
+        },
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "/api/v1/open",
+            "description": "Open API"
+        }
+    ],
+    "paths": {
+        "/api/v1/open/merchant/settlements/summary": {
+            "get": {
+                "tags": [
+                    "Merchant - Settlement"
+                ],
+                "summary": "Get settlement summary.",
+                "operationId": "get_open_api_merchant_settlement_summary",
+                "responses": {
+                    "default": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/open/merchant/fulfillments": {
+            "get": {
+                "tags": [
+                    "Merchant - Fulfillment"
+                ],
+                "summary": "List fulfillments.",
+                "operationId": "get_open_api_merchant_fulfillment_list",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 1,
+                            "minimum": 1
+                        }
+                    },
+                    {
+                        "name": "pageSize",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 20,
+                            "maximum": 100,
+                            "minimum": 1
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "allocated",
+                                "accepted",
+                                "rejected",
+                                "picking",
+                                "packing",
+                                "shipped",
+                                "expired"
+                            ],
+                            "nullable": true
+                        }
+                    },
+                    {
+                        "name": "createdFrom",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "nullable": true
+                        }
+                    },
+                    {
+                        "name": "createdTo",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "nullable": true
+                        }
+                    },
+                    {
+                        "name": "fulfillmentNo",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 50,
+                            "nullable": true
+                        }
+                    }
+                ],
+                "responses": {
+                    "default": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/open/merchant/fulfillments/{fulfillmentNo}": {
+            "get": {
+                "tags": [
+                    "Merchant - Fulfillment"
+                ],
+                "summary": "Get fulfillment details.",
+                "operationId": "get_open_api_merchant_fulfillment_details",
+                "parameters": [
+                    {
+                        "name": "fulfillmentNo",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "default": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/open/merchant/fulfillments/{fulfillmentNo}/accept": {
+            "post": {
+                "tags": [
+                    "Merchant - Fulfillment"
+                ],
+                "summary": "Accept fulfillment.",
+                "operationId": "post_open_api_merchant_fulfillment_accept",
+                "parameters": [
+                    {
+                        "name": "fulfillmentNo",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/AcceptFulfillmentRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "default": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/open/merchant/fulfillments/{fulfillmentNo}/reject": {
+            "post": {
+                "tags": [
+                    "Merchant - Fulfillment"
+                ],
+                "summary": "Reject fulfillment.",
+                "operationId": "post_open_api_merchant_fulfillment_reject",
+                "parameters": [
+                    {
+                        "name": "fulfillmentNo",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/RejectFulfillmentRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "default": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/open/merchant/inbound/orders": {
+            "get": {
+                "tags": [
+                    "Merchant - Inbound"
+                ],
+                "summary": "List inbound orders.",
+                "operationId": "get_open_api_merchant_inbound_list",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 1,
+                            "minimum": 1
+                        }
+                    },
+                    {
+                        "name": "pageSize",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 20,
+                            "maximum": 100,
+                            "minimum": 1
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "draft",
+                                "pending",
+                                "shipped",
+                                "arrived",
+                                "receiving",
+                                "completed",
+                                "partial_completed",
+                                "cancelled"
+                            ],
+                            "nullable": true
+                        }
+                    },
+                    {
+                        "name": "createdFrom",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "nullable": true
+                        }
+                    },
+                    {
+                        "name": "createdTo",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "nullable": true
+                        }
+                    },
+                    {
+                        "name": "orderNo",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 50,
+                            "nullable": true
+                        }
+                    },
+                    {
+                        "name": "warehouseCode",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 50,
+                            "nullable": true
+                        }
+                    }
+                ],
+                "responses": {
+                    "default": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/open/merchant/inbound/orders/{orderNo}": {
+            "get": {
+                "tags": [
+                    "Merchant - Inbound"
+                ],
+                "summary": "Get inbound order details.",
+                "operationId": "get_open_api_merchant_inbound_details",
+                "parameters": [
+                    {
+                        "name": "orderNo",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "default": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/open/merchant/inventory": {
+            "get": {
+                "tags": [
+                    "Merchant - Inventory"
+                ],
+                "summary": "List merchant inventory.",
+                "operationId": "get_open_api_merchant_inventory_list",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 1,
+                            "minimum": 1
+                        }
+                    },
+                    {
+                        "name": "pageSize",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 20,
+                            "maximum": 100,
+                            "minimum": 1
+                        }
+                    },
+                    {
+                        "name": "sku",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 100,
+                            "nullable": true
+                        }
+                    },
+                    {
+                        "name": "warehouseCode",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 50,
+                            "nullable": true
+                        }
+                    },
+                    {
+                        "name": "lowStock",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "nullable": true
+                        }
+                    },
+                    {
+                        "name": "outOfStock",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "nullable": true
+                        }
+                    }
+                ],
+                "responses": {
+                    "default": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/open/merchant/listings": {
+            "get": {
+                "tags": [
+                    "Merchant - Listing"
+                ],
+                "summary": "List listings.",
+                "operationId": "get_open_api_merchant_listing_list",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 1,
+                            "minimum": 1
+                        }
+                    },
+                    {
+                        "name": "pageSize",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 20,
+                            "maximum": 100,
+                            "minimum": 1
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "draft",
+                                "active",
+                                "paused",
+                                "sold_out"
+                            ],
+                            "nullable": true
+                        }
+                    },
+                    {
+                        "name": "channelCode",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 50,
+                            "nullable": true
+                        }
+                    },
+                    {
+                        "name": "sku",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 100,
+                            "nullable": true
+                        }
+                    }
+                ],
+                "responses": {
+                    "default": {
+                        "description": ""
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Merchant - Listing"
+                ],
+                "summary": "Create listing.",
+                "operationId": "post_open_api_merchant_listing_create",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateListingRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "default": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/open/merchant/listings/{id}": {
+            "get": {
+                "tags": [
+                    "Merchant - Listing"
+                ],
+                "summary": "Get listing details.",
+                "operationId": "get_open_api_merchant_listing_details",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "default": {
+                        "description": ""
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Merchant - Listing"
+                ],
+                "summary": "Update listing.",
+                "operationId": "put_open_api_merchant_listing_update",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateListingRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "default": {
+                        "description": ""
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Merchant - Listing"
+                ],
+                "summary": "Delete listing (delist).",
+                "operationId": "delete_open_api_merchant_listing_delete",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "default": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/open/merchant/settlements": {
+            "get": {
+                "tags": [
+                    "Merchant - Settlement"
+                ],
+                "summary": "List settlements.",
+                "operationId": "get_open_api_merchant_settlement_list",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 1,
+                            "minimum": 1
+                        }
+                    },
+                    {
+                        "name": "pageSize",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 20,
+                            "maximum": 100,
+                            "minimum": 1
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "pending",
+                                "settled",
+                                "cancelled"
+                            ],
+                            "nullable": true
+                        }
+                    },
+                    {
+                        "name": "scheduledSettleAtFrom",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "nullable": true
+                        }
+                    },
+                    {
+                        "name": "scheduledSettleAtTo",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "nullable": true
+                        }
+                    },
+                    {
+                        "name": "settlementNo",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 50,
+                            "nullable": true
+                        }
+                    }
+                ],
+                "responses": {
+                    "default": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/open/merchant/settlements/{settlementNo}": {
+            "get": {
+                "tags": [
+                    "Merchant - Settlement"
+                ],
+                "summary": "Get settlement details.",
+                "operationId": "get_open_api_merchant_settlement_details",
+                "parameters": [
+                    {
+                        "name": "settlementNo",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "default": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/open/merchant/webhooks": {
+            "get": {
+                "tags": [
+                    "Merchant - Webhook"
+                ],
+                "summary": "List webhooks.",
+                "operationId": "get_open_api_merchant_webhook_list",
+                "responses": {
+                    "default": {
+                        "description": ""
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Merchant - Webhook"
+                ],
+                "summary": "Create webhook.",
+                "operationId": "post_open_api_merchant_webhook_create",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/WebhookDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "default": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/open/merchant/webhooks/{id}": {
+            "get": {
+                "tags": [
+                    "Merchant - Webhook"
+                ],
+                "summary": "Get webhook details.",
+                "operationId": "get_open_api_merchant_webhook_details",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "default": {
+                        "description": ""
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Merchant - Webhook"
+                ],
+                "summary": "Update webhook.",
+                "operationId": "put_open_api_merchant_webhook_update",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/WebhookDto"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "default": {
+                        "description": ""
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Merchant - Webhook"
+                ],
+                "summary": "Delete webhook.",
+                "operationId": "delete_open_api_merchant_webhook_delete",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "default": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/open/warehouse/inbound/orders": {
+            "get": {
+                "tags": [
+                    "Warehouse - Inbound"
+                ],
+                "summary": "List inbound orders.",
+                "operationId": "get_open_api_warehouse_inbound_list",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 1,
+                            "minimum": 1
+                        }
+                    },
+                    {
+                        "name": "pageSize",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 20,
+                            "maximum": 100,
+                            "minimum": 1
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "pending",
+                                "in_transit",
+                                "arrived",
+                                "receiving",
+                                "completed",
+                                "exception"
+                            ],
+                            "nullable": true
+                        }
+                    },
+                    {
+                        "name": "createdFrom",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "nullable": true
+                        }
+                    },
+                    {
+                        "name": "createdTo",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "nullable": true
+                        }
+                    },
+                    {
+                        "name": "orderNo",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 50,
+                            "nullable": true
+                        }
+                    },
+                    {
+                        "name": "merchantCode",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 50,
+                            "nullable": true
+                        }
+                    }
+                ],
+                "responses": {
+                    "default": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/open/warehouse/inbound/orders/{orderNo}": {
+            "get": {
+                "tags": [
+                    "Warehouse - Inbound"
+                ],
+                "summary": "Get inbound order details.",
+                "operationId": "get_open_api_warehouse_inbound_details",
+                "parameters": [
+                    {
+                        "name": "orderNo",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "default": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/open/warehouse/inbound/orders/{orderNo}/confirm-arrival": {
+            "post": {
+                "tags": [
+                    "Warehouse - Inbound"
+                ],
+                "summary": "Confirm inbound order arrival.",
+                "operationId": "post_open_api_warehouse_inbound_confirm_arrival",
+                "parameters": [
+                    {
+                        "name": "orderNo",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ConfirmArrivalRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "default": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/open/warehouse/inbound/orders/{orderNo}/receive": {
+            "post": {
+                "tags": [
+                    "Warehouse - Inbound"
+                ],
+                "summary": "Complete receiving of inbound order.",
+                "operationId": "post_open_api_warehouse_inbound_receive",
+                "parameters": [
+                    {
+                        "name": "orderNo",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ReceiveInboundRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "default": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/open/warehouse/inbound/orders/{orderNo}/exceptions": {
+            "post": {
+                "tags": [
+                    "Warehouse - Inbound"
+                ],
+                "summary": "Report inbound exception.",
+                "operationId": "post_open_api_warehouse_inbound_report_exception",
+                "parameters": [
+                    {
+                        "name": "orderNo",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ReportExceptionRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "default": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/open/warehouse/inventory": {
+            "get": {
+                "tags": [
+                    "Warehouse - Inventory"
+                ],
+                "summary": "List inventory.",
+                "operationId": "get_open_api_warehouse_inventory_list",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 1,
+                            "minimum": 1
+                        }
+                    },
+                    {
+                        "name": "pageSize",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 20,
+                            "maximum": 100,
+                            "minimum": 1
+                        }
+                    },
+                    {
+                        "name": "sku",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 100,
+                            "nullable": true
+                        }
+                    },
+                    {
+                        "name": "merchantCode",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 50,
+                            "nullable": true
+                        }
+                    },
+                    {
+                        "name": "lowStock",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "nullable": true
+                        }
+                    },
+                    {
+                        "name": "outOfStock",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "nullable": true
+                        }
+                    }
+                ],
+                "responses": {
+                    "default": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/open/warehouse/inventory/stocktake": {
+            "post": {
+                "tags": [
+                    "Warehouse - Inventory"
+                ],
+                "summary": "Submit stocktake results.",
+                "operationId": "post_open_api_warehouse_inventory_stocktake",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/StocktakeRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "default": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/open/warehouse/inventory/adjustment": {
+            "post": {
+                "tags": [
+                    "Warehouse - Inventory"
+                ],
+                "summary": "Submit inventory adjustment.",
+                "operationId": "post_open_api_warehouse_inventory_adjustment",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/AdjustmentRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "default": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/open/warehouse/outbound/orders": {
+            "get": {
+                "tags": [
+                    "Warehouse - Outbound"
+                ],
+                "summary": "List outbound orders.",
+                "operationId": "get_open_api_warehouse_outbound_list",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 1,
+                            "minimum": 1
+                        }
+                    },
+                    {
+                        "name": "pageSize",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 20,
+                            "maximum": 100,
+                            "minimum": 1
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "pending",
+                                "picking",
+                                "picked",
+                                "packing",
+                                "packed",
+                                "shipped",
+                                "cancelled"
+                            ],
+                            "nullable": true
+                        }
+                    },
+                    {
+                        "name": "createdFrom",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "nullable": true
+                        }
+                    },
+                    {
+                        "name": "createdTo",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "nullable": true
+                        }
+                    },
+                    {
+                        "name": "outboundNo",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 50,
+                            "nullable": true
+                        }
+                    },
+                    {
+                        "name": "fulfillmentNo",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 50,
+                            "nullable": true
+                        }
+                    }
+                ],
+                "responses": {
+                    "default": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/open/warehouse/outbound/orders/{outboundNo}": {
+            "get": {
+                "tags": [
+                    "Warehouse - Outbound"
+                ],
+                "summary": "Get outbound order details.",
+                "operationId": "get_open_api_warehouse_outbound_details",
+                "parameters": [
+                    {
+                        "name": "outboundNo",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "default": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/open/warehouse/outbound/orders/{outboundNo}/start-picking": {
+            "post": {
+                "tags": [
+                    "Warehouse - Outbound"
+                ],
+                "summary": "Start picking outbound order.",
+                "operationId": "post_open_api_warehouse_outbound_start_picking",
+                "parameters": [
+                    {
+                        "name": "outboundNo",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/StartPickingRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "default": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/open/warehouse/outbound/orders/{outboundNo}/complete-picking": {
+            "post": {
+                "tags": [
+                    "Warehouse - Outbound"
+                ],
+                "summary": "Complete picking of outbound order.",
+                "operationId": "post_open_api_warehouse_outbound_complete_picking",
+                "parameters": [
+                    {
+                        "name": "outboundNo",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CompletePickingRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "default": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/open/warehouse/outbound/orders/{outboundNo}/complete-packing": {
+            "post": {
+                "tags": [
+                    "Warehouse - Outbound"
+                ],
+                "summary": "Complete packing of outbound order.",
+                "operationId": "post_open_api_warehouse_outbound_complete_packing",
+                "parameters": [
+                    {
+                        "name": "outboundNo",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CompletePackingRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "default": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/open/warehouse/outbound/orders/{outboundNo}/ship": {
+            "post": {
+                "tags": [
+                    "Warehouse - Outbound"
+                ],
+                "summary": "Ship outbound order.",
+                "operationId": "post_open_api_warehouse_outbound_ship",
+                "parameters": [
+                    {
+                        "name": "outboundNo",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ShipOutboundRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "default": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/open/warehouse/webhooks": {
+            "get": {
+                "tags": [
+                    "Warehouse - Webhook"
+                ],
+                "summary": "List webhooks.",
+                "operationId": "get_open_api_warehouse_webhooks_list",
+                "responses": {
+                    "default": {
+                        "description": ""
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Warehouse - Webhook"
+                ],
+                "summary": "Create webhook.",
+                "operationId": "post_open_api_warehouse_webhooks_create",
+                "responses": {
+                    "default": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/open/warehouse/webhooks/{id}": {
+            "get": {
+                "tags": [
+                    "Warehouse - Webhook"
+                ],
+                "summary": "Get webhook details.",
+                "operationId": "get_open_api_warehouse_webhooks_details",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "default": {
+                        "description": ""
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Warehouse - Webhook"
+                ],
+                "summary": "Update webhook.",
+                "operationId": "put_open_api_warehouse_webhooks_update",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "default": {
+                        "description": ""
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Warehouse - Webhook"
+                ],
+                "summary": "Delete webhook.",
+                "operationId": "delete_open_api_warehouse_webhooks_delete",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "default": {
+                        "description": ""
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "FulfillmentQuery": {
+                "properties": {
+                    "page": {
+                        "type": "integer",
+                        "default": 1,
+                        "minimum": 1
+                    },
+                    "pageSize": {
+                        "type": "integer",
+                        "default": 20,
+                        "maximum": 100,
+                        "minimum": 1
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "allocated",
+                            "accepted",
+                            "rejected",
+                            "picking",
+                            "packing",
+                            "shipped",
+                            "expired"
+                        ],
+                        "nullable": true
+                    },
+                    "createdFrom": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "createdTo": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "fulfillmentNo": {
+                        "type": "string",
+                        "maxLength": 50,
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "AcceptFulfillmentRequest": {
+                "required": [
+                    "acceptedAt"
+                ],
+                "properties": {
+                    "acceptedAt": {
+                        "type": "string"
+                    },
+                    "notes": {
+                        "type": "string",
+                        "maxLength": 500,
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "RejectFulfillmentRequest": {
+                "required": [
+                    "reason",
+                    "rejectedAt"
+                ],
+                "properties": {
+                    "reason": {
+                        "type": "string",
+                        "maxLength": 500
+                    },
+                    "rejectedAt": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "InboundOrderQuery": {
+                "properties": {
+                    "page": {
+                        "type": "integer",
+                        "default": 1,
+                        "minimum": 1
+                    },
+                    "pageSize": {
+                        "type": "integer",
+                        "default": 20,
+                        "maximum": 100,
+                        "minimum": 1
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "draft",
+                            "pending",
+                            "shipped",
+                            "arrived",
+                            "receiving",
+                            "completed",
+                            "partial_completed",
+                            "cancelled"
+                        ],
+                        "nullable": true
+                    },
+                    "createdFrom": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "createdTo": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "orderNo": {
+                        "type": "string",
+                        "maxLength": 50,
+                        "nullable": true
+                    },
+                    "warehouseCode": {
+                        "type": "string",
+                        "maxLength": 50,
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "InventoryQuery": {
+                "properties": {
+                    "page": {
+                        "type": "integer",
+                        "default": 1,
+                        "minimum": 1
+                    },
+                    "pageSize": {
+                        "type": "integer",
+                        "default": 20,
+                        "maximum": 100,
+                        "minimum": 1
+                    },
+                    "sku": {
+                        "type": "string",
+                        "maxLength": 100,
+                        "nullable": true
+                    },
+                    "warehouseCode": {
+                        "type": "string",
+                        "maxLength": 50,
+                        "nullable": true
+                    },
+                    "lowStock": {
+                        "type": "boolean",
+                        "nullable": true
+                    },
+                    "outOfStock": {
+                        "type": "boolean",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "ListingQuery": {
+                "properties": {
+                    "page": {
+                        "type": "integer",
+                        "default": 1,
+                        "minimum": 1
+                    },
+                    "pageSize": {
+                        "type": "integer",
+                        "default": 20,
+                        "maximum": 100,
+                        "minimum": 1
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "draft",
+                            "active",
+                            "paused",
+                            "sold_out"
+                        ],
+                        "nullable": true
+                    },
+                    "channelCode": {
+                        "type": "string",
+                        "maxLength": 50,
+                        "nullable": true
+                    },
+                    "sku": {
+                        "type": "string",
+                        "maxLength": 100,
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "CreateListingRequest": {
+                "required": [
+                    "inventoryId",
+                    "channelCode",
+                    "fulfillmentType",
+                    "pricingModel",
+                    "allocationMode",
+                    "price"
+                ],
+                "properties": {
+                    "inventoryId": {
+                        "type": "string",
+                        "maxLength": 26
+                    },
+                    "channelCode": {
+                        "type": "string",
+                        "maxLength": 50
+                    },
+                    "fulfillmentType": {
+                        "type": "string",
+                        "enum": [
+                            "consignment",
+                            "self_fulfillment"
+                        ]
+                    },
+                    "pricingModel": {
+                        "type": "string",
+                        "enum": [
+                            "self_pricing",
+                            "platform_managed"
+                        ]
+                    },
+                    "allocationMode": {
+                        "type": "string",
+                        "enum": [
+                            "shared",
+                            "dedicated"
+                        ]
+                    },
+                    "allocatedQuantity": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "nullable": true
+                    },
+                    "price": {
+                        "type": "string",
+                        "minimum": 0
+                    },
+                    "compareAtPrice": {
+                        "type": "string",
+                        "minimum": 0,
+                        "nullable": true
+                    },
+                    "remark": {
+                        "type": "string",
+                        "maxLength": 500,
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "UpdateListingRequest": {
+                "required": [
+                    "price"
+                ],
+                "properties": {
+                    "price": {
+                        "type": "string",
+                        "minimum": 0
+                    },
+                    "compareAtPrice": {
+                        "type": "string",
+                        "minimum": 0,
+                        "nullable": true
+                    },
+                    "allocatedQuantity": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "nullable": true
+                    },
+                    "remark": {
+                        "type": "string",
+                        "maxLength": 500,
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "SettlementQuery": {
+                "properties": {
+                    "page": {
+                        "type": "integer",
+                        "default": 1,
+                        "minimum": 1
+                    },
+                    "pageSize": {
+                        "type": "integer",
+                        "default": 20,
+                        "maximum": 100,
+                        "minimum": 1
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "pending",
+                            "settled",
+                            "cancelled"
+                        ],
+                        "nullable": true
+                    },
+                    "scheduledSettleAtFrom": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "scheduledSettleAtTo": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "settlementNo": {
+                        "type": "string",
+                        "maxLength": 50,
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "WebhookDto": {
+                "description": "Webhook \u914d\u7f6e",
+                "required": [
+                    "url",
+                    "events"
+                ],
+                "properties": {
+                    "url": {
+                        "description": "Webhook URL",
+                        "type": "string",
+                        "example": "https://example.com/webhook"
+                    },
+                    "events": {
+                        "description": "\u8ba2\u9605\u7684\u4e8b\u4ef6\u7c7b\u578b",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "example": [
+                            "fulfillment.created",
+                            "settlement.created"
+                        ]
+                    },
+                    "secret": {
+                        "description": "Webhook \u7b7e\u540d\u5bc6\u94a5\uff08\u53ef\u9009\uff0c\u4e0d\u63d0\u4f9b\u5219\u81ea\u52a8\u751f\u6210\uff09",
+                        "type": "string",
+                        "maxLength": 64,
+                        "example": "your-secret-key",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "InboundOrderListQuery": {
+                "properties": {
+                    "page": {
+                        "type": "integer",
+                        "default": 1,
+                        "minimum": 1
+                    },
+                    "pageSize": {
+                        "type": "integer",
+                        "default": 20,
+                        "maximum": 100,
+                        "minimum": 1
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "pending",
+                            "in_transit",
+                            "arrived",
+                            "receiving",
+                            "completed",
+                            "exception"
+                        ],
+                        "nullable": true
+                    },
+                    "createdFrom": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "createdTo": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "orderNo": {
+                        "type": "string",
+                        "maxLength": 50,
+                        "nullable": true
+                    },
+                    "merchantCode": {
+                        "type": "string",
+                        "maxLength": 50,
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "ConfirmArrivalRequest": {
+                "required": [
+                    "arrivedAt"
+                ],
+                "properties": {
+                    "arrivedAt": {
+                        "type": "string"
+                    },
+                    "notes": {
+                        "type": "string",
+                        "maxLength": 500,
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "ReceiveInboundItemDto": {
+                "required": [
+                    "sku",
+                    "receivedQuantity"
+                ],
+                "properties": {
+                    "sku": {
+                        "type": "string",
+                        "maxLength": 100
+                    },
+                    "receivedQuantity": {
+                        "type": "integer",
+                        "minimum": 0
+                    },
+                    "shelvingLocation": {
+                        "type": "string",
+                        "maxLength": 200,
+                        "nullable": true
+                    },
+                    "notes": {
+                        "type": "string",
+                        "maxLength": 500,
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "ReceiveInboundRequest": {
+                "required": [
+                    "items",
+                    "receivedAt"
+                ],
+                "properties": {
+                    "items": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ReceiveInboundItemDto"
+                        },
+                        "minItems": 1
+                    },
+                    "receivedAt": {
+                        "type": "string"
+                    },
+                    "notes": {
+                        "type": "string",
+                        "maxLength": 500,
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "ReportExceptionRequest": {
+                "required": [
+                    "type",
+                    "description",
+                    "reportedAt"
+                ],
+                "properties": {
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "damaged",
+                            "missing",
+                            "wrong_item",
+                            "quantity_mismatch",
+                            "quality_issue",
+                            "other"
+                        ]
+                    },
+                    "sku": {
+                        "type": "string",
+                        "maxLength": 100,
+                        "nullable": true
+                    },
+                    "affectedQuantity": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "nullable": true
+                    },
+                    "description": {
+                        "type": "string",
+                        "maxLength": 1000
+                    },
+                    "photoUrls": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "default": []
+                    },
+                    "reportedAt": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "InventoryQuery2": {
+                "properties": {
+                    "page": {
+                        "type": "integer",
+                        "default": 1,
+                        "minimum": 1
+                    },
+                    "pageSize": {
+                        "type": "integer",
+                        "default": 20,
+                        "maximum": 100,
+                        "minimum": 1
+                    },
+                    "sku": {
+                        "type": "string",
+                        "maxLength": 100,
+                        "nullable": true
+                    },
+                    "merchantCode": {
+                        "type": "string",
+                        "maxLength": 50,
+                        "nullable": true
+                    },
+                    "lowStock": {
+                        "type": "boolean",
+                        "nullable": true
+                    },
+                    "outOfStock": {
+                        "type": "boolean",
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "StocktakeItemDto": {
+                "required": [
+                    "sku",
+                    "countedQuantity"
+                ],
+                "properties": {
+                    "sku": {
+                        "type": "string",
+                        "maxLength": 100
+                    },
+                    "countedQuantity": {
+                        "type": "integer",
+                        "minimum": 0
+                    },
+                    "shelvingLocation": {
+                        "type": "string",
+                        "maxLength": 200,
+                        "nullable": true
+                    },
+                    "notes": {
+                        "type": "string",
+                        "maxLength": 500,
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "StocktakeRequest": {
+                "required": [
+                    "items",
+                    "countedAt"
+                ],
+                "properties": {
+                    "items": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/StocktakeItemDto"
+                        },
+                        "minItems": 1
+                    },
+                    "countedAt": {
+                        "type": "string"
+                    },
+                    "counterName": {
+                        "type": "string",
+                        "maxLength": 100,
+                        "nullable": true
+                    },
+                    "notes": {
+                        "type": "string",
+                        "maxLength": 500,
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "AdjustmentItemDto": {
+                "required": [
+                    "sku",
+                    "adjustmentQuantity",
+                    "reason"
+                ],
+                "properties": {
+                    "sku": {
+                        "type": "string",
+                        "maxLength": 100
+                    },
+                    "adjustmentQuantity": {
+                        "type": "integer"
+                    },
+                    "reason": {
+                        "type": "string",
+                        "enum": [
+                            "damaged",
+                            "lost",
+                            "found",
+                            "correction",
+                            "other"
+                        ]
+                    },
+                    "notes": {
+                        "type": "string",
+                        "maxLength": 500,
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "AdjustmentRequest": {
+                "required": [
+                    "items",
+                    "adjustedAt"
+                ],
+                "properties": {
+                    "items": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/AdjustmentItemDto"
+                        },
+                        "minItems": 1
+                    },
+                    "adjustedAt": {
+                        "type": "string"
+                    },
+                    "adjustedBy": {
+                        "type": "string",
+                        "maxLength": 100,
+                        "nullable": true
+                    },
+                    "notes": {
+                        "type": "string",
+                        "maxLength": 1000,
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "OutboundOrderListQuery": {
+                "properties": {
+                    "page": {
+                        "type": "integer",
+                        "default": 1,
+                        "minimum": 1
+                    },
+                    "pageSize": {
+                        "type": "integer",
+                        "default": 20,
+                        "maximum": 100,
+                        "minimum": 1
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "pending",
+                            "picking",
+                            "picked",
+                            "packing",
+                            "packed",
+                            "shipped",
+                            "cancelled"
+                        ],
+                        "nullable": true
+                    },
+                    "createdFrom": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "createdTo": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "outboundNo": {
+                        "type": "string",
+                        "maxLength": 50,
+                        "nullable": true
+                    },
+                    "fulfillmentNo": {
+                        "type": "string",
+                        "maxLength": 50,
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "StartPickingRequest": {
+                "required": [
+                    "startedAt"
+                ],
+                "properties": {
+                    "startedAt": {
+                        "type": "string"
+                    },
+                    "pickerName": {
+                        "type": "string",
+                        "maxLength": 100,
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "PickedItemDto": {
+                "required": [
+                    "sku",
+                    "pickedQuantity"
+                ],
+                "properties": {
+                    "sku": {
+                        "type": "string",
+                        "maxLength": 100
+                    },
+                    "pickedQuantity": {
+                        "type": "integer",
+                        "minimum": 0
+                    },
+                    "shelvingLocation": {
+                        "type": "string",
+                        "maxLength": 200,
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "CompletePickingRequest": {
+                "required": [
+                    "items",
+                    "completedAt"
+                ],
+                "properties": {
+                    "items": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/PickedItemDto"
+                        },
+                        "minItems": 1
+                    },
+                    "completedAt": {
+                        "type": "string"
+                    },
+                    "notes": {
+                        "type": "string",
+                        "maxLength": 500,
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "CompletePackingRequest": {
+                "required": [
+                    "completedAt"
+                ],
+                "properties": {
+                    "completedAt": {
+                        "type": "string"
+                    },
+                    "packerName": {
+                        "type": "string",
+                        "maxLength": 100,
+                        "nullable": true
+                    },
+                    "packageWeight": {
+                        "type": "number",
+                        "format": "float",
+                        "minimum": 0,
+                        "nullable": true
+                    },
+                    "packageDimensions": {
+                        "type": "string",
+                        "maxLength": 50,
+                        "nullable": true
+                    },
+                    "notes": {
+                        "type": "string",
+                        "maxLength": 500,
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            },
+            "ShipOutboundRequest": {
+                "required": [
+                    "shippedAt",
+                    "shippingCarrier",
+                    "trackingNumber"
+                ],
+                "properties": {
+                    "shippedAt": {
+                        "type": "string"
+                    },
+                    "shippingCarrier": {
+                        "type": "string",
+                        "maxLength": 100
+                    },
+                    "trackingNumber": {
+                        "type": "string",
+                        "maxLength": 100
+                    },
+                    "trackingUrl": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "notes": {
+                        "type": "string",
+                        "maxLength": 500,
+                        "nullable": true
+                    }
+                },
+                "type": "object"
+            }
+        },
+        "securitySchemes": {
+            "ApiKeyAuth": {
+                "type": "apiKey",
+                "description": "API Key ID",
+                "name": "X-Api-Key",
+                "in": "header"
+            },
+            "TimestampAuth": {
+                "type": "apiKey",
+                "description": "Unix \u65f6\u95f4\u6233\uff08\u79d2\uff09",
+                "name": "X-Timestamp",
+                "in": "header"
+            },
+            "NonceAuth": {
+                "type": "apiKey",
+                "description": "\u552f\u4e00 UUID\uff08\u9632\u91cd\u653e\u653b\u51fb\uff09",
+                "name": "X-Nonce",
+                "in": "header"
+            },
+            "SignatureAuth": {
+                "type": "apiKey",
+                "description": "HMAC-SHA256 \u7b7e\u540d",
+                "name": "X-Signature",
+                "in": "header"
+            }
+        }
+    },
+    "security": [
+        {
+            "ApiKeyAuth": [],
+            "TimestampAuth": [],
+            "NonceAuth": [],
+            "SignatureAuth": []
+        }
+    ],
+    "tags": [
+        {
+            "name": "Merchant - Fulfillment",
+            "description": "\u5546\u6237\u5c65\u7ea6\u7ba1\u7406"
+        },
+        {
+            "name": "Merchant - Inbound",
+            "description": "\u5546\u6237\u5165\u5e93\u5355"
+        },
+        {
+            "name": "Merchant - Inventory",
+            "description": "\u5546\u6237\u5e93\u5b58\u67e5\u8be2"
+        },
+        {
+            "name": "Merchant - Listing",
+            "description": "\u5546\u6237\u4e0a\u67b6\u7ba1\u7406"
+        },
+        {
+            "name": "Merchant - Settlement",
+            "description": "\u5546\u6237\u7ed3\u7b97"
+        },
+        {
+            "name": "Merchant - Webhook",
+            "description": "\u5546\u6237 Webhook \u914d\u7f6e"
+        },
+        {
+            "name": "Warehouse - Inbound",
+            "description": "\u4ed3\u5e93\u5165\u5e93\u4f5c\u4e1a"
+        },
+        {
+            "name": "Warehouse - Outbound",
+            "description": "\u4ed3\u5e93\u51fa\u5e93\u4f5c\u4e1a"
+        },
+        {
+            "name": "Warehouse - Inventory",
+            "description": "\u4ed3\u5e93\u5e93\u5b58\u7ba1\u7406"
+        },
+        {
+            "name": "Warehouse - Webhook",
+            "description": "\u4ed3\u5e93 Webhook \u914d\u7f6e"
+        }
+    ]
+}

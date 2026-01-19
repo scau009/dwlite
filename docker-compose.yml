@@ -153,6 +153,18 @@ services:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=admin
       - GF_USERS_ALLOW_SIGN_UP=false
+      # SMTP Configuration for Tencent Cloud SES
+      - GF_SMTP_ENABLED=true
+      - GF_SMTP_HOST=${TENCENT_SES_SMTP_HOST:-gz-smtp.qcloudmail.com:465}
+      - GF_SMTP_USER=${TENCENT_SES_SMTP_USER:-dwlite@mail.taoism.gz.cn}
+      - GF_SMTP_PASSWORD=${TENCENT_SES_SMTP_PASSWORD:-DWlite7890123}
+      - GF_SMTP_FROM_ADDRESS=${TENCENT_SES_FROM_ADDRESS:-dwlite@mail.taoism.gz.cn}
+      - GF_SMTP_FROM_NAME=DWLite Alerts
+      - GF_SMTP_SKIP_VERIFY=false
+      - GF_SMTP_STARTTLS_POLICY=NoStartTLS
+      # Enable Unified Alerting
+      - GF_UNIFIED_ALERTING_ENABLED=true
+      - ALERT_EMAIL_TO=${ALERT_EMAIL_TO:-18819259245@163.com}
     depends_on:
       - loki
       - tempo

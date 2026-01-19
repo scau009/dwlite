@@ -47,6 +47,8 @@ admin:
     activated: '品牌已启用'
     deactivated: '品牌已禁用'
     has_products: '无法删除已关联商品的品牌'
+    batch_activated: '已成功启用 %count% 个品牌'
+    batch_deactivated: '已成功禁用 %count% 个品牌'
 
   # Tag management messages
   tag:
@@ -68,6 +70,7 @@ admin:
     updated: '商品更新成功'
     deleted: '商品删除成功'
     status_updated: '商品状态已更新'
+    batch_status_updated: '已更新 %count% 个商品的状态'
     # SKU
     sku_code_exists: 'SKU编码已存在'
     sku_not_found: 'SKU不存在'
@@ -158,6 +161,19 @@ admin:
     has_merchants: '无法删除已关联商户的渠道'
     status_updated: '渠道状态已更新'
 
+  # Channel Product messages
+  channelProduct:
+    notFound: '渠道商品不存在'
+    alreadyActive: '渠道商品已处于激活状态'
+    alreadyPaused: '渠道商品已处于暂停状态'
+    alreadyDelisted: '渠道商品已下架'
+    cannotDelistStatus: '只能下架激活或暂停状态的商品'
+    noExternalId: '无法下架没有外部ID的商品'
+    activated: '渠道商品已激活'
+    paused: '渠道商品已暂停'
+    delisted: '渠道商品已下架'
+    syncTriggered: '已触发同步'
+
   # Warehouse messages
   warehouse:
     not_found: '仓库不存在'
@@ -166,6 +182,13 @@ admin:
 merchant:
   not_found: '未找到商户信息'
   profile_updated: '商户信息更新成功'
+  profile_resubmitted: '资料已更新，已重新提交审核'
+  approval:
+    not_verified: '请先验证您的邮箱'
+    pending: '您的商户账号正在等待审核'
+    rejected: '您的商户账号申请已被拒绝'
+    disabled: '您的商户账号已被禁用'
+    not_approved: '您的商户账号未通过审核'
 
 # Merchant channel messages
 merchant_channel:
@@ -180,6 +203,8 @@ merchant_channel:
   cannot_cancel_or_disable: '当前状态下无法取消或停用'
   not_disabled: '该渠道未停用'
   not_active: '该渠道未激活，无法获取仓库列表'
+  not_rejected: '该渠道申请不是被拒绝状态'
+  resubmitted: '渠道申请已重新提交'
 
 # Wallet messages
 wallet:
@@ -245,6 +270,8 @@ validation:
 
   # Inventory
   warehouse_not_found: '仓库不存在'
+  warehouse_id_required: '仓库ID不能为空'
+  currency_invalid: '无效的币种，支持的币种：CNY、USD、EUR、HKD、JPY'
   inventory_not_found: '库存记录不存在'
   inventory_not_owned: '库存不属于当前商户'
   inventory_warehouse_mismatch: '库存所在仓库与出库单仓库不匹配'
@@ -259,13 +286,16 @@ inbound:
     shipped: '已发货'
     received: '收货完成'
     cancelled: '入库单已取消'
+    cannot_cancel_shipped: '已发货的入库单不能取消'
     deleted: '入库单已删除'
     notes_updated: '备注更新成功'
+    unit_cost_required: '所有商品必须填写成本价才能提交'
   item:
     added: '商品添加成功'
     updated: '商品更新成功'
     removed: '商品删除成功'
     cost_updated: '成本更新成功'
+    batch_cost_updated: '已更新 %count% 个商品的成本'
   exception:
     created: '异常单创建成功'
     resolved: '异常单处理完成'
@@ -324,3 +354,13 @@ listing:
   consignmentRequiresPlatformWarehouse: '寄售履约需要平台仓库'
   warehouseNotConfiguredForChannel: '该仓库未配置在此渠道'
   batchCreated: '成功创建 %created% 条上架记录，失败 %failed% 条'
+
+# API Key messages
+apiKeys:
+  maxLimitReached: '已达到 API 密钥数量上限，每个商户只能创建 1 个 API 密钥。'
+  merchantNotApproved: '您的商户账号需要通过审核后才能创建 API 密钥。'
+  notFound: 'API 密钥不存在'
+  permissionsUpdated: '权限已更新'
+  ipWhitelistUpdated: 'IP 白名单已更新'
+  secretRegenerated: '密钥已重新生成'
+  deleted: 'API 密钥已删除'

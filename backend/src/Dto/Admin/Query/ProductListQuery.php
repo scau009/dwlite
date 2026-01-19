@@ -14,8 +14,6 @@ class ProductListQuery extends PaginationQuery
 
     public ?string $status = null;
 
-    public ?bool $isActive = null;
-
     public ?string $sortBy = null;
 
     public ?string $sortOrder = null;
@@ -42,10 +40,6 @@ class ProductListQuery extends PaginationQuery
 
         if ($this->status !== null && $this->status !== '') {
             $filters['status'] = $this->status;
-        }
-
-        if ($this->isActive !== null) {
-            $filters['isActive'] = $this->isActive;
         }
 
         if ($this->sortBy !== null && $this->sortBy !== '') {

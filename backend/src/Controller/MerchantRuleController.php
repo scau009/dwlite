@@ -25,6 +25,7 @@ use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\CurrentUser;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Component\String\Slugger\AsciiSlugger;
 
 #[Route('/api/merchant/rules')]
 #[IsGranted('ROLE_USER')]
@@ -42,13 +43,14 @@ class MerchantRuleController extends AbstractController
         #[MapQueryParameter] int $limit = 20,
         #[MapQueryParameter] ?string $type = null,
         #[MapQueryParameter] ?string $search = null,
+        #[MapQueryParameter] ?string $category = null,
     ): JsonResponse {
         $merchant = $this->getMerchant($user, $merchantRepository);
         if (!$merchant) {
             return $this->json(['error' => 'Merchant not found'], Response::HTTP_FORBIDDEN);
         }
 
-        $result = $ruleRepository->findByMerchantPaginated($merchant, $page, $limit, $type, $search);
+        $result = $ruleRepository->findByMerchantPaginated($merchant, $page, $limit, $type, $search, null, $category);
 
         return $this->json([
             'data' => array_map(fn (MerchantRule $rule) => $this->formatRule($rule), $result['data']),
@@ -151,10 +153,9 @@ class MerchantRuleController extends AbstractController
             return $this->json(['error' => 'Merchant not found'], Response::HTTP_FORBIDDEN);
         }
 
-        // 检查编码是否已存在
-        if ($ruleRepository->existsByMerchantAndCode($merchant, $dto->code)) {
-            return $this->json(['error' => 'Rule code already exists'], Response::HTTP_BAD_REQUEST);
-        }
+        // 自动生成编码（如果未提供）
+        $code = $dto->code ?? $this->generateRuleCode($dto->name);
+        $code = $this->ensureUniqueCode($merchant, $code, $ruleRepository);
 
         // 验证表达式
         $validation = $ruleService->validateExpression($dto->expression, $dto->type);
@@ -172,7 +173,7 @@ class MerchantRuleController extends AbstractController
 
         $rule = new MerchantRule();
         $rule->setMerchant($merchant);
-        $rule->setCode($dto->code);
+        $rule->setCode($code);
         $rule->setName($dto->name);
         $rule->setDescription($dto->description);
         $rule->setType($dto->type);
@@ -484,5 +485,40 @@ class MerchantRuleController extends AbstractController
             'isActive' => $assignment->isActive(),
             'createdAt' => $assignment->getCreatedAt()->format(\DateTimeInterface::ATOM),
         ];
+    }
+
+    /**
+     * 从名称生成规则编码.
+     */
+    private function generateRuleCode(string $name): string
+    {
+        $slugger = new AsciiSlugger();
+        $slug = $slugger->slug($name)->lower()->toString();
+
+        // 将连字符替换为下划线，确保以字母开头
+        $code = str_replace('-', '_', $slug);
+
+        // 如果不是以字母开头，添加前缀
+        if (!preg_match('/^[a-z]/', $code)) {
+            $code = 'rule_'.$code;
+        }
+
+        return $code;
+    }
+
+    /**
+     * 确保编码在商户内唯一.
+     */
+    private function ensureUniqueCode(Merchant $merchant, string $code, MerchantRuleRepository $repository): string
+    {
+        $originalCode = $code;
+        $suffix = 1;
+
+        while ($repository->existsByMerchantAndCode($merchant, $code)) {
+            $code = $originalCode.'_'.$suffix;
+            ++$suffix;
+        }
+
+        return $code;
     }
 }

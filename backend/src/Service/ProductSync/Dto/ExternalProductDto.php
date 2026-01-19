@@ -41,47 +41,67 @@ readonly class ExternalProductDto
     }
 
     /**
-     * Create from KicksDB API response.
+     * Create from KicksDB API response (v3).
+     *
+     * @param array  $data     Product data from KicksDB API
+     * @param string $currency Currency code for the response
      */
-    public static function fromKicksDb(array $data): self
+    public static function fromKicksDb(array $data, string $currency = 'USD'): self
     {
         $skus = [];
-        $retailPrice = $data['retailPrice'] ?? null;
+        $avgPrice = (float) ($data['avg_price'] ?? 0);
+        $retailPrice = (float) ($data['retail_price'] ?? 0);
+
+        // If avgPrice is 0 or unavailable, use retailPrice as reference price
+        if ($avgPrice <= 0 && $retailPrice > 0) {
+            $avgPrice = $retailPrice;
+        }
 
         if (isset($data['variants']) && is_array($data['variants'])) {
             foreach ($data['variants'] as $variant) {
-                $skus[] = ExternalSkuDto::fromKicksDb($variant, $retailPrice);
+                // Skip hidden variants
+                if (isset($variant['hidden']) && $variant['hidden'] === true) {
+                    continue;
+                }
+                $skus[] = ExternalSkuDto::fromKicksDb($variant, $avgPrice, $retailPrice, $currency);
             }
         }
 
-        // Extract color from product attributes if available
-        $color = null;
-        if (isset($data['productAttributes']['color'])) {
-            $color = $data['productAttributes']['color'];
-        } elseif (isset($data['colorway'])) {
-            $color = $data['colorway'];
-        }
-
-        // Build external URL
-        $externalUrl = null;
-        if (isset($data['urlKey'])) {
-            $externalUrl = 'https://stockx.com/'.$data['urlKey'];
-        }
+        // Extract color from traits if available
+        $color = self::extractTraitValue($data, 'Colorway');
 
         return new self(
-            externalId: $data['productId'] ?? $data['id'] ?? '',
-            styleId: $data['styleId'] ?? '',
-            title: $data['title'] ?? $data['name'] ?? '',
+            externalId: $data['id'] ?? '',
+            styleId: $data['sku'] ?? '',
+            title: $data['title'] ?? '',
             brand: $data['brand'] ?? null,
-            productType: $data['productType'] ?? null,
-            description: $data['description'] ?? null,
+            productType: $data['product_type'] ?? null,
+            description: $data['short_description'] ?? $data['description'] ?? null,
             color: $color,
-            imageUrl: $data['image'] ?? $data['thumbnail'] ?? null,
-            externalUrl: $externalUrl,
+            imageUrl: $data['image'] ?? null,
+            externalUrl: $data['link'] ?? null,
             skus: $skus,
-            currency: 'USD',
+            currency: $currency,
             rawData: $data,
         );
+    }
+
+    /**
+     * Extract a trait value from product data.
+     */
+    private static function extractTraitValue(array $data, string $traitName): ?string
+    {
+        if (!isset($data['traits']) || !is_array($data['traits'])) {
+            return null;
+        }
+
+        foreach ($data['traits'] as $trait) {
+            if (isset($trait['trait']) && $trait['trait'] === $traitName) {
+                return $trait['value'] ?? null;
+            }
+        }
+
+        return null;
     }
 
     /**

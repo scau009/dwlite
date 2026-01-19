@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import {
@@ -37,6 +37,7 @@ import {
   type InboundOrderItem,
   type InboundException,
 } from '@/lib/inbound-api';
+import { getCurrencySymbol } from '@/lib/merchant-listing-api';
 import { InboundOrderFormModal } from './components/inbound-order-form-modal';
 import { CancelOrderModal } from './components/cancel-order-modal';
 import { InboundOrderItemModal } from './components/inbound-order-item-modal';
@@ -94,7 +95,7 @@ export function InboundOrderDetailPage() {
   const [editingCostItemId, setEditingCostItemId] = useState<string | null>(null);
   const [savingCost, setSavingCost] = useState(false);
 
-  const loadOrder = async () => {
+  const loadOrder = useCallback(async () => {
     if (!id) return;
     setLoading(true);
     try {
@@ -105,11 +106,11 @@ export function InboundOrderDetailPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, message, t]);
 
   useEffect(() => {
     loadOrder();
-  }, [id]);
+  }, [loadOrder]);
 
   // Get status label
   const getStatusLabel = (status: InboundOrderStatus) => {
@@ -128,6 +129,13 @@ export function InboundOrderDetailPage() {
 
   // Handle submit order
   const handleSubmit = () => {
+    // Check if all items have unit cost
+    const itemsWithoutCost = order?.items.filter(item => !item.unitCost || item.unitCost === '0');
+    if (itemsWithoutCost && itemsWithoutCost.length > 0) {
+      message.warning(t('inventory.unitCostRequiredForSubmit'));
+      return;
+    }
+
     modal.confirm({
       title: t('inventory.confirmSubmit'),
       content: t('inventory.confirmSubmitDesc'),
@@ -280,7 +288,12 @@ export function InboundOrderDetailPage() {
       width: 80,
       render: (image: string | null) =>
         image ? (
-          <Image src={image} width={60} height={60} style={{ objectFit: 'cover' }} />
+          <Image
+            src={image}
+            width={60}
+            height={60}
+            style={{ objectFit: 'contain', background: '#f5f5f5' }}
+          />
         ) : (
           <div className="w-[60px] h-[60px] bg-gray-100 flex items-center justify-center text-gray-400">
             N/A
@@ -306,18 +319,13 @@ export function InboundOrderDetailPage() {
       render: (skuName: string | null) => skuName || '-',
     },
     {
-      title: t('inventory.colorName'),
-      dataIndex: ['productSku', 'colorName'],
-      width: 80,
-      render: (color: string | null) => color || '-',
-    },
-    {
       title: t('inventory.unitCost'),
       dataIndex: 'unitCost',
       width: 130,
       align: 'right',
       render: (cost: string | null, record: InboundOrderItem) => {
         const isEditing = editingCostItemId === record.id;
+        const currencySymbol = getCurrencySymbol(record.currency);
 
         if (canEditCost) {
           if (isEditing) {
@@ -345,7 +353,7 @@ export function InboundOrderDetailPage() {
                 }}
                 autoFocus
                 style={{ width: 100 }}
-                prefix="¥"
+                prefix={currencySymbol}
                 disabled={savingCost}
               />
             );
@@ -357,12 +365,12 @@ export function InboundOrderDetailPage() {
               onClick={() => setEditingCostItemId(record.id)}
               title={t('common.clickToEdit')}
             >
-              {cost ? `¥${cost}` : <Text type="secondary">{t('common.clickToEdit')}</Text>}
+              {cost ? `${currencySymbol}${cost}` : <Text type="secondary">{t('common.clickToEdit')}</Text>}
             </span>
           );
         }
 
-        return cost ? `¥${cost}` : '-';
+        return cost ? `${currencySymbol}${cost}` : '-';
       },
     },
     {
@@ -552,7 +560,8 @@ export function InboundOrderDetailPage() {
 
   const isDraft = order.status === 'draft';
   const isPending = order.status === 'pending';
-  const canCancel = ['draft', 'pending', 'shipped'].includes(order.status);
+  // 只有草稿和待发货状态可以取消，已发货后不能取消
+  const canCancel = ['draft', 'pending'].includes(order.status);
   const showShipment = order.shipment !== null;
   const showExceptions = order.exceptions.length > 0;
 

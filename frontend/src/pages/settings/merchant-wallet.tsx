@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card, Table, Tag, Spin, App, Statistic, Row, Col, Tabs } from 'antd';
 import {
@@ -34,16 +34,16 @@ export function MerchantWalletPage() {
     total: 0,
   });
 
-  const loadWallets = async () => {
+  const loadWallets = useCallback(async () => {
     try {
       const data = await merchantApi.getMyWallets();
       setWallets(data);
     } catch {
       message.error(t('common.error'));
     }
-  };
+  }, [message, t]);
 
-  const loadTransactions = async (type: WalletType, page = 1, limit = 20) => {
+  const loadTransactions = useCallback(async (type: WalletType, page = 1, limit = 20) => {
     setTableLoading(true);
     try {
       let result: TransactionsResponse;
@@ -63,7 +63,7 @@ export function MerchantWalletPage() {
     } finally {
       setTableLoading(false);
     }
-  };
+  }, [message, t]);
 
   useEffect(() => {
     const init = async () => {
@@ -73,6 +73,7 @@ export function MerchantWalletPage() {
       setLoading(false);
     };
     init();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- Run only on mount
   }, []);
 
   const handleTabChange = (key: string) => {

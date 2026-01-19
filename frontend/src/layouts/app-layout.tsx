@@ -9,21 +9,31 @@ import { HeaderRight } from '@/components/layout/header-right';
 import { useAuth } from '@/contexts/auth-context';
 import { useTheme } from '@/contexts/theme-context';
 import { filterMenuByAccess } from '@/lib/menu-access';
+import { MerchantPendingApprovalPage } from '@/pages/merchant';
 
 export function AppLayout() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
-  const { user } = useAuth();
+  const { user, isMerchantApproved } = useAuth();
   const { isDark } = useTheme();
 
-  // eslint-disable-next-line react-hooks/preserve-manual-memoization
+  // Must call all hooks before any conditional returns
   const menuData = useMemo(() => {
     const allMenus = getMenuData(t);
     if (!user?.accountType) return allMenus;
     return filterMenuByAccess(allMenus, user.accountType);
-  }, [t, user?.accountType]);
+  }, [t, user]);
+
+  // Allow rejected merchants to access settings page to modify and resubmit
+  const isRejectedMerchant = user?.accountType === 'merchant' && user?.merchantStatus === 'rejected';
+  const isSettingsPath = location.pathname.startsWith('/settings');
+
+  // If merchant is not approved, show the pending approval page (except for rejected merchants accessing settings)
+  if (user?.accountType === 'merchant' && !isMerchantApproved && !(isRejectedMerchant && isSettingsPath)) {
+    return <MerchantPendingApprovalPage />;
+  }
 
   return (
     <ProLayout

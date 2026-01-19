@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router';
 import {
   Card,
   Form,
@@ -11,6 +12,7 @@ import {
   Tag,
   Space,
   Divider,
+  Alert,
 } from 'antd';
 import { EditOutlined, SaveOutlined, CloseOutlined } from '@ant-design/icons';
 
@@ -19,12 +21,15 @@ import {
   type MerchantProfile,
   type UpdateMerchantProfileRequest,
 } from '@/lib/merchant-api';
+import { useAuth } from '@/contexts/auth-context';
 
 const { TextArea } = Input;
 
 export function MerchantProfilePage() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const { message } = App.useApp();
+  const { refreshUser } = useAuth();
   const [form] = Form.useForm();
 
   const [profile, setProfile] = useState<MerchantProfile | null>(null);
@@ -32,22 +37,28 @@ export function MerchantProfilePage() {
   const [saving, setSaving] = useState(false);
   const [editing, setEditing] = useState(false);
 
-  const loadProfile = async () => {
+  const isRejected = profile?.status === 'rejected';
+
+  const loadProfile = useCallback(async () => {
     setLoading(true);
     try {
       const data = await merchantApi.getMyProfile();
       setProfile(data);
       form.setFieldsValue(data);
+      // Auto enable editing for rejected merchants
+      if (data.status === 'rejected') {
+        setEditing(true);
+      }
     } catch {
       message.error(t('common.error'));
     } finally {
       setLoading(false);
     }
-  };
+  }, [form, message, t]);
 
   useEffect(() => {
     loadProfile();
-  }, []);
+  }, [loadProfile]);
 
   const handleEdit = () => {
     setEditing(true);
@@ -55,8 +66,13 @@ export function MerchantProfilePage() {
   };
 
   const handleCancel = () => {
-    setEditing(false);
-    form.setFieldsValue(profile);
+    if (isRejected) {
+      // Rejected merchants should go back to pending page
+      navigate('/dashboard');
+    } else {
+      setEditing(false);
+      form.setFieldsValue(profile);
+    }
   };
 
   const handleSave = async () => {
@@ -78,7 +94,16 @@ export function MerchantProfilePage() {
       const result = await merchantApi.updateMyProfile(updateData);
       setProfile(result.merchant);
       setEditing(false);
-      message.success(t('settings.profileUpdated'));
+
+      if (result.resubmitted) {
+        message.success(t('settings.profileResubmitted'));
+        // Refresh user info to update merchantStatus
+        await refreshUser();
+        // Navigate back to dashboard (which will show pending page)
+        navigate('/dashboard');
+      } else {
+        message.success(t('settings.profileUpdated'));
+      }
     } catch (error) {
       const err = error as { error?: string };
       if (err.error) {
@@ -127,6 +152,15 @@ export function MerchantProfilePage() {
 
   return (
     <div className="flex flex-col gap-4">
+      {isRejected && (
+        <Alert
+          type="warning"
+          showIcon
+          message={t('settings.resubmitTitle')}
+          description={t('settings.resubmitDescription')}
+        />
+      )}
+
       <div className="flex justify-end">
         {!editing ? (
           <Button type="primary" icon={<EditOutlined />} onClick={handleEdit}>
@@ -143,7 +177,7 @@ export function MerchantProfilePage() {
               loading={saving}
               onClick={handleSave}
             >
-              {t('common.save')}
+              {isRejected ? t('settings.saveAndResubmit') : t('common.save')}
             </Button>
           </Space>
         )}

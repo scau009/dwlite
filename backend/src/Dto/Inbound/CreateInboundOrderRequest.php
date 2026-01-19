@@ -14,4 +14,7 @@ class CreateInboundOrderRequest
 
     #[Assert\Type('DateTimeInterface')]
     public ?\DateTimeInterface $expectedArrivalDate = null;
+
+    #[Assert\Choice(choices: ['CNY', 'USD', 'EUR', 'HKD', 'JPY'], message: 'validation.currency_invalid')]
+    public ?string $currency = null;
 }

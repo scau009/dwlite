@@ -16,15 +16,17 @@ use App\Repository\ChannelProductSourceRepository;
 use App\Repository\ChannelProductSyncLogRepository;
 use App\Repository\InventoryListingRepository;
 use App\Service\ChannelGateway\ChannelGatewayContext;
+use App\Service\ChannelGateway\ChannelGatewayInterface;
 use App\Service\ChannelGateway\ChannelGatewayRegistry;
+use App\Service\ChannelGateway\Dto\Request\ProductImageDto;
+use App\Service\ChannelGateway\Dto\Request\ProductSkuDto;
 use App\Service\ChannelGateway\Dto\Request\PushProductRequest;
-use App\Service\ChannelGateway\Dto\Request\StockPriceUpdateDto;
-use App\Service\ChannelGateway\Dto\Request\UpdateStockPriceRequest;
 use App\Service\ChannelGateway\Exception\ChannelGatewayException;
 use Doctrine\ORM\EntityManagerInterface;
 use Predis\Client as RedisClient;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
+use Symfony\Component\Messenger\Stamp\DelayStamp;
 
 /**
  * Core service for channel product synchronization.
@@ -48,6 +50,7 @@ class ChannelProductSyncService
         private MessageBusInterface $messageBus,
         private RedisClient $redis,
         private LoggerInterface $logger,
+        private BusinessNoGenerator $businessNoGenerator,
     ) {
     }
 
@@ -157,9 +160,9 @@ class ChannelProductSyncService
         $this->entityManager->persist($syncLog);
 
         try {
-            // Update source status if this is from a listing operation
-            if ($triggerListing !== null && $triggerSource->isListingOperation()) {
-                $this->updateSourceStatus($channelProduct, $triggerListing, $triggerSource);
+            // Sync source status based on listing's actual status (self-healing)
+            if ($triggerListing !== null) {
+                $this->syncSourceStatus($channelProduct, $triggerListing);
             }
 
             // Recalculate aggregated stock
@@ -193,6 +196,7 @@ class ChannelProductSyncService
 
             return $syncLog;
         } catch (\Throwable $e) {
+            $channelProduct->markSyncFailed($e->getMessage());
             $syncLog->markFailed($e->getMessage());
             $this->entityManager->flush();
 
@@ -221,7 +225,9 @@ class ChannelProductSyncService
 
             // Check if gateway exists
             if (!$this->gatewayRegistry->has($salesChannel->getCode())) {
-                $syncLog->markSkipped(sprintf('No gateway for channel: %s', $salesChannel->getCode()));
+                $errorMessage = sprintf('No gateway for channel: %s', $salesChannel->getCode());
+                $channelProduct->markSyncFailed($errorMessage);
+                $syncLog->markSkipped($errorMessage);
                 $this->entityManager->flush();
 
                 return $syncLog;
@@ -235,6 +241,7 @@ class ChannelProductSyncService
             $response = match ($operation) {
                 ChannelProductSyncLog::OPERATION_PUSH_PRODUCT => $this->doPushProduct($gateway, $context, $channelProduct),
                 ChannelProductSyncLog::OPERATION_UPDATE_STOCK_PRICE => $this->doUpdateStockPrice($gateway, $context, $channelProduct),
+                ChannelProductSyncLog::OPERATION_DELIST => $this->doDelistProduct($gateway, $context, $channelProduct),
                 default => throw new \InvalidArgumentException(sprintf('Unknown operation: %s', $operation)),
             };
 
@@ -302,6 +309,7 @@ class ChannelProductSyncService
         if ($channelProduct === null) {
             // Create new
             $channelProduct = new ChannelProduct();
+            $channelProduct->setId($this->businessNoGenerator->generateChannelProductId());
             $channelProduct->setSalesChannel($salesChannel);
             $channelProduct->setProductSku($productSku);
             $channelProduct->setPlatformPrice($listing->getPrice());
@@ -332,6 +340,7 @@ class ChannelProductSyncService
 
     /**
      * Ensure source link exists between channel product and listing.
+     * Also updates the source's isActive status to match listing's actual status.
      */
     private function ensureSourceExists(
         ChannelProduct $channelProduct,
@@ -339,26 +348,76 @@ class ChannelProductSyncService
         SyncTriggerSource $triggerSource,
     ): void {
         $source = $this->sourceRepo->findOneByProductAndListing($channelProduct, $listing);
+        $shouldBeActive = $listing->getStatus() === InventoryListing::STATUS_ACTIVE;
 
         if ($source === null) {
             $source = new ChannelProductSource();
+            $source->setId($this->businessNoGenerator->generateChannelProductSourceId());
             $source->setChannelProduct($channelProduct);
             $source->setInventoryListing($listing);
             $source->setPriority(0);
-            $source->setIsActive($listing->getStatus() === InventoryListing::STATUS_ACTIVE);
+            $source->setIsActive($shouldBeActive);
 
             $this->entityManager->persist($source);
             $this->entityManager->flush();
+        } elseif ($source->isActive() !== $shouldBeActive) {
+            // Update existing source's isActive status if it doesn't match listing status
+            $source->setIsActive($shouldBeActive);
+            $this->entityManager->flush();
+
+            $this->logger->info('Source isActive updated in ensureSourceExists', [
+                'sourceId' => $source->getId(),
+                'listingId' => $listing->getId(),
+                'listingStatus' => $listing->getStatus(),
+                'newIsActive' => $shouldBeActive,
+            ]);
         }
     }
 
     /**
-     * Update source status based on listing operation.
+     * Sync all sources for a channel product based on actual listing status.
+     *
+     * Used for compensation/repair scenarios to fix historical data.
+     *
+     * @return int Number of sources that were corrected
      */
-    private function updateSourceStatus(
+    public function syncAllSourceStatuses(ChannelProduct $channelProduct): int
+    {
+        $correctedCount = 0;
+
+        foreach ($channelProduct->getSources() as $source) {
+            $listing = $source->getInventoryListing();
+            $shouldBeActive = $listing->getStatus() === InventoryListing::STATUS_ACTIVE;
+
+            if ($source->isActive() !== $shouldBeActive) {
+                $source->setIsActive($shouldBeActive);
+                ++$correctedCount;
+
+                $this->logger->info('Source status corrected in batch sync', [
+                    'sourceId' => $source->getId(),
+                    'listingId' => $listing->getId(),
+                    'listingStatus' => $listing->getStatus(),
+                    'newIsActive' => $shouldBeActive,
+                ]);
+            }
+        }
+
+        if ($correctedCount > 0) {
+            $this->entityManager->flush();
+        }
+
+        return $correctedCount;
+    }
+
+    /**
+     * Sync source status based on listing's actual status.
+     *
+     * This ensures self-healing when previous sync failed.
+     * Instead of relying on trigger source, we always check the actual listing status.
+     */
+    private function syncSourceStatus(
         ChannelProduct $channelProduct,
         InventoryListing $listing,
-        SyncTriggerSource $triggerSource,
     ): void {
         $source = $this->sourceRepo->findOneByProductAndListing($channelProduct, $listing);
 
@@ -366,14 +425,17 @@ class ChannelProductSyncService
             return;
         }
 
-        $newActiveState = match ($triggerSource) {
-            SyncTriggerSource::LISTING_ACTIVATE => true,
-            SyncTriggerSource::LISTING_PAUSE, SyncTriggerSource::LISTING_DELETE => false,
-            default => null,
-        };
+        // Always sync based on listing's actual status
+        $shouldBeActive = $listing->getStatus() === InventoryListing::STATUS_ACTIVE;
 
-        if ($newActiveState !== null && $source->isActive() !== $newActiveState) {
-            $source->setIsActive($newActiveState);
+        if ($source->isActive() !== $shouldBeActive) {
+            $source->setIsActive($shouldBeActive);
+            $this->logger->info('Source status corrected', [
+                'sourceId' => $source->getId(),
+                'listingId' => $listing->getId(),
+                'listingStatus' => $listing->getStatus(),
+                'newIsActive' => $shouldBeActive,
+            ]);
         }
     }
 
@@ -403,7 +465,12 @@ class ChannelProductSyncService
     }
 
     /**
-     * Dispatch sync message with debounce.
+     * Dispatch sync message with delay (trailing debounce).
+     *
+     * 使用延迟消息实现尾部防抖：
+     * - 每次变动派发一个延迟 N 秒的消息，并记录时间戳
+     * - 消息处理器检查时间戳，只处理最新的请求
+     * - 这样可以确保所有变动都被正确处理，同时避免频繁同步
      */
     private function dispatchWithDebounce(
         ChannelProduct $channelProduct,
@@ -412,33 +479,57 @@ class ChannelProductSyncService
         ?string $merchantId,
         ?string $merchantInventoryId,
     ): void {
-        $lockKey = sprintf('sync:debounce:%s', $channelProduct->getId());
+        $timestampKey = sprintf('sync:timestamp:%s', $channelProduct->getId());
+        $currentTimestamp = (string) microtime(true);
 
-        // Check debounce
-        if ($this->redis->exists($lockKey)) {
-            $this->logger->debug('Sync debounced', [
-                'channelProductId' => $channelProduct->getId(),
-            ]);
+        // 记录最新的请求时间戳
+        $this->redis->set($timestampKey, $currentTimestamp);
+        // 设置过期时间，防止 key 堆积
+        $this->redis->expire($timestampKey, self::DEBOUNCE_TTL_SECONDS + 10);
 
-            return;
-        }
-
-        // Set debounce lock
-        $this->redis->setex($lockKey, self::DEBOUNCE_TTL_SECONDS, '1');
-
-        // Dispatch message
-        $this->messageBus->dispatch(SyncChannelProductMessage::create(
+        // 派发延迟消息
+        $message = SyncChannelProductMessage::create(
             $channelProduct->getId(),
             $triggerSource,
             $inventoryListingId,
             $merchantId,
             $merchantInventoryId,
-        ));
+            $currentTimestamp,
+        );
 
-        $this->logger->info('Dispatched sync message', [
+        $this->messageBus->dispatch(
+            $message,
+            [new DelayStamp(self::DEBOUNCE_TTL_SECONDS * 1000)]  // 毫秒
+        );
+
+        $this->logger->debug('Dispatched delayed sync message', [
             'channelProductId' => $channelProduct->getId(),
             'triggerSource' => $triggerSource->value,
+            'timestamp' => $currentTimestamp,
+            'delaySeconds' => self::DEBOUNCE_TTL_SECONDS,
         ]);
+    }
+
+    /**
+     * 检查消息是否应该被处理（是否是最新的请求）.
+     */
+    public function shouldProcessMessage(SyncChannelProductMessage $message): bool
+    {
+        $timestampKey = sprintf('sync:timestamp:%s', $message->channelProductId);
+        $latestTimestamp = $this->redis->get($timestampKey);
+
+        // 如果没有记录的时间戳，或者消息的时间戳是最新的，则处理
+        if ($latestTimestamp === null || $message->getDispatchTimestamp() === $latestTimestamp) {
+            return true;
+        }
+
+        $this->logger->debug('Skipping outdated sync message', [
+            'channelProductId' => $message->channelProductId,
+            'messageTimestamp' => $message->getDispatchTimestamp(),
+            'latestTimestamp' => $latestTimestamp,
+        ]);
+
+        return false;
     }
 
     /**
@@ -446,10 +537,33 @@ class ChannelProductSyncService
      *
      * @return array{success: bool, externalId?: string, externalUrl?: string, message?: string, errorCode?: string, data?: array}
      */
-    private function doPushProduct($gateway, ChannelGatewayContext $context, ChannelProduct $channelProduct): array
+    private function doPushProduct(ChannelGatewayInterface $gateway, ChannelGatewayContext $context, ChannelProduct $channelProduct): array
     {
         $sku = $channelProduct->getProductSku();
         $product = $sku->getProduct();
+
+        // Build SKU DTO with actual data
+        $skuDto = new ProductSkuDto(
+            internalId: $channelProduct->getId(),
+            externalId: $channelProduct->getExternalId(),
+            skuCode: $product->getStyleNumber(),
+            sizeValue: $sku->getSizeValue(),
+            price: $channelProduct->getPlatformPrice(),
+            compareAtPrice: $channelProduct->getPlatformCompareAtPrice(),
+            stock: $channelProduct->getStockQuantity(),
+            barcode: $sku->getBarcode(),
+        );
+
+        // Build images array
+        $images = [];
+        $primaryImage = $product->getPrimaryImage();
+        if ($primaryImage !== null) {
+            $images[] = new ProductImageDto(
+                url: $primaryImage->getUrl(),
+                isPrimary: true,
+                sortOrder: 0,
+            );
+        }
 
         $request = new PushProductRequest(
             internalId: $channelProduct->getId(),
@@ -458,10 +572,13 @@ class ChannelProductSyncService
             description: $product->getDescription() ?? '',
             brand: $product->getBrand()?->getName() ?? '',
             categoryCode: $product->getCategory()?->getSlug() ?? null,
-            images: [], // TODO: Add image support
-            skus: [],   // TODO: Add multi-SKU support
+            images: $images,
+            skus: [$skuDto],
             currency: $sku->getCurrency(),
-            attributes: [],
+            attributes: [
+                'model_no' => $product->getStyleNumber(),
+                'size_system' => $sku->getSizeUnit() !== null ? $sku->getSizeUnit()->value : 'US',
+            ],
         );
 
         $response = $gateway->pushProduct($context, $request);
@@ -480,18 +597,25 @@ class ChannelProductSyncService
      *
      * @return array{success: bool, message?: string, errorCode?: string, data?: array}
      */
-    private function doUpdateStockPrice($gateway, ChannelGatewayContext $context, ChannelProduct $channelProduct): array
+    private function doUpdateStockPrice(ChannelGatewayInterface $gateway, ChannelGatewayContext $context, ChannelProduct $channelProduct): array
     {
-        $request = new UpdateStockPriceRequest([
-            new StockPriceUpdateDto(
-                externalId: $channelProduct->getExternalId() ?? '',
-                stock: $channelProduct->getStockQuantity(),
-                price: $channelProduct->getPlatformPrice(),
-                compareAtPrice: $channelProduct->getPlatformCompareAtPrice(),
-            ),
-        ]);
+        $response = $gateway->updateStockPrice($context, [$channelProduct]);
 
-        $response = $gateway->updateStockPrice($context, $request);
+        return [
+            'success' => $response->success,
+            'message' => $response->message,
+            'data' => $response->data ?? [],
+        ];
+    }
+
+    /**
+     * Delist (remove) product from external channel.
+     *
+     * @return array{success: bool, message?: string, errorCode?: string, data?: array}
+     */
+    private function doDelistProduct(ChannelGatewayInterface $gateway, ChannelGatewayContext $context, ChannelProduct $channelProduct): array
+    {
+        $response = $gateway->delistProduct($context, $channelProduct);
 
         return [
             'success' => $response->success,

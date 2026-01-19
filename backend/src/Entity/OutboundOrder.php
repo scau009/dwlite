@@ -137,8 +137,13 @@ class OutboundOrder
     private ?string $remark = null;
 
     // 关联明细
+    /** @var Collection<int, OutboundOrderItem> */
     #[ORM\OneToMany(targetEntity: OutboundOrderItem::class, mappedBy: 'outboundOrder', cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $items;
+
+    // TODO: 面单功能待实现
+    // #[ORM\OneToOne(targetEntity: Waybill::class, mappedBy: 'outboundOrder', cascade: ['persist'])]
+    // private ?Waybill $waybill = null;
 
     #[ORM\Column(type: 'datetime_immutable')]
     private \DateTimeImmutable $createdAt;
@@ -150,18 +155,9 @@ class OutboundOrder
     {
         $nowUtc = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
         $this->id = (string) new Ulid();
-        $this->outboundNo = $this->generateOutboundNo();
         $this->items = new ArrayCollection();
         $this->createdAt = $nowUtc;
         $this->updatedAt = $nowUtc;
-    }
-
-    private function generateOutboundNo(): string
-    {
-        // 格式：OB + 年月日 + 6位随机数
-        $dateUtc = (new \DateTimeImmutable('now', new \DateTimeZone('UTC')))->format('Ymd');
-
-        return 'OB'.$dateUtc.str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
     }
 
     public function getId(): string
@@ -505,6 +501,19 @@ class OutboundOrder
 
         return $this;
     }
+
+    // TODO: 面单功能待实现
+    // public function getWaybill(): ?Waybill
+    // {
+    //     return $this->waybill;
+    // }
+    //
+    // public function setWaybill(?Waybill $waybill): static
+    // {
+    //     $this->waybill = $waybill;
+    //
+    //     return $this;
+    // }
 
     public function getCreatedAt(): \DateTimeImmutable
     {

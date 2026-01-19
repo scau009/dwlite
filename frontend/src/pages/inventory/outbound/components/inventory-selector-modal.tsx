@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Modal,
@@ -51,24 +51,7 @@ export function InventorySelectorModal({
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   const [quantities, setQuantities] = useState<Record<string, number>>({});
 
-  // Load inventory when modal opens
-  useEffect(() => {
-    if (open && warehouseId) {
-      loadInventory();
-    }
-  }, [open, warehouseId]);
-
-  // Reset state when modal closes
-  useEffect(() => {
-    if (!open) {
-      setSearchKeyword('');
-      setActiveTab('normal');
-      setSelectedRowKeys([]);
-      setQuantities({});
-    }
-  }, [open]);
-
-  const loadInventory = async () => {
+  const loadInventory = useCallback(async () => {
     setLoading(true);
     try {
       const response = await merchantInventoryApi.getInventoryList({
@@ -83,7 +66,24 @@ export function InventorySelectorModal({
     } finally {
       setLoading(false);
     }
-  };
+  }, [warehouseId, message, t]);
+
+  // Load inventory when modal opens
+  useEffect(() => {
+    if (open && warehouseId) {
+      loadInventory();
+    }
+  }, [open, warehouseId, loadInventory]);
+
+  // Reset state when modal closes
+  useEffect(() => {
+    if (!open) {
+      setSearchKeyword('');
+      setActiveTab('normal');
+      setSelectedRowKeys([]);
+      setQuantities({});
+    }
+  }, [open]);
 
   // Filter inventory based on tab and search
   const filteredInventory = useMemo(() => {

@@ -39,7 +39,7 @@ export function RegisterPage() {
       return true;
     } catch (error) {
       const apiErr = error as ApiError;
-      message.error(apiErr.error || 'Registration failed. Please try again.');
+      message.error(apiErr.error || t('auth.registrationFailed'));
       return false;
     }
   };
@@ -48,7 +48,7 @@ export function RegisterPage() {
     <Card>
       <div className="text-center mb-6">
         <h2 className="text-2xl font-semibold">{t('auth.register')}</h2>
-        <p className="text-gray-500">Enter your details to create a new account</p>
+        <p className="text-gray-500">{t('auth.registerSubtitle')}</p>
       </div>
 
       <ProForm
@@ -56,7 +56,7 @@ export function RegisterPage() {
         onFinish={handleSubmit}
         submitter={{
           searchConfig: {
-            submitText: 'Create account',
+            submitText: t('auth.createAccount'),
           },
           resetButtonProps: { style: { display: 'none' } },
           submitButtonProps: { block: true, size: 'large' },
@@ -69,10 +69,10 @@ export function RegisterPage() {
             size: 'large',
             prefix: <UserOutlined />,
           }}
-          placeholder="you@example.com"
+          placeholder={t('auth.emailPlaceholder')}
           rules={[
-            { required: true, message: 'Please enter your email' },
-            { type: 'email', message: 'Please enter a valid email' },
+            { required: true, message: t('auth.emailRequired') },
+            { type: 'email', message: t('auth.emailInvalid') },
           ]}
         />
         <ProFormText.Password
@@ -83,25 +83,25 @@ export function RegisterPage() {
             prefix: <LockOutlined />,
           }}
           placeholder={t('auth.password')}
-          rules={[{ required: true, message: 'Please enter your password' }]}
-          extra="Min 8 characters with uppercase, lowercase, and number"
+          rules={[{ required: true, message: t('auth.passwordRequired') }]}
+          extra={t('auth.passwordRequirements')}
         />
         <ProFormText.Password
           name="confirmPassword"
-          label="Confirm Password"
+          label={t('auth.confirmPassword')}
           fieldProps={{
             size: 'large',
             prefix: <LockOutlined />,
           }}
-          placeholder="Confirm password"
+          placeholder={t('auth.confirmPassword')}
           rules={[
-            { required: true, message: 'Please confirm your password' },
+            { required: true, message: t('auth.confirmPasswordRequired') },
             ({ getFieldValue }) => ({
               validator(_, value) {
                 if (!value || getFieldValue('password') === value) {
                   return Promise.resolve();
                 }
-                return Promise.reject(new Error('Passwords do not match'));
+                return Promise.reject(new Error(t('auth.passwordMismatch')));
               },
             }),
           ]}
@@ -109,7 +109,7 @@ export function RegisterPage() {
       </ProForm>
 
       <div className="text-center mt-4">
-        Already have an account?{' '}
+        {t('auth.hasAccount')}{' '}
         <Link to="/login" className="text-blue-500 hover:underline">
           {t('auth.login')}
         </Link>

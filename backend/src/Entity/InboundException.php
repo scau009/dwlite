@@ -463,14 +463,6 @@ class InboundException
     }
 
     /**
-     * 生成异常单号.
-     */
-    public static function generateExceptionNo(): string
-    {
-        return 'EX'.date('Ymd').strtoupper(substr((string) new Ulid(), -8));
-    }
-
-    /**
      * 从入库单创建异常单.
      */
     public static function createForInboundOrder(
@@ -479,7 +471,6 @@ class InboundException
         string $description
     ): self {
         $exception = new self();
-        $exception->exceptionNo = self::generateExceptionNo();
         $exception->inboundOrder = $order;
         $exception->merchant = $order->getMerchant();
         $exception->warehouse = $order->getWarehouse();

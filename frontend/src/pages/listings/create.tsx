@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import {
@@ -21,6 +21,7 @@ import {
   Result,
   Popover,
   Switch,
+  Image,
 } from 'antd';
 import { ArrowLeftOutlined, ShopOutlined, CheckCircleOutlined, CloseCircleOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import { ProTable, type ActionType, type ProColumns } from '@ant-design/pro-components';
@@ -147,12 +148,7 @@ export function CreateListingPage() {
     [listingConfigs]
   );
 
-  // Load channels on mount
-  useEffect(() => {
-    loadChannels();
-  }, []);
-
-  const loadChannels = async () => {
+  const loadChannels = useCallback(async () => {
     setChannelsLoading(true);
     try {
       const result = await merchantListingApi.getAvailableChannels();
@@ -163,7 +159,12 @@ export function CreateListingPage() {
     } finally {
       setChannelsLoading(false);
     }
-  };
+  }, [message, t]);
+
+  // Load channels on mount
+  useEffect(() => {
+    loadChannels();
+  }, [loadChannels]);
 
   const handleChannelSelect = (channel: AvailableChannel) => {
     setSelectedChannel(channel);
@@ -198,14 +199,17 @@ export function CreateListingPage() {
           defaultsResult.data.map((d) => [d.inventoryId, d])
         );
 
-        const defaultFulfillmentType = selectedChannel.approvedFulfillmentTypes[0] || 'consignment';
         const configs: ListingConfig[] = selectedInventories.map((inv) => {
           const defaults = defaultsMap.get(inv.id);
           const hasPriceRules = defaults?.pricing.hasRules ?? false;
           const hasStockRules = defaults?.allocation.hasRules ?? false;
+          // Merchant warehouse: must use self_fulfillment
+          const defaultFulfillmentType = inv.warehouse.category === 'merchant'
+            ? 'self_fulfillment'
+            : (selectedChannel.approvedFulfillmentTypes[0] || 'consignment');
           return {
             ...inv,
-            fulfillmentType: defaultFulfillmentType,
+            fulfillmentType: defaultFulfillmentType as FulfillmentType,
             pricingModel: 'self_pricing',
             allocationMode: hasStockRules ? 'dedicated' : 'shared',
             allocatedQuantity: hasStockRules ? defaults?.allocation.calculatedQuantity : undefined,
@@ -223,18 +227,23 @@ export function CreateListingPage() {
       } catch (error) {
         console.error('Failed to load defaults:', error);
         // Fall back to no defaults
-        const defaultFulfillmentType = selectedChannel.approvedFulfillmentTypes[0] || 'consignment';
-        const configs: ListingConfig[] = selectedInventories.map((inv) => ({
-          ...inv,
-          fulfillmentType: defaultFulfillmentType,
-          pricingModel: 'self_pricing',
-          allocationMode: 'shared',
-          allocatedQuantity: undefined,
-          price: undefined,
-          compareAtPrice: undefined,
-          applyPriceRule: false,
-          applyStockRule: false,
-        }));
+        const configs: ListingConfig[] = selectedInventories.map((inv) => {
+          // Merchant warehouse: must use self_fulfillment
+          const defaultFulfillmentType = inv.warehouse.category === 'merchant'
+            ? 'self_fulfillment'
+            : (selectedChannel.approvedFulfillmentTypes[0] || 'consignment');
+          return {
+            ...inv,
+            fulfillmentType: defaultFulfillmentType as FulfillmentType,
+            pricingModel: 'self_pricing',
+            allocationMode: 'shared',
+            allocatedQuantity: undefined,
+            price: undefined,
+            compareAtPrice: undefined,
+            applyPriceRule: false,
+            applyStockRule: false,
+          };
+        });
         setListingConfigs(configs);
       } finally {
         setLoadingDefaults(false);
@@ -362,7 +371,7 @@ export function CreateListingPage() {
     {
       title: t('listingManagement.product'),
       dataIndex: 'product',
-      width: 280,
+      width: 240,
       search: {
         transform: (value) => ({ search: value }),
       },
@@ -372,20 +381,33 @@ export function CreateListingPage() {
       render: (_, record) => (
         <Space size="small">
           {record.product.imageUrl ? (
-            <Avatar src={record.product.imageUrl} size={40} shape="square" />
+            <Image
+              src={record.product.imageUrl}
+              alt={record.product.name}
+              width={56}
+              height={56}
+              className="object-contain rounded bg-gray-50"
+              preview={false}
+            />
           ) : (
-            <Avatar size={40} shape="square">
+            <Avatar size={56} shape="square">
               {record.product.name.charAt(0)}
             </Avatar>
           )}
           <div>
             <div className="font-medium">{record.product.name}</div>
-            <div className="text-xs text-gray-500">
-              {record.product.styleNumber} / {record.productSku.sizeValue}
-              {record.productSku.sizeUnit}
-            </div>
+            <div className="text-xs text-gray-500">{record.product.styleNumber}</div>
           </div>
         </Space>
+      ),
+    },
+    {
+      title: t('listingManagement.size'),
+      dataIndex: ['productSku', 'sizeValue'],
+      width: 80,
+      search: false,
+      render: (_, record) => (
+        <span>{record.productSku.sizeUnit} {record.productSku.sizeValue}</span>
       ),
     },
     {
@@ -394,15 +416,14 @@ export function CreateListingPage() {
       width: 160,
       search: false,
       render: (_, record) => (
-        <div>
-          <div>{record.warehouse.name}</div>
-          <div className="text-xs text-gray-500">
-            {record.warehouse.code}
-            {record.warehouse.category === 'platform' && (
-              <Tag color="blue" className="ml-1">{t('listingManagement.platformWarehouse')}</Tag>
-            )}
-          </div>
-        </div>
+        <Space size="small">
+          <Tag color={record.warehouse.category === 'platform' ? 'blue' : 'default'}>
+            {record.warehouse.category === 'platform'
+              ? t('listingManagement.platformWarehouse')
+              : t('listingManagement.logicalWarehouse')}
+          </Tag>
+          <span>{record.warehouse.name}</span>
+        </Space>
       ),
     },
     {
@@ -425,22 +446,55 @@ export function CreateListingPage() {
   ];
 
   const currencySymbol = selectedChannel ? getCurrencySymbol(selectedChannel.salesChannel.currency) : '¥';
-  const availableFulfillmentTypes = selectedChannel?.approvedFulfillmentTypes || [];
+
+  // Get available fulfillment types for a specific inventory item based on warehouse category
+  const getAvailableFulfillmentTypesForInventory = (
+    config: ListingConfig
+  ): FulfillmentType[] => {
+    const channelTypes = selectedChannel?.approvedFulfillmentTypes || [];
+
+    // Merchant warehouse: only self-fulfillment allowed
+    if (config.warehouse.category === 'merchant') {
+      return channelTypes.filter(type => type === 'self_fulfillment');
+    }
+
+    // Platform warehouse: all channel-approved types allowed
+    return channelTypes;
+  };
 
   const configColumns = [
     // Left columns with rowSpan=2 (merged for each inventory item)
     {
       title: t('listingManagement.product'),
       dataIndex: ['config', 'product'],
-      width: 200,
+      width: 180,
       onCell: (record: ConfigRow) => ({ rowSpan: record.isFirstRow ? 2 : 0 }),
       render: (_: unknown, { config }: ConfigRow) => (
-        <div>
-          <div className="font-medium text-sm">{config.product.name}</div>
-          <div className="text-xs text-gray-500">
-            {config.product.styleNumber} / {config.productSku.sizeValue}{config.productSku.sizeUnit}
-          </div>
+        <div className="flex items-center gap-3">
+          {config.product.imageUrl ? (
+            <div className="w-14 h-14 flex items-center justify-center bg-gray-100 rounded flex-shrink-0">
+              <Image
+                src={config.product.imageUrl}
+                style={{ maxWidth: 56, maxHeight: 56, objectFit: 'contain' }}
+                preview={false}
+              />
+            </div>
+          ) : (
+            <Avatar shape="square" size={56} icon={<ShopOutlined />} className="flex-shrink-0" />
+          )}
+          <code className="text-xs bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">{config.product.styleNumber}</code>
         </div>
+      ),
+    },
+    {
+      title: t('listingManagement.size'),
+      dataIndex: ['config', 'productSku'],
+      width: 80,
+      onCell: (record: ConfigRow) => ({ rowSpan: record.isFirstRow ? 2 : 0 }),
+      render: (_: unknown, { config }: ConfigRow) => (
+        <span className="text-sm">
+          {config.productSku.sizeUnit} {config.productSku.sizeValue}
+        </span>
       ),
     },
     {
@@ -466,20 +520,23 @@ export function CreateListingPage() {
       dataIndex: ['config', 'fulfillmentType'],
       width: 120,
       onCell: (record: ConfigRow) => ({ rowSpan: record.isFirstRow ? 2 : 0 }),
-      render: (_: unknown, { config }: ConfigRow) => (
-        <Select
-          size="small"
-          value={config.fulfillmentType}
-          onChange={(value) => handleConfigChange(config.id, 'fulfillmentType', value)}
-          style={{ width: '100%' }}
-          options={availableFulfillmentTypes.map((type) => ({
-            value: type,
-            label: type === 'consignment'
-              ? t('merchantChannels.fulfillmentConsignment')
-              : t('merchantChannels.fulfillmentSelfFulfillment'),
-          }))}
-        />
-      ),
+      render: (_: unknown, { config }: ConfigRow) => {
+        const availableTypes = getAvailableFulfillmentTypesForInventory(config);
+        return (
+          <Select
+            size="small"
+            value={config.fulfillmentType}
+            onChange={(value) => handleConfigChange(config.id, 'fulfillmentType', value)}
+            style={{ width: '100%' }}
+            options={availableTypes.map((type) => ({
+              value: type,
+              label: type === 'consignment'
+                ? t('merchantChannels.fulfillmentConsignment')
+                : t('merchantChannels.fulfillmentSelfFulfillment'),
+            }))}
+          />
+        );
+      },
     },
     {
       title: t('listingManagement.pricingModel'),

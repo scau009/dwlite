@@ -20,6 +20,10 @@ enum SyncTriggerSource: string
     case INVENTORY_INBOUND = 'inventory_inbound';
     case INVENTORY_OUTBOUND = 'inventory_outbound';
     case INVENTORY_ADJUST = 'inventory_adjust';
+    case INVENTORY_IMPORT = 'inventory_import';
+
+    // Order operations
+    case ORDER_CANCEL = 'order_cancel';
 
     // System operations
     case MANUAL = 'manual';
@@ -35,6 +39,8 @@ enum SyncTriggerSource: string
             self::INVENTORY_INBOUND,
             self::INVENTORY_OUTBOUND,
             self::INVENTORY_ADJUST,
+            self::INVENTORY_IMPORT,
+            self::ORDER_CANCEL,
         ], true);
     }
 
@@ -78,6 +84,8 @@ enum SyncTriggerSource: string
             self::INVENTORY_INBOUND => 'Inventory Inbound',
             self::INVENTORY_OUTBOUND => 'Inventory Outbound',
             self::INVENTORY_ADJUST => 'Inventory Adjustment',
+            self::INVENTORY_IMPORT => 'Inventory Import',
+            self::ORDER_CANCEL => 'Order Cancelled',
             self::MANUAL => 'Manual Trigger',
             self::SCHEDULED => 'Scheduled Sync',
             self::COMPENSATION => 'Compensation Scan',

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Modal, Table, Tag, Spin } from 'antd';
 import type { ColumnsType, TablePaginationConfig } from 'antd/es/table';
@@ -22,7 +22,7 @@ export function TransactionsModal({ open, merchant, onClose }: TransactionsModal
     total: 0,
   });
 
-  const fetchTransactions = async (page: number, pageSize: number) => {
+  const fetchTransactions = useCallback(async (page: number, pageSize: number) => {
     if (!merchant) return;
 
     setLoading(true);
@@ -44,13 +44,13 @@ export function TransactionsModal({ open, merchant, onClose }: TransactionsModal
     } finally {
       setLoading(false);
     }
-  };
+  }, [merchant]);
 
   useEffect(() => {
     if (open && merchant) {
       fetchTransactions(1, 10);
     }
-  }, [open, merchant?.id]);
+  }, [open, merchant, fetchTransactions]);
 
   const handleTableChange = (newPagination: TablePaginationConfig) => {
     fetchTransactions(newPagination.current || 1, newPagination.pageSize || 10);

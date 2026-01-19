@@ -80,15 +80,15 @@ class MerchantRuleService
                     $ruleInfo['conditionExpression'],
                     $context
                 );
-                if (!$conditionResult) {
+                if (!$conditionResult['success'] || !$conditionResult['result']) {
                     continue; // 条件不满足，跳过此规则
                 }
             }
 
             // 执行表达式
             $result = $this->ruleEngine->safeEvaluate($ruleInfo['expression'], $context);
-            if ($result !== null) {
-                $currentValue = (float) $result;
+            if ($result['success'] && $result['result'] !== null) {
+                $currentValue = (float) $result['result'];
             }
 
             $ruleResults[] = [
@@ -162,15 +162,15 @@ class MerchantRuleService
                     $ruleInfo['conditionExpression'],
                     $context
                 );
-                if (!$conditionResult) {
+                if (!$conditionResult['success'] || !$conditionResult['result']) {
                     continue;
                 }
             }
 
             // 执行表达式
             $result = $this->ruleEngine->safeEvaluate($ruleInfo['expression'], $context);
-            if ($result !== null) {
-                $currentValue = (int) $result;
+            if ($result['success'] && $result['result'] !== null) {
+                $currentValue = (int) $result['result'];
             }
 
             $ruleResults[] = [

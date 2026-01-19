@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Dto\Inbound\AddInboundOrderItemRequest;
+use App\Dto\Inbound\BatchUpdateItemCostRequest;
 use App\Dto\Inbound\CompleteInboundReceivingRequest;
 use App\Dto\Inbound\CreateInboundExceptionRequest;
 use App\Dto\Inbound\CreateInboundOrderRequest;
@@ -15,11 +16,11 @@ use App\Dto\Inbound\UpdateItemCostRequest;
 use App\Entity\InboundException;
 use App\Entity\Product;
 use App\Entity\User;
-use App\Entity\Warehouse;
 use App\Repository\InboundExceptionRepository;
 use App\Repository\MerchantRepository;
 use App\Repository\ProductRepository;
-use App\Repository\WarehouseRepository;
+use App\Repository\SalesChannelRepository;
+use App\Repository\SalesChannelWarehouseRepository;
 use App\Service\CosService;
 use App\Service\InboundOrderService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -40,7 +41,6 @@ class InboundOrderController extends AbstractController
     public function __construct(
         private InboundOrderService $inboundOrderService,
         private MerchantRepository $merchantRepository,
-        private WarehouseRepository $warehouseRepository,
         private ProductRepository $productRepository,
         private InboundExceptionRepository $inboundExceptionRepository,
         private CosService $cosService,
@@ -62,25 +62,50 @@ class InboundOrderController extends AbstractController
     }
 
     /**
-     * 获取可用仓库列表（平台仓库）.
+     * 获取可用仓库列表（平台仓库，按销售渠道分组）.
      */
     #[Route('/warehouses', name: 'inbound_list_warehouses', methods: ['GET'])]
-    public function listWarehouses(): JsonResponse
-    {
-        $warehouses = $this->warehouseRepository->findActivePlatformWarehouses();
+    public function listWarehouses(
+        SalesChannelRepository $salesChannelRepository,
+        SalesChannelWarehouseRepository $salesChannelWarehouseRepository
+    ): JsonResponse {
+        $channels = $salesChannelRepository->findActive();
 
-        return $this->json([
-            'data' => array_map(fn (Warehouse $w) => [
-                'id' => $w->getId(),
-                'code' => $w->getCode(),
-                'name' => $w->getName(),
-                'shortName' => $w->getShortName(),
-                'type' => $w->getType(),
-                'fullAddress' => $w->getFullAddress(),
-                'city' => $w->getCity(),
-                'province' => $w->getProvince(),
-            ], $warehouses),
-        ]);
+        $result = [];
+        foreach ($channels as $channel) {
+            $channelWarehouses = $salesChannelWarehouseRepository->findByChannel($channel, true);
+
+            $warehouses = [];
+            foreach ($channelWarehouses as $scw) {
+                $warehouse = $scw->getWarehouse();
+                if ($warehouse->isPlatformWarehouse()) {
+                    $warehouses[] = [
+                        'id' => $warehouse->getId(),
+                        'code' => $warehouse->getCode(),
+                        'name' => $warehouse->getName(),
+                        'shortName' => $warehouse->getShortName(),
+                        'type' => $warehouse->getType(),
+                        'fullAddress' => $warehouse->getFullAddress(),
+                        'city' => $warehouse->getCity(),
+                        'province' => $warehouse->getProvince(),
+                    ];
+                }
+            }
+
+            if (!empty($warehouses)) {
+                $result[] = [
+                    'channel' => [
+                        'id' => $channel->getId(),
+                        'code' => $channel->getCode(),
+                        'name' => $channel->getName(),
+                        'logoUrl' => $channel->getLogoUrl(),
+                    ],
+                    'warehouses' => $warehouses,
+                ];
+            }
+        }
+
+        return $this->json(['data' => $result]);
     }
 
     /**
@@ -97,7 +122,6 @@ class InboundOrderController extends AbstractController
 
         $filters = [
             'status' => 'active',  // 只查询已上架的商品
-            'isActive' => true,
         ];
 
         if ($search) {
@@ -381,6 +405,34 @@ class InboundOrderController extends AbstractController
     }
 
     /**
+     * 批量更新入库单明细的单件成本（入库完成前可用）.
+     */
+    #[Route('/orders/items/batch-cost', name: 'inbound_batch_update_item_cost', methods: ['PATCH'])]
+    public function batchUpdateItemCost(
+        #[CurrentUser] User $user,
+        #[MapRequestPayload] BatchUpdateItemCostRequest $dto
+    ): JsonResponse {
+        $merchant = $this->getCurrentMerchant($user);
+
+        try {
+            $items = $this->inboundOrderService->batchUpdateItemCost(
+                $merchant,
+                $dto->itemIds,
+                $dto->unitCost
+            );
+
+            return $this->json([
+                'message' => $this->translator->trans('inbound.item.batch_cost_updated', ['%count%' => count($items)]),
+                'data' => array_map([$this, 'serializeItem'], $items),
+            ]);
+        } catch (\InvalidArgumentException $e) {
+            return $this->json(['error' => $e->getMessage()], Response::HTTP_NOT_FOUND);
+        } catch (\LogicException $e) {
+            return $this->json(['error' => $e->getMessage()], Response::HTTP_BAD_REQUEST);
+        }
+    }
+
+    /**
      * 提交入库单.
      */
     #[Route('/orders/{id}/submit', name: 'inbound_submit_order', methods: ['POST'])]
@@ -475,6 +527,7 @@ class InboundOrderController extends AbstractController
 
     /**
      * 取消入库单.
+     * 只有草稿和待发货状态可以取消，已发货及之后的状态不允许取消.
      */
     #[Route('/orders/{id}/cancel', name: 'inbound_cancel_order', methods: ['POST'])]
     public function cancelOrder(
@@ -487,6 +540,13 @@ class InboundOrderController extends AbstractController
 
         if ($order === null || $order->getMerchant()->getId() !== $merchant->getId()) {
             return $this->json(['error' => 'Order not found'], Response::HTTP_NOT_FOUND);
+        }
+
+        // 检查订单是否可以取消
+        if (!$order->canCancel()) {
+            return $this->json([
+                'error' => $this->translator->trans('inbound.order.cannot_cancel_shipped'),
+            ], Response::HTTP_BAD_REQUEST);
         }
 
         $data = json_decode($request->getContent(), true) ?? [];
@@ -646,6 +706,7 @@ class InboundOrderController extends AbstractController
             'id' => $order->getId(),
             'orderNo' => $order->getOrderNo(),
             'status' => $order->getStatus(),
+            'currency' => $order->getCurrency(),
             'warehouse' => [
                 'id' => $order->getWarehouse()->getId(),
                 'name' => $order->getWarehouse()->getName(),
@@ -716,6 +777,7 @@ class InboundOrderController extends AbstractController
             'receivedQuantity' => $item->getReceivedQuantity(),
             'damagedQuantity' => $item->getDamagedQuantity(),
             'unitCost' => $item->getUnitCost(),
+            'currency' => $item->getCurrency(),
             'status' => $item->getStatus(),
             'warehouseRemark' => $item->getWarehouseRemark(),
             'receivedAt' => $item->getReceivedAt()?->format('c'),
@@ -749,6 +811,18 @@ class InboundOrderController extends AbstractController
      */
     private function serializeException($exception): array
     {
+        // 签名证据图片
+        $evidenceImages = [];
+        $rawImages = $exception->getEvidenceImages() ?? [];
+        foreach ($rawImages as $image) {
+            if ($image) {
+                $cosKey = $this->extractCosKey($image);
+                if ($cosKey) {
+                    $evidenceImages[] = $this->cosService->getSignedUrl($cosKey, 3600);
+                }
+            }
+        }
+
         return [
             'id' => $exception->getId(),
             'exceptionNo' => $exception->getExceptionNo(),
@@ -758,7 +832,7 @@ class InboundOrderController extends AbstractController
             'items' => array_map([$this, 'serializeExceptionItem'], $exception->getItems()->toArray()),
             'totalQuantity' => $exception->getTotalQuantity(),
             'description' => $exception->getDescription(),
-            'evidenceImages' => $exception->getEvidenceImages(),
+            'evidenceImages' => $evidenceImages,
             'resolution' => $exception->getResolution(),
             'resolutionNotes' => $exception->getResolutionNotes(),
             'resolvedAt' => $exception->getResolvedAt()?->format('c'),
@@ -771,12 +845,30 @@ class InboundOrderController extends AbstractController
      */
     private function serializeExceptionItem($item): array
     {
+        // 签名商品图片
+        $productImageUrl = null;
+        $productImage = $item->getProductImage();
+        if ($productImage) {
+            $cosKey = $this->extractCosKey($productImage);
+            if ($cosKey) {
+                $productImageUrl = $this->cosService->getSignedUrl(
+                    $cosKey,
+                    3600,
+                    'imageMogr2/thumbnail/80x80>'
+                );
+            }
+        }
+
+        // 通过关联的 InboundOrderItem 获取款号
+        $styleNumber = $item->getInboundOrderItem()?->getStyleNumber();
+
         return [
             'id' => $item->getId(),
             'skuName' => $item->getSkuName(),
+            'styleNumber' => $styleNumber,
             'colorName' => $item->getColorName(),
             'productName' => $item->getProductName(),
-            'productImage' => $item->getProductImage(),
+            'productImage' => $productImageUrl,
             'quantity' => $item->getQuantity(),
         ];
     }

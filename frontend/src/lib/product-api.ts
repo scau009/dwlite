@@ -95,7 +95,6 @@ export interface ProductListParams {
   categoryId?: string;
   season?: string;
   status?: ProductStatus;
-  isActive?: boolean;
   sortBy?: string;
   sortOrder?: 'ASC' | 'DESC';
 }
@@ -187,7 +186,6 @@ export const productApi = {
     if (params.categoryId) searchParams.set('categoryId', params.categoryId);
     if (params.season) searchParams.set('season', params.season);
     if (params.status) searchParams.set('status', params.status);
-    if (params.isActive !== undefined) searchParams.set('isActive', String(params.isActive));
     if (params.sortBy) searchParams.set('sortBy', params.sortBy);
     if (params.sortOrder) searchParams.set('sortOrder', params.sortOrder);
 
@@ -246,6 +244,19 @@ export const productApi = {
     return apiFetch(`/api/admin/products/${id}/status`, {
       method: 'PUT',
       body: JSON.stringify({ status }),
+    });
+  },
+
+  /**
+   * 批量更新商品状态
+   */
+  batchUpdateProductStatus: async (
+    productIds: string[],
+    status: ProductStatus
+  ): Promise<{ message: string; updatedCount: number; notFoundCount: number }> => {
+    return apiFetch('/api/admin/products/batch-status', {
+      method: 'PUT',
+      body: JSON.stringify({ productIds, status }),
     });
   },
 

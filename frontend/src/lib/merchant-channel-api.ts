@@ -114,6 +114,22 @@ export const merchantChannelApi = {
   },
 
   /**
+   * 重新提交被拒绝的渠道申请
+   */
+  resubmitChannel: async (
+    id: string,
+    data: {
+      fulfillmentTypes: FulfillmentType[];
+      remark?: string;
+    }
+  ): Promise<{ message: string; merchantChannel: MyMerchantChannel }> => {
+    return apiFetch(`/api/merchant/my-channels/${id}/resubmit`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  /**
    * 获取渠道的可用仓库列表
    */
   getChannelWarehouses: async (

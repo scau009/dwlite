@@ -75,7 +75,7 @@ export function ChargeModal({ open, merchant, onClose, onSuccess }: ChargeModalP
             placeholder={t('merchants.enterAmount')}
             precision={2}
             min={0.01}
-            addonBefore="$"
+            addonBefore="¥"
           />
         </Form.Item>
 

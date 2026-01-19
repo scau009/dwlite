@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\ChannelProduct;
 use App\Entity\ProductSku;
 use App\Entity\SalesChannel;
+use App\Service\BusinessNoGenerator;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -13,8 +14,10 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class ChannelProductRepository extends ServiceEntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
-    {
+    public function __construct(
+        ManagerRegistry $registry,
+        private BusinessNoGenerator $businessNoGenerator,
+    ) {
         parent::__construct($registry, ChannelProduct::class);
     }
 
@@ -70,6 +73,7 @@ class ChannelProductRepository extends ServiceEntityRepository
 
         if ($product === null) {
             $product = new ChannelProduct();
+            $product->setId($this->businessNoGenerator->generateChannelProductId());
             $product->setSalesChannel($channel);
             $product->setProductSku($sku);
         }
@@ -189,6 +193,65 @@ class ChannelProductRepository extends ServiceEntityRepository
     }
 
     /**
+     * Paginated list with filters for admin.
+     *
+     * @param array<string, mixed> $filters
+     *
+     * @return array{data: ChannelProduct[], total: int}
+     */
+    public function findPaginated(int $page, int $limit, array $filters = []): array
+    {
+        $qb = $this->createQueryBuilder('cp')
+            ->leftJoin('cp.salesChannel', 'sc')
+            ->leftJoin('cp.productSku', 'ps')
+            ->leftJoin('ps.product', 'p')
+            ->leftJoin('p.images', 'pi')
+            ->addSelect('sc', 'ps', 'p', 'pi');
+
+        // Filter by sales channel
+        if (!empty($filters['salesChannelId'])) {
+            $qb->andWhere('sc.id = :salesChannelId')
+                ->setParameter('salesChannelId', $filters['salesChannelId']);
+        }
+
+        // Filter by status
+        if (!empty($filters['status'])) {
+            $qb->andWhere('cp.status = :status')
+                ->setParameter('status', $filters['status']);
+        }
+
+        // Filter by sync status
+        if (!empty($filters['syncStatus'])) {
+            $qb->andWhere('cp.syncStatus = :syncStatus')
+                ->setParameter('syncStatus', $filters['syncStatus']);
+        }
+
+        // Search by style number, size value, or product name
+        if (!empty($filters['search'])) {
+            $qb->andWhere('(p.styleNumber LIKE :search OR ps.sizeValue LIKE :search OR p.name LIKE :search)')
+                ->setParameter('search', '%'.$filters['search'].'%');
+        }
+
+        // Get total count
+        $countQb = clone $qb;
+        $total = (int) $countQb->select('COUNT(cp.id)')
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        // Get paginated data
+        $data = $qb->orderBy('cp.updatedAt', 'DESC')
+            ->setFirstResult(($page - 1) * $limit)
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+
+        return [
+            'data' => $data,
+            'total' => $total,
+        ];
+    }
+
+    /**
      * Find stale pending products for compensation mechanism.
      *
      * Returns products that have been in pending sync status for longer than threshold,
@@ -217,5 +280,72 @@ class ChannelProductRepository extends ServiceEntityRepository
         }
 
         return $qb->getQuery()->getResult();
+    }
+
+    /**
+     * 通过款号和尺码查找渠道商品.
+     *
+     * @param string $sizeSystem 尺码系统 (US, EU, UK)
+     * @param string $sizeValue 尺码值
+     */
+    public function findByStyleNumberAndSize(
+        SalesChannel $channel,
+        string $styleNumber,
+        string $sizeSystem,
+        string $sizeValue,
+    ): ?ChannelProduct {
+        return $this->createQueryBuilder('cp')
+            ->join('cp.productSku', 'ps')
+            ->join('ps.product', 'p')
+            ->andWhere('cp.salesChannel = :channel')
+            ->andWhere('p.styleNumber = :styleNumber')
+            ->andWhere('ps.sizeUnit = :sizeUnit')
+            ->andWhere('ps.sizeValue = :sizeValue')
+            ->setParameter('channel', $channel)
+            ->setParameter('styleNumber', $styleNumber)
+            ->setParameter('sizeUnit', $sizeSystem)
+            ->setParameter('sizeValue', $sizeValue)
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
+    /**
+     * 获取渠道商品统计摘要.
+     *
+     * @return array{total: int, syncFailed: int, outOfStock: int}
+     */
+    public function getSummaryStats(): array
+    {
+        // 总数
+        $total = (int) $this->createQueryBuilder('cp')
+            ->select('COUNT(cp.id)')
+            ->where('cp.status = :activeStatus')
+            ->setParameter('activeStatus', ChannelProduct::STATUS_ACTIVE)
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        // 同步失败数
+        $syncFailed = (int) $this->createQueryBuilder('cp')
+            ->select('COUNT(cp.id)')
+            ->where('cp.syncStatus = :failedStatus')
+            ->setParameter('failedStatus', ChannelProduct::SYNC_STATUS_FAILED)
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        // 库存为零数
+        $outOfStock = (int) $this->createQueryBuilder('cp')
+            ->select('COUNT(cp.id)')
+            ->where('cp.status = :activeStatus')
+            ->andWhere('cp.stockQuantity = 0')
+            ->setParameter('activeStatus', ChannelProduct::STATUS_ACTIVE)
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        return [
+            'total' => $total,
+            'syncFailed' => $syncFailed,
+            'outOfStock' => $outOfStock,
+        ];
     }
 }

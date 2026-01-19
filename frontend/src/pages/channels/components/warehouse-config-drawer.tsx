@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Drawer,
@@ -51,13 +51,7 @@ export function WarehouseConfigDrawer({ open, channel, onClose }: WarehouseConfi
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingPriority, setEditingPriority] = useState<number>(0);
 
-  useEffect(() => {
-    if (open && channel) {
-      loadWarehouses();
-    }
-  }, [open, channel]);
-
-  const loadWarehouses = async () => {
+  const loadWarehouses = useCallback(async () => {
     if (!channel) return;
 
     setLoading(true);
@@ -70,7 +64,13 @@ export function WarehouseConfigDrawer({ open, channel, onClose }: WarehouseConfi
     } finally {
       setLoading(false);
     }
-  };
+  }, [channel, message, t]);
+
+  useEffect(() => {
+    if (open && channel) {
+      loadWarehouses();
+    }
+  }, [open, channel, loadWarehouses]);
 
   const handleStatusChange = async (record: ChannelWarehouse, checked: boolean) => {
     if (!channel) return;

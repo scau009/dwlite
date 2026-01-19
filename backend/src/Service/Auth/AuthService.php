@@ -6,6 +6,7 @@ use App\Dto\Auth\ChangePasswordRequest;
 use App\Dto\Auth\RegisterRequest;
 use App\Entity\User;
 use App\Repository\UserRepository;
+use App\Service\BusinessNoGenerator;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
@@ -16,6 +17,7 @@ class AuthService
         private UserPasswordHasherInterface $passwordHasher,
         private EmailVerificationService $emailVerificationService,
         private TranslatorInterface $translator,
+        private BusinessNoGenerator $businessNoGenerator,
     ) {
     }
 
@@ -28,6 +30,7 @@ class AuthService
         }
 
         $user = new User();
+        $user->setId($this->businessNoGenerator->generateUserId());
         $user->setEmail($request->email);
         $user->setPassword($this->passwordHasher->hashPassword($user, $request->password));
         $user->setRoles(['ROLE_USER'])

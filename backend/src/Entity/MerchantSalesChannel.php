@@ -350,6 +350,23 @@ class MerchantSalesChannel
     }
 
     /**
+     * 商户重新提交被拒绝的申请.
+     *
+     * @param string[] $requestedFulfillmentTypes 重新申请的履约模式
+     */
+    public function resubmit(array $requestedFulfillmentTypes, ?string $remark = null): static
+    {
+        $this->status = self::STATUS_PENDING;
+        $this->setRequestedFulfillmentTypes($requestedFulfillmentTypes);
+        $this->approvedFulfillmentTypes = null;
+        $this->remark = $remark;
+        $this->approvedAt = null;
+        $this->approvedBy = null;
+
+        return $this;
+    }
+
+    /**
      * 管理员暂停.
      */
     public function suspend(?string $reason = null): static

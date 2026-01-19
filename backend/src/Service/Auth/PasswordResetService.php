@@ -22,6 +22,7 @@ class PasswordResetService
         private Environment $twig,
         private TranslatorInterface $translator,
         private string $appUrl = 'http://localhost:8000',
+        private int $passwordResetTemplateId = 0,
     ) {
     }
 
@@ -41,18 +42,32 @@ class PasswordResetService
         $token = new PasswordResetToken($user);
         $this->tokenRepository->save($token, true);
 
-        // Send email
-        $htmlContent = $this->twig->render('emails/password_reset.html.twig', [
-            'user' => $user,
-            'token' => $token->getToken(),
-            'resetUrl' => $this->appUrl.'/reset-password?token='.$token->getToken(),
-        ]);
+        $resetUrl = $this->appUrl.'/reset-password?token='.$token->getToken();
 
-        $this->mailService->send(
-            $user->getEmail(),
-            $this->translator->trans('email.password_reset.subject'),
-            $htmlContent
-        );
+        // Send email using template if configured, otherwise fallback to HTML
+        if ($this->passwordResetTemplateId > 0) {
+            $this->mailService->sendWithTemplate(
+                $user->getEmail(),
+                $this->translator->trans('email.password_reset.subject'),
+                $this->passwordResetTemplateId,
+                [
+                    'token' => $token->getToken(),
+                    'resetUrl' => $resetUrl,
+                ]
+            );
+        } else {
+            $htmlContent = $this->twig->render('emails/password_reset.html.twig', [
+                'user' => $user,
+                'token' => $token->getToken(),
+                'resetUrl' => $resetUrl,
+            ]);
+
+            $this->mailService->send(
+                $user->getEmail(),
+                $this->translator->trans('email.password_reset.subject'),
+                $htmlContent
+            );
+        }
     }
 
     public function resetPassword(ResetPasswordRequest $request): User

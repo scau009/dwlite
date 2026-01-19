@@ -17,6 +17,14 @@ class MerchantService
     }
 
     /**
+     * 根据用户获取商户信息.
+     */
+    public function getMerchantByUser(User $user): ?Merchant
+    {
+        return $this->merchantRepository->findByUser($user);
+    }
+
+    /**
      * 为用户创建商户信息
      * 在邮箱验证通过后调用.
      */

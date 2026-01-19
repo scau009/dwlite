@@ -3,6 +3,7 @@
 namespace App\Controller\Admin;
 
 use App\Attribute\AdminOnly;
+use App\Dto\Admin\BatchUpdateBrandStatusRequest;
 use App\Dto\Admin\CreateBrandRequest;
 use App\Dto\Admin\Query\BrandListQuery;
 use App\Dto\Admin\UpdateBrandRequest;
@@ -42,6 +43,19 @@ class BrandController extends AbstractController
             'total' => $result['total'],
             'page' => $query->getPage(),
             'limit' => $query->getLimit(),
+        ]);
+    }
+
+    #[Route('/batch-status', name: 'admin_brand_batch_status', methods: ['PUT'])]
+    public function batchUpdateStatus(#[MapRequestPayload] BatchUpdateBrandStatusRequest $dto): JsonResponse
+    {
+        $updated = $this->brandRepository->batchUpdateStatus($dto->ids, $dto->isActive);
+
+        return $this->json([
+            'message' => $dto->isActive
+                ? $this->translator->trans('admin.brand.batch_activated', ['%count%' => $updated])
+                : $this->translator->trans('admin.brand.batch_deactivated', ['%count%' => $updated]),
+            'updated' => $updated,
         ]);
     }
 

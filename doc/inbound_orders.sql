@@ -13,6 +13,9 @@ CREATE TABLE `inbound_orders` (
     `total_quantity` INT NOT NULL DEFAULT 0 COMMENT 'Expected total quantity',
     `received_quantity` INT NOT NULL DEFAULT 0 COMMENT 'Received total quantity',
 
+    -- Currency
+    `currency` VARCHAR(3) NOT NULL DEFAULT 'USD' COMMENT 'Cost currency (CNY, USD, EUR, HKD, JPY)',
+
     -- Time milestones
     `expected_arrival_date` DATE NULL COMMENT 'Expected arrival date',
     `submitted_at` DATETIME NULL COMMENT 'Submitted time (draft -> pending)',

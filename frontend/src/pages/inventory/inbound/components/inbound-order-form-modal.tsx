@@ -92,9 +92,11 @@ export function InboundOrderFormModal({
             ? dayjs(order.expectedArrivalDate)
             : null,
           merchantNotes: '',
+          currency: order.currency || 'USD',
         });
       } else {
         form.resetFields();
+        form.setFieldsValue({ currency: 'USD' });
       }
     }
   }, [open, order, form]);
@@ -116,6 +118,7 @@ export function InboundOrderFormModal({
           ? values.expectedArrivalDate.format('YYYY-MM-DD')
           : undefined,
         merchantNotes: values.merchantNotes || undefined,
+        currency: values.currency,
       };
 
       if (isEdit) {
@@ -255,6 +258,22 @@ export function InboundOrderFormModal({
             label={t('inventory.expectedArrivalDate')}
           >
             <DatePicker className="w-full" />
+          </Form.Item>
+
+          <Form.Item
+            name="currency"
+            label={t('inventory.currency')}
+            rules={[{ required: true, message: t('inventory.currencyRequired') }]}
+          >
+            <Select
+              options={[
+                { value: 'USD', label: 'USD - US Dollar' },
+                { value: 'CNY', label: 'CNY - Chinese Yuan' },
+                { value: 'EUR', label: 'EUR - Euro' },
+                { value: 'HKD', label: 'HKD - Hong Kong Dollar' },
+                { value: 'JPY', label: 'JPY - Japanese Yen' },
+              ]}
+            />
           </Form.Item>
 
           <Form.Item name="merchantNotes" label={t('inventory.merchantNotes')}>

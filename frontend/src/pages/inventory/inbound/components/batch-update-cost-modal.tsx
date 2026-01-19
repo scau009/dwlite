@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Modal, InputNumber, App } from 'antd';
 
 import { inboundApi, type InboundOrderItem } from '@/lib/inbound-api';
+import { getCurrencySymbol } from '@/lib/merchant-listing-api';
 
 interface BatchUpdateCostModalProps {
   open: boolean;
@@ -30,12 +31,9 @@ export function BatchUpdateCostModal({
 
     setLoading(true);
     try {
-      // Update all selected items
-      await Promise.all(
-        items.map(item =>
-          inboundApi.updateInboundOrderItemCost(item.id, cost.toString())
-        )
-      );
+      // Use batch API to update all items in a single request
+      const itemIds = items.map(item => item.id);
+      await inboundApi.batchUpdateItemCost(itemIds, cost.toString());
       message.success(t('inventory.batchCostUpdated', { count: items.length }));
       onSuccess();
     } catch (error) {
@@ -73,7 +71,7 @@ export function BatchUpdateCostModal({
             value={cost}
             onChange={setCost}
             style={{ width: 150 }}
-            prefix="¥"
+            prefix={getCurrencySymbol(items[0]?.currency || 'CNY')}
             placeholder="0.00"
             autoFocus
           />

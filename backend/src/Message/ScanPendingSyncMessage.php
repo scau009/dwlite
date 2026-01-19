@@ -14,7 +14,6 @@ namespace App\Message;
 readonly class ScanPendingSyncMessage
 {
     public function __construct(
-        public \DateTimeImmutable $scheduledAt,
         public ?string $salesChannelId = null,
         public int $thresholdMinutes = 5,
         public int $limit = 100,
@@ -27,16 +26,16 @@ readonly class ScanPendingSyncMessage
     public static function create(?string $salesChannelId = null): self
     {
         return new self(
-            scheduledAt: new \DateTimeImmutable('now', new \DateTimeZone('UTC')),
             salesChannelId: $salesChannelId,
         );
     }
 
     /**
-     * Get the threshold datetime for stale products.
+     * Get the threshold datetime for stale products (calculated at execution time).
      */
     public function getThreshold(): \DateTimeImmutable
     {
-        return $this->scheduledAt->modify(sprintf('-%d minutes', $this->thresholdMinutes));
+        return (new \DateTimeImmutable('now', new \DateTimeZone('UTC')))
+            ->modify(sprintf('-%d minutes', $this->thresholdMinutes));
     }
 }

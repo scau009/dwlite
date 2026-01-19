@@ -302,6 +302,8 @@ class MerchantInventoryRepository extends ServiceEntityRepository
     /**
      * 获取可用于在某渠道上架的库存（未在该渠道上架过的）.
      *
+     * @param string[]|null $approvedFulfillmentTypes Channel's approved fulfillment types for filtering warehouses
+     *
      * @return MerchantInventory[]
      */
     public function findAvailableForListing(
@@ -309,7 +311,8 @@ class MerchantInventoryRepository extends ServiceEntityRepository
         \App\Entity\MerchantSalesChannel $channel,
         int $page = 1,
         int $limit = 20,
-        ?string $search = null
+        ?string $search = null,
+        ?array $approvedFulfillmentTypes = null
     ): array {
         $qb = $this->createQueryBuilder('i')
             ->leftJoin('i.productSku', 'sku')
@@ -318,6 +321,20 @@ class MerchantInventoryRepository extends ServiceEntityRepository
             ->andWhere('i.merchant = :merchant')
             ->andWhere('i.quantityAvailable > 0')
             ->setParameter('merchant', $merchant);
+
+        // Filter by warehouse category based on channel's fulfillment types
+        if ($approvedFulfillmentTypes !== null && count($approvedFulfillmentTypes) === 1) {
+            if ($approvedFulfillmentTypes[0] === 'consignment') {
+                // Only consignment: only platform warehouses
+                $qb->andWhere('w.category = :warehouseCategory')
+                    ->setParameter('warehouseCategory', Warehouse::CATEGORY_PLATFORM);
+            } elseif ($approvedFulfillmentTypes[0] === 'self_fulfillment') {
+                // Only self-fulfillment: only merchant warehouses
+                $qb->andWhere('w.category = :warehouseCategory')
+                    ->setParameter('warehouseCategory', Warehouse::CATEGORY_MERCHANT);
+            }
+        }
+        // If both types approved or null, show all warehouses (current behavior)
 
         // Exclude inventory already listed on this channel
         $subQuery = $this->getEntityManager()->createQueryBuilder()
@@ -344,19 +361,37 @@ class MerchantInventoryRepository extends ServiceEntityRepository
 
     /**
      * 统计可用于在某渠道上架的库存数量.
+     *
+     * @param string[]|null $approvedFulfillmentTypes Channel's approved fulfillment types for filtering warehouses
      */
     public function countAvailableForListing(
         Merchant $merchant,
         \App\Entity\MerchantSalesChannel $channel,
-        ?string $search = null
+        ?string $search = null,
+        ?array $approvedFulfillmentTypes = null
     ): int {
         $qb = $this->createQueryBuilder('i')
             ->select('COUNT(i.id)')
             ->leftJoin('i.productSku', 'sku')
             ->leftJoin('sku.product', 'p')
+            ->leftJoin('i.warehouse', 'w')
             ->andWhere('i.merchant = :merchant')
             ->andWhere('i.quantityAvailable > 0')
             ->setParameter('merchant', $merchant);
+
+        // Filter by warehouse category based on channel's fulfillment types
+        if ($approvedFulfillmentTypes !== null && count($approvedFulfillmentTypes) === 1) {
+            if ($approvedFulfillmentTypes[0] === 'consignment') {
+                // Only consignment: only platform warehouses
+                $qb->andWhere('w.category = :warehouseCategory')
+                    ->setParameter('warehouseCategory', Warehouse::CATEGORY_PLATFORM);
+            } elseif ($approvedFulfillmentTypes[0] === 'self_fulfillment') {
+                // Only self-fulfillment: only merchant warehouses
+                $qb->andWhere('w.category = :warehouseCategory')
+                    ->setParameter('warehouseCategory', Warehouse::CATEGORY_MERCHANT);
+            }
+        }
+        // If both types approved or null, show all warehouses (current behavior)
 
         // Exclude inventory already listed on this channel
         $subQuery = $this->getEntityManager()->createQueryBuilder()

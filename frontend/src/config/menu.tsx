@@ -3,9 +3,9 @@ import {
   DashboardOutlined,
   ShoppingOutlined,
   InboxOutlined,
-  // DollarOutlined,
+  DollarOutlined,
   // ShoppingCartOutlined,
-  // CarOutlined,
+  CarOutlined,
   // BarChartOutlined,
   SettingOutlined,
   TeamOutlined,
@@ -54,11 +54,11 @@ export function getMenuData(t: TFunction): AccessMenuDataItem[] {
       icon: <InboxOutlined />,
       access: 'merchant',
       children: [
-        { path: '/inventory/warehouses', name: t('menu.merchantWarehouses'), access: 'merchant' },
-        { path: '/inventory/stock', name: t('menu.stockQuery'), access: 'merchant' },
         { path: '/inventory/inbound', name: t('menu.inboundOrders'), access: 'merchant' },
+        { path: '/inventory/stock', name: t('menu.stockQuery'), access: 'merchant' },
         { path: '/inventory/outbound', name: t('menu.outboundOrders'), access: 'merchant' },
         { path: '/inventory/exceptions', name: t('menu.inboundExceptions'), access: 'merchant' },
+        { path: '/inventory/warehouses', name: t('menu.merchantWarehouses'), access: 'merchant' },
       ],
     },
     {
@@ -97,26 +97,14 @@ export function getMenuData(t: TFunction): AccessMenuDataItem[] {
     //     { path: '/orders/refunds', name: t('menu.orderRefunds') },
     //   ],
     // },
-    // TODO: 履约管理 - 暂时隐藏
-    // {
-    //   path: '/fulfillment',
-    //   name: t('nav.fulfillment'),
-    //   icon: <CarOutlined />,
-    //   access: ['admin', 'merchant'],
-    //   children: [
-    //     { path: '/fulfillment', name: t('menu.fulfillmentList') },
-    //     { path: '/fulfillment/pending', name: t('menu.fulfillmentPending') },
-    //     { path: '/fulfillment/shipped', name: t('menu.fulfillmentShipped') },
-    //     { path: '/fulfillment/exceptions', name: t('menu.fulfillmentExceptions') },
-    //   ],
-    // },
     {
       path: '/merchants',
       name: t('nav.merchants'),
       icon: <TeamOutlined />,
       access: 'admin',
       children: [
-        { path: '/merchants', name: t('menu.merchantList') },
+        { path: '/merchants/list', name: t('menu.merchantList') },
+        { path: '/merchants/api-keys', name: t('menu.merchantApiKeys') },
       ],
     },
     {
@@ -126,12 +114,45 @@ export function getMenuData(t: TFunction): AccessMenuDataItem[] {
       access: ['admin', 'merchant'],
       children: [
         { path: '/channels/list', name: t('menu.channelList'), access: 'admin' },
+        { path: '/channels/products', name: t('menu.channelProducts'), access: 'admin' },
         { path: '/channels/merchants', name: t('menu.merchantChannels'), access: 'admin' },
         { path: '/channels/available', name: t('menu.availableChannels'), access: 'merchant' },
         { path: '/channels/my-channels', name: t('menu.myChannels'), access: 'merchant' },
         { path: '/channels/listings', name: t('menu.listingManagement'), access: 'merchant' },
-        { path: '/channels/listings-logs', name: t('menu.listingLogs'), access: 'merchant' },
         { path: '/channels/rules', name: t('menu.merchantRules'), access: 'merchant' },
+        { path: '/channels/listings-logs', name: t('menu.listingLogs'), access: 'merchant' },
+      ],
+    },
+    {
+      path: '/fulfillment',
+      name: t('nav.fulfillment'),
+      icon: <CarOutlined />,
+      access: 'admin',
+      children: [
+        { path: '/fulfillment/orders', name: t('menu.platformOrders'), access: 'admin' },
+        { path: '/fulfillment/fulfillment-orders', name: t('menu.fulfillmentOrders'), access: 'admin' },
+        { path: '/fulfillment/order-exceptions', name: t('menu.orderExceptions'), access: 'admin' },
+      ],
+    },
+    {
+      path: '/admin/inbound',
+      name: t('nav.inventoryManagement'),
+      icon: <InboxOutlined />,
+      access: 'admin',
+      children: [
+        { path: '/admin/inbound/orders', name: t('menu.adminInboundOrders'), access: 'admin' },
+        { path: '/admin/outbound/orders', name: t('menu.adminOutboundOrders'), access: 'admin' },
+      ],
+    },
+    {
+      path: '/merchant',
+      name: t('nav.merchantSettlements'),
+      icon: <DollarOutlined />,
+      access: 'merchant',
+      children: [
+        { path: '/merchant/settlements', name: t('menu.mySettlements'), access: 'merchant' },
+        { path: '/merchant/payouts', name: t('menu.myPayouts'), access: 'merchant' },
+        { path: '/merchant/bank-accounts', name: t('menu.bankAccounts'), access: 'merchant' },
       ],
     },
     {
@@ -142,6 +163,16 @@ export function getMenuData(t: TFunction): AccessMenuDataItem[] {
       children: [
         { path: '/warehouses/list', name: t('menu.warehouseList') },
         { path: '/warehouses/users', name: t('menu.warehouseUsers'), access: 'admin' },
+      ],
+    },
+    {
+      path: '/settlements',
+      name: t('nav.settlements'),
+      icon: <DollarOutlined />,
+      access: 'admin',
+      children: [
+        { path: '/settlements/list', name: t('menu.settlementList'), access: 'admin' },
+        { path: '/settlements/payouts', name: t('menu.payoutList'), access: 'admin' },
       ],
     },
     // TODO: 数据中心 - 暂时隐藏
@@ -171,6 +202,7 @@ export function getMenuData(t: TFunction): AccessMenuDataItem[] {
       children: [
         { path: '/settings/info', name: t('menu.generalSettings'), access: 'merchant' },
         { path: '/settings/wallet', name: t('menu.walletManagement'), access: 'merchant' },
+        { path: '/settings/api-keys', name: t('menu.apiKeys'), access: 'merchant' },
       ],
     },
   ];

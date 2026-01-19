@@ -141,6 +141,27 @@ class OutboundOrderRepository extends ServiceEntityRepository
     }
 
     /**
+     * 统计商户各状态的出库单数量.
+     */
+    public function countByMerchantGroupByStatus(Merchant $merchant): array
+    {
+        $results = $this->createQueryBuilder('o')
+            ->select('o.status, COUNT(o.id) as count')
+            ->andWhere('o.merchant = :merchant')
+            ->setParameter('merchant', $merchant)
+            ->groupBy('o.status')
+            ->getQuery()
+            ->getResult();
+
+        $counts = [];
+        foreach ($results as $row) {
+            $counts[$row['status']] = (int) $row['count'];
+        }
+
+        return $counts;
+    }
+
+    /**
      * 统计仓库各状态的出库单数量.
      */
     public function countByWarehouseGroupByStatus(Warehouse $warehouse): array
@@ -215,5 +236,116 @@ class OutboundOrderRepository extends ServiceEntityRepository
         }
 
         return $counts;
+    }
+
+    /**
+     * 获取商户近N天每日发货的出库单数量.
+     *
+     * @return array<string, int> 日期 => 数量
+     */
+    public function countShippedByMerchantGroupByDate(Merchant $merchant, int $days = 7): array
+    {
+        $startDate = new \DateTimeImmutable('-'.($days - 1).' days', new \DateTimeZone('Asia/Shanghai'));
+        $startDate = $startDate->setTime(0, 0, 0);
+
+        $conn = $this->getEntityManager()->getConnection();
+        $sql = '
+            SELECT DATE(shipped_at) as date, COUNT(id) as count
+            FROM outbound_orders
+            WHERE merchant_id = :merchantId
+            AND status = :status
+            AND shipped_at >= :startDate
+            GROUP BY DATE(shipped_at)
+        ';
+
+        $results = $conn->executeQuery($sql, [
+            'merchantId' => $merchant->getId(),
+            'status' => OutboundOrder::STATUS_SHIPPED,
+            'startDate' => $startDate->format('Y-m-d H:i:s'),
+        ])->fetchAllAssociative();
+
+        $counts = [];
+        foreach ($results as $row) {
+            $counts[$row['date']] = (int) $row['count'];
+        }
+
+        return $counts;
+    }
+
+    /**
+     * 管理端：分页查询出库单（支持筛选）.
+     *
+     * @return array{items: OutboundOrder[], total: int}
+     */
+    public function findPaginatedWithFilters(int $page, int $limit, array $filters = []): array
+    {
+        $qb = $this->createQueryBuilder('o')
+            ->leftJoin('o.merchant', 'm')
+            ->leftJoin('o.warehouse', 'w')
+            ->orderBy('o.createdAt', 'DESC');
+
+        // 商户筛选
+        if (!empty($filters['merchantId'])) {
+            $qb->andWhere('o.merchant = :merchantId')
+                ->setParameter('merchantId', $filters['merchantId']);
+        }
+
+        // 仓库筛选
+        if (!empty($filters['warehouseId'])) {
+            $qb->andWhere('o.warehouse = :warehouseId')
+                ->setParameter('warehouseId', $filters['warehouseId']);
+        }
+
+        // 状态筛选
+        if (!empty($filters['status'])) {
+            $qb->andWhere('o.status = :status')
+                ->setParameter('status', $filters['status']);
+        }
+
+        // 出库类型筛选
+        if (!empty($filters['outboundType'])) {
+            $qb->andWhere('o.outboundType = :outboundType')
+                ->setParameter('outboundType', $filters['outboundType']);
+        }
+
+        // 出库单号或收件人模糊搜索
+        if (!empty($filters['search'])) {
+            $qb->andWhere('(o.outboundNo LIKE :search OR o.receiverName LIKE :search)')
+                ->setParameter('search', '%'.$filters['search'].'%');
+        }
+
+        // 运单号搜索
+        if (!empty($filters['trackingNumber'])) {
+            $qb->andWhere('o.trackingNumber LIKE :trackingNumber')
+                ->setParameter('trackingNumber', '%'.$filters['trackingNumber'].'%');
+        }
+
+        // 日期范围筛选
+        if (!empty($filters['startDate'])) {
+            $startDate = new \DateTimeImmutable($filters['startDate'], new \DateTimeZone('UTC'));
+            $qb->andWhere('o.createdAt >= :startDate')
+                ->setParameter('startDate', $startDate->setTime(0, 0, 0));
+        }
+
+        if (!empty($filters['endDate'])) {
+            $endDate = new \DateTimeImmutable($filters['endDate'], new \DateTimeZone('UTC'));
+            $qb->andWhere('o.createdAt <= :endDate')
+                ->setParameter('endDate', $endDate->setTime(23, 59, 59));
+        }
+
+        // 计算总数
+        $countQb = clone $qb;
+        $total = (int) $countQb->select('COUNT(o.id)')
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        // 分页
+        $qb->setFirstResult(($page - 1) * $limit)
+            ->setMaxResults($limit);
+
+        return [
+            'items' => $qb->getQuery()->getResult(),
+            'total' => $total,
+        ];
     }
 }

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Modal, Transfer, App, Empty } from 'antd';
 import type { TransferProps } from 'antd';
@@ -28,15 +28,7 @@ export function BatchAddWarehouseModal({
   const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
   const [targetKeys, setTargetKeys] = useState<string[]>([]);
 
-  useEffect(() => {
-    if (open && channelId) {
-      setSelectedKeys([]);
-      setTargetKeys([]);
-      loadAvailableWarehouses();
-    }
-  }, [open, channelId]);
-
-  const loadAvailableWarehouses = async () => {
+  const loadAvailableWarehouses = useCallback(async () => {
     if (!channelId) return;
 
     setFetchingWarehouses(true);
@@ -53,7 +45,15 @@ export function BatchAddWarehouseModal({
     } finally {
       setFetchingWarehouses(false);
     }
-  };
+  }, [channelId, message, t]);
+
+  useEffect(() => {
+    if (open && channelId) {
+      setSelectedKeys([]);
+      setTargetKeys([]);
+      loadAvailableWarehouses();
+    }
+  }, [open, channelId, loadAvailableWarehouses]);
 
   const handleChange: TransferProps['onChange'] = (nextTargetKeys) => {
     setTargetKeys(nextTargetKeys as string[]);

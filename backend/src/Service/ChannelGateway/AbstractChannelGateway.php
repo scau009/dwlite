@@ -22,6 +22,7 @@ abstract class AbstractChannelGateway implements ChannelGatewayInterface
     protected const SUPPORTED_OPERATIONS = [
         ChannelGatewayInterface::OPERATION_PUSH_PRODUCT,
         ChannelGatewayInterface::OPERATION_UPDATE_STOCK_PRICE,
+        ChannelGatewayInterface::OPERATION_DELIST,
         ChannelGatewayInterface::OPERATION_PULL_ORDERS,
         ChannelGatewayInterface::OPERATION_CONFIRM_ORDER,
         ChannelGatewayInterface::OPERATION_SHIP_ORDER,

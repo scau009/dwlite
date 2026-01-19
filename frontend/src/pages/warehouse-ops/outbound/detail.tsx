@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import {
@@ -25,6 +25,7 @@ import {
   InboxOutlined,
   SendOutlined,
   CheckCircleOutlined,
+  FileTextOutlined,
 } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 
@@ -86,7 +87,7 @@ export function WarehouseOutboundDetailPage() {
     }
   };
 
-  const loadOrder = async () => {
+  const loadOrder = useCallback(async () => {
     if (!id) return;
     setLoading(true);
     try {
@@ -97,12 +98,12 @@ export function WarehouseOutboundDetailPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, message, t]);
 
   useEffect(() => {
     loadOrder();
     loadCarriers();
-  }, [id]);
+  }, [loadOrder]);
 
   // Get status label
   const getStatusLabel = (status: WarehouseOutboundStatus) => {
@@ -116,6 +117,16 @@ export function WarehouseOutboundDetailPage() {
       cancelled: t('warehouseOps.outboundStatusCancelled'),
     };
     return labels[status] || status;
+  };
+
+  // Get outbound type label
+  const getOutboundTypeLabel = (type: string) => {
+    const labels: Record<string, string> = {
+      sales: t('warehouseOps.outboundTypeSales'),
+      transfer: t('warehouseOps.outboundTypeTransfer'),
+      return: t('warehouseOps.outboundTypeReturn'),
+    };
+    return labels[type] || type;
   };
 
   // Handle start picking
@@ -228,7 +239,7 @@ export function WarehouseOutboundDetailPage() {
             src={url}
             width={60}
             height={60}
-            style={{ objectFit: 'cover' }}
+            style={{ objectFit: 'contain' }}
             preview={{ mask: null }}
           />
         ) : (
@@ -238,30 +249,31 @@ export function WarehouseOutboundDetailPage() {
         ),
     },
     {
-      title: t('warehouseOps.productName'),
+      title: t('warehouseOps.productInfo'),
       dataIndex: 'productName',
-      ellipsis: true,
-      render: (name: string | null) => name || '-',
-    },
-    {
-      title: t('products.styleNumber'),
-      dataIndex: 'styleNumber',
-      width: 120,
-      render: (code: string | null) =>
-        code ? <Text code>{code}</Text> : '-',
-    },
-    {
-      title: t('products.color'),
-      dataIndex: 'colorName',
-      width: 100,
-      render: (color: string | null) => color || '-',
+      width: 200,
+      render: (_, record) => (
+        <div>
+          <div>{record.productName || '-'}</div>
+          {record.styleNumber && (
+            <Text type="secondary" className="text-xs">{record.styleNumber}</Text>
+          )}
+        </div>
+      ),
     },
     {
       title: t('warehouseOps.skuName'),
       dataIndex: 'skuName',
-      width: 80,
+      width: 120,
       align: 'center',
-      render: (skuName: string | null) => skuName || '-',
+      render: (skuName: string | null, record) => (
+        <div>
+          <div>{skuName || '-'}</div>
+          {record.sizeUnit && (
+            <Text type="secondary" className="text-xs">({record.sizeUnit})</Text>
+          )}
+        </div>
+      ),
     },
     {
       title: t('outbound.stockType'),
@@ -321,6 +333,15 @@ export function WarehouseOutboundDetailPage() {
           <Tag color={statusColors[order.status]}>{getStatusLabel(order.status)}</Tag>
         </div>
         <Space wrap>
+          {order.shippingLabel && (
+            <Button
+              icon={<FileTextOutlined />}
+              href={order.shippingLabel}
+              target="_blank"
+            >
+              {t('warehouseOps.viewShippingLabel')}
+            </Button>
+          )}
           {isPending && (
             <Button
               type="primary"
@@ -366,7 +387,7 @@ export function WarehouseOutboundDetailPage() {
 
       {/* Progress Steps */}
       {!isCancelled && (
-        <Card size="small">
+        <Card size="small" style={{ padding: '24px' }}>
           <Steps
             current={currentStep}
             size="small"
@@ -420,7 +441,7 @@ export function WarehouseOutboundDetailPage() {
             </Text>
           </Descriptions.Item>
           <Descriptions.Item label={t('warehouseOps.outboundType')}>
-            {order.outboundType}
+            {getOutboundTypeLabel(order.outboundType)}
           </Descriptions.Item>
           <Descriptions.Item label={t('common.status')}>
             <Tag color={statusColors[order.status]}>{getStatusLabel(order.status)}</Tag>
@@ -487,14 +508,16 @@ export function WarehouseOutboundDetailPage() {
 
       {/* Receiver Info */}
       <Card title={t('warehouseOps.receiverInfo')}>
-        <Descriptions column={{ xs: 1, sm: 2, md: 3 }} size="small">
+        <Descriptions column={2} size="small">
           <Descriptions.Item label={t('warehouseOps.receiver')}>
             {order.receiverName}
           </Descriptions.Item>
           <Descriptions.Item label={t('warehouseOps.receiverPhone')}>
             {order.receiverPhone}
           </Descriptions.Item>
-          <Descriptions.Item label={t('warehouseOps.receiverAddress')} span={3}>
+        </Descriptions>
+        <Descriptions column={1} size="small" className="mt-4">
+          <Descriptions.Item label={t('warehouseOps.receiverAddress')}>
             {order.receiverAddress}
           </Descriptions.Item>
         </Descriptions>

@@ -2,7 +2,7 @@ import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ProTable, type ActionType, type ProColumns } from '@ant-design/pro-components';
 import { Button, Tag, Switch, App, Popconfirm, Space, Avatar } from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
+import { PlusOutlined, CheckCircleOutlined, StopOutlined } from '@ant-design/icons';
 
 import { brandApi, type Brand } from '@/lib/brand-api';
 import { BrandFormModal } from './components/brand-form-modal';
@@ -15,6 +15,8 @@ export function BrandsListPage() {
   const [formModalOpen, setFormModalOpen] = useState(false);
   const [editingBrand, setEditingBrand] = useState<Brand | null>(null);
   const [statusLoading, setStatusLoading] = useState<string | null>(null);
+  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+  const [batchLoading, setBatchLoading] = useState(false);
 
   const handleStatusChange = async (brand: Brand, isActive: boolean) => {
     setStatusLoading(brand.id);
@@ -28,6 +30,35 @@ export function BrandsListPage() {
     } finally {
       setStatusLoading(null);
     }
+  };
+
+  const handleBatchStatusChange = async (isActive: boolean) => {
+    if (selectedRowKeys.length === 0) return;
+
+    modal.confirm({
+      title: isActive ? t('brands.batchActivate') : t('brands.batchDeactivate'),
+      content: t('brands.batchStatusConfirm', { count: selectedRowKeys.length }),
+      okText: t('common.confirm'),
+      cancelText: t('common.cancel'),
+      okButtonProps: { danger: !isActive },
+      onOk: async () => {
+        setBatchLoading(true);
+        try {
+          const result = await brandApi.batchUpdateBrandStatus(
+            selectedRowKeys as string[],
+            isActive
+          );
+          message.success(result.message);
+          setSelectedRowKeys([]);
+          actionRef.current?.reload();
+        } catch (error) {
+          const err = error as { error?: string };
+          message.error(err.error || t('common.error'));
+        } finally {
+          setBatchLoading(false);
+        }
+      },
+    });
   };
 
   const handleAdd = () => {
@@ -93,7 +124,7 @@ export function BrandsListPage() {
       width: 150,
       search: false,
       render: (_, record) => (
-        <code className="text-xs bg-gray-100 px-2 py-1 rounded">{record.slug}</code>
+        <code className="text-xs bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">{record.slug}</code>
       ),
     },
     {
@@ -182,6 +213,36 @@ export function BrandsListPage() {
         actionRef={actionRef}
         columns={columns}
         rowKey="id"
+        rowSelection={{
+          selectedRowKeys,
+          onChange: setSelectedRowKeys,
+        }}
+        tableAlertRender={({ selectedRowKeys }) => (
+          <Space>
+            <span>{t('common.selected', { count: selectedRowKeys.length })}</span>
+          </Space>
+        )}
+        tableAlertOptionRender={() => (
+          <Space>
+            <Button
+              size="small"
+              icon={<CheckCircleOutlined />}
+              loading={batchLoading}
+              onClick={() => handleBatchStatusChange(true)}
+            >
+              {t('brands.batchActivate')}
+            </Button>
+            <Button
+              size="small"
+              danger
+              icon={<StopOutlined />}
+              loading={batchLoading}
+              onClick={() => handleBatchStatusChange(false)}
+            >
+              {t('brands.batchDeactivate')}
+            </Button>
+          </Space>
+        )}
         request={async (params) => {
           try {
             const result = await brandApi.getBrands({

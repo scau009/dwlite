@@ -24,8 +24,11 @@ class WalletTransaction
     public const BIZ_DEPOSIT_CHARGE = 'deposit_charge';     // 保证金充值
     public const BIZ_DEPOSIT_DEDUCT = 'deposit_deduct';     // 保证金扣除
     public const BIZ_ORDER_INCOME = 'order_income';         // 订单收入
+    public const BIZ_SETTLEMENT = 'settlement';             // 结算入账
     public const BIZ_WITHDRAW = 'withdraw';                 // 提现
     public const BIZ_WITHDRAW_REJECT = 'withdraw_reject';   // 提现拒绝退回
+    public const BIZ_PAYOUT = 'payout';                     // 提现出账
+    public const BIZ_PAYOUT_REFUND = 'payout_refund';       // 提现失败退回
     public const BIZ_REFUND = 'refund';                     // 退款
     public const BIZ_PLATFORM_FEE = 'platform_fee';         // 平台服务费
     public const BIZ_ADJUSTMENT = 'adjustment';             // 调账

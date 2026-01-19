@@ -2,7 +2,7 @@
 -- Description: Merchant inventory listings for sales channels
 
 CREATE TABLE `inventory_listings` (
-    `id` VARCHAR(26) NOT NULL PRIMARY KEY COMMENT 'ULID',
+    `id` VARCHAR(26) NOT NULL PRIMARY KEY COMMENT 'Business ID (IL{8-digit})',
     `merchant_inventory_id` VARCHAR(26) NOT NULL,
     `merchant_sales_channel_id` VARCHAR(26) NOT NULL,
     `allocation_mode` VARCHAR(20) NOT NULL DEFAULT 'shared' COMMENT 'shared (半托管-共享库存), dedicated (全托管-独占库存)',

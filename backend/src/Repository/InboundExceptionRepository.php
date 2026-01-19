@@ -137,4 +137,20 @@ class InboundExceptionRepository extends ServiceEntityRepository
             ],
         ];
     }
+
+    /**
+     * 统计所有待处理的入库异常数量（平台级别）.
+     */
+    public function countAllPending(): int
+    {
+        return (int) $this->createQueryBuilder('e')
+            ->select('COUNT(e.id)')
+            ->where('e.status IN (:statuses)')
+            ->setParameter('statuses', [
+                InboundException::STATUS_PENDING,
+                InboundException::STATUS_PROCESSING,
+            ])
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
 }

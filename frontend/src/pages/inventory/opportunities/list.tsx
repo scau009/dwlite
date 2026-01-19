@@ -1,13 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ProTable, type ActionType, type ProColumns } from '@ant-design/pro-components';
-import { Button, Avatar, Tag, Modal, Table } from 'antd';
+import { Button, Image } from 'antd';
 import { ShoppingOutlined } from '@ant-design/icons';
 
 import {
   inboundApi,
   type InboundProduct,
-  type InboundProductSku,
   type ProductDiscoveryParams,
 } from '@/lib/inbound-api';
 import { getCurrencySymbol } from '@/lib/merchant-listing-api';
@@ -26,8 +25,6 @@ export function OpportunitiesListPage() {
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [selectedProducts, setSelectedProducts] = useState<InboundProduct[]>([]);
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
-  const [skuModalOpen, setSkuModalOpen] = useState(false);
-  const [viewingProduct, setViewingProduct] = useState<InboundProduct | null>(null);
 
   const loadBrands = async () => {
     try {
@@ -70,48 +67,26 @@ export function OpportunitiesListPage() {
     actionRef.current?.reload();
   };
 
-  const handleViewSkus = (product: InboundProduct) => {
-    setViewingProduct(product);
-    setSkuModalOpen(true);
-  };
-
-  const skuColumns = [
-    {
-      title: t('opportunities.sku'),
-      key: 'sku',
-      render: (_: unknown, record: InboundProductSku) => (
-        <span>
-          {record.sizeUnit && record.sizeValue
-            ? `${record.sizeUnit} ${record.sizeValue}`
-            : record.skuName || '-'}
-        </span>
-      ),
-    },
-    {
-      title: t('opportunities.price'),
-      dataIndex: 'price',
-      key: 'price',
-      width: 100,
-      align: 'right' as const,
-      render: (price: string, record: InboundProductSku) => (
-        <span className="text-orange-600">
-          {getCurrencySymbol(record.currency)}{parseFloat(price).toFixed(2)}
-        </span>
-      ),
-    },
-  ];
-
   const columns: ProColumns<InboundProduct>[] = [
     {
       title: t('opportunities.image'),
       dataIndex: 'primaryImageUrl',
-      width: 80,
+      width: 64,
       search: false,
       render: (_, record) =>
         record.primaryImageUrl ? (
-          <Avatar src={record.primaryImageUrl} shape="square" size={48} />
+          <div className="w-12 h-12 flex items-center justify-center bg-gray-100 rounded">
+            <Image
+              src={record.primaryImageUrl}
+              alt={record.name}
+              preview={false}
+              style={{ maxWidth: 48, maxHeight: 48, objectFit: 'contain' }}
+            />
+          </div>
         ) : (
-          <Avatar shape="square" size={48} icon={<ShoppingOutlined />} />
+          <div className="w-12 h-12 flex items-center justify-center bg-gray-100 rounded text-gray-400">
+            <ShoppingOutlined style={{ fontSize: 20 }} />
+          </div>
         ),
     },
     {
@@ -129,17 +104,10 @@ export function OpportunitiesListPage() {
       width: 120,
       search: false,
       render: (_, record) => (
-        <code className="text-xs bg-gray-100 px-2 py-1 rounded">
+        <code className="text-xs bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">
           {record.styleNumber}
         </code>
       ),
-    },
-    {
-      title: t('opportunities.color'),
-      dataIndex: 'color',
-      width: 100,
-      search: false,
-      render: (_, record) => record.color || '-',
     },
     {
       title: t('opportunities.brand'),
@@ -154,24 +122,6 @@ export function OpportunitiesListPage() {
           (option?.label ?? '').toLowerCase().includes(input.toLowerCase()),
       },
       render: (_, record) => record.brandName || '-',
-    },
-    {
-      title: t('opportunities.skuCount'),
-      dataIndex: 'skuCount',
-      width: 100,
-      search: false,
-      render: (_, record) => {
-        const activeSkus = record.skus.filter((s) => s.isActive);
-        return (
-          <Tag
-            color="blue"
-            className="cursor-pointer"
-            onClick={() => handleViewSkus(record)}
-          >
-            {t('opportunities.skuCountValue', { count: activeSkus.length })}
-          </Tag>
-        );
-      },
     },
     {
       title: t('opportunities.priceRange'),
@@ -200,14 +150,10 @@ export function OpportunitiesListPage() {
     {
       title: t('common.actions'),
       valueType: 'option',
-      width: 100,
+      width: 80,
       fixed: 'right',
       render: (_, record) => (
-        <Button
-          type="primary"
-          size="small"
-          onClick={() => handleCreateOrder(record)}
-        >
+        <Button type="link" size="small" onClick={() => handleCreateOrder(record)}>
           {t('opportunities.createOrder')}
         </Button>
       ),
@@ -274,47 +220,6 @@ export function OpportunitiesListPage() {
           showSizeChanger: true,
         }}
       />
-
-      {/* SKU Detail Modal */}
-      <Modal
-        title={t('opportunities.skuList')}
-        open={skuModalOpen}
-        onCancel={() => setSkuModalOpen(false)}
-        footer={null}
-        width={400}
-      >
-        {viewingProduct && (
-          <div>
-            {/* Product Info */}
-            <div className="flex gap-3 mb-3">
-              {viewingProduct.primaryImageUrl ? (
-                <Avatar src={viewingProduct.primaryImageUrl} shape="square" size={56} />
-              ) : (
-                <Avatar shape="square" size={56} icon={<ShoppingOutlined />} />
-              )}
-              <div className="flex-1 min-w-0">
-                <div className="font-medium text-sm truncate">{viewingProduct.name}</div>
-                <div className="text-xs text-gray-500 mt-1">
-                  <span>{viewingProduct.styleNumber}</span>
-                  {viewingProduct.color && <span className="ml-2">{viewingProduct.color}</span>}
-                </div>
-                {viewingProduct.brandName && (
-                  <div className="text-xs text-gray-400 mt-0.5">{viewingProduct.brandName}</div>
-                )}
-              </div>
-            </div>
-            {/* SKU Table */}
-            <Table
-              columns={skuColumns}
-              dataSource={viewingProduct.skus.filter((s) => s.isActive)}
-              rowKey="id"
-              pagination={false}
-              size="small"
-              scroll={{ y: 300 }}
-            />
-          </div>
-        )}
-      </Modal>
 
       {/* Create Order Modal */}
       <CreateOrderModal

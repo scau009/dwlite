@@ -107,7 +107,7 @@ export function MerchantChannelsListPage() {
             />
           )}
           <span>{record.salesChannel.name}</span>
-          <code className="text-xs bg-gray-100 px-1 rounded">{record.salesChannel.code}</code>
+          <code className="text-xs bg-gray-100 dark:bg-gray-700 px-1 rounded">{record.salesChannel.code}</code>
         </Space>
       ),
     },

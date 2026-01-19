@@ -47,7 +47,7 @@ export function ProfilePage() {
         {/* User Info Card */}
         <Col xs={24} md={12}>
           <Card title="Account Information">
-            <Descriptions column={1} bordered size="small">
+            <Descriptions column={1} size="small">
               <Descriptions.Item label="User ID">
                 <code className="text-sm">{user?.id}</code>
               </Descriptions.Item>

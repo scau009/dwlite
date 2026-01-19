@@ -1,5 +1,12 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router';
 import { Card, Col, Row, Statistic, Spin, Typography } from 'antd';
+import {
+  InboxOutlined,
+  CheckCircleOutlined,
+  CarOutlined,
+  SendOutlined,
+} from '@ant-design/icons';
 import { Line } from '@ant-design/charts';
 import { useTranslation } from 'react-i18next';
 import {
@@ -13,6 +20,7 @@ const { Title } = Typography;
 
 export default function WarehouseDashboardPage() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [inboundStats, setInboundStats] = useState<WarehouseInboundStats | null>(null);
   const [outboundStats, setOutboundStats] = useState<WarehouseOutboundStats | null>(null);
@@ -58,16 +66,10 @@ export default function WarehouseDashboardPage() {
     xField: 'date',
     yField: 'value',
     colorField: 'category',
+    shapeField: 'smooth',
     height: 300,
-    point: {
-      shapeField: 'circle',
-      sizeField: 4,
-    },
-    interaction: {
-      tooltip: {
-        marker: false,
-      },
-    },
+    legend: { color: { position: 'top' as const } },
+    point: { size: 4, shape: 'circle' },
     style: {
       lineWidth: 2,
     },
@@ -87,81 +89,53 @@ export default function WarehouseDashboardPage() {
         {t('warehouseOps.dashboard.title')}
       </Title>
 
-      {/* Inbound Statistics */}
-      <div className="mb-4">
-        <Title level={5} className="mb-3 text-gray-600">
-          {t('warehouseOps.dashboard.inboundStats')}
-        </Title>
-        <Row gutter={[16, 16]}>
-          <Col xs={24} sm={8}>
-            <Card>
-              <Statistic
-                title={t('warehouseOps.awaitingArrival')}
-                value={inboundStats?.awaitingArrival ?? 0}
-                valueStyle={{ color: '#1677ff' }}
-              />
-            </Card>
-          </Col>
-          <Col xs={24} sm={8}>
-            <Card>
-              <Statistic
-                title={t('warehouseOps.pendingReceiving')}
-                value={inboundStats?.pendingReceiving ?? 0}
-                valueStyle={{ color: '#722ed1' }}
-              />
-            </Card>
-          </Col>
-          <Col xs={24} sm={8}>
-            <Card>
-              <Statistic
-                title={t('warehouseOps.completedToday')}
-                value={inboundStats?.completedToday ?? 0}
-                valueStyle={{ color: '#52c41a' }}
-              />
-            </Card>
-          </Col>
-        </Row>
-      </div>
-
-      {/* Outbound Statistics */}
+      {/* Combined Inbound & Outbound Statistics */}
       <div className="mb-6">
         <Title level={5} className="mb-3 text-gray-600">
-          {t('warehouseOps.dashboard.outboundStats')}
+          {t('warehouseOps.dashboard.inOutStats')}
         </Title>
         <Row gutter={[16, 16]}>
-          <Col xs={24} sm={6}>
-            <Card>
+          <Col xs={24} sm={12} md={6}>
+            <Card
+              hoverable
+              onClick={() => navigate('/warehouse/inbound?status=shipped')}
+              className="cursor-pointer"
+            >
               <Statistic
-                title={t('warehouseOps.pendingPicking')}
-                value={outboundStats?.pendingPicking ?? 0}
-                valueStyle={{ color: '#1677ff' }}
+                title={t('warehouseOps.dashboard.pendingReceiving')}
+                value={inboundStats?.awaitingArrival ?? 0}
+                prefix={<InboxOutlined style={{ color: '#1677ff' }} />}
               />
             </Card>
           </Col>
-          <Col xs={24} sm={6}>
-            <Card>
+          <Col xs={24} sm={12} md={6}>
+            <Card
+              hoverable
+              onClick={() => navigate('/warehouse/outbound?status=ready')}
+              className="cursor-pointer"
+            >
               <Statistic
-                title={t('warehouseOps.pendingPacking')}
-                value={outboundStats?.pendingPacking ?? 0}
-                valueStyle={{ color: '#13c2c2' }}
-              />
-            </Card>
-          </Col>
-          <Col xs={24} sm={6}>
-            <Card>
-              <Statistic
-                title={t('warehouseOps.readyToShip')}
+                title={t('warehouseOps.dashboard.pendingShipment')}
                 value={outboundStats?.readyToShip ?? 0}
-                valueStyle={{ color: '#722ed1' }}
+                prefix={<CarOutlined style={{ color: '#722ed1' }} />}
               />
             </Card>
           </Col>
-          <Col xs={24} sm={6}>
+          <Col xs={24} sm={12} md={6}>
             <Card>
               <Statistic
-                title={t('warehouseOps.shippedToday')}
+                title={t('warehouseOps.dashboard.inboundToday')}
+                value={inboundStats?.completedToday ?? 0}
+                prefix={<CheckCircleOutlined style={{ color: '#52c41a' }} />}
+              />
+            </Card>
+          </Col>
+          <Col xs={24} sm={12} md={6}>
+            <Card>
+              <Statistic
+                title={t('warehouseOps.dashboard.outboundToday')}
                 value={outboundStats?.shippedToday ?? 0}
-                valueStyle={{ color: '#52c41a' }}
+                prefix={<SendOutlined style={{ color: '#52c41a' }} />}
               />
             </Card>
           </Col>

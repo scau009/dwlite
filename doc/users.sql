@@ -3,7 +3,7 @@
 -- Account types: admin (平台管理员), merchant (商户), warehouse (仓库操作员)
 
 CREATE TABLE `users` (
-    `id` VARCHAR(26) NOT NULL PRIMARY KEY COMMENT 'ULID',
+    `id` VARCHAR(26) NOT NULL PRIMARY KEY COMMENT 'User ID (U{8位序号}, e.g., U00000001)',
     `email` VARCHAR(180) NOT NULL UNIQUE,
     `password` VARCHAR(255) NOT NULL,
     `roles` JSON NOT NULL COMMENT 'User roles array',

@@ -41,11 +41,6 @@ parameters:
 			path: src/Service/Mail/TencentSesMailService.php
 
 		-
-			message: "#^Negated boolean expression is always false\\.$#"
-			count: 2
-			path: src/Service/RuleEngine/MerchantRuleService.php
-
-		-
 			message: "#^Call to protected method getEntityManager\\(\\) of class Doctrine\\\\ORM\\\\EntityRepository\\<App\\\\Entity\\\\MerchantRule\\>\\.$#"
 			count: 1
 			path: src/Service/RuleEngine/MerchantRuleService.php
@@ -59,11 +54,6 @@ parameters:
 			message: "#^Method App\\\\Service\\\\ProductSync\\\\ProductSyncService\\:\\:mapSizeUnit\\(\\) never returns null so it can be removed from the return type\\.$#"
 			count: 1
 			path: src/Service/ProductSync/ProductSyncService.php
-
-		-
-			message: "#^Ternary operator condition is always true\\.$#"
-			count: 1
-			path: src/Service/ProductSync/Provider/KicksDbApiClient.php
 
 		-
 			message: "#^Property App\\\\Service\\\\ChannelProductSyncService\\:\\:\\$syncLogRepo is never read, only written\\.$#"

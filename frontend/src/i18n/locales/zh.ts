@@ -5,7 +5,9 @@ export default {
     reset: '重置',
     query: '查询',
     add: '新增',
+    create: '创建',
     edit: '编辑',
+    change: '更换',
     view: '查看',
     delete: '删除',
     save: '保存',
@@ -17,6 +19,8 @@ export default {
     select: '选择',
     export: '导出',
     import: '导入',
+    copy: '复制',
+    copied: '已复制',
     batchExport: '批量导出',
     batchImport: '批量导入',
     moreFilters: '更多筛选',
@@ -29,6 +33,7 @@ export default {
     createdAt: '创建时间',
     updatedAt: '更新时间',
     actions: '操作',
+    moreActions: '更多操作',
     loading: '加载中...',
     noData: '暂无数据',
     showing: '显示 {{from}}-{{to}} 条，共 {{total}} 条',
@@ -47,6 +52,13 @@ export default {
     inactive: '停用',
     apply: '应用',
     clickToEdit: '点击编辑',
+    quantity: '数量',
+    channel: '渠道',
+    loadError: '加载数据失败',
+    optional: '可选',
+    merchant: '商户',
+    warehouse: '仓库',
+    remark: '备注',
   },
 
   // Navigation
@@ -58,6 +70,9 @@ export default {
     pricing: '价格管理',
     orders: '订单管理',
     fulfillment: '履约管理',
+    inboundManagement: '出入库管理',
+    inventoryManagement: '出入库管理',
+    settlements: '结算中心',
     merchants: '商户管理',
     channels: '渠道管理',
     warehouses: '仓库管理',
@@ -65,6 +80,7 @@ export default {
     dataCenter: '数据中心',
     settings: '系统设置',
     platformRules: '平台规则',
+    merchantSettlements: '结算中心',
   },
 
   // Sidebar menu items
@@ -95,6 +111,20 @@ export default {
     fulfillmentPending: '待发货',
     fulfillmentShipped: '已发货',
     fulfillmentExceptions: '异常处理',
+    platformOrders: '渠道订单',
+    fulfillmentOrders: '履约单列表',
+    orderExceptions: '订单异常',
+    // Admin Inbound
+    adminInboundOrders: '入库单',
+    // Admin Outbound
+    adminOutboundOrders: '出库单',
+    // Settlements (Admin)
+    settlementList: '结算单一览',
+    payoutList: '提现申请',
+    // Merchant Settlements
+    mySettlements: '我的结算单',
+    myPayouts: '提现申请',
+    bankAccounts: '银行账户',
     // Data Center
     dataOverview: '数据概览',
     salesAnalysis: '销售分析',
@@ -102,8 +132,10 @@ export default {
     reports: '报表中心',
     // Merchants
     merchantList: '商户列表',
+    merchantApiKeys: '商户 API 密钥',
     // Channels
     channelList: '销售渠道',
+    channelProducts: '渠道商品',
     merchantChannels: '商户渠道',
     availableChannels: '可申请渠道',
     myChannels: '我的渠道',
@@ -122,6 +154,7 @@ export default {
     // Settings
     generalSettings: '基本设置',
     walletManagement: '电子钱包',
+    apiKeys: 'API 密钥',
     merchantRules: '规则配置',
     userManagement: '用户管理',
     roleManagement: '角色权限',
@@ -146,6 +179,81 @@ export default {
     forgotPassword: '忘记密码',
     resetPassword: '重置密码',
     verifyEmail: '验证邮箱',
+    logout: '退出登录',
+    // 登录页面
+    loginSubtitle: '登录到你的账户',
+    noAccount: '还没有账户？',
+    // 注册页面
+    hasAccount: '已有账户？',
+    createAccount: '创建账户',
+    registerSubtitle: '输入信息创建新账户',
+    confirmPassword: '确认密码',
+    passwordRequirements: '至少8个字符，包含大小写字母和数字',
+    // 表单验证
+    emailRequired: '请输入邮箱',
+    emailInvalid: '请输入有效的邮箱地址',
+    passwordRequired: '请输入密码',
+    confirmPasswordRequired: '请确认密码',
+    passwordMismatch: '两次密码不一致',
+    // Placeholder
+    emailPlaceholder: 'you@example.com',
+    // 错误消息
+    loginFailed: '登录失败，请重试',
+    registrationFailed: '注册失败，请重试',
+    // 忘记密码页面
+    forgotPasswordSubtitle: '输入邮箱，我们将发送重置链接',
+    sendResetLink: '发送重置链接',
+    checkYourEmail: '检查你的邮箱',
+    resetLinkSent: '如果该邮箱存在账户，我们已发送重置链接。请检查收件箱和垃圾邮件文件夹。',
+    backToLogin: '返回登录',
+    // 重置密码页面
+    resetPasswordSubtitle: '请输入新密码',
+    newPassword: '新密码',
+    confirmNewPassword: '确认新密码',
+    enterNewPassword: '请输入新密码',
+    invalidResetLink: '无效的重置链接',
+    resetLinkExpired: '此重置链接无效或已过期。',
+    requestNewLink: '请求新的重置链接',
+    resetSuccess: '密码重置成功，请使用新密码登录。',
+    resetFailed: '密码重置失败，链接可能已过期。',
+    // 邮箱验证页面
+    emailVerified: '邮箱验证成功！',
+    verificationFailed: '验证失败',
+    invalidVerificationLink: '无效的验证链接，未提供令牌。',
+    verificationError: '邮箱验证失败，链接可能已过期。',
+    goToLogin: '前往登录',
+  },
+
+  // Merchant approval
+  merchant: {
+    approval: {
+      pendingTitle: '账号待审核',
+      pendingDescription: '您的商户账号正在审核中，审核通过后我们将通过邮件通知您。',
+      rejectedTitle: '账号申请被拒绝',
+      rejectedDescription: '很抱歉，您的商户账号申请未通过审核。请查看以下拒绝原因并更新资料后重新申请。',
+      disabledTitle: '账号已禁用',
+      disabledDescription: '您的商户账号已被禁用，如有疑问请联系客服。',
+      rejectedReason: '拒绝原因',
+      editProfile: '编辑资料',
+      resubmit: '修改资料重新申请',
+    },
+  },
+
+  // Merchant Fulfillment
+  merchantFulfillment: {
+    list: '履约单列表',
+    accept: '接单',
+    reject: '拒绝',
+    ship: '发货',
+    acceptSuccess: '接单成功',
+    rejectSuccess: '已拒绝，订单将重新分配',
+    shipSuccess: '发货成功',
+    rejectReason: '拒绝原因',
+    carrier: '物流公司',
+    trackingNumber: '物流单号',
+    trackingUrl: '物流链接',
+    deadline: '响应截止时间',
+    expired: '已超时',
   },
 
   // Dashboard
@@ -153,6 +261,7 @@ export default {
     title: '工作台',
     description: '欢迎回来！以下是您的业务概览。',
     todayOrders: '今日订单',
+    todayRevenue: '今日营收',
     todaySales: '今日销售额',
     inventoryAlerts: '库存预警',
     fulfillmentExceptions: '履约异常',
@@ -160,6 +269,29 @@ export default {
     topProducts: '热销商品',
     fromLastMonth: '较上月',
     activeListings: '在售商品',
+    vsYesterday: '较昨日',
+    pendingExceptions: '待处理异常',
+    allocationFailed: '分配失败',
+    orderStatusDistribution: '订单状态分布',
+    fulfillmentStatusDistribution: '履约状态分布',
+    trendTitle: '7日趋势',
+    operationalAlerts: '运营提醒',
+    quickStats: '快速统计',
+    syncFailed: '同步失败',
+    outOfStock: '库存不足',
+    inboundExceptions: '入库异常',
+    pendingApprovals: '待审批',
+    recentExceptions: '最近异常',
+    pendingFulfillments: '待处理履约单',
+    viewAll: '查看全部',
+    channelProducts: '渠道商品',
+    activeMerchants: '活跃商户',
+    platformWarehouse: '平台仓履约',
+    merchantWarehouse: '商家自履约',
+    needsAttention: '需要处理',
+    noAlerts: '暂无提醒',
+    orders: '订单',
+    fulfillments: '履约单',
   },
 
   // Products
@@ -288,6 +420,14 @@ export default {
     updateBarcode: '更新条码',
     pricePlaceholder: '请输入价格',
     originalPricePlaceholder: '请输入发售价',
+    // 商品批量操作
+    batchOperation: '批量操作',
+    batchUpdateStatus: '批量修改状态',
+    batchSelectStatus: '选择目标状态',
+    batchStatusHint: '您正在修改 {{count}} 个选中商品的状态',
+    batchStatusUpdated: '已成功更新 {{count}} 个商品的状态',
+    selectAll: '全选',
+    deselectAll: '取消全选',
   },
 
   // Orders
@@ -500,6 +640,12 @@ export default {
     updated: '仓库更新成功',
     deleted: '仓库已删除',
     confirmDelete: '确定要删除此仓库吗？',
+    infoTitle: '仓库类型说明',
+    logicalWarehouse: '逻辑仓库',
+    logicalWarehouseDesc:
+      '商户虚拟定义的仓库，无需确定具体物理位置，仅作为库存维护的载体。商户可以选择逻辑仓库的库存进行自履约业务。',
+    platformWarehouse: '平台仓库',
+    platformWarehouseDesc: '由平台运营维护的实体仓库，主要用于支持寄售业务。',
   },
 
   // Warehouse Users
@@ -563,6 +709,9 @@ export default {
     descriptionMaxLength: '品牌描述最多500个字符',
     sortOrderTooltip: '数字越小越靠前，默认为0',
     namePlaceholder: '输入品牌名称',
+    batchActivate: '批量启用',
+    batchDeactivate: '批量停用',
+    batchStatusConfirm: '确定要对选中的 {{count}} 个品牌执行此操作吗？',
   },
 
   // My Channels (Merchant)
@@ -607,6 +756,12 @@ export default {
     enable: '启用',
     channelEnabled: '渠道已启用',
     suspendedByAdmin: '被管理员暂停',
+    // Resubmit
+    resubmit: '重新申请',
+    resubmitApplication: '重新提交申请',
+    resubmitSuccess: '已重新提交申请',
+    resubmitHint: '您的申请已被拒绝，请修改后重新提交审核',
+    rejectedReason: '拒绝原因',
   },
 
   // Sales Channels
@@ -710,6 +865,7 @@ export default {
       autoPriority: '自动分配',
       manualPriority: '手动设置',
     },
+    consignmentWarehouseAlert: '若渠道支持寄售，请务必配置仓库',
   },
 
   // Merchant Channels
@@ -877,6 +1033,8 @@ export default {
     merchantNotes: '商户备注',
     warehouseNotes: '仓库备注',
     cancelReason: '取消原因',
+    currency: '币种',
+    currencyRequired: '请选择币种',
     orderItems: '商品明细',
     orderTimeline: '订单时间线',
     shipmentInfo: '物流信息',
@@ -992,6 +1150,7 @@ export default {
     // 确认对话框
     confirmSubmit: '确认提交',
     confirmSubmitDesc: '提交后将无法修改商品清单，确认提交吗？',
+    unitCostRequiredForSubmit: '提交前请填写所有商品的成本价',
     confirmCancel: '确认取消',
     confirmCancelDesc: '取消后将无法恢复，确认取消吗？',
     confirmDelete: '确认删除',
@@ -1111,6 +1270,33 @@ export default {
     enterResolutionNotes: '请输入处理说明（选填）',
   },
 
+  // Admin Inbound Management
+  adminInbound: {
+    title: '入库单管理',
+    merchant: '商户',
+    allMerchants: '全部商户',
+    allWarehouses: '全部仓库',
+    dateRange: '创建日期',
+  },
+
+  // Admin Outbound Management
+  adminOutbound: {
+    title: '出库单管理',
+    merchant: '商户',
+    allMerchants: '全部商户',
+    allWarehouses: '全部仓库',
+    outboundType: '出库类型',
+    typeSales: '销售出库',
+    typeReturnToMerchant: '退还商户',
+    typeTransfer: '调拨出库',
+    typeScrap: '报废出库',
+    receiverInfo: '收件人信息',
+    shippingInfo: '物流信息',
+    fulfillmentInfo: '履约信息',
+    merchantAndWarehouse: '商户 & 仓库',
+    searchOutboundNo: '搜索出库单号...',
+  },
+
   // Merchant Stock Query
   merchantStock: {
     title: '库存查询',
@@ -1152,6 +1338,71 @@ export default {
     totalReserved: '锁定总数',
     totalDamaged: '破损总数',
     warehouseCount: '仓库数',
+    // Add/Adjust inventory
+    addInventory: '添加库存',
+    adjust: '调整',
+    adjustInventory: '调整库存',
+    createInventory: '创建库存',
+    inventoryCreated: '库存创建成功',
+    inventoryAdjusted: '库存调整成功',
+    noMerchantWarehouse: '未找到逻辑仓库，请先创建一个。',
+    createWarehouse: '创建仓库',
+    selectedSku: '已选SKU',
+    searchSku: '搜索SKU',
+    searchByStyleOrSku: '搜索款号或SKU编码...',
+    noProductsFound: '未找到商品',
+    typeToSearch: '输入以搜索商品',
+    availableSizes: '可选尺码',
+    quantity: '数量',
+    enterQuantity: '输入数量',
+    unitCost: '单位成本',
+    optional: '可选',
+    notes: '备注',
+    pleaseSelectSku: '请选择SKU',
+    // Adjust modal
+    currentStock: '当前库存',
+    currentCost: '当前成本',
+    adjustmentType: '调整方式',
+    adjustSet: '设为指定值',
+    adjustIncrease: '增加',
+    adjustDecrease: '减少',
+    adjustPreview: '预览',
+    unitCostHint: '留空保持当前成本',
+    current: '当前',
+    cannotDecreaseMoreThanAvailable: '减少数量不能超过可用库存',
+    product: '商品',
+    sku: 'SKU',
+    // Import
+    batchImport: '批量导入',
+    previewImport: '预览导入',
+    uploadFile: '上传文件',
+    downloadTemplate: '下载模板',
+    clickOrDragUpload: '点击或拖拽文件到此处上传',
+    supportExcelFormat: '支持 .xlsx, .xls 格式',
+    onlyExcelFiles: '只支持 Excel 文件',
+    pleaseUploadFile: '请上传文件',
+    previewAndImport: '预览并导入',
+    row: '行号',
+    skuCode: 'SKU编码',
+    status: '状态',
+    existsInWarehouse: '已存在库存',
+    canImport: '可导入',
+    total: '总计',
+    canImportCount: '可导入',
+    errorsCountLabel: '错误',
+    conflictWarning: '有 {{count}} 条数据在该仓库已存在库存，请选择处理方式：',
+    conflictSkip: '跳过已存在的（不导入）',
+    conflictOverride: '覆盖已存在的（用新数量替换）',
+    conflictAdd: '累加到已存在的（在原数量上增加）',
+    confirmImport: '确认导入',
+    noValidItems: '没有可导入的有效数据',
+    importSuccess: '导入成功',
+    importCompleted: '导入完成',
+    importedCount: '成功导入 {{count}} 条',
+    skippedCount: '跳过 {{count}} 条',
+    errorsCount: '错误 {{count}} 条',
+    viewInventory: '查看库存',
+    importAgain: '继续导入',
   },
 
   // Warehouse Operations
@@ -1164,6 +1415,16 @@ export default {
     awaitingArrival: '待到货',
     pendingReceiving: '待收货',
     completedToday: '今日完成',
+
+    // Inbound order status (warehouse perspective)
+    inboundStatusDraft: '草稿',
+    inboundStatusPending: '待发货',
+    inboundStatusShipped: '待收货',
+    inboundStatusArrived: '已到达',
+    inboundStatusReceiving: '收货中',
+    inboundStatusCompleted: '已完成',
+    inboundStatusPartialCompleted: '部分完成',
+    inboundStatusCancelled: '已取消',
 
     // Inbound Detail
     startReceiving: '开始收货',
@@ -1270,12 +1531,20 @@ export default {
     receiverInfo: '收件人信息',
     shippedAt: '发货时间',
     cancelReason: '取消原因',
+    viewShippingLabel: '查看面单',
+    shippingLabel: '物流面单',
+    downloadLabel: '下载',
 
     // Dashboard
     dashboard: {
       title: '工作台',
+      inOutStats: '出入库统计',
       inboundStats: '入库统计',
       outboundStats: '出库统计',
+      pendingReceiving: '待收货',
+      pendingShipment: '待发货',
+      inboundToday: '今日入库',
+      outboundToday: '今日出库',
       trendTitle: '近7天入库/出库趋势',
       inboundCompleted: '入库完成',
       outboundCompleted: '出库完成',
@@ -1286,6 +1555,7 @@ export default {
     inventoryTitle: '库存查询',
     inventoryDescription: '查询本仓库的库存情况',
     productImage: '商品图片',
+    productInfo: '商品信息',
     styleNumber: '款号',
     color: '颜色',
     inTransit: '在途',
@@ -1308,6 +1578,10 @@ export default {
     merchantProfileDesc: '管理您的商户基本信息、联系方式和地址',
     merchantNotFound: '未找到商户信息',
     profileUpdated: '商户信息更新成功',
+    profileResubmitted: '资料已更新，已重新提交审核',
+    resubmitTitle: '重新提交审核',
+    resubmitDescription: '您的申请已被拒绝，请修改资料后保存，将自动重新提交审核。',
+    saveAndResubmit: '保存并重新提交',
     accountStatus: '账户状态',
     approvedAt: '审核通过时间',
     rejectedReason: '拒绝原因',
@@ -1333,6 +1607,94 @@ export default {
     walletNotInitialized: '钱包尚未初始化',
   },
 
+  // API Keys
+  apiKeys: {
+    title: 'API 密钥',
+    description: '管理您的 API 密钥，用于系统集成',
+    create: '创建密钥',
+    createTitle: '创建 API 密钥',
+    createWarning: '密钥只会显示一次，请妥善保存。',
+    name: '名称',
+    nameLabel: '密钥名称',
+    namePlaceholder: '例如：ERP 集成',
+    nameRequired: '请输入密钥名称',
+    nameMaxLength: '密钥名称不能超过 100 个字符',
+    keyId: '密钥 ID',
+    permissions: '权限',
+    permissionsLabel: '权限设置',
+    permissionsRequired: '请至少选择一个权限',
+    ipWhitelist: 'IP 白名单',
+    ipWhitelistLabel: 'IP 白名单（可选）',
+    ipWhitelistHelp: '每行输入一个 IP 地址。留空则允许所有 IP 访问。',
+    ipWhitelistPlaceholder: '192.168.1.1\n10.0.0.0',
+    noIpRestriction: '无 IP 限制',
+    status: '状态',
+    statusActive: '已激活',
+    statusSuspended: '已暂停',
+    statusRevoked: '已撤销',
+    createdAt: '创建时间',
+    lastUsedAt: '最后使用',
+    neverUsed: '从未使用',
+    expiresAt: '过期时间',
+    neverExpires: '永不过期',
+    noIpRestrictionDesc: '允许所有 IP 地址访问',
+    noPermissions: '无权限',
+    secretWarningTitle: '保存您的 API 密钥',
+    secretWarningContent: '这是您唯一一次看到此密钥的机会，请立即复制并妥善保存。',
+    regenerateSecret: '重新生成密钥',
+    regenerateConfirmTitle: '确认重新生成？',
+    regenerateConfirmContent: '这将使当前密钥失效，所有使用此密钥的应用程序都需要更新。',
+    suspend: '暂停',
+    activate: '激活',
+    delete: '删除',
+    deleteConfirmTitle: '确认删除？',
+    deleteConfirmContent: '此操作无法撤销，所有使用此密钥的应用程序将停止工作。',
+    created: 'API 密钥创建成功',
+    deleted: 'API 密钥已删除',
+    suspended: 'API 密钥已暂停',
+    activated: 'API 密钥已激活',
+    permissionsUpdated: '权限已更新',
+    ipWhitelistUpdated: 'IP 白名单已更新',
+    secretRegenerated: '密钥已重新生成',
+    maxLimitReached: '已达到 API 密钥数量上限',
+    emptyDescription: '您还没有 API 密钥。创建一个用于与外部系统集成。',
+    editPermissionsTitle: '编辑权限',
+    editIpWhitelistTitle: '编辑 IP 白名单',
+    // Permissions
+    perm: {
+      inventoryRead: '库存读取',
+      inventoryWrite: '库存写入',
+      inboundRead: '入库读取',
+      inboundWrite: '入库写入',
+      fulfillmentRead: '履约读取',
+      fulfillmentWrite: '履约写入',
+      settlementRead: '结算读取',
+      listingRead: '上架读取',
+      listingWrite: '上架写入',
+      webhookManage: 'Webhook 管理',
+    },
+  },
+
+  // Admin API Keys Management
+  adminApiKeys: {
+    title: '商户 API 密钥',
+    description: '管理商户的 API 密钥',
+    create: '创建密钥',
+    createTitle: '创建 API 密钥',
+    selectMerchant: '选择商户',
+    searchMerchant: '搜索商户...',
+    searchMerchantPlaceholder: '输入商户名称搜索',
+    merchantRequired: '请选择商户',
+    owner: '所属商户',
+    expiresAt: '过期时间',
+    expiresAtHelp: '留空则永不过期',
+    noExpiration: '永不过期',
+    confirmActivate: '确认激活该密钥？',
+    confirmSuspend: '确认暂停该密钥？',
+    confirmDelete: '确认删除该密钥？',
+    statusUpdated: '状态已更新',
+  },
+
   // Opportunities (Business Discovery)
   opportunities: {
     title: '商机发现',
@@ -1346,6 +1708,7 @@ export default {
     skuCount: '尺码数',
     skuCountValue: '{{count}} 个尺码',
     skuList: 'SKU列表',
+    size: '尺码',
     statusLabel: '状态',
     priceRange: '价格区间',
     searchPlaceholder: '搜索商品名称或款号',
@@ -1380,6 +1743,7 @@ export default {
     description: '查看和管理您的出库单',
 
     // Fields
+    outboundNo: '出库单号',
     orderNo: '出库单号',
     outboundType: '出库类型',
     receiver: '收件人',
@@ -1456,6 +1820,11 @@ export default {
     postalCode: '邮编',
     cancelledAt: '取消时间',
     cancelReason: '取消原因',
+    pickingStartedAt: '开始拣货时间',
+    pickingCompletedAt: '拣货完成时间',
+    packingStartedAt: '开始打包时间',
+    packingCompletedAt: '打包完成时间',
+    shippedAt: '发货时间',
     stockType: '库存类型',
 
     // Timeline Events
@@ -1552,6 +1921,7 @@ export default {
     categoryPriority: '优先级',
     categoryFeeRate: '费率',
     categoryFeerate: '费率',
+    categoryHint: '分类的选择仅作标志管理，不实际影响结果',
 
     // Actions
     addRule: '添加规则',
@@ -1568,9 +1938,12 @@ export default {
     cannotDeleteSystem: '系统规则不能删除',
     cannotModifySystem: '系统规则不能修改',
     systemRule: '系统规则',
+    systemRuleWarning: '这是一个系统规则',
+    systemRuleWarningDesc: '系统规则不能修改，您只能查看规则详情。',
 
     // Form
     codePlaceholder: '例如：markup_rate_15',
+    codeTooltip: '留空时将根据规则名称自动生成',
     codeRequired: '请输入规则编码',
     codeMaxLength: '规则编码不能超过100个字符',
     codeInvalid: '规则编码必须以字母开头，只能包含小写字母、数字和下划线',
@@ -1596,6 +1969,49 @@ export default {
     expressionValid: '表达式有效',
     validating: '验证中',
     validationFailed: '验证失败',
+
+    // Variable descriptions - Pricing Rules
+    var_value: '当前计算值（规则链中间值）',
+    var_cost: '商品成本价',
+    var_referencePrice: 'SKU 参考价格',
+    var_originalPrice: '商品原价',
+    var_channelCode: '销售渠道编码',
+    var_sizeValue: '尺码值',
+    var_sizeUnit: '尺码单位',
+    var_config: '规则配置对象',
+
+    // Variable descriptions - Stock Allocation Rules
+    var_availableStock: '可分配库存数量',
+    var_totalStock: '总库存数量（在手）',
+    var_reservedStock: '已预留库存数量',
+
+    // Variable descriptions - Platform Rules
+    var_merchantPrice: '商户销售价格',
+    var_brand: '品牌名称',
+    var_brandSlug: '品牌标识',
+    var_category: '分类名称',
+    var_categorySlug: '分类标识',
+    var_merchantId: '商户ID',
+    var_orderAmount: '订单金额',
+
+    // Function descriptions
+    func_markup: '在基础价格上加价指定比例。例如：markup(100, 0.15) = 115',
+    func_discount: '在基础价格上打折指定比例。例如：discount(100, 0.1) = 90',
+    func_addFee: '添加费用（百分比 + 固定金额）。例如：addFee(100, 0.05, 2) = 107',
+    func_ratio: '按指定比例计算（向下取整）。例如：ratio(100, 0.8) = 80',
+    func_limit: '限制最大值。例如：limit(150, 100) = 100',
+    func_tieredRate: '获取阶梯费率。例如：tieredRate(8000, [[10000, 0.03], [5000, 0.04], [0, 0.05]]) = 0.04',
+    func_round: '四舍五入到指定小数位。例如：round(3.1415, 2) = 3.14',
+    func_floor: '向下取整。例如：floor(3.9) = 3',
+    func_ceil: '向上取整。例如：ceil(3.1) = 4',
+    func_min: '返回最小值。例如：min(5, 3) = 3',
+    func_max: '返回最大值。例如：max(5, 3) = 5',
+    func_abs: '返回绝对值。例如：abs(-5) = 5',
+    func_inList: '检查值是否在列表中。例如：inList("nike", ["nike", "adidas"]) = true',
+    func_startsWith: '检查字符串前缀。例如：startsWith("nike-air", "nike") = true',
+    func_endsWith: '检查字符串后缀。例如：endsWith("nike-air", "air") = true',
+    func_contains: '检查字符串是否包含子串。例如：contains("nike-air-max", "air") = true',
+    func_config: '获取规则配置值。例如：config("rate", 0.1)',
 
     // Test Panel
     testExecution: '测试执行',
@@ -1646,6 +2062,8 @@ export default {
     remark: '备注',
     warehouse: '仓库',
     platformWarehouse: '平台仓',
+    logicalWarehouse: '逻辑仓',
+    size: '尺码',
     shareableQuantity: '可分配数量',
 
     // Status
@@ -1776,5 +2194,491 @@ export default {
     operationActivate: '激活上架',
     operationPause: '暂停上架',
     operationDelete: '删除上架',
+  },
+
+  // Channel Products (Admin)
+  channelProducts: {
+    product: '商品',
+    productSku: '商品SKU',
+    size: '尺码',
+    salesChannel: '销售渠道',
+    platformPrice: '平台价格',
+    stockQuantity: '库存数量',
+    status: '状态',
+    syncStatus: '同步状态',
+    externalId: '外部ID',
+    lastSyncedAt: '最后同步时间',
+    searchPlaceholder: '搜索商品名称或SKU编码...',
+
+    // Status
+    statusDraft: '草稿',
+    statusPending: '待处理',
+    statusActive: '已激活',
+    statusPaused: '已暂停',
+    statusRejected: '已拒绝',
+    statusDelisted: '已下架',
+
+    // Sync Status
+    syncPending: '待同步',
+    syncSyncing: '同步中',
+    syncSynced: '已同步',
+    syncFailed: '同步失败',
+
+    // Actions
+    activate: '激活',
+    pause: '暂停',
+    delist: '下架',
+    relist: '重新上架',
+    sync: '同步',
+    triggerSync: '触发同步',
+
+    // Messages
+    activated: '渠道商品已激活',
+    paused: '渠道商品已暂停',
+    delisted: '渠道商品已下架',
+    syncTriggered: '已触发同步',
+    syncTriggeredWithCorrection: '已触发同步，修正了 {{count}} 个数据源状态',
+
+    // Delist Confirmation
+    delistConfirmTitle: '确认下架',
+    delistConfirmDescription: '此操作将从外部销售渠道移除该商品，是否继续？',
+
+    // Detail Page
+    notFound: '渠道商品不存在',
+    productInfo: '商品信息',
+    channelInfo: '渠道信息',
+    basicInfo: '基本信息',
+    productName: '商品名称',
+    skuCode: 'SKU编码',
+    styleNumber: '款号',
+    color: '颜色',
+    stockMode: '库存模式',
+    stockModeAggregate: '聚合',
+    stockModeLowest: '最低价格',
+    stockModeFixed: '固定',
+    sourcesCount: '数据源数量',
+    syncLogs: '同步日志',
+
+    // Sync Log Columns
+    operation: '操作类型',
+    triggerSource: '触发来源',
+    logStatus: '状态',
+    errorMessage: '错误信息',
+    duration: '耗时',
+    startedAt: '开始时间',
+
+    // Operations
+    operationAggregate: '聚合库存',
+    operationPushProduct: '推送商品',
+    operationUpdateStockPrice: '更新库存价格',
+    operationDelist: '下架商品',
+
+    // Trigger Sources
+    triggerListingCreate: '上架创建',
+    triggerListingUpdate: '上架更新',
+    triggerListingActivate: '上架激活',
+    triggerListingPause: '上架暂停',
+    triggerListingDelete: '上架删除',
+    triggerInventoryInbound: '库存入库',
+    triggerInventoryOutbound: '库存出库',
+    triggerInventoryAdjust: '库存调整',
+    triggerManual: '手动触发',
+    triggerScheduled: '定时任务',
+    triggerCompensation: '补偿同步',
+
+    // Log Status
+    logStatusPending: '待处理',
+    logStatusProcessing: '处理中',
+    logStatusSuccess: '成功',
+    logStatusFailed: '失败',
+    logStatusSkipped: '跳过',
+
+    // Inventory Sources
+    inventorySources: '库存来源',
+    sourceMerchant: '商户',
+    sourceWarehouse: '仓库',
+    sourcePrice: '报价',
+    sourceAvailable: '可用库存',
+    sourceAllocation: '分配模式',
+    sourceFulfillment: '履约模式',
+    sourceScore: '评分',
+    allocationRank: '分配顺序',
+    sourcePriority: '优先级',
+    sourceStatus: '状态',
+    sourceSold: '已售',
+    sourceActive: '启用',
+    sourceInactive: '禁用',
+
+    // Allocation Mode
+    allocationShared: '共享',
+    allocationDedicated: '独占',
+
+    // Fulfillment Type
+    fulfillmentConsignment: '寄售',
+    fulfillmentSelfFulfillment: '自履约',
+
+    // Listing Status
+    listingStatusDraft: '草稿',
+    listingStatusActive: '已上架',
+    listingStatusPaused: '已暂停',
+    listingStatusSoldOut: '已售罄',
+  },
+
+  // Order Exception (Dashboard)
+  orderException: {
+    exceptionNo: '异常单号',
+    type: '异常类型',
+    typeInventoryInsufficient: '库存不足',
+    typeAllocationFailed: '分配失败',
+    typeFulfillmentRejected: '履约被拒绝',
+    typeFulfillmentExpired: '履约超时',
+  },
+
+  // Fulfillment - Order Exceptions & Platform Orders
+  fulfillment: {
+    // Platform Orders
+    platformOrderNo: '平台订单号',
+    externalOrderNo: '外部订单号',
+    salesChannel: '销售渠道',
+    paymentStatus: '支付状态',
+    receiver: '收货人',
+    receiverInfo: '收货信息',
+    receiverPhone: '联系电话',
+    receiverProvince: '省份',
+    receiverCity: '城市',
+    receiverDistrict: '区县',
+    receiverPostalCode: '邮编',
+    receiverAddress: '详细地址',
+    buyerRemark: '买家备注',
+    sellerRemark: '卖家备注',
+    itemCount: '商品数',
+    productAmount: '商品金额',
+    shippingAmount: '运费',
+    discountAmount: '优惠',
+    placedAt: '下单时间',
+    paidAt: '支付时间',
+    orderItems: '商品信息',
+    relatedExceptions: '关联异常',
+    viewException: '查看异常',
+    viewShippingLabel: '查看面单',
+    pendingShippingLabel: '待获取面单',
+    shippingLabel: '面单',
+    noExceptions: '无异常',
+    productImage: '商品图片',
+    productName: '商品名称',
+    unitPrice: '单价',
+    totalPrice: '小计',
+    allocatedQuantity: '已分配数量',
+    allocationStatus: '分配状态',
+    allocationFailReason: '分配失败原因',
+
+    // Order statuses
+    orderStatusPending: '待处理',
+    orderStatusAllocating: '分配中',
+    orderStatusAllocated: '已分配',
+    orderStatusAllocationFailed: '分配失败',
+    orderStatusFulfilling: '履约中',
+    orderStatusShipped: '已发货',
+    orderStatusDelivered: '已签收',
+    orderStatusCompleted: '已完成',
+    orderStatusCancelled: '已取消',
+
+    // Payment statuses
+    paymentStatusPending: '待支付',
+    paymentStatusPaid: '已支付',
+    paymentStatusRefunded: '已退款',
+    paymentStatusPartialRefunded: '部分退款',
+
+    // Exception fields
+    exceptionNo: '异常单号',
+    orderNo: '订单号',
+    exceptionType: '异常类型',
+    exceptionDescription: '异常描述',
+    exceptionDetails: '异常详情',
+    resolution: '处理方式',
+    resolutionNotes: '处理说明',
+    resolvedAt: '处理时间',
+    resolvedBy: '处理人',
+    orderInfo: '订单信息',
+    orderStatus: '订单状态',
+    orderAmount: '订单金额',
+
+    // Exception types
+    typeInventoryInsufficient: '平台库存不足',
+    typePriceBelowPlatform: '价格低于平台价',
+    typeProductNotMatched: '商品未匹配',
+    typeOther: '其他',
+
+    // Exception statuses
+    statusPending: '待处理',
+    statusResolved: '已解决',
+    statusClosed: '已关闭',
+
+    // Resolutions
+    resolutionConfirm: '确认订单',
+    resolutionCancel: '取消订单',
+    resolutionAdjusted: '已调整',
+
+    // Actions
+    resolveException: '处理异常',
+    closeException: '关闭异常',
+    selectResolution: '请选择处理方式',
+    enterResolutionNotes: '请输入处理说明',
+    resolutionRequired: '请选择处理方式',
+
+    // Messages
+    exceptionResolved: '异常已处理',
+    exceptionClosed: '异常已关闭',
+  },
+
+  // Fulfillment Orders
+  fulfillmentOrder: {
+    // Fields
+    fulfillmentNo: '履约单号',
+    type: '履约类型',
+    typePlatform: '平台仓发货',
+    typeMerchant: '商家自发货',
+    relatedOrder: '关联订单',
+    itemCount: '商品数',
+    totalQuantity: '总数量',
+    logistics: '物流信息',
+    deadline: '响应截止时间',
+    shippingCarrier: '物流公司',
+    trackingNumber: '物流单号',
+    trackingUrl: '物流追踪链接',
+    trackLink: '追踪物流',
+    allocationSource: '分配来源',
+    allocationAttempt: '分配次数',
+    shippedAt: '发货时间',
+    orderInfo: '订单信息',
+    items: '履约商品',
+    outboundOrder: '出库单',
+    allocatedQuantity: '分配数量',
+    orderQuantity: '订单数量',
+    listPrice: '上架价格',
+    settlementPrice: '结算价格',
+
+    // Status
+    statusPending: '待处理',
+    statusProcessing: '处理中',
+    statusShipped: '已发货',
+    statusDelivered: '已签收',
+    statusCompleted: '已完成',
+    statusCancelled: '已取消',
+    statusRejected: '已拒绝',
+    statusExpired: '已超时',
+
+    // Overdue
+    overdue: '已超时',
+    overdueWarning: '已超过响应截止时间',
+
+    // Timeline
+    timeline: '时间线',
+    timelineCreated: '履约单创建',
+    timelineNotified: '通知商户',
+    timelineShipped: '已发货',
+    timelineDelivered: '已签收',
+    timelineCompleted: '已完成',
+    timelineCancelled: '已取消',
+    timelineRejected: '商户拒绝',
+    timelineExpired: '响应超时',
+    timelineDeadline: '响应截止时间',
+    timelineOverdue: '已超时（未响应）',
+  },
+
+  // Settlements
+  settlements: {
+    title: '结算单一览',
+    settlementNo: '结算单号',
+    merchant: '商户',
+    orderNo: '订单号',
+    fulfillmentNo: '履约单号',
+    grossAmount: '结算金额',
+    commissionRate: '佣金比例',
+    commissionAmount: '佣金金额',
+    netAmount: '实际到账',
+    currency: '币种',
+    status: '状态',
+    settlementDays: '结算周期',
+    scheduledSettleAt: '预计结算时间',
+    settledAt: '实际结算时间',
+    cancelledAt: '取消时间',
+    cancelReason: '取消原因',
+    // 状态
+    statusPending: '待结算',
+    statusSettled: '已结算',
+    statusCancelled: '已取消',
+    // 详情
+    basicInfo: '基本信息',
+    amountInfo: '金额信息',
+    timeInfo: '时间信息',
+    itemList: '结算明细',
+    // items
+    skuCode: 'SKU',
+    productName: '商品名称',
+    quantity: '数量',
+    unitPrice: '单价',
+    // 操作
+    settle: '立即结算',
+    confirmSettle: '确认结算',
+    confirmSettleMessage: '确定要立即结算该结算单吗？这将立即将款项入账到商户钱包。',
+    settleSuccess: '结算成功',
+  },
+
+  // Payouts
+  payouts: {
+    title: '提现申请',
+    payoutNo: '提现单号',
+    merchant: '商户',
+    amount: '申请金额',
+    fee: '手续费',
+    actualAmount: '实际到账',
+    currency: '币种',
+    status: '状态',
+    bankName: '银行名称',
+    accountNumber: '银行账号',
+    accountHolder: '户名',
+    // 状态
+    statusPending: '待审核',
+    statusApproved: '已通过',
+    statusProcessing: '处理中',
+    statusCompleted: '已完成',
+    statusRejected: '已拒绝',
+    statusFailed: '失败',
+    // 操作
+    approve: '通过',
+    reject: '拒绝',
+    approveConfirm: '确认通过该提现申请？',
+    approveSuccess: '审核通过成功',
+    rejectSuccess: '已拒绝该提现申请',
+    rejectReason: '拒绝原因',
+    rejectReasonRequired: '请输入拒绝原因',
+    // 详情
+    basicInfo: '基本信息',
+    amountInfo: '金额信息',
+    bankInfo: '收款账户',
+    timeline: '处理进度',
+    reviewInfo: '审核信息',
+    reviewedBy: '审核人',
+    rejectReasonLabel: '拒绝原因',
+    failReason: '失败原因',
+  },
+
+  // Bank Accounts (Merchant)
+  bankAccounts: {
+    title: '银行账户管理',
+    description: '管理您的银行收款账户',
+    bankName: '银行名称',
+    bankCode: '银行代码',
+    branchName: '支行名称',
+    accountNumber: '银行账号',
+    accountHolder: '户名',
+    accountType: '账户类型',
+    currency: '币种',
+    status: '状态',
+    isDefault: '默认账户',
+    // 账户类型
+    typeCorporate: '对公账户',
+    typePersonal: '个人账户',
+    // 状态
+    statusPending: '待验证',
+    statusActive: '已启用',
+    statusDisabled: '已禁用',
+    // 操作
+    addAccount: '添加账户',
+    editAccount: '编辑账户',
+    deleteAccount: '删除账户',
+    setDefault: '设为默认',
+    setDefaultSuccess: '已设为默认账户',
+    deleteConfirm: '确定删除该银行账户？',
+    deleteSuccess: '账户删除成功',
+    createSuccess: '账户添加成功',
+    updateSuccess: '账户更新成功',
+    // 表单
+    bankNameRequired: '请输入银行名称',
+    bankNamePlaceholder: '如：中国银行',
+    bankCodePlaceholder: '选填，如：BOC',
+    branchNamePlaceholder: '选填，如：北京分行',
+    accountNumberRequired: '请输入银行账号',
+    accountNumberPlaceholder: '请输入完整银行账号',
+    accountHolderRequired: '请输入户名',
+    accountHolderPlaceholder: '请输入账户户名',
+    accountTypeRequired: '请选择账户类型',
+    accountTypePlaceholder: '请选择账户类型',
+  },
+
+  // Merchant Settlements
+  merchantSettlements: {
+    title: '我的结算单',
+    description: '查看您的结算记录',
+    pendingAmount: '待结算金额',
+    settledAmount: '已结算金额',
+    settlementDetail: '结算单详情',
+    settlementItems: '结算明细',
+    backToList: '返回列表',
+    // 状态
+    statusPending: '待结算',
+    statusSettled: '已结算',
+    statusCancelled: '已取消',
+  },
+
+  // Merchant Payouts
+  merchantPayouts: {
+    title: '提现申请',
+    description: '申请提现到您的银行账户',
+    availableBalance: '可提现余额',
+    processingAmount: '处理中金额',
+    requestPayout: '申请提现',
+    selectBankAccount: '选择收款账户',
+    selectBankAccountPlaceholder: '请选择收款账户',
+    withdrawAmount: '提现金额',
+    withdrawAmountPlaceholder: '请输入提现金额',
+    remark: '备注',
+    remarkPlaceholder: '选填，最多500字',
+    amountRequired: '请输入提现金额',
+    amountExceedsBalance: '提现金额不能超过可提现余额',
+    bankAccountRequired: '请选择收款账户',
+    noActiveBankAccount: '暂无可用银行账户，请先添加',
+    createSuccess: '提现申请已提交',
+    payoutDetail: '提现详情',
+    // 状态
+    statusPending: '待审核',
+    statusApproved: '已通过',
+    statusProcessing: '处理中',
+    statusCompleted: '已完成',
+    statusRejected: '已拒绝',
+    statusFailed: '失败',
+  },
+
+  // Merchant Dashboard
+  merchantDashboard: {
+    title: '商户工作台',
+    // Inventory Summary
+    inventorySummary: '库存概览',
+    availableStock: '可用库存',
+    inTransitStock: '在途库存',
+    reservedStock: '已预留库存',
+    warehouses: '个仓库',
+    pendingExceptions: '待处理异常',
+    // Finance Summary
+    financeSummary: '财务概览',
+    availableBalance: '可用余额',
+    depositBalance: '保证金余额',
+    frozen: '冻结',
+    pendingSettlement: '待结算金额',
+    withdrawable: '可提现金额',
+    processing: '处理中',
+    // Pending Tasks
+    pendingTasks: '待处理事项',
+    pendingInbounds: '待处理入库单',
+    pendingOutbounds: '待处理出库单',
+    // Trend
+    trendTitle: '近7天入库/出库趋势',
+    inboundCompleted: '入库完成',
+    outboundShipped: '出库发货',
+    // Recent
+    recentInbounds: '最近入库单',
+    recentOutbounds: '最近出库单',
+    recentExceptions: '待处理异常',
   },
 }

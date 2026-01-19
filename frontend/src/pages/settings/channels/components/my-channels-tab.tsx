@@ -8,6 +8,7 @@ import {
   merchantChannelApi,
   type MyMerchantChannel,
 } from '@/lib/merchant-channel-api';
+import { ApplyChannelModal } from './apply-channel-modal';
 
 const statusColorMap: Record<string, string> = {
   pending: 'processing',
@@ -28,6 +29,8 @@ export function MyChannelsTab({ actionRef: externalRef }: Props) {
   const { message, modal } = App.useApp();
 
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [resubmitModalOpen, setResubmitModalOpen] = useState(false);
+  const [resubmitRecord, setResubmitRecord] = useState<MyMerchantChannel | null>(null);
 
   const handleCancelApplication = async (mc: MyMerchantChannel) => {
     modal.confirm({
@@ -87,6 +90,17 @@ export function MyChannelsTab({ actionRef: externalRef }: Props) {
     } finally {
       setActionLoading(null);
     }
+  };
+
+  const handleResubmit = (mc: MyMerchantChannel) => {
+    setResubmitRecord(mc);
+    setResubmitModalOpen(true);
+  };
+
+  const handleResubmitSuccess = () => {
+    setResubmitModalOpen(false);
+    setResubmitRecord(null);
+    actionRef.current?.reload();
   };
 
   const columns: ProColumns<MyMerchantChannel>[] = [
@@ -252,6 +266,19 @@ export function MyChannelsTab({ actionRef: externalRef }: Props) {
           );
         }
 
+        if (record.status === 'rejected') {
+          actions.push(
+            <Button
+              key="resubmit"
+              type="link"
+              size="small"
+              onClick={() => handleResubmit(record)}
+            >
+              {t('myChannels.resubmit')}
+            </Button>
+          );
+        }
+
         if (record.status === 'suspended') {
           // 被管理员暂停，无法操作
           actions.push(
@@ -267,43 +294,58 @@ export function MyChannelsTab({ actionRef: externalRef }: Props) {
   ];
 
   return (
-    <ProTable<MyMerchantChannel>
-      actionRef={actionRef}
-      columns={columns}
-      rowKey="id"
-      scroll={{ x: 1400 }}
-      request={async (params) => {
-        try {
-          const result = await merchantChannelApi.getMyChannels({
-            page: params.current,
-            limit: params.pageSize,
-            status: params.status,
-          });
-          return {
-            data: result.data,
-            success: true,
-            total: result.total,
-          };
-        } catch {
-          return {
-            data: [],
-            success: false,
-            total: 0,
-          };
-        }
-      }}
-      search={{
-        labelWidth: 'auto',
-        defaultCollapsed: true,
-      }}
-      options={{
-        density: true,
-        reload: true,
-      }}
-      pagination={{
-        defaultPageSize: 10,
-        showSizeChanger: true,
-      }}
-    />
+    <>
+      <ProTable<MyMerchantChannel>
+        actionRef={actionRef}
+        columns={columns}
+        rowKey="id"
+        scroll={{ x: 1400 }}
+        request={async (params) => {
+          try {
+            const result = await merchantChannelApi.getMyChannels({
+              page: params.current,
+              limit: params.pageSize,
+              status: params.status,
+            });
+            return {
+              data: result.data,
+              success: true,
+              total: result.total,
+            };
+          } catch {
+            return {
+              data: [],
+              success: false,
+              total: 0,
+            };
+          }
+        }}
+        search={{
+          labelWidth: 'auto',
+          defaultCollapsed: true,
+        }}
+        options={{
+          density: true,
+          reload: true,
+        }}
+        pagination={{
+          defaultPageSize: 10,
+          showSizeChanger: true,
+        }}
+      />
+
+      {/* Resubmit Modal */}
+      <ApplyChannelModal
+        open={resubmitModalOpen}
+        channel={resubmitRecord?.salesChannel || null}
+        onClose={() => {
+          setResubmitModalOpen(false);
+          setResubmitRecord(null);
+        }}
+        onSuccess={handleResubmitSuccess}
+        mode="resubmit"
+        existingData={resubmitRecord}
+      />
+    </>
   );
 }

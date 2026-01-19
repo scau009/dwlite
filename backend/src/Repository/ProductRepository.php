@@ -35,6 +35,11 @@ class ProductRepository extends ServiceEntityRepository
         }
     }
 
+    public function flush(): void
+    {
+        $this->getEntityManager()->flush();
+    }
+
     public function findBySlug(string $slug): ?Product
     {
         return $this->findOneBy(['slug' => $slug]);

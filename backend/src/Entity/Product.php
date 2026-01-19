@@ -6,7 +6,6 @@ use App\Repository\ProductRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Uid\Ulid;
 
 #[ORM\Entity(repositoryClass: ProductRepository::class)]
 #[ORM\Table(name: 'products')]
@@ -38,7 +37,7 @@ class Product
     #[ORM\Column(length: 220, unique: true)]
     private string $slug = '';
 
-    #[ORM\Column(name: 'style_number', length: 50)]
+    #[ORM\Column(name: 'style_number', length: 100)]
     private string $styleNumber = '';  // 款号
 
     #[ORM\Column(length: 20)]
@@ -56,14 +55,17 @@ class Product
     #[ORM\Column(name: 'is_active', type: 'boolean', options: ['default' => true])]
     private bool $isActive = true;
 
+    /** @var Collection<int, Tag> */
     #[ORM\ManyToMany(targetEntity: Tag::class, inversedBy: 'products')]
     #[ORM\JoinTable(name: 'product_tags')]
     private Collection $tags;
 
+    /** @var Collection<int, ProductSku> */
     #[ORM\OneToMany(targetEntity: ProductSku::class, mappedBy: 'product', cascade: ['persist', 'remove'], orphanRemoval: true)]
     #[ORM\OrderBy(['sortOrder' => 'ASC'])]
     private Collection $skus;
 
+    /** @var Collection<int, ProductImage> */
     #[ORM\OneToMany(targetEntity: ProductImage::class, mappedBy: 'product', cascade: ['persist', 'remove'], orphanRemoval: true)]
     #[ORM\OrderBy(['sortOrder' => 'ASC'])]
     private Collection $images;
@@ -76,7 +78,6 @@ class Product
 
     public function __construct()
     {
-        $this->id = (string) new Ulid();
         $this->tags = new ArrayCollection();
         $this->skus = new ArrayCollection();
         $this->images = new ArrayCollection();
@@ -87,6 +88,13 @@ class Product
     public function getId(): string
     {
         return $this->id;
+    }
+
+    public function setId(string $id): static
+    {
+        $this->id = $id;
+
+        return $this;
     }
 
     public function getBrand(): ?Brand

@@ -2,7 +2,7 @@
 -- Description: Shipping/logistics info for inbound orders
 
 CREATE TABLE `inbound_shipments` (
-    `id` VARCHAR(26) NOT NULL PRIMARY KEY COMMENT 'ULID',
+    `id` VARCHAR(26) NOT NULL PRIMARY KEY COMMENT 'Business ID (IS{8-digit})',
     `inbound_order_id` VARCHAR(26) NOT NULL UNIQUE,
 
     -- Carrier info

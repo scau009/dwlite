@@ -33,7 +33,7 @@ export function LoginPage() {
       return true;
     } catch (error) {
       const apiErr = error as ApiError;
-      message.error(apiErr.error || 'Login failed. Please try again.');
+      message.error(apiErr.error || t('auth.loginFailed'));
       return false;
     }
   };
@@ -63,7 +63,7 @@ export function LoginPage() {
               </h1>
             </div>
             <p style={{ color: 'var(--ant-color-text-secondary, #666)' }}>
-              {t('auth.loginSubtitle', 'Sign in to your account')}
+              {t('auth.loginSubtitle')}
             </p>
           </div>
 
@@ -94,10 +94,10 @@ export function LoginPage() {
                 size: 'large',
                 prefix: <UserOutlined />,
               }}
-              placeholder="you@example.com"
+              placeholder={t('auth.emailPlaceholder')}
               rules={[
-                { required: true, message: 'Please enter your email' },
-                { type: 'email', message: 'Please enter a valid email' },
+                { required: true, message: t('auth.emailRequired') },
+                { type: 'email', message: t('auth.emailInvalid') },
               ]}
             />
             <ProFormText.Password
@@ -107,7 +107,7 @@ export function LoginPage() {
                 prefix: <LockOutlined />,
               }}
               placeholder={t('auth.password')}
-              rules={[{ required: true, message: 'Please enter your password' }]}
+              rules={[{ required: true, message: t('auth.passwordRequired') }]}
             />
 
             <div className="mb-4">
@@ -119,7 +119,7 @@ export function LoginPage() {
 
           <div className="text-center mt-4">
             <span style={{ color: 'var(--ant-color-text-secondary, #666)' }}>
-              {t('auth.noAccount', "Don't have an account?")}{' '}
+              {t('auth.noAccount')}{' '}
             </span>
             <Link to="/register" className="text-blue-500 hover:underline">
               {t('auth.register')}

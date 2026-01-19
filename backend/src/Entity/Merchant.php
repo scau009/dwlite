@@ -72,9 +72,11 @@ class Merchant
     #[ORM\Column(type: 'datetime_immutable')]
     private \DateTimeImmutable $updatedAt;
 
+    /** @var Collection<int, Wallet> */
     #[ORM\OneToMany(targetEntity: Wallet::class, mappedBy: 'merchant', cascade: ['persist', 'remove'])]
     private Collection $wallets;
 
+    /** @var Collection<int, MerchantSalesChannel> */
     #[ORM\OneToMany(targetEntity: MerchantSalesChannel::class, mappedBy: 'merchant', cascade: ['persist', 'remove'])]
     private Collection $salesChannels;
 
@@ -311,6 +313,14 @@ class Merchant
         $this->status = self::STATUS_REJECTED;
         $this->rejectedReason = $reason;
         $this->approvedAt = null;
+
+        return $this;
+    }
+
+    public function resubmit(): static
+    {
+        $this->status = self::STATUS_PENDING;
+        $this->rejectedReason = null;
 
         return $this;
     }

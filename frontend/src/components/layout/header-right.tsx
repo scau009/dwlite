@@ -45,8 +45,8 @@ export function HeaderRight() {
       key: 'logout',
       icon: <LogoutOutlined />,
       label: t('header.logout'),
-      onClick: () => {
-        logout();
+      onClick: async () => {
+        await logout();
         navigate('/login');
       },
     },

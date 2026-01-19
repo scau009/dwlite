@@ -58,6 +58,8 @@ class MerchantProfileController extends AbstractController
             return $this->json(['error' => $this->translator->trans('merchant.not_found')], Response::HTTP_NOT_FOUND);
         }
 
+        $wasRejected = $merchant->isRejected();
+
         $merchant->setName($dto->name);
         $merchant->setDescription($dto->description);
         $merchant->setContactName($dto->contactName);
@@ -67,11 +69,21 @@ class MerchantProfileController extends AbstractController
         $merchant->setDistrict($dto->district);
         $merchant->setAddress($dto->address);
 
+        // If merchant was rejected, resubmit for review
+        if ($wasRejected) {
+            $merchant->resubmit();
+        }
+
         $this->merchantRepository->save($merchant, true);
 
+        $message = $wasRejected
+            ? $this->translator->trans('merchant.profile_resubmitted')
+            : $this->translator->trans('merchant.profile_updated');
+
         return $this->json([
-            'message' => $this->translator->trans('merchant.profile_updated'),
+            'message' => $message,
             'merchant' => $this->serializeMerchant($merchant),
+            'resubmitted' => $wasRejected,
         ]);
     }
 

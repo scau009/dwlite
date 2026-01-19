@@ -2,7 +2,7 @@
 -- Description: Channel product sources - links platform products to merchant listings
 
 CREATE TABLE `channel_product_sources` (
-    `id` VARCHAR(26) NOT NULL PRIMARY KEY COMMENT 'ULID',
+    `id` VARCHAR(26) NOT NULL PRIMARY KEY COMMENT 'Business ID (CS{8-digit})',
     `channel_product_id` VARCHAR(26) NOT NULL,
     `inventory_listing_id` VARCHAR(26) NOT NULL,
     `priority` INT NOT NULL DEFAULT 0 COMMENT 'Lower value = higher priority',

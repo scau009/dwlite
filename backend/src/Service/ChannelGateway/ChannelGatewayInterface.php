@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Service\ChannelGateway;
 
+use App\Entity\ChannelProduct;
 use App\Service\ChannelGateway\Dto\Request\ConfirmOrderRequest;
 use App\Service\ChannelGateway\Dto\Request\PullOrdersRequest;
 use App\Service\ChannelGateway\Dto\Request\PushProductRequest;
 use App\Service\ChannelGateway\Dto\Request\ShipOrderRequest;
-use App\Service\ChannelGateway\Dto\Request\UpdateStockPriceRequest;
 use App\Service\ChannelGateway\Dto\Response\ChannelResponse;
 use App\Service\ChannelGateway\Dto\Response\PulledOrderDto;
 use App\Service\ChannelGateway\Dto\Response\PushProductResponse;
@@ -25,6 +25,7 @@ interface ChannelGatewayInterface
 {
     public const OPERATION_PUSH_PRODUCT = 'pushProduct';
     public const OPERATION_UPDATE_STOCK_PRICE = 'updateStockPrice';
+    public const OPERATION_DELIST = 'delistProduct';
     public const OPERATION_PULL_ORDERS = 'pullOrders';
     public const OPERATION_CONFIRM_ORDER = 'confirmOrder';
     public const OPERATION_SHIP_ORDER = 'shipOrder';
@@ -56,12 +57,22 @@ interface ChannelGatewayInterface
 
     /**
      * Update stock and price on the external channel.
-     * Supports partial updates (stock only, price only, or both).
+     *
+     * @param ChannelProduct[] $channelProducts Products to sync
      */
     public function updateStockPrice(
         ChannelGatewayContext $context,
-        UpdateStockPriceRequest $request
+        array $channelProducts
     ): UpdateStockPriceResponse;
+
+    /**
+     * Delist (remove) a product from the external channel.
+     * This removes the product listing from the external platform.
+     */
+    public function delistProduct(
+        ChannelGatewayContext $context,
+        ChannelProduct $channelProduct
+    ): ChannelResponse;
 
     /**
      * Pull orders from the external channel.

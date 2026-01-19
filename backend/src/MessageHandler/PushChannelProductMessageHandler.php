@@ -88,6 +88,13 @@ class PushChannelProductMessageHandler
                     'externalId' => $channelProduct->getExternalId(),
                     'durationMs' => $syncLog->getDurationMs(),
                 ]);
+            } elseif ($syncLog->isSkipped()) {
+                // Skipped is not a failure, don't retry (e.g., no gateway for channel)
+                $this->logger->info('Push to channel skipped', [
+                    'channelProductId' => $channelProduct->getId(),
+                    'operation' => $message->operation,
+                    'reason' => $syncLog->getErrorMessage(),
+                ]);
             } else {
                 $this->logger->warning('Push to channel failed', [
                     'channelProductId' => $channelProduct->getId(),

@@ -212,6 +212,7 @@ class InboundController extends AbstractController
             'id' => $order->getId(),
             'orderNo' => $order->getOrderNo(),
             'status' => $order->getStatus(),
+            'currency' => $order->getCurrency(),
             'merchant' => [
                 'id' => $order->getMerchant()->getId(),
                 'companyName' => $order->getMerchant()->getName(),
@@ -279,6 +280,7 @@ class InboundController extends AbstractController
             'receivedQuantity' => $item->getReceivedQuantity(),
             'damagedQuantity' => $item->getDamagedQuantity(),
             'unitCost' => $item->getUnitCost(),
+            'currency' => $item->getCurrency(),
             'status' => $item->getStatus(),
             'warehouseRemark' => $item->getWarehouseRemark(),
             'receivedAt' => $item->getReceivedAt()?->format('c'),
@@ -360,9 +362,13 @@ class InboundController extends AbstractController
             }
         }
 
+        // 通过关联的 InboundOrderItem 获取款号
+        $styleNumber = $item->getInboundOrderItem()?->getStyleNumber();
+
         return [
             'id' => $item->getId(),
             'skuName' => $item->getSkuName(),
+            'styleNumber' => $styleNumber,
             'colorName' => $item->getColorName(),
             'productName' => $item->getProductName(),
             'productImage' => $productImageUrl,

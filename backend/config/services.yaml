@@ -37,6 +37,7 @@ services:
     App\Service\Auth\PasswordResetService:
         arguments:
             $appUrl: '%env(FRONTEND_URL)%'
+            $passwordResetTemplateId: '%env(int:SES_PASSWORD_RESET_TEMPLATE_ID)%'
 
     Predis\Client:
         arguments:
@@ -58,6 +59,12 @@ services:
             $fromEmail: '%env(SES_FROM_EMAIL)%'
             $fromName: '%env(SES_FROM_NAME)%'
 
+    App\Service\Mail\SymfonyMailerService:
+        arguments:
+            $fromEmail: '%env(SES_FROM_EMAIL)%'
+            $fromName: '%env(SES_FROM_NAME)%'
+
+    # Default to TencentSesMailService for production
     App\Service\Mail\MailServiceInterface:
         alias: App\Service\Mail\TencentSesMailService
 
@@ -83,9 +90,30 @@ services:
         tags:
             - { name: 'app.channel_gateway', key: 'MOCK' }
 
+    # Kicks Crew Gateway
+    App\Service\ChannelGateway\Provider\KicksCrew\KicksCrewApiClient:
+        arguments:
+            $httpClient: '@kickscrew.client'
+            $kickscrewApiLimiter: '@limiter.kickscrew_api'
+
+    App\Service\ChannelGateway\Provider\KicksCrew\KicksCrewGateway:
+        tags:
+            - { name: 'app.channel_gateway', key: 'KICKSCREW' }
+
     # Channel Gateway Registry with tagged service locator
     App\Service\ChannelGateway\ChannelGatewayRegistry:
         arguments:
             $gateways: !tagged_locator
                 tag: 'app.channel_gateway'
                 index_by: 'key'
+
+    # Scheduler - only runs tasks in production environment
+    App\Scheduler\MainSchedule:
+        arguments:
+            $environment: '%kernel.environment%'
+
+# Development environment: use SymfonyMailerService (MailHog)
+when@dev:
+    services:
+        App\Service\Mail\MailServiceInterface:
+            alias: App\Service\Mail\SymfonyMailerService

@@ -1,13 +1,16 @@
 import { useRef, useState, useEffect } from 'react';
+import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { ProTable, type ActionType, type ProColumns } from '@ant-design/pro-components';
-import { Tag, Statistic, Card, Row, Col, Image, Tooltip } from 'antd';
+import { Tag, Statistic, Card, Row, Col, Image, Tooltip, Button } from 'antd';
 import {
   InboxOutlined,
-  ShoppingOutlined,
   ExclamationCircleOutlined,
   TruckOutlined,
   LockOutlined,
+  PlusOutlined,
+  EditOutlined,
+  UploadOutlined,
 } from '@ant-design/icons';
 
 import {
@@ -16,14 +19,24 @@ import {
   type MerchantInventorySummary,
   type StockStatus,
   type InventoryWarehouse,
+  type MerchantWarehouse,
 } from '@/lib/inbound-api';
+import { getCurrencySymbol } from '@/lib/merchant-listing-api';
+import { AdjustInventoryModal } from './components/adjust-inventory-modal';
 
 export function MerchantStockListPage() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const actionRef = useRef<ActionType>(null);
 
   const [summary, setSummary] = useState<MerchantInventorySummary | null>(null);
   const [warehouses, setWarehouses] = useState<InventoryWarehouse[]>([]);
+  const [merchantWarehouses, setMerchantWarehouses] = useState<MerchantWarehouse[]>([]);
+  const [merchantWarehouseIds, setMerchantWarehouseIds] = useState<Set<string>>(new Set());
+
+  // Adjust modal state
+  const [adjustModalOpen, setAdjustModalOpen] = useState(false);
+  const [selectedInventory, setSelectedInventory] = useState<MerchantInventoryItem | null>(null);
 
   // Load summary
   const loadSummary = async () => {
@@ -45,10 +58,49 @@ export function MerchantStockListPage() {
     }
   };
 
-  useEffect(() => {
+  // Load merchant warehouses (for determining which inventory can be adjusted)
+  const loadMerchantWarehouses = async () => {
+    try {
+      const response = await merchantInventoryApi.getMerchantWarehouses();
+      setMerchantWarehouses(response.data);
+      setMerchantWarehouseIds(new Set(response.data.map(w => w.id)));
+    } catch (error) {
+      console.error('Failed to load merchant warehouses:', error);
+    }
+  };
+
+  // Check if inventory is from a merchant warehouse (can be adjusted)
+  const canAdjustInventory = (inventory: MerchantInventoryItem) => {
+    return merchantWarehouseIds.has(inventory.warehouse?.id || '');
+  };
+
+  // Handle adjust click
+  const handleAdjust = (inventory: MerchantInventoryItem) => {
+    setSelectedInventory(inventory);
+    setAdjustModalOpen(true);
+  };
+
+  // Handle adjust modal close
+  const handleAdjustModalClose = () => {
+    setAdjustModalOpen(false);
+    setSelectedInventory(null);
+  };
+
+  // Handle adjust success
+  const handleAdjustSuccess = () => {
+    setAdjustModalOpen(false);
+    setSelectedInventory(null);
+    actionRef.current?.reload();
     loadSummary();
+  };
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Initial data load
+    loadSummary();
+     
     loadWarehouses();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
+    loadMerchantWarehouses();
   }, []);
 
   const columns: ProColumns<MerchantInventoryItem>[] = [
@@ -65,22 +117,22 @@ export function MerchantStockListPage() {
         return (
           <div className="flex gap-3">
             {image ? (
-              <Image src={image} width={50} height={50} style={{ objectFit: 'cover', borderRadius: '4px' }} />
+              <div className="w-12 h-12 flex-shrink-0 flex items-center justify-center bg-gray-100 rounded">
+                <Image
+                  src={image}
+                  style={{ maxWidth: 48, maxHeight: 48, objectFit: 'contain' }}
+                  preview={false}
+                />
+              </div>
             ) : (
-              <div className="w-[50px] h-[50px] bg-gray-100 flex items-center justify-center text-gray-400 rounded text-xs">
+              <div className="w-12 h-12 flex-shrink-0 bg-gray-100 flex items-center justify-center text-gray-400 rounded text-xs">
                 N/A
               </div>
             )}
             <div className="flex-1 min-w-0">
               <div className="font-medium text-sm truncate">{record.product?.name || '-'}</div>
-              <div className="text-xs text-gray-500 space-x-2 mt-1">
+              <div className="text-xs text-gray-500 mt-1">
                 <span className="font-mono">{record.product?.styleNumber || '-'}</span>
-                {record.sku?.skuName && (
-                  <>
-                    <span>•</span>
-                    <span>{record.sku.skuName}</span>
-                  </>
-                )}
               </div>
             </div>
           </div>
@@ -88,22 +140,17 @@ export function MerchantStockListPage() {
       },
     },
     {
-      title: t('merchantStock.warehouse'),
-      dataIndex: 'warehouseId',
-      width: 120,
-      valueType: 'select',
-      fieldProps: {
-        placeholder: t('merchantStock.selectWarehouse'),
-        options: warehouses.map(w => ({ value: w.id, label: w.name })),
-      },
-      render: (_, record) => {
-        if (!record.warehouse) return '-';
-        return (
-          <Tooltip title={record.warehouse.code}>
-            <Tag>{record.warehouse.name}</Tag>
-          </Tooltip>
-        );
-      },
+      title: t('merchantStock.skuName'),
+      key: 'skuName',
+      width: 100,
+      search: false,
+      render: (_, record) => (
+        <span className="text-sm">
+          {record.sku?.sizeUnit && record.sku?.sizeValue
+            ? `${record.sku.sizeUnit} ${record.sku.sizeValue}`
+            : record.sku?.skuName || '-'}
+        </span>
+      ),
     },
     {
       title: t('merchantStock.stockStatus'),
@@ -174,6 +221,24 @@ export function MerchantStockListPage() {
       ),
     },
     {
+      title: t('merchantStock.warehouse'),
+      dataIndex: 'warehouseId',
+      width: 120,
+      valueType: 'select',
+      fieldProps: {
+        placeholder: t('merchantStock.selectWarehouse'),
+        options: warehouses.map(w => ({ value: w.id, label: w.name })),
+      },
+      render: (_, record) => {
+        if (!record.warehouse) return '-';
+        return (
+          <Tooltip title={record.warehouse.code}>
+            <Tag>{record.warehouse.name}</Tag>
+          </Tooltip>
+        );
+      },
+    },
+    {
       title: t('merchantStock.averageCost'),
       dataIndex: 'averageCost',
       width: 100,
@@ -181,7 +246,7 @@ export function MerchantStockListPage() {
       align: 'right',
       render: (_, record) => (
         <span className={record.averageCost ? 'font-mono' : 'text-gray-400'}>
-          {record.averageCost ? `¥${record.averageCost}` : '-'}
+          {record.averageCost ? `${getCurrencySymbol(record.currency)}${record.averageCost}` : '-'}
         </span>
       ),
     },
@@ -204,22 +269,35 @@ export function MerchantStockListPage() {
       search: false,
       render: (_, record) => new Date(record.updatedAt).toLocaleString(),
     },
+    {
+      title: t('common.actions'),
+      key: 'actions',
+      width: 100,
+      fixed: 'right',
+      search: false,
+      render: (_, record) => {
+        if (!canAdjustInventory(record)) {
+          return null;
+        }
+        return (
+          <Button
+            type="link"
+            size="small"
+            icon={<EditOutlined />}
+            onClick={() => handleAdjust(record)}
+          >
+            {t('merchantStock.adjust')}
+          </Button>
+        );
+      },
+    },
   ];
 
   return (
     <div className="space-y-4">
       {/* Summary Cards */}
       <Row gutter={16} className="mb-4">
-        <Col xs={12} sm={6} lg={4}>
-          <Card size="small">
-            <Statistic
-              title={t('merchantStock.totalSkuCount')}
-              value={summary?.totalSkuCount || 0}
-              prefix={<ShoppingOutlined />}
-            />
-          </Card>
-        </Col>
-        <Col xs={12} sm={6} lg={4}>
+        <Col xs={12} sm={6} lg={6}>
           <Card size="small">
             <Statistic
               title={t('merchantStock.totalInTransit')}
@@ -229,7 +307,7 @@ export function MerchantStockListPage() {
             />
           </Card>
         </Col>
-        <Col xs={12} sm={6} lg={4}>
+        <Col xs={12} sm={6} lg={6}>
           <Card size="small">
             <Statistic
               title={t('merchantStock.totalAvailable')}
@@ -239,7 +317,7 @@ export function MerchantStockListPage() {
             />
           </Card>
         </Col>
-        <Col xs={12} sm={6} lg={4}>
+        <Col xs={12} sm={6} lg={6}>
           <Card size="small">
             <Statistic
               title={t('merchantStock.totalReserved')}
@@ -249,22 +327,13 @@ export function MerchantStockListPage() {
             />
           </Card>
         </Col>
-        <Col xs={12} sm={6} lg={4}>
+        <Col xs={12} sm={6} lg={6}>
           <Card size="small">
             <Statistic
               title={t('merchantStock.totalDamaged')}
               value={summary?.totalDamaged || 0}
               prefix={<ExclamationCircleOutlined />}
               valueStyle={{ color: '#ff4d4f' }}
-            />
-          </Card>
-        </Col>
-        <Col xs={12} sm={6} lg={4}>
-          <Card size="small">
-            <Statistic
-              title={t('merchantStock.warehouseCount')}
-              value={summary?.warehouseCount || 0}
-              prefix={<InboxOutlined />}
             />
           </Card>
         </Col>
@@ -301,6 +370,27 @@ export function MerchantStockListPage() {
           labelWidth: 'auto',
           defaultCollapsed: false,
         }}
+        toolBarRender={() => [
+          merchantWarehouses.length > 0 && (
+            <Button
+              key="import"
+              icon={<UploadOutlined />}
+              onClick={() => navigate('/inventory/stock/import')}
+            >
+              {t('merchantStock.batchImport')}
+            </Button>
+          ),
+          merchantWarehouses.length > 0 && (
+            <Button
+              key="add"
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={() => navigate('/inventory/stock/add')}
+            >
+              {t('merchantStock.addInventory')}
+            </Button>
+          ),
+        ]}
         options={{
           density: true,
           fullScreen: true,
@@ -310,7 +400,15 @@ export function MerchantStockListPage() {
           defaultPageSize: 20,
           showSizeChanger: true,
         }}
-        scroll={{ x: 1400 }}
+        scroll={{ x: 1500 }}
+      />
+
+      {/* Adjust Inventory Modal */}
+      <AdjustInventoryModal
+        open={adjustModalOpen}
+        inventory={selectedInventory}
+        onClose={handleAdjustModalClose}
+        onSuccess={handleAdjustSuccess}
       />
     </div>
   );

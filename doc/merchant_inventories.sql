@@ -11,11 +11,13 @@ CREATE TABLE `merchant_inventories` (
     `quantity_in_transit` INT NOT NULL DEFAULT 0 COMMENT '在途数量（已发货未入库）',
     `quantity_available` INT NOT NULL DEFAULT 0 COMMENT '可用库存（可以被销售）',
     `quantity_reserved` INT NOT NULL DEFAULT 0 COMMENT '锁定库存（已被订单占用，待出库）',
+    `quantity_pending_reserve` INT NOT NULL DEFAULT 0 COMMENT '待确认预留（软锁定，履约分配后）',
     `quantity_damaged` INT NOT NULL DEFAULT 0 COMMENT '损坏库存（不可销售）',
     `quantity_allocated` INT NOT NULL DEFAULT 0 COMMENT '渠道独占分配的库存（全托管模式）',
 
     -- 成本信息
     `average_cost` DECIMAL(10,2) NULL COMMENT '平均成本单价（加权平均成本）',
+    `currency` VARCHAR(3) NOT NULL DEFAULT 'CNY' COMMENT '成本币种',
 
     -- 安全库存
     `safety_stock` INT NULL COMMENT '安全库存量（低于此值预警）',
@@ -44,3 +46,7 @@ CREATE TABLE `merchant_inventories` (
     CONSTRAINT `fk_mi_warehouse` FOREIGN KEY (`warehouse_id`) REFERENCES `warehouses` (`id`) ON DELETE CASCADE,
     CONSTRAINT `fk_mi_sku` FOREIGN KEY (`product_sku_id`) REFERENCES `product_skus` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='商户库存';
+
+ALTER TABLE `merchant_inventories`
+    ADD COLUMN `currency` VARCHAR(3) NOT NULL DEFAULT 'CNY' COMMENT '成本币种'
+        AFTER `average_cost`;

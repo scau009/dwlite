@@ -107,4 +107,40 @@ class MerchantRepository extends ServiceEntityRepository
             'total' => (int) $total,
         ];
     }
+
+    /**
+     * 获取商户统计摘要.
+     *
+     * @return array{total: int, active: int, pending: int}
+     */
+    public function getSummaryStats(): array
+    {
+        // 总数
+        $total = (int) $this->createQueryBuilder('m')
+            ->select('COUNT(m.id)')
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        // 活跃数（已审核通过）
+        $active = (int) $this->createQueryBuilder('m')
+            ->select('COUNT(m.id)')
+            ->where('m.status = :status')
+            ->setParameter('status', Merchant::STATUS_APPROVED)
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        // 待审核数
+        $pending = (int) $this->createQueryBuilder('m')
+            ->select('COUNT(m.id)')
+            ->where('m.status = :status')
+            ->setParameter('status', Merchant::STATUS_PENDING)
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        return [
+            'total' => $total,
+            'active' => $active,
+            'pending' => $pending,
+        ];
+    }
 }

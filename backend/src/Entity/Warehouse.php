@@ -15,7 +15,7 @@ use Symfony\Component\Uid\Ulid;
 #[ORM\Index(name: 'idx_warehouse_type', columns: ['type'])]
 #[ORM\Index(name: 'idx_warehouse_category', columns: ['category'])]
 #[ORM\Index(name: 'idx_warehouse_merchant', columns: ['merchant_id'])]
-#[ORM\Index(name: 'idx_warehouse_country', columns: ['countryCode'])]
+#[ORM\Index(name: 'idx_warehouse_country', columns: ['country_code'])]
 #[ORM\HasLifecycleCallbacks]
 class Warehouse
 {
@@ -109,6 +109,7 @@ class Warehouse
     #[ORM\Column(type: 'integer', options: ['default' => 0])]
     private int $sortOrder = 0;
 
+    /** @var Collection<int, SalesChannelWarehouse> */
     #[ORM\OneToMany(targetEntity: SalesChannelWarehouse::class, mappedBy: 'warehouse', cascade: ['persist', 'remove'])]
     private Collection $channelWarehouses;
 

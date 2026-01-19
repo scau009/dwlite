@@ -1,216 +1,288 @@
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { Card, Statistic, Row, Col, Table, Tag } from 'antd';
+import { Card, Statistic, Row, Col, Table, Tag, Spin, Empty } from 'antd';
 import {
   ShoppingCartOutlined,
   DollarOutlined,
-  AlertOutlined,
-  CarOutlined,
+  ExclamationCircleOutlined,
+  WarningOutlined,
   ArrowUpOutlined,
+  ArrowDownOutlined,
 } from '@ant-design/icons';
+import { Line } from '@ant-design/charts';
 
-// Recent orders data
-const recentOrders = [
-  { id: 'ORD-001', customer: 'John Doe', amount: 299.00, status: 'completed' },
-  { id: 'ORD-002', customer: 'Jane Smith', amount: 450.00, status: 'processing' },
-  { id: 'ORD-003', customer: 'Bob Johnson', amount: 1299.00, status: 'pending' },
-  { id: 'ORD-004', customer: 'Alice Brown', amount: 189.00, status: 'completed' },
-  { id: 'ORD-005', customer: 'Charlie Wilson', amount: 129.00, status: 'shipped' },
-];
-
-// Top products data
-const topProducts = [
-  { id: '1', name: 'Premium Sneakers', sales: 234, revenue: 70026 },
-  { id: '2', name: 'Designer Jacket', sales: 189, revenue: 85050 },
-  { id: '3', name: 'Limited Edition Watch', sales: 156, revenue: 202644 },
-  { id: '4', name: 'Vintage Bag', sales: 142, revenue: 26838 },
-  { id: '5', name: 'Street Style Hoodie', sales: 128, revenue: 16512 },
-];
+import {
+  adminDashboardApi,
+  type DashboardData,
+  type TrendItem,
+  type RecentData,
+} from '@/lib/admin-dashboard-api';
 
 export function DashboardPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
 
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [data, setData] = useState<DashboardData | null>(null);
+  const [trend, setTrend] = useState<TrendItem[]>([]);
+  const [recent, setRecent] = useState<RecentData | null>(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const [dashRes, trendRes, recentRes] = await Promise.all([
+          adminDashboardApi.getDashboard(),
+          adminDashboardApi.getTrend(),
+          adminDashboardApi.getRecent(),
+        ]);
+        setData(dashRes.data);
+        setTrend(trendRes.data);
+        setRecent(recentRes.data);
+      } catch (err) {
+        console.error('Failed to load dashboard data:', err);
+        setError(t('common.loadError'));
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [t]);
+
   const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'completed': return 'success';
-      case 'processing': return 'processing';
-      case 'pending': return 'warning';
-      case 'shipped': return 'blue';
-      default: return 'default';
-    }
+    const colors: Record<string, string> = {
+      pending: 'warning',
+      allocating: 'processing',
+      allocated: 'cyan',
+      allocation_failed: 'error',
+      fulfilling: 'blue',
+      shipped: 'geekblue',
+      delivered: 'purple',
+      completed: 'success',
+      cancelled: 'default',
+      processing: 'processing',
+      rejected: 'error',
+      expired: 'orange',
+    };
+    return colors[status] || 'default';
   };
 
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case 'completed': return t('orders.completed');
-      case 'processing': return t('orders.processing');
-      case 'pending': return t('orders.pending');
-      case 'shipped': return t('orders.shipped');
-      default: return status;
-    }
+  const getExceptionTypeLabel = (type: string) => {
+    const labels: Record<string, string> = {
+      inventory_insufficient: t('orderException.typeInventoryInsufficient'),
+      allocation_failed: t('orderException.typeAllocationFailed'),
+      fulfillment_rejected: t('orderException.typeFulfillmentRejected'),
+      fulfillment_expired: t('orderException.typeFulfillmentExpired'),
+    };
+    return labels[type] || type;
   };
 
+  // Order columns for recent orders table
   const orderColumns = [
     {
       title: t('orders.orderNo'),
-      dataIndex: 'id',
-      key: 'id',
+      dataIndex: 'orderNo',
+      key: 'orderNo',
+      ellipsis: true,
     },
     {
-      title: t('orders.customer'),
-      dataIndex: 'customer',
-      key: 'customer',
+      title: t('common.channel'),
+      dataIndex: 'channelName',
+      key: 'channelName',
+      render: (v: string | null) => v || '-',
     },
     {
       title: t('orders.amount'),
-      dataIndex: 'amount',
-      key: 'amount',
-      render: (amount: number) => `$${amount.toFixed(2)}`,
+      dataIndex: 'totalAmount',
+      key: 'totalAmount',
+      render: (v: string) => `¥${parseFloat(v).toFixed(2)}`,
     },
     {
       title: t('orders.status'),
       dataIndex: 'status',
       key: 'status',
-      render: (status: string) => (
-        <Tag color={getStatusColor(status)}>{getStatusLabel(status)}</Tag>
-      ),
+      render: (status: string) => <Tag color={getStatusColor(status)}>{status}</Tag>,
     },
   ];
 
-  const productColumns = [
+  // Exception columns
+  const exceptionColumns = [
     {
-      title: '#',
-      key: 'rank',
-      width: 50,
-      render: (_: unknown, __: unknown, index: number) => (
-        <span className="font-medium">{index + 1}</span>
-      ),
+      title: t('orderException.exceptionNo'),
+      dataIndex: 'exceptionNo',
+      key: 'exceptionNo',
+      ellipsis: true,
     },
     {
-      title: t('products.productName'),
-      dataIndex: 'name',
-      key: 'name',
+      title: t('orderException.type'),
+      dataIndex: 'type',
+      key: 'type',
+      render: (type: string) => getExceptionTypeLabel(type),
     },
     {
-      title: 'Sales',
-      dataIndex: 'sales',
-      key: 'sales',
-    },
-    {
-      title: 'Revenue',
-      dataIndex: 'revenue',
-      key: 'revenue',
-      render: (revenue: number) => `$${revenue.toLocaleString()}`,
+      title: t('orders.status'),
+      dataIndex: 'status',
+      key: 'status',
+      render: (status: string) => <Tag color={getStatusColor(status)}>{status}</Tag>,
     },
   ];
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-[50vh]">
+        <Spin size="large" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-[50vh]">
+        <Empty description={error} />
+      </div>
+    );
+  }
+
+  if (!data) {
+    return null;
+  }
+
+  // Prepare trend chart data
+  const trendChartData = trend.flatMap((item) => [
+    { date: item.date, type: t('dashboard.orders'), value: item.orderCount },
+    { date: item.date, type: t('dashboard.fulfillments'), value: item.fulfillmentCount },
+  ]);
+
+  const lineConfig = {
+    data: trendChartData,
+    xField: 'date',
+    yField: 'value',
+    colorField: 'type',
+    shapeField: 'smooth',
+    legend: { color: { position: 'top' as const } },
+    point: { size: 4, shape: 'circle' },
+    style: {
+      lineWidth: 2,
+    },
+  };
+
+  const GrowthIndicator = ({ value }: { value: number }) => {
+    if (value === 0) return null;
+    const isPositive = value > 0;
+    return (
+      <span className={`text-sm ml-2 ${isPositive ? 'text-green-500' : 'text-red-500'}`}>
+        {isPositive ? <ArrowUpOutlined /> : <ArrowDownOutlined />} {Math.abs(value)}%
+      </span>
+    );
+  };
 
   return (
-    <div className="space-y-6">
-      {/* Stats Grid */}
+    <div className="space-y-4">
+      {/* KPI Summary Cards */}
       <Row gutter={[16, 16]}>
         <Col xs={24} sm={12} lg={6}>
-          <Card
-            hoverable
-            onClick={() => navigate('/orders?date=today')}
-            className="h-full"
-          >
+          <Card hoverable onClick={() => navigate('/fulfillment/orders')} className="h-full">
             <Statistic
               title={t('dashboard.todayOrders')}
-              value={128}
+              value={data.summary.todayOrders}
               prefix={<ShoppingCartOutlined />}
-              suffix={
-                <span className="text-sm text-green-500 ml-2">
-                  <ArrowUpOutlined /> +15.2%
-                </span>
-              }
+              suffix={<GrowthIndicator value={data.summary.todayOrdersGrowth} />}
             />
-            <p className="text-gray-400 text-sm mt-2">{t('dashboard.fromLastMonth')}</p>
+            <p className="text-gray-400 text-sm mt-2">{t('dashboard.vsYesterday')}</p>
           </Card>
         </Col>
         <Col xs={24} sm={12} lg={6}>
-          <Card
-            hoverable
-            onClick={() => navigate('/data/sales?date=today')}
-            className="h-full"
-          >
+          <Card hoverable onClick={() => navigate('/fulfillment/orders')} className="h-full">
             <Statistic
-              title={t('dashboard.todaySales')}
-              value={12450}
+              title={t('dashboard.todayRevenue')}
+              value={parseFloat(data.summary.todayRevenue)}
               prefix={<DollarOutlined />}
-              precision={0}
-              suffix={
-                <span className="text-sm text-green-500 ml-2">
-                  <ArrowUpOutlined /> +20.1%
-                </span>
-              }
+              precision={2}
+              suffix={<GrowthIndicator value={data.summary.todayRevenueGrowth} />}
             />
-            <p className="text-gray-400 text-sm mt-2">{t('dashboard.fromLastMonth')}</p>
+            <p className="text-gray-400 text-sm mt-2">{t('dashboard.vsYesterday')}</p>
           </Card>
         </Col>
         <Col xs={24} sm={12} lg={6}>
           <Card
             hoverable
-            onClick={() => navigate('/inventory/alerts')}
+            onClick={() => navigate('/fulfillment/order-exceptions')}
             className="h-full"
           >
             <Statistic
-              title={t('dashboard.inventoryAlerts')}
-              value={23}
-              prefix={<AlertOutlined style={{ color: '#faad14' }} />}
+              title={t('dashboard.pendingExceptions')}
+              value={data.summary.pendingExceptions}
+              prefix={<ExclamationCircleOutlined style={{ color: '#faad14' }} />}
             />
-            <p className="text-gray-400 text-sm mt-2">{t('menu.inventoryAlerts')}</p>
+            <p className="text-gray-400 text-sm mt-2">{t('dashboard.needsAttention')}</p>
           </Card>
         </Col>
         <Col xs={24} sm={12} lg={6}>
           <Card
             hoverable
-            onClick={() => navigate('/fulfillment/exceptions')}
+            onClick={() => navigate('/fulfillment/orders?status=allocation_failed')}
             className="h-full"
           >
             <Statistic
-              title={t('dashboard.fulfillmentExceptions')}
-              value={5}
-              prefix={<CarOutlined style={{ color: '#ff4d4f' }} />}
+              title={t('dashboard.allocationFailed')}
+              value={data.summary.allocationFailed}
+              prefix={<WarningOutlined style={{ color: '#ff4d4f' }} />}
             />
-            <p className="text-gray-400 text-sm mt-2">{t('menu.fulfillmentExceptions')}</p>
+            <p className="text-gray-400 text-sm mt-2">{t('dashboard.needsAttention')}</p>
           </Card>
         </Col>
       </Row>
 
-      {/* Tables Grid */}
+      {/* Trend Chart */}
+      <Card title={t('dashboard.trendTitle')} style={{ marginBottom: 16 }}>
+        {trendChartData.length > 0 ? (
+          <Line {...lineConfig} height={280} />
+        ) : (
+          <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} />
+        )}
+      </Card>
+
+      {/* Recent Items Tables */}
       <Row gutter={[16, 16]}>
-        <Col xs={24} lg={16}>
+        <Col xs={24} lg={12}>
           <Card
             title={t('dashboard.recentOrders')}
-            extra={<a onClick={() => navigate('/orders')}>{t('common.view')}</a>}
+            extra={<a onClick={() => navigate('/fulfillment/orders')}>{t('dashboard.viewAll')}</a>}
           >
             <Table
-              dataSource={recentOrders}
+              dataSource={recent?.recentOrders}
               columns={orderColumns}
               rowKey="id"
               pagination={false}
               size="small"
               onRow={(record) => ({
-                onClick: () => navigate(`/orders?id=${record.id}`),
+                onClick: () => navigate(`/fulfillment/orders/${record.id}`),
                 style: { cursor: 'pointer' },
               })}
             />
           </Card>
         </Col>
-        <Col xs={24} lg={8}>
+        <Col xs={24} lg={12}>
           <Card
-            title={t('dashboard.topProducts')}
-            extra={<a onClick={() => navigate('/products/list')}>{t('common.view')}</a>}
+            title={t('dashboard.recentExceptions')}
+            extra={
+              <a onClick={() => navigate('/fulfillment/order-exceptions')}>
+                {t('dashboard.viewAll')}
+              </a>
+            }
           >
             <Table
-              dataSource={topProducts}
-              columns={productColumns}
+              dataSource={recent?.recentExceptions}
+              columns={exceptionColumns}
               rowKey="id"
               pagination={false}
               size="small"
               onRow={(record) => ({
-                onClick: () => navigate(`/products/detail/${record.id}`),
+                onClick: () => navigate(`/fulfillment/order-exceptions/${record.id}`),
                 style: { cursor: 'pointer' },
               })}
             />

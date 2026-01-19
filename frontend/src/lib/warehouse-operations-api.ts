@@ -192,6 +192,7 @@ export interface WarehouseOutboundItem {
   id: string;
   productSkuId: string | null;
   skuName: string | null;
+  sizeUnit: string | null;
   styleNumber: string | null;
   colorName: string | null;
   productName: string | null;
@@ -209,6 +210,7 @@ export interface WarehouseOutboundOrderDetail extends WarehouseOutboundOrder {
   packingStartedAt: string | null;
   packingCompletedAt: string | null;
   items: WarehouseOutboundItem[];
+  shippingLabel: string | null;
 }
 
 export interface WarehouseOutboundListParams {

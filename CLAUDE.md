@@ -146,12 +146,12 @@ frontend/src/
 ### Docker (from root)
 
 ```bash
-docker compose up -d              # Start all services
-docker compose up -d --build      # Rebuild and start
-docker compose restart backend    # Restart backend only
-docker compose logs -f backend    # Follow backend logs
-docker compose logs -f worker     # Follow async worker logs
-docker compose logs -f scheduler  # Follow scheduler logs
+docker-compose up -d              # Start all services
+docker-compose up -d --build      # Rebuild and start
+docker-compose restart backend    # Restart backend only
+docker-compose logs -f backend    # Follow backend logs
+docker-compose logs -f worker     # Follow async worker logs
+docker-compose logs -f scheduler  # Follow scheduler logs
 ```
 
 ### Backend (from /backend)
@@ -162,7 +162,41 @@ composer cache:clear              # Clear Symfony cache
 php bin/console debug:router      # List all routes
 php bin/console lexik:jwt:generate-keypair   # Generate JWT keys (first-time setup)
 php bin/console app:create-admin admin@example.com password  # Create admin user
+
+# Static analysis and code style
+vendor/bin/phpstan analyse        # Run PHPStan (level 5)
+vendor/bin/phpstan analyse --generate-baseline  # Regenerate baseline after fixing issues
+vendor/bin/php-cs-fixer fix       # Fix code style (PSR-12 + Symfony)
+vendor/bin/php-cs-fixer fix --dry-run --diff  # Preview code style changes
+
+# Testing (PHPUnit) - run locally or via docker-compose exec backend
+vendor/bin/phpunit                # Run all tests
+vendor/bin/phpunit tests/MessageHandler/PushOrderStatusMessageHandlerTest.php  # Run single test file
+vendor/bin/phpunit --filter testConfirmSuccessTriggersAllocation  # Run single test method
+vendor/bin/phpunit tests/E2E/      # Run E2E tests only
 ```
+
+**测试工厂 (Test Factories)**：
+
+测试中使用工厂创建实体，位于 `tests/Factory/`：
+
+```php
+use Tests\Factory\MerchantFactory;
+use Tests\Factory\OrderFactory;
+use Tests\Factory\InventoryFactory;
+
+$merchant = MerchantFactory::create($em);
+$order = OrderFactory::create($em, $merchant, $channel);
+$inventory = InventoryFactory::create($em, $merchant, $sku);
+```
+
+**E2E 测试**：
+
+端到端工作流测试位于 `tests/E2E/`，测试完整业务流程：
+- `InboundWorkflowTest`: 入库全流程
+- `FulfillmentWorkflowTest`: 履约分配流程
+- `OrderSyncWorkflowTest`: 订单同步流程
+- `SettlementWorkflowTest`: 结算流程
 
 ### Frontend (from /frontend)
 
@@ -177,13 +211,16 @@ npm run lint                      # Run ESLint
 
 ```bash
 # Run worker locally (in container)
-docker compose exec backend php bin/console messenger:consume async -vv
+docker-compose exec backend php bin/console messenger:consume async -vv
 
 # View failed messages
-docker compose exec backend php bin/console messenger:failed:show
+docker-compose exec backend php bin/console messenger:failed:show
 
 # Retry failed messages
-docker compose exec backend php bin/console messenger:failed:retry
+docker-compose exec backend php bin/console messenger:failed:retry
+
+# Debug messenger routing
+docker-compose exec backend php bin/console debug:messenger
 
 # Test dispatch (sends example message)
 curl -X POST http://localhost:8000/async/dispatch
@@ -263,6 +300,57 @@ $bus->dispatch(new MyTaskMessage('some data'));
 - 失败消息: `dwlite_failed`
 - 重试策略: 最多 3 次，指数退避
 - Trace Context: 自动通过 `TraceIdMiddleware` 传递到异步任务
+
+## Channel Gateway (渠道网关)
+
+销售渠道对接使用 Strategy 模式，每个渠道实现 `ChannelGatewayInterface`：
+
+```php
+// src/Service/ChannelGateway/Provider/KicksCrew/KicksCrewGateway.php
+class KicksCrewGateway extends AbstractChannelGateway {
+    public function getChannelCode(): string { return 'KICKSCREW'; }
+    public function pushProduct(ChannelGatewayContext $context, PushProductRequest $request): PushProductResponse { }
+    public function updateStockPrice(ChannelGatewayContext $context, UpdateStockPriceRequest $request): UpdateStockPriceResponse { }
+    public function pullOrders(ChannelGatewayContext $context, PullOrdersRequest $request): array { }
+}
+```
+
+**核心接口操作**：
+
+- `pushProduct`: 推送商品到渠道
+- `updateStockPrice`: 更新库存和价格
+- `pullOrders`: 拉取订单
+- `confirmOrder`: 确认订单
+- `shipOrder`: 推送发货信息
+
+**添加新渠道**：
+
+1. 在 `src/Service/ChannelGateway/Provider/{ChannelName}/` 创建网关类
+2. 继承 `AbstractChannelGateway`，实现必要方法
+3. 网关自动注册到 `ChannelGatewayRegistry`
+
+## Messenger Monitor (队列监控)
+
+监控面板地址：`/_debug/messenger`（无需认证）
+
+**相关命令：**
+
+```bash
+# 查看监控状态
+php bin/console messenger:monitor
+
+# 清理旧消息记录（默认保留1个月）
+php bin/console messenger:monitor:purge
+
+# 清理定时任务历史
+php bin/console messenger:monitor:schedule:purge
+```
+
+**配置文件：**
+
+- Bundle 配置: `config/packages/zenstruck_messenger_monitor.yaml`
+- Entity: `src/Entity/ProcessedMessage.php`
+- 数据库表: `doc/processed_messages.sql`
 
 ## Scheduled Tasks (Symfony Scheduler)
 
@@ -415,6 +503,29 @@ Admin 控制器位于 `src/Controller/Admin/`，处理：
 - `OutboundController`: 出库作业（拣货、打包、发货）
 - `InventoryController`: 库存盘点和查询
 
+### Open API (外部系统集成)
+
+外部系统通过 API Key 认证访问 Open API（位于 `src/Controller/OpenApi/`）：
+
+**认证方式**：使用 `#[OpenApiOnly]` 属性标记，支持权限控制
+
+```php
+#[Route('/api/v1/open/merchant/fulfillments')]
+#[OpenApiOnly(permission: 'fulfillment:read')]
+class FulfillmentController extends AbstractController { }
+
+// 单个方法指定不同权限
+#[OpenApiOnly(permission: 'fulfillment:write')]
+public function accept(...): JsonResponse { }
+```
+
+**端点分类**：
+
+- `OpenApi/Merchant/`: 商户系统对接（履约、入库、库存、上架、结算）
+- `OpenApi/Warehouse/`: 仓库 WMS 对接（入库、出库、库存盘点）
+
+**DTOs**：Open API 专用 DTOs 位于 `src/Dto/OpenApi/`
+
 ## Architecture Principles
 
 1. Backend language: 以 PHP 为主，Go 为辅
@@ -433,6 +544,15 @@ Admin 控制器位于 `src/Controller/Admin/`，处理：
 - **绝对不要使用 Migration 管理数据库 schema**
 - 调试 API 时，使用 IDE 里临时文件的功能
 - **修改了 Entity 后，必须修改对应的 doc 里的 sql 文件**
+
+## Database Schema Management
+
+数据库结构手动管理，SQL 文件位于项目根目录的 `doc/` 目录（不是 `backend/doc/`）：
+
+- 每个表对应一个 `.sql` 文件（如 `doc/users.sql`, `doc/products.sql`）
+- 修改 Entity 后，必须同步更新对应的 SQL 文件
+- 新增表时，创建新的 SQL 文件
+- **禁止使用 Doctrine Migrations**
 
 ## Code Conventions
 
@@ -453,6 +573,24 @@ Admin 控制器位于 `src/Controller/Admin/`，处理：
 - 接口返回的文本需要考虑 i18n
 - 永远不要用 Doctrine 的 migration 来修改数据库结构
 - 每次修改数据库结构时，都要更新对应的 doc 目录下的 sql 文件
+
+### DTO 组织
+
+DTOs 按业务域组织在 `src/Dto/` 目录：
+
+- `Dto/Auth/`: 认证相关请求
+- `Dto/Admin/`: 管理端请求和查询
+- `Dto/Admin/Query/`: 管理端列表查询参数
+- `Dto/Merchant/`: 商户端请求
+- `Dto/Merchant/Query/`: 商户端查询参数
+- `Dto/Inbound/`: 入库相关
+- `Dto/Outbound/`: 出库相关
+- `Dto/OpenApi/`: 外部 API 专用
+
+**命名约定**：
+- 创建请求: `Create{Entity}Request`
+- 更新请求: `Update{Entity}Request`
+- 列表查询: `{Entity}ListQuery` 或 `{Entity}Query`
 
 ### DateTime 处理
 

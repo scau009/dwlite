@@ -1,0 +1,293 @@
+# Grafana Alerting Rules Configuration
+# Documentation: https://grafana.com/docs/grafana/latest/alerting/set-up/provision-alerting-resources/file-provisioning/
+
+apiVersion: 1
+
+groups:
+  # ============================================
+  # Error Log Monitoring Rules
+  # ============================================
+  - orgId: 1
+    name: error-log-alerts
+    folder: DWLite Alerts
+    interval: 1m
+    rules:
+      # Rule 1: Any Error Log Detected
+      # Triggers when any ERROR level log appears in the last 5 minutes
+      - uid: error-log-any
+        title: 检测到错误日志
+        condition: C
+        data:
+          # Query A: Count ERROR logs in last 5 minutes
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: loki
+            model:
+              expr: 'count_over_time({job="symfony", level="ERROR"}[5m])'
+              queryType: range
+              refId: A
+          # Reduce B: Get the sum of all error counts
+          - refId: B
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: sum
+              refId: B
+          # Threshold C: Alert if count > 0
+          - refId: C
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 0
+                  operator:
+                    type: and
+                  reducer:
+                    type: last
+              refId: C
+        noDataState: OK
+        execErrState: Error
+        for: 0s
+        annotations:
+          summary: "应用出现错误日志"
+          description: "过去 5 分钟内发生 {{ $values.B }} 个错误"
+          runbook_url: "http://localhost:3000/explore?orgId=1&left=%7B%22datasource%22:%22loki%22,%22queries%22:%5B%7B%22expr%22:%22%7Bjob%3D%5C%22symfony%5C%22,%20level%3D%5C%22ERROR%5C%22%7D%22%7D%5D%7D"
+        labels:
+          severity: high
+          team: backend
+
+      # Rule 2: High Frequency Error Alert
+      # Triggers when more than 10 errors occur in 5 minutes
+      - uid: error-log-high-frequency
+        title: 高频错误告警
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: loki
+            model:
+              expr: 'count_over_time({job="symfony", level="ERROR"}[5m])'
+              queryType: range
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: sum
+              refId: B
+          - refId: C
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 10
+                  operator:
+                    type: and
+                  reducer:
+                    type: last
+              refId: C
+        noDataState: OK
+        execErrState: Error
+        for: 0s
+        annotations:
+          summary: "错误数量过多"
+          description: "过去 5 分钟内发生 {{ $values.B }} 个错误（阈值: 10），系统可能存在严重问题"
+          runbook_url: "http://localhost:3000/explore?orgId=1&left=%7B%22datasource%22:%22loki%22,%22queries%22:%5B%7B%22expr%22:%22%7Bjob%3D%5C%22symfony%5C%22,%20level%3D%5C%22ERROR%5C%22%7D%22%7D%5D%7D"
+        labels:
+          severity: critical
+          team: backend
+
+      # Rule 3: Error Rate Spike Alert
+      # Triggers when error rate increases significantly compared to previous period
+      - uid: error-log-spike
+        title: 错误率突增
+        condition: C
+        data:
+          # Current 5-minute error count
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: loki
+            model:
+              expr: 'sum(count_over_time({job="symfony", level="ERROR"}[5m]))'
+              queryType: instant
+              refId: A
+          # Previous 5-minute error count (5-10 minutes ago)
+          - refId: B
+            relativeTimeRange:
+              from: 600
+              to: 300
+            datasourceUid: loki
+            model:
+              expr: 'sum(count_over_time({job="symfony", level="ERROR"}[5m]))'
+              queryType: instant
+              refId: B
+          # Calculate if current is more than 3x previous and at least 5 errors
+          - refId: C
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: math
+              expression: "$A > ($B * 3) && $A > 5"
+              refId: C
+        noDataState: OK
+        execErrState: Error
+        for: 0s
+        annotations:
+          summary: "错误率异常上升"
+          description: "错误数量较前 5 分钟增长超过 3 倍。当前: {{ $values.A }}，之前: {{ $values.B }}"
+          runbook_url: "http://localhost:3000/explore?orgId=1&left=%7B%22datasource%22:%22loki%22,%22queries%22:%5B%7B%22expr%22:%22%7Bjob%3D%5C%22symfony%5C%22,%20level%3D%5C%22ERROR%5C%22%7D%22%7D%5D%7D"
+        labels:
+          severity: critical
+          team: backend
+
+  # ============================================
+  # Warning Log Monitoring Rules
+  # ============================================
+  - orgId: 1
+    name: warning-log-alerts
+    folder: DWLite Alerts
+    interval: 5m
+    rules:
+      # High Warning Count
+      - uid: warning-log-high
+        title: 警告日志过多
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: loki
+            model:
+              expr: 'count_over_time({job="symfony", level="WARNING"}[5m])'
+              queryType: range
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: sum
+              refId: B
+          - refId: C
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 50
+                  operator:
+                    type: and
+                  reducer:
+                    type: last
+              refId: C
+        noDataState: OK
+        execErrState: Error
+        for: 5m
+        annotations:
+          summary: "警告日志数量异常"
+          description: "过去 5 分钟内产生 {{ $values.B }} 条警告（阈值: 50），建议排查潜在问题"
+          runbook_url: "http://localhost:3000/explore?orgId=1&left=%7B%22datasource%22:%22loki%22,%22queries%22:%5B%7B%22expr%22:%22%7Bjob%3D%5C%22symfony%5C%22,%20level%3D%5C%22WARNING%5C%22%7D%22%7D%5D%7D"
+        labels:
+          severity: medium
+          team: backend
+
+  # ============================================
+  # Application Health Monitoring Rules
+  # ============================================
+  - orgId: 1
+    name: application-health-alerts
+    folder: DWLite Alerts
+    interval: 1m
+    rules:
+      # No Logs Received (Application Down)
+      - uid: app-no-logs
+        title: 应用无日志输出
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: loki
+            model:
+              expr: 'count_over_time({job="symfony"}[5m])'
+              queryType: range
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: reduce
+              expression: A
+              reducer: sum
+              refId: B
+          - refId: C
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator:
+                    type: lt
+                    params:
+                      - 1
+                  operator:
+                    type: and
+                  reducer:
+                    type: last
+              refId: C
+        noDataState: Alerting
+        execErrState: Alerting
+        for: 5m
+        annotations:
+          summary: "应用可能已停止运行"
+          description: "过去 5 分钟内未收到任何日志，应用可能已宕机或日志系统异常"
+          runbook_url: "http://localhost:8000/health"
+        labels:
+          severity: critical
+          team: backend

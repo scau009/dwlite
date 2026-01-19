@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import {
@@ -46,15 +46,7 @@ export function CreateOutboundModal({
   const [warehouseLoading, setWarehouseLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  // Load warehouses when modal opens
-  useEffect(() => {
-    if (open) {
-      form.resetFields();
-      loadWarehouses();
-    }
-  }, [open]);
-
-  const loadWarehouses = async () => {
+  const loadWarehouses = useCallback(async () => {
     setWarehouseLoading(true);
     try {
       const response = await merchantInventoryApi.getWarehouses();
@@ -65,7 +57,15 @@ export function CreateOutboundModal({
     } finally {
       setWarehouseLoading(false);
     }
-  };
+  }, [message, t]);
+
+  // Load warehouses when modal opens
+  useEffect(() => {
+    if (open) {
+      form.resetFields();
+      loadWarehouses();
+    }
+  }, [open, form, loadWarehouses]);
 
   const handleSubmit = async () => {
     try {

@@ -13,11 +13,11 @@ use Symfony\Component\Uid\Ulid;
  */
 #[ORM\Entity(repositoryClass: InboundOrderRepository::class)]
 #[ORM\Table(name: 'inbound_orders')]
-#[ORM\Index(name: 'idx_inbound_order_no', columns: ['orderNo'])]
+#[ORM\Index(name: 'idx_inbound_order_no', columns: ['order_no'])]
 #[ORM\Index(name: 'idx_inbound_merchant', columns: ['merchant_id'])]
 #[ORM\Index(name: 'idx_inbound_warehouse', columns: ['warehouse_id'])]
 #[ORM\Index(name: 'idx_inbound_status', columns: ['status'])]
-#[ORM\Index(name: 'idx_inbound_created', columns: ['createdAt'])]
+#[ORM\Index(name: 'idx_inbound_created', columns: ['created_at'])]
 #[ORM\HasLifecycleCallbacks]
 class InboundOrder
 {
@@ -78,6 +78,10 @@ class InboundOrder
     #[ORM\Column(type: 'datetime_immutable', nullable: true)]
     private ?\DateTimeImmutable $cancelledAt = null;  // 取消时间
 
+    // 币种
+    #[ORM\Column(length: 3, options: ['default' => 'USD'])]
+    private string $currency = 'USD';  // 入库成本币种 (CNY, USD, EUR, HKD, JPY)
+
     // 备注
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $merchantNotes = null;  // 商户备注
@@ -89,12 +93,14 @@ class InboundOrder
     private ?string $cancelReason = null;  // 取消原因
 
     // 关联
+    /** @var Collection<int, InboundOrderItem> */
     #[ORM\OneToMany(targetEntity: InboundOrderItem::class, mappedBy: 'inboundOrder', cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $items;
 
     #[ORM\OneToOne(targetEntity: InboundShipment::class, mappedBy: 'inboundOrder', cascade: ['persist', 'remove'])]
     private ?InboundShipment $shipment = null;
 
+    /** @var Collection<int, InboundException> */
     #[ORM\OneToMany(targetEntity: InboundException::class, mappedBy: 'inboundOrder')]
     private Collection $exceptions;
 
@@ -274,6 +280,18 @@ class InboundOrder
         return $this;
     }
 
+    public function getCurrency(): string
+    {
+        return $this->currency;
+    }
+
+    public function setCurrency(string $currency): static
+    {
+        $this->currency = $currency;
+
+        return $this;
+    }
+
     public function getMerchantNotes(): ?string
     {
         return $this->merchantNotes;
@@ -402,6 +420,15 @@ class InboundOrder
         return $this->status === self::STATUS_CANCELLED;
     }
 
+    /**
+     * 检查订单是否可以取消.
+     * 只有草稿和待发货状态可以取消.
+     */
+    public function canCancel(): bool
+    {
+        return in_array($this->status, [self::STATUS_DRAFT, self::STATUS_PENDING], true);
+    }
+
     public function hasException(): bool
     {
         return !$this->exceptions->isEmpty();
@@ -464,22 +491,24 @@ class InboundOrder
 
     /**
      * 取消送仓单.
+     * 只有草稿和待发货状态可以取消，已发货及之后的状态不允许取消.
      */
     public function cancel(string $reason): void
     {
-        if (in_array($this->status, [self::STATUS_COMPLETED, self::STATUS_PARTIAL_COMPLETED, self::STATUS_CANCELLED], true)) {
-            throw new \LogicException('Cannot cancel completed or already cancelled orders');
+        $nonCancellableStatuses = [
+            self::STATUS_SHIPPED,
+            self::STATUS_ARRIVED,
+            self::STATUS_RECEIVING,
+            self::STATUS_COMPLETED,
+            self::STATUS_PARTIAL_COMPLETED,
+            self::STATUS_CANCELLED,
+        ];
+
+        if (in_array($this->status, $nonCancellableStatuses, true)) {
+            throw new \LogicException('Cannot cancel orders that have been shipped or completed');
         }
         $this->status = self::STATUS_CANCELLED;
         $this->cancelReason = $reason;
         $this->cancelledAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
-    }
-
-    /**
-     * 生成送仓单号.
-     */
-    public static function generateOrderNo(): string
-    {
-        return 'IB'.date('Ymd').strtoupper(substr((string) new Ulid(), -8));
     }
 }

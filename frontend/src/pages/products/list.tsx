@@ -12,9 +12,11 @@ import {
   Empty,
   Spin,
   Image,
+  Checkbox,
+  Space,
 } from 'antd';
 import { QueryFilter, ProFormText, ProFormSelect } from '@ant-design/pro-components';
-import { PlusOutlined, ShoppingOutlined } from '@ant-design/icons';
+import { PlusOutlined, ShoppingOutlined, EditOutlined, CloseOutlined, CheckOutlined } from '@ant-design/icons';
 import {
   productApi,
   type Product,
@@ -24,13 +26,17 @@ import {
 import { brandApi } from '@/lib/brand-api';
 import { categoryApi } from '@/lib/category-api';
 import { ProductCreateModal } from './components/product-create-modal';
+import { BatchUpdateStatusModal } from './components/batch-update-status-modal';
 
 // Product Card Component
 interface ProductCardProps {
   product: Product;
+  selectable?: boolean;
+  selected?: boolean;
+  onSelect?: (id: string, selected: boolean) => void;
 }
 
-function ProductCard({ product }: ProductCardProps) {
+function ProductCard({ product, selectable, selected, onSelect }: ProductCardProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
 
@@ -58,24 +64,48 @@ function ProductCard({ product }: ProductCardProps) {
 
   const showStatusOverlay = product.status === 'draft' || product.status === 'inactive';
 
+  const handleClick = () => {
+    if (selectable) {
+      onSelect?.(product.id, !selected);
+    } else {
+      navigate(`/products/detail/${product.id}`);
+    }
+  };
+
+  const handleCheckboxClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onSelect?.(product.id, !selected);
+  };
+
   return (
     <Card
       hoverable
-      onClick={() => navigate(`/products/detail/${product.id}`)}
+      onClick={handleClick}
       styles={{ body: { padding: 12 } }}
-      className="h-full flex flex-col [&>.ant-card-cover]:shrink-0 [&>.ant-card-body]:flex-1"
+      className={`h-full flex flex-col [&>.ant-card-cover]:shrink-0 [&>.ant-card-body]:flex-1 ${selected ? 'border-blue-500 border-2' : ''}`}
       cover={
-        <div className="aspect-square bg-gray-100 overflow-hidden relative">
+        <div className="aspect-[4/3] bg-gray-100 dark:bg-gray-800 overflow-hidden relative">
           {product.primaryImageUrl ? (
-            <Image
-              src={product.primaryImageUrl}
-              alt={product.name}
-              preview={false}
-              className="object-cover w-full h-full"
-            />
+            <div className="absolute inset-0 flex items-center justify-center p-2">
+              <Image
+                src={product.primaryImageUrl}
+                alt={product.name}
+                preview={false}
+                style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
+              />
+            </div>
           ) : (
             <div className="w-full h-full flex items-center justify-center text-gray-300 text-5xl">
               <ShoppingOutlined />
+            </div>
+          )}
+          {/* Selection checkbox */}
+          {selectable && (
+            <div
+              className="absolute top-2 left-2 z-10"
+              onClick={handleCheckboxClick}
+            >
+              <Checkbox checked={selected} className="[&_.ant-checkbox-inner]:w-5 [&_.ant-checkbox-inner]:h-5" />
             </div>
           )}
           {/* Status overlay - only show for draft and inactive */}
@@ -88,14 +118,14 @@ function ProductCard({ product }: ProductCardProps) {
       }
     >
       <div className="flex flex-col h-full">
-        {/* Title - fixed height for 2 lines */}
-        <div className="font-medium text-sm leading-tight line-clamp-2 h-[2.5rem]" title={product.name}>
+        {/* Title - fixed height for 2 lines with ellipsis */}
+        <div className="font-medium text-sm leading-tight line-clamp-2 h-[2.5rem] overflow-hidden" title={product.name}>
           {product.name}
         </div>
         {/* Style number */}
-        <div className="text-xs text-gray-400 font-mono truncate mt-1">{product.styleNumber}</div>
+        <div className="text-xs text-gray-500 dark:text-gray-300 font-mono truncate mt-1">{product.styleNumber}</div>
         {/* Price */}
-        <div className="font-semibold text-sm text-gray-900 mt-1">{priceDisplay()}</div>
+        <div className="font-semibold text-sm text-gray-900 dark:text-gray-100 mt-1">{priceDisplay()}</div>
         {/* Tags - push to bottom */}
         <div className="mt-auto pt-1.5">
           {product.tags && product.tags.length > 0 && (
@@ -126,6 +156,11 @@ export function ProductsListPage() {
   const [total, setTotal] = useState(0);
   const [params, setParams] = useState<ProductListParams>({ page: 1, limit: 12 });
   const [createModalOpen, setCreateModalOpen] = useState(false);
+
+  // Selection mode states
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
+  const [batchStatusModalOpen, setBatchStatusModalOpen] = useState(false);
 
   // Filter options
   const [brands, setBrands] = useState<Array<{ id: string; name: string }>>([]);
@@ -170,17 +205,97 @@ export function ProductsListPage() {
     setParams({ page: 1, limit: params.limit });
   };
 
+  // Selection handlers
+  const handleProductSelect = (id: string, selected: boolean) => {
+    if (selected) {
+      setSelectedProductIds((prev) => [...prev, id]);
+    } else {
+      setSelectedProductIds((prev) => prev.filter((pid) => pid !== id));
+    }
+  };
+
+  const handleSelectAll = () => {
+    const allIds = products.map((p) => p.id);
+    setSelectedProductIds(allIds);
+  };
+
+  const handleDeselectAll = () => {
+    setSelectedProductIds([]);
+  };
+
+  const enterSelectionMode = () => {
+    setSelectionMode(true);
+    setSelectedProductIds([]);
+  };
+
+  const exitSelectionMode = () => {
+    setSelectionMode(false);
+    setSelectedProductIds([]);
+  };
+
+  const handleBatchStatusSuccess = () => {
+    setBatchStatusModalOpen(false);
+    exitSelectionMode();
+    loadProducts();
+  };
+
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex justify-end">
-        <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateModalOpen(true)}>
-          {t('products.addProduct')}
-        </Button>
+      <div className="flex justify-between items-center">
+        {/* Batch operation bar */}
+        {selectionMode ? (
+          <div className="flex items-center gap-4">
+            <Space>
+              <span className="text-gray-600">
+                {t('products.selectedCount', { count: selectedProductIds.length })}
+              </span>
+              {selectedProductIds.length < products.length ? (
+                <Button size="small" icon={<CheckOutlined />} onClick={handleSelectAll}>
+                  {t('products.selectAll')}
+                </Button>
+              ) : (
+                <Button size="small" onClick={handleDeselectAll}>
+                  {t('products.deselectAll')}
+                </Button>
+              )}
+            </Space>
+          </div>
+        ) : (
+          <div />
+        )}
+
+        <Space>
+          {selectionMode ? (
+            <>
+              <Button
+                type="primary"
+                icon={<EditOutlined />}
+                disabled={selectedProductIds.length === 0}
+                onClick={() => setBatchStatusModalOpen(true)}
+              >
+                {t('products.batchUpdateStatus')}
+              </Button>
+              <Button icon={<CloseOutlined />} onClick={exitSelectionMode}>
+                {t('common.cancel')}
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button icon={<CheckOutlined />} onClick={enterSelectionMode}>
+                {t('products.batchOperation')}
+              </Button>
+              <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateModalOpen(true)}>
+                {t('products.addProduct')}
+              </Button>
+            </>
+          )}
+        </Space>
       </div>
 
       {/* Search & Filters */}
-      <Card >
-        <QueryFilter style={{padding:0}}
+      <Card>
+        <QueryFilter
+          style={{ padding: 0 }}
           labelWidth="auto"
           onFinish={handleFilter}
           onReset={handleReset}
@@ -229,35 +344,40 @@ export function ProductsListPage() {
 
       {/* Product Grid */}
       <Card>
-          <Spin spinning={loading}>
-            {products.length > 0 ? (
-              <>
-                <Row gutter={[16, 16]}>
-                  {products.map((product) => (
-                    <Col key={product.id} xs={24} sm={12} md={8} lg={6} xl={4}>
-                      <ProductCard product={product} />
-                    </Col>
-                  ))}
-                </Row>
-                <div className="flex justify-center mt-6">
-                  <Pagination
-                    current={params.page}
-                    pageSize={params.limit}
-                    total={total}
-                    showSizeChanger
-                    pageSizeOptions={[12, 24, 48, 96]}
-                    showTotal={(total) => t('products.totalCount', { count: total })}
-                    onChange={(page, pageSize) => setParams((p) => ({ ...p, page, limit: pageSize }))}
-                  />
-                </div>
-              </>
-            ) : (
-              <Empty description={t('common.noData')}>
-                <Button type="primary" onClick={() => setCreateModalOpen(true)}>
-                  {t('products.addProduct')}
-                </Button>
-              </Empty>
-            )}
+        <Spin spinning={loading}>
+          {products.length > 0 ? (
+            <>
+              <Row gutter={[16, 16]}>
+                {products.map((product) => (
+                  <Col key={product.id} xs={24} sm={12} md={8} lg={6} xl={4}>
+                    <ProductCard
+                      product={product}
+                      selectable={selectionMode}
+                      selected={selectedProductIds.includes(product.id)}
+                      onSelect={handleProductSelect}
+                    />
+                  </Col>
+                ))}
+              </Row>
+              <div className="flex justify-center mt-6">
+                <Pagination
+                  current={params.page}
+                  pageSize={params.limit}
+                  total={total}
+                  showSizeChanger
+                  pageSizeOptions={[12, 24, 48, 96]}
+                  showTotal={(total) => t('products.totalCount', { count: total })}
+                  onChange={(page, pageSize) => setParams((p) => ({ ...p, page, limit: pageSize }))}
+                />
+              </div>
+            </>
+          ) : (
+            <Empty description={t('common.noData')}>
+              <Button type="primary" onClick={() => setCreateModalOpen(true)}>
+                {t('products.addProduct')}
+              </Button>
+            </Empty>
+          )}
         </Spin>
       </Card>
 
@@ -265,6 +385,15 @@ export function ProductsListPage() {
       <ProductCreateModal
         open={createModalOpen}
         onClose={() => setCreateModalOpen(false)}
+      />
+
+      {/* Batch Update Status Modal */}
+      <BatchUpdateStatusModal
+        open={batchStatusModalOpen}
+        selectedCount={selectedProductIds.length}
+        selectedProductIds={selectedProductIds}
+        onCancel={() => setBatchStatusModalOpen(false)}
+        onSuccess={handleBatchStatusSuccess}
       />
     </div>
   );

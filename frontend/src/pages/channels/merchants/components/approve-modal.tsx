@@ -84,7 +84,7 @@ export function ApproveModal({ open, merchantChannel, onClose, onSuccess }: Prop
       width={560}
     >
       <div className="mb-4">
-        <Descriptions column={1} bordered size="small">
+        <Descriptions column={1} size="small">
           <Descriptions.Item label={t('merchantChannels.merchant')}>
             {merchantChannel.merchant.name}
           </Descriptions.Item>

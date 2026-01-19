@@ -97,7 +97,7 @@ export function RuleTestPanel({
               key={v.name}
               name={v.name}
               label={v.name}
-              tooltip={v.description}
+              tooltip={t(`rules.var_${v.name}`, { defaultValue: v.description })}
               className="mb-2"
             >
               <InputNumber
@@ -121,7 +121,7 @@ export function RuleTestPanel({
         </Form>
 
         {result && (
-          <div className="space-y-2">
+          <div className="space-y-3 mt-4">
             {result.error ? (
               <Alert
                 message={t('rules.testError')}

@@ -113,4 +113,30 @@ class BrandRepository extends ServiceEntityRepository
 
         return (int) $qb->getQuery()->getSingleScalarResult() > 0;
     }
+
+    /**
+     * 批量更新品牌状态.
+     *
+     * @param string[] $ids 品牌 ID 列表
+     * @param bool $isActive 新状态
+     *
+     * @return int 更新的记录数
+     */
+    public function batchUpdateStatus(array $ids, bool $isActive): int
+    {
+        if (empty($ids)) {
+            return 0;
+        }
+
+        return $this->createQueryBuilder('b')
+            ->update()
+            ->set('b.isActive', ':isActive')
+            ->set('b.updatedAt', ':updatedAt')
+            ->where('b.id IN (:ids)')
+            ->setParameter('isActive', $isActive)
+            ->setParameter('updatedAt', new \DateTimeImmutable('now', new \DateTimeZone('UTC')))
+            ->setParameter('ids', $ids)
+            ->getQuery()
+            ->execute();
+    }
 }

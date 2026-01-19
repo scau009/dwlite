@@ -47,6 +47,8 @@ admin:
     activated: 'Brand activated'
     deactivated: 'Brand deactivated'
     has_products: 'Cannot delete brand with associated products'
+    batch_activated: 'Successfully activated %count% brands'
+    batch_deactivated: 'Successfully deactivated %count% brands'
 
   # Tag management messages
   tag:
@@ -68,6 +70,7 @@ admin:
     updated: 'Product updated successfully'
     deleted: 'Product deleted successfully'
     status_updated: 'Product status updated'
+    batch_status_updated: 'Updated the status of %count% product(s)'
     # SKU
     sku_code_exists: 'SKU code already exists'
     sku_not_found: 'SKU not found'
@@ -158,6 +161,19 @@ admin:
     has_merchants: 'Cannot delete channel with associated merchants'
     status_updated: 'Channel status updated'
 
+  # Channel Product messages
+  channelProduct:
+    notFound: 'Channel product not found'
+    alreadyActive: 'Channel product is already active'
+    alreadyPaused: 'Channel product is already paused'
+    alreadyDelisted: 'Channel product is already delisted'
+    cannotDelistStatus: 'Can only delist active or paused products'
+    noExternalId: 'Cannot delist product without external ID'
+    activated: 'Channel product activated'
+    paused: 'Channel product paused'
+    delisted: 'Channel product delisted'
+    syncTriggered: 'Sync triggered'
+
   # Warehouse messages
   warehouse:
     not_found: 'Warehouse not found'
@@ -166,6 +182,13 @@ admin:
 merchant:
   not_found: 'Merchant not found'
   profile_updated: 'Profile updated successfully'
+  profile_resubmitted: 'Profile updated and resubmitted for review'
+  approval:
+    not_verified: 'Please verify your email first'
+    pending: 'Your merchant account is pending approval'
+    rejected: 'Your merchant account has been rejected'
+    disabled: 'Your merchant account has been disabled'
+    not_approved: 'Your merchant account is not approved'
 
 # Merchant channel messages
 merchant_channel:
@@ -180,6 +203,8 @@ merchant_channel:
   cannot_cancel_or_disable: 'Cannot cancel or disable in current status'
   not_disabled: 'This channel is not disabled'
   not_active: 'This channel is not active, cannot fetch warehouses'
+  not_rejected: 'This channel application is not rejected'
+  resubmitted: 'Channel application resubmitted'
 
 # Wallet messages
 wallet:
@@ -245,6 +270,8 @@ validation:
 
   # Inventory
   warehouse_not_found: 'Warehouse not found'
+  warehouse_id_required: 'Warehouse ID is required'
+  currency_invalid: 'Invalid currency. Supported currencies: CNY, USD, EUR, HKD, JPY'
   inventory_not_found: 'Inventory record not found'
   inventory_not_owned: 'Inventory does not belong to current merchant'
   inventory_warehouse_mismatch: 'Inventory warehouse does not match order warehouse'
@@ -259,13 +286,16 @@ inbound:
     shipped: 'Order shipped'
     received: 'Receiving completed'
     cancelled: 'Inbound order cancelled'
+    cannot_cancel_shipped: 'Cannot cancel order that has been shipped'
     deleted: 'Inbound order deleted'
     notes_updated: 'Notes updated successfully'
+    unit_cost_required: 'All items must have a unit cost before submission'
   item:
     added: 'Item added successfully'
     updated: 'Item updated successfully'
     removed: 'Item removed successfully'
     cost_updated: 'Item cost updated successfully'
+    batch_cost_updated: 'Updated cost for %count% item(s)'
   exception:
     created: 'Exception created successfully'
     resolved: 'Exception resolved'
@@ -324,3 +354,13 @@ listing:
   consignmentRequiresPlatformWarehouse: 'Consignment fulfillment requires platform warehouse'
   warehouseNotConfiguredForChannel: 'Warehouse is not configured for this channel'
   batchCreated: 'Successfully created %created% listing(s), failed %failed%'
+
+# API Key messages
+apiKeys:
+  maxLimitReached: 'Maximum API key limit reached. Each merchant can only have 1 API key.'
+  merchantNotApproved: 'Your merchant account must be approved before creating API keys.'
+  notFound: 'API key not found'
+  permissionsUpdated: 'Permissions updated successfully'
+  ipWhitelistUpdated: 'IP whitelist updated successfully'
+  secretRegenerated: 'Secret regenerated successfully'
+  deleted: 'API key deleted successfully'

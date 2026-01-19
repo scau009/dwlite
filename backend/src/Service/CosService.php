@@ -117,15 +117,24 @@ class CosService
      * @param string $cosKey The object key
      * @param int $expires Expiration time in seconds (default 1 hour)
      * @param string|null $imageParams Optional image processing params (e.g., 'imageMogr2/thumbnail/300x300>')
+     * @param bool $inline If true, set Content-Disposition to inline for browser display
      */
-    public function getSignedUrl(string $cosKey, int $expires = 3600, ?string $imageParams = null): string
+    public function getSignedUrl(string $cosKey, int $expires = 3600, ?string $imageParams = null, bool $inline = false): string
     {
-        // If using CDN with signed URL, the CDN should handle authentication
-        // For direct COS access, generate pre-signed URL
-        $signedUrl = $this->client->getPresignedUrl('getObject', [
-            'Bucket' => $this->bucket,
-            'Key' => $cosKey,
-        ], '+'.$expires.' seconds');
+        $args = [];
+
+        // Add response-content-disposition for inline display
+        if ($inline) {
+            $args['ResponseContentDisposition'] = 'inline';
+        }
+
+        // Use getObjectUrl which properly handles ResponseContentDisposition
+        $signedUrl = $this->client->getObjectUrl(
+            $this->bucket,
+            $cosKey,
+            '+'.$expires.' seconds',
+            $args
+        );
 
         // Append image processing params if provided
         if ($imageParams) {

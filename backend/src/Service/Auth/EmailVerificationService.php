@@ -32,19 +32,24 @@ class EmailVerificationService
         $token = new EmailVerificationToken($user);
         $this->tokenRepository->save($token, true);
 
+        $verifyUrl = $this->frontendUrl.'/verify-email?token='.$token->getToken();
+
         // Send email using template if configured, otherwise fallback to HTML
         if ($this->verificationTemplateId > 0) {
             $this->mailService->sendWithTemplate(
                 $user->getEmail(),
                 $this->translator->trans('email.verification.subject'),
                 $this->verificationTemplateId,
-                ['token' => $token->getToken()]
+                [
+                    'token' => $token->getToken(),
+                    'verifyUrl' => $verifyUrl,
+                ]
             );
         } else {
             $htmlContent = $this->twig->render('emails/verification.html.twig', [
                 'user' => $user,
                 'token' => $token->getToken(),
-                'verifyUrl' => $this->frontendUrl.'/verify-email?token='.$token->getToken(),
+                'verifyUrl' => $verifyUrl,
             ]);
 
             $this->mailService->send(

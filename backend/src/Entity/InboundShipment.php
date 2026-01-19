@@ -4,7 +4,6 @@ namespace App\Entity;
 
 use App\Repository\InboundShipmentRepository;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Uid\Ulid;
 
 /**
  * 送仓发货信息 - 商户发货的物流信息.
@@ -97,7 +96,6 @@ class InboundShipment
 
     public function __construct()
     {
-        $this->id = (string) new Ulid();
         $this->shippedAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
         $this->createdAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
         $this->updatedAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
@@ -106,6 +104,13 @@ class InboundShipment
     public function getId(): string
     {
         return $this->id;
+    }
+
+    public function setId(string $id): static
+    {
+        $this->id = $id;
+
+        return $this;
     }
 
     public function getInboundOrder(): InboundOrder

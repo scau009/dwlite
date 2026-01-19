@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Service\ChannelGateway\Provider\Mock;
 
+use App\Entity\ChannelProduct;
 use App\Service\ChannelGateway\AbstractChannelGateway;
 use App\Service\ChannelGateway\ChannelGatewayContext;
 use App\Service\ChannelGateway\Dto\Request\ConfirmOrderRequest;
 use App\Service\ChannelGateway\Dto\Request\PullOrdersRequest;
 use App\Service\ChannelGateway\Dto\Request\PushProductRequest;
 use App\Service\ChannelGateway\Dto\Request\ShipOrderRequest;
-use App\Service\ChannelGateway\Dto\Request\UpdateStockPriceRequest;
 use App\Service\ChannelGateway\Dto\Response\ChannelResponse;
 use App\Service\ChannelGateway\Dto\Response\PulledOrderDto;
 use App\Service\ChannelGateway\Dto\Response\PulledOrderItemDto;
@@ -18,6 +18,8 @@ use App\Service\ChannelGateway\Dto\Response\PushProductResponse;
 use App\Service\ChannelGateway\Dto\Response\ReceiverDto;
 use App\Service\ChannelGateway\Dto\Response\ShipOrderResponse;
 use App\Service\ChannelGateway\Dto\Response\UpdateStockPriceResponse;
+use App\Service\Mock\Dto\MockOrderDto;
+use App\Service\Mock\MockOrderStore;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -25,6 +27,11 @@ use Psr\Log\LoggerInterface;
  *
  * Returns simulated responses without making real API calls.
  * Can be configured to simulate failures via context config.
+ *
+ * For order pulling:
+ * - First checks MockOrderStore for pending orders (created via CLI commands)
+ * - Falls back to random order generation if store is empty
+ * - Use `mock_order_count: 0` in config to disable random generation
  */
 class MockGateway extends AbstractChannelGateway
 {
@@ -33,6 +40,7 @@ class MockGateway extends AbstractChannelGateway
 
     public function __construct(
         LoggerInterface $logger,
+        private readonly MockOrderStore $mockOrderStore,
     ) {
         parent::__construct($logger);
     }
@@ -74,12 +82,15 @@ class MockGateway extends AbstractChannelGateway
         );
     }
 
+    /**
+     * @param ChannelProduct[] $channelProducts
+     */
     public function updateStockPrice(
         ChannelGatewayContext $context,
-        UpdateStockPriceRequest $request
+        array $channelProducts
     ): UpdateStockPriceResponse {
         $this->logOperationStart('updateStockPrice', [
-            'updates' => count($request->items),
+            'productCount' => count($channelProducts),
         ]);
 
         if ($this->shouldSimulateFailure($context, 'updateStockPrice')) {
@@ -87,8 +98,8 @@ class MockGateway extends AbstractChannelGateway
         }
 
         $results = [];
-        foreach ($request->items as $update) {
-            $results[$update->externalId] = true;
+        foreach ($channelProducts as $channelProduct) {
+            $results[$channelProduct->getId()] = true;
         }
 
         $this->logOperationSuccess('updateStockPrice', ['updatedCount' => count($results)]);
@@ -100,6 +111,30 @@ class MockGateway extends AbstractChannelGateway
             results: $results,
             message: sprintf('%d items updated', count($results)),
             timestamp: $this->createUtcDateTime(),
+        );
+    }
+
+    public function delistProduct(
+        ChannelGatewayContext $context,
+        ChannelProduct $channelProduct
+    ): ChannelResponse {
+        $this->logOperationStart('delistProduct', [
+            'channelProductId' => $channelProduct->getId(),
+            'externalId' => $channelProduct->getExternalId(),
+        ]);
+
+        if ($this->shouldSimulateFailure($context, 'delistProduct')) {
+            $this->handleApiError(500, 'MOCK_ERROR', 'Simulated delist product failure');
+        }
+
+        $this->logOperationSuccess('delistProduct', [
+            'channelProductId' => $channelProduct->getId(),
+        ]);
+
+        return $this->wrapResponse(
+            success: true,
+            externalId: $channelProduct->getExternalId(),
+            message: 'Product delisted successfully',
         );
     }
 
@@ -116,10 +151,34 @@ class MockGateway extends AbstractChannelGateway
             $this->handleApiError(500, 'MOCK_ERROR', 'Simulated pull orders failure');
         }
 
-        // Generate mock orders
+        // First, try to get orders from MockOrderStore
+        $channelId = $context->getSalesChannel()->getId();
+        $storedOrders = $this->mockOrderStore->getPendingOrders($channelId);
+
+        if (!empty($storedOrders)) {
+            $orders = [];
+            foreach ($storedOrders as $mockOrder) {
+                $orders[] = $mockOrder->orderData;
+
+                // Mark as pulled in the store
+                $this->mockOrderStore->updateStatus($channelId, $mockOrder->mockOrderId, MockOrderDto::STATUS_PULLED);
+            }
+
+            $this->logOperationSuccess('pullOrders', [
+                'orderCount' => count($orders),
+                'source' => 'store',
+            ]);
+
+            return $orders;
+        }
+
+        // Fallback: Generate mock orders if store is empty
         $orders = $this->generateMockOrders($context);
 
-        $this->logOperationSuccess('pullOrders', ['orderCount' => count($orders)]);
+        $this->logOperationSuccess('pullOrders', [
+            'orderCount' => count($orders),
+            'source' => 'generated',
+        ]);
 
         return $orders;
     }
@@ -134,6 +193,18 @@ class MockGateway extends AbstractChannelGateway
 
         if ($this->shouldSimulateFailure($context, 'confirmOrder')) {
             $this->handleApiError(500, 'MOCK_ERROR', 'Simulated confirm order failure');
+        }
+
+        // Update mock order status in store
+        $channelId = $context->getSalesChannel()->getId();
+        $mockOrder = $this->mockOrderStore->findByExternalOrderId($channelId, $request->externalOrderId);
+        if ($mockOrder !== null) {
+            $this->mockOrderStore->updateStatus($channelId, $mockOrder->mockOrderId, MockOrderDto::STATUS_CONFIRMED);
+
+            // Link to internal order ID if provided
+            if ($request->internalOrderId !== null) {
+                $this->mockOrderStore->linkToInternalOrder($channelId, $mockOrder->mockOrderId, $request->internalOrderId);
+            }
         }
 
         $this->logOperationSuccess('confirmOrder', ['externalOrderId' => $request->externalOrderId]);
@@ -156,6 +227,13 @@ class MockGateway extends AbstractChannelGateway
 
         if ($this->shouldSimulateFailure($context, 'shipOrder')) {
             $this->handleApiError(500, 'MOCK_ERROR', 'Simulated ship order failure');
+        }
+
+        // Update mock order status in store
+        $channelId = $context->getSalesChannel()->getId();
+        $mockOrder = $this->mockOrderStore->findByExternalOrderId($channelId, $request->externalOrderId);
+        if ($mockOrder !== null) {
+            $this->mockOrderStore->updateStatus($channelId, $mockOrder->mockOrderId, MockOrderDto::STATUS_SHIPPED);
         }
 
         $this->logOperationSuccess('shipOrder', [

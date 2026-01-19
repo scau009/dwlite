@@ -41,6 +41,7 @@ class Wallet
     #[ORM\Column(type: 'string', length: 20)]
     private string $status = self::STATUS_ACTIVE;
 
+    /** @var Collection<int, WalletTransaction> */
     #[ORM\OneToMany(targetEntity: WalletTransaction::class, mappedBy: 'wallet', cascade: ['persist'])]
     #[ORM\OrderBy(['createdAt' => 'DESC'])]
     private Collection $transactions;

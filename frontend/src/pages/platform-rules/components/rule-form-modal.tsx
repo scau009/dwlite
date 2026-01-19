@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Modal, Form, Input, InputNumber, Select, Switch, App, Tabs } from 'antd';
+import { Modal, Form, Input, InputNumber, Radio, Switch, App, Tabs, Row, Col } from 'antd';
 import type { PlatformRule, RuleVariable, RuleFunction, ValidateResult, TestResult } from '@/lib/platform-rule-api';
 import { platformRuleApi } from '@/lib/platform-rule-api';
 import { ExpressionEditor } from './expression-editor';
@@ -207,31 +207,36 @@ export function RuleFormModal({ open, rule, ruleType, onClose, onSuccess }: Rule
           className="mt-4"
           disabled={detailLoading || (isEdit && rule?.isSystem)}
         >
-          <Form.Item
-            name="code"
-            label={t('rules.code')}
-            rules={[
-              { required: true, message: t('rules.codeRequired') },
-              { max: 100, message: t('rules.codeMaxLength') },
-              { pattern: /^[a-z][a-z0-9_]*$/, message: t('rules.codeInvalid') },
-            ]}
-          >
-            <Input
-              placeholder={t('rules.codePlaceholder')}
-              disabled={isEdit}
-            />
-          </Form.Item>
-
-          <Form.Item
-            name="name"
-            label={t('rules.name')}
-            rules={[
-              { required: true, message: t('rules.nameRequired') },
-              { max: 200, message: t('rules.nameMaxLength') },
-            ]}
-          >
-            <Input placeholder={t('rules.namePlaceholder')} />
-          </Form.Item>
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                name="code"
+                label={t('rules.code')}
+                rules={[
+                  { required: true, message: t('rules.codeRequired') },
+                  { max: 100, message: t('rules.codeMaxLength') },
+                  { pattern: /^[a-z][a-z0-9_]*$/, message: t('rules.codeInvalid') },
+                ]}
+              >
+                <Input
+                  placeholder={t('rules.codePlaceholder')}
+                  disabled={isEdit}
+                />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="name"
+                label={t('rules.name')}
+                rules={[
+                  { required: true, message: t('rules.nameRequired') },
+                  { max: 200, message: t('rules.nameMaxLength') },
+                ]}
+              >
+                <Input placeholder={t('rules.namePlaceholder')} />
+              </Form.Item>
+            </Col>
+          </Row>
 
           <Form.Item
             name="description"
@@ -251,7 +256,13 @@ export function RuleFormModal({ open, rule, ruleType, onClose, onSuccess }: Rule
             label={t('rules.category')}
             rules={[{ required: true, message: t('rules.categoryRequired') }]}
           >
-            <Select options={getCategoryOptions()} />
+            <Radio.Group>
+              {getCategoryOptions().map((opt) => (
+                <Radio.Button key={opt.value} value={opt.value}>
+                  {opt.label}
+                </Radio.Button>
+              ))}
+            </Radio.Group>
           </Form.Item>
 
           <Form.Item

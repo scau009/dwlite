@@ -23,6 +23,7 @@ const MOCK_USER: User = {
   isVerified: true,
   accountType: 'admin',
   createdAt: new Date().toISOString(),
+  merchantStatus: 'approved',
 };
 
 // Check if using mock login
@@ -34,6 +35,7 @@ interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   isAuthenticated: boolean;
+  isMerchantApproved: boolean;
   login: (data: LoginRequest) => Promise<void>;
   register: (data: RegisterRequest) => Promise<{ message: string }>;
   logout: () => Promise<void>;
@@ -108,12 +110,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // Check if merchant is approved (non-merchants are always considered "approved")
+  const isMerchantApproved =
+    !user ||
+    user.accountType !== 'merchant' ||
+    user.merchantStatus === 'approved';
+
   return (
     <AuthContext.Provider
       value={{
         user,
         isLoading,
         isAuthenticated: !!user,
+        isMerchantApproved,
         login,
         register,
         logout,

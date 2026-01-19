@@ -337,6 +337,14 @@ class InboundOrderItem
     }
 
     /**
+     * 获取币种（从父级入库单获取）.
+     */
+    public function getCurrency(): string
+    {
+        return $this->inboundOrder->getCurrency();
+    }
+
+    /**
      * 确认收货.
      */
     public function confirmReceived(int $receivedQty, int $damagedQty = 0, ?string $remark = null): void

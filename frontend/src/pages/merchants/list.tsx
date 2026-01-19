@@ -52,6 +52,7 @@ export function MerchantsListPage() {
     {
       title: t('merchants.name'),
       dataIndex: 'name',
+      width: 150,
       ellipsis: true,
       fieldProps: {
         placeholder: t('common.search') + '...',
@@ -153,7 +154,8 @@ export function MerchantsListPage() {
     {
       title: t('common.actions'),
       valueType: 'option',
-      width: 220,
+      width: 100,
+      fixed: 'right',
       render: (_, record) => (
         <Space size="small">
           {record.status === 'pending' && (
@@ -165,7 +167,7 @@ export function MerchantsListPage() {
               {t('merchants.review')}
             </Button>
           )}
-          {record.status !== 'pending' && (
+          {(record.status === 'approved' || record.status === 'disabled') && (
             <>
               <Button
                 type="link"
@@ -194,6 +196,7 @@ export function MerchantsListPage() {
         actionRef={actionRef}
         columns={columns}
         rowKey="id"
+        scroll={{ x: 1300 }}
         request={async (params) => {
           try {
             const result = await merchantApi.getMerchants({

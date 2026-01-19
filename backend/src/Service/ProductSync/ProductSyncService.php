@@ -13,6 +13,7 @@ use App\Repository\BrandRepository;
 use App\Repository\ProductExternalMappingRepository;
 use App\Repository\ProductRepository;
 use App\Repository\ProductSyncJobRepository;
+use App\Service\BusinessNoGenerator;
 use App\Service\CosService;
 use App\Service\ProductSync\Dto\ExternalProductDto;
 use App\Service\ProductSync\Dto\ExternalSkuDto;
@@ -38,6 +39,7 @@ class ProductSyncService
         private EntityManagerInterface $entityManager,
         private CosService $cosService,
         private LoggerInterface $logger,
+        private BusinessNoGenerator $businessNoGenerator,
     ) {
         $this->slugger = new AsciiSlugger();
     }
@@ -124,6 +126,22 @@ class ProductSyncService
             $product = $this->productRepository->findByStyleNumber($externalProduct->styleId);
 
             if ($product !== null) {
+                // Check if this product already has a mapping from this provider
+                $existingMapping = $this->mappingRepository->findByProductAndProvider($product, $provider);
+                if ($existingMapping !== null) {
+                    // Product already mapped to this provider (different external_id, same styleNumber)
+                    // Skip this external product to avoid duplicate mapping
+                    $job->incrementSkippedProducts();
+                    $this->logger->debug('Skipping duplicate product mapping', [
+                        'product_id' => $product->getId(),
+                        'external_id' => $externalProduct->externalId,
+                        'existing_external_id' => $existingMapping->getExternalId(),
+                        'style_number' => $externalProduct->styleId,
+                    ]);
+
+                    return null;
+                }
+
                 // Product exists but not mapped - create mapping
                 $this->updateProduct($product, $externalProduct);
                 $this->createMapping($product, $provider, $externalProduct);
@@ -218,10 +236,11 @@ class ProductSyncService
     private function createProduct(ExternalProductDto $externalProduct): Product
     {
         $product = new Product();
+        $product->setId($this->businessNoGenerator->generateProductId());
         $product->setStyleNumber($externalProduct->styleId);
         $product->setName($externalProduct->title);
         $product->setSlug($this->generateUniqueSlug($externalProduct->title));
-        $product->setColor($externalProduct->color);
+        $product->setColor($externalProduct->color ?? '');
         $product->setDescription($externalProduct->description);
         $product->setStatus('draft'); // New products start as draft
         $product->setIsActive(false); // Require admin review
@@ -372,7 +391,7 @@ class ProductSyncService
 
             // Map size unit
             $sizeUnit = $this->mapSizeUnit($externalSku->sizeUnit);
-            $key = ($sizeUnit?->value ?? '').':'.$externalSku->sizeValue;
+            $key = ($sizeUnit !== null ? $sizeUnit->value : '').':'.$externalSku->sizeValue;
 
             // Skip if size already exists
             if (isset($existingSizes[$key])) {
@@ -380,6 +399,7 @@ class ProductSyncService
             }
 
             $sku = new ProductSku();
+            $sku->setId($this->businessNoGenerator->generateProductSkuId());
             $sku->setProduct($product);
             $sku->setSizeUnit($sizeUnit);
             $sku->setSizeValue($externalSku->sizeValue);
@@ -424,7 +444,6 @@ class ProductSyncService
     private function mapSizeUnit(string $unit): ?SizeUnit
     {
         return match (strtoupper($unit)) {
-            'US' => SizeUnit::US,
             'EU' => SizeUnit::EU,
             'UK' => SizeUnit::UK,
             'CM' => SizeUnit::CM,

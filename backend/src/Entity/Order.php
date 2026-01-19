@@ -139,11 +139,16 @@ class Order
     #[ORM\Column(type: 'json', nullable: true)]
     private ?array $externalData = null;  // 原始订单数据（JSON）
 
+    #[ORM\Column(type: 'string', length: 500, nullable: true)]
+    private ?string $label = null;  // 渠道物流标签（COS URL）
+
     // 关联
+    /** @var Collection<int, OrderItem> */
     #[ORM\OneToMany(targetEntity: OrderItem::class, mappedBy: 'order', cascade: ['persist', 'remove'], orphanRemoval: true)]
     #[ORM\OrderBy(['id' => 'ASC'])]
     private Collection $items;
 
+    /** @var Collection<int, Fulfillment> */
     #[ORM\OneToMany(targetEntity: Fulfillment::class, mappedBy: 'order', cascade: ['persist'])]
     #[ORM\OrderBy(['createdAt' => 'ASC'])]
     private Collection $fulfillments;
@@ -157,18 +162,11 @@ class Order
     public function __construct()
     {
         $this->id = (string) new Ulid();
-        $this->orderNo = $this->generateOrderNo();
         $this->items = new ArrayCollection();
         $this->fulfillments = new ArrayCollection();
         $this->syncedAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
         $this->createdAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
         $this->updatedAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
-    }
-
-    private function generateOrderNo(): string
-    {
-        // 格式：PO + 年月日 + 6位随机数，如 PO20241217123456
-        return 'PO'.date('Ymd').str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
     }
 
     public function getId(): string
@@ -538,6 +536,18 @@ class Order
     public function setExternalData(?array $externalData): static
     {
         $this->externalData = $externalData;
+
+        return $this;
+    }
+
+    public function getLabel(): ?string
+    {
+        return $this->label;
+    }
+
+    public function setLabel(?string $label): static
+    {
+        $this->label = $label;
 
         return $this;
     }

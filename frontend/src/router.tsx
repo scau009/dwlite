@@ -23,8 +23,13 @@ import { RoleBasedDashboard } from '@/components/role-based-dashboard';
 import { ProfilePage } from '@/pages/profile';
 import { ProductsListPage, ProductDetailPage } from '@/pages/products';
 import { MerchantsListPage } from '@/pages/merchants';
+import { AdminApiKeysListPage } from '@/pages/api-keys';
+import { AdminInboundOrdersListPage, AdminInboundOrderDetailPage } from '@/pages/admin/inbound';
+import { AdminOutboundOrdersListPage, AdminOutboundOrderDetailPage } from '@/pages/admin/outbound';
 import { BrandsListPage } from '@/pages/brands';
 import { ChannelsListPage, MerchantChannelsListPage, AvailableChannelsPage, MyChannelsPage } from '@/pages/channels';
+import { ChannelProductsListPage } from '@/pages/channels/products/list';
+import { ChannelProductDetailPage } from '@/pages/channels/products/detail';
 import { ListingsListPage, CreateListingPage, EditListingPage, ListingLogsPage } from '@/pages/listings';
 import { CategoriesListPage } from '@/pages/categories';
 import { TagsListPage } from '@/pages/tags';
@@ -35,6 +40,8 @@ import {
   InboundExceptionsListPage,
   InboundExceptionDetailPage,
   MerchantStockListPage,
+  AddInventoryPage,
+  ImportInventoryPage,
   OutboundOrdersListPage,
   OutboundOrderDetailPage,
   MerchantWarehousesListPage,
@@ -47,9 +54,18 @@ import {
   WarehouseOutboundDetailPage,
   WarehouseInventoryListPage,
 } from '@/pages/warehouse-ops';
-import { MerchantProfilePage, MerchantWalletPage } from '@/pages/settings';
+import { MerchantProfilePage, MerchantWalletPage, ApiKeysPage } from '@/pages/settings';
 import { MerchantRulesPage } from '@/pages/settings/rules';
-import { PlatformRulesListPage } from '@/pages/platform-rules/list';
+import { RuleFormPage } from '@/pages/settings/rules/form';
+import { PlatformRulesListPage, PlatformRuleFormPage } from '@/pages/platform-rules';
+import { OrderExceptionsListPage, OrderExceptionDetailPage } from '@/pages/fulfillment/order-exceptions';
+import { PlatformOrdersListPage, PlatformOrderDetailPage } from '@/pages/fulfillment/orders';
+import { FulfillmentOrdersListPage, FulfillmentOrderDetailPage } from '@/pages/fulfillment/fulfillment-orders';
+import { SettlementsListPage, SettlementDetailPage } from '@/pages/settlements';
+import { PayoutsListPage, PayoutDetailPage } from '@/pages/settlements/payouts';
+import { BankAccountsListPage } from '@/pages/merchant/bank-accounts';
+import { MerchantSettlementsListPage, MerchantSettlementDetailPage } from '@/pages/merchant/settlements';
+import { MerchantPayoutsListPage } from '@/pages/merchant/payouts';
 
 // Placeholder component for pages not yet implemented
 // eslint-disable-next-line react-refresh/only-export-components
@@ -161,10 +177,30 @@ export const router = createBrowserRouter([
               { path: '/orders/refunds', element: <PlaceholderPage title="Refunds" /> },
 
               // Fulfillment
-              { path: '/fulfillment', element: <PlaceholderPage title="Fulfillment List" /> },
-              { path: '/fulfillment/pending', element: <PlaceholderPage title="Pending Shipment" /> },
-              { path: '/fulfillment/shipped', element: <PlaceholderPage title="Shipped" /> },
-              { path: '/fulfillment/exceptions', element: <PlaceholderPage title="Fulfillment Exceptions" /> },
+              { path: '/fulfillment', element: <Navigate to="/fulfillment/orders" replace /> },
+              { path: '/fulfillment/orders', element: <PlatformOrdersListPage /> },
+              { path: '/fulfillment/orders/:id', element: <PlatformOrderDetailPage /> },
+              { path: '/fulfillment/fulfillment-orders', element: <FulfillmentOrdersListPage /> },
+              { path: '/fulfillment/fulfillment-orders/:id', element: <FulfillmentOrderDetailPage /> },
+              { path: '/fulfillment/order-exceptions', element: <OrderExceptionsListPage /> },
+              { path: '/fulfillment/order-exceptions/:id', element: <OrderExceptionDetailPage /> },
+
+              // Admin Inbound Management
+              { path: '/admin/inbound', element: <Navigate to="/admin/inbound/orders" replace /> },
+              { path: '/admin/inbound/orders', element: <AdminInboundOrdersListPage /> },
+              { path: '/admin/inbound/orders/:id', element: <AdminInboundOrderDetailPage /> },
+
+              // Admin Outbound Management
+              { path: '/admin/outbound', element: <Navigate to="/admin/outbound/orders" replace /> },
+              { path: '/admin/outbound/orders', element: <AdminOutboundOrdersListPage /> },
+              { path: '/admin/outbound/orders/:id', element: <AdminOutboundOrderDetailPage /> },
+
+              // Settlements
+              { path: '/settlements', element: <Navigate to="/settlements/list" replace /> },
+              { path: '/settlements/list', element: <SettlementsListPage /> },
+              { path: '/settlements/detail/:id', element: <SettlementDetailPage /> },
+              { path: '/settlements/payouts', element: <PayoutsListPage /> },
+              { path: '/settlements/payouts/:id', element: <PayoutDetailPage /> },
 
               // Opportunities
               { path: '/opportunities', element: <OpportunitiesListPage /> },
@@ -172,6 +208,8 @@ export const router = createBrowserRouter([
               // Inventory
               { path: '/inventory/warehouses', element: <MerchantWarehousesListPage /> },
               { path: '/inventory/stock', element: <MerchantStockListPage /> },
+              { path: '/inventory/stock/add', element: <AddInventoryPage /> },
+              { path: '/inventory/stock/import', element: <ImportInventoryPage /> },
               { path: '/inventory/inbound', element: <InboundOrdersListPage /> },
               { path: '/inventory/inbound/detail/:id', element: <InboundOrderDetailPage /> },
               { path: '/inventory/outbound', element: <OutboundOrdersListPage /> },
@@ -180,11 +218,15 @@ export const router = createBrowserRouter([
               { path: '/inventory/exceptions/detail/:id', element: <InboundExceptionDetailPage /> },
 
               // Merchants
-              { path: '/merchants', element: <MerchantsListPage /> },
+              { path: '/merchants', element: <Navigate to="/merchants/list" replace /> },
+              { path: '/merchants/list', element: <MerchantsListPage /> },
+              { path: '/merchants/api-keys', element: <AdminApiKeysListPage /> },
 
               // Channels
               { path: '/channels', element: <Navigate to="/channels/list" replace /> },
               { path: '/channels/list', element: <ChannelsListPage /> },
+              { path: '/channels/products', element: <ChannelProductsListPage /> },
+              { path: '/channels/products/:id', element: <ChannelProductDetailPage /> },
               { path: '/channels/merchants', element: <MerchantChannelsListPage /> },
               { path: '/channels/available', element: <AvailableChannelsPage /> },
               { path: '/channels/my-channels', element: <MyChannelsPage /> },
@@ -193,6 +235,8 @@ export const router = createBrowserRouter([
               { path: '/channels/listings/:id/edit', element: <EditListingPage /> },
               { path: '/channels/listings-logs', element: <ListingLogsPage /> },
               { path: '/channels/rules', element: <MerchantRulesPage /> },
+              { path: '/channels/rules/create', element: <RuleFormPage /> },
+              { path: '/channels/rules/:id/edit', element: <RuleFormPage /> },
 
               // Warehouses (Admin)
               { path: '/warehouses', element: <Navigate to="/warehouses/list" replace /> },
@@ -214,10 +258,20 @@ export const router = createBrowserRouter([
 
               // Platform Rules (Admin)
               { path: '/platform-rules', element: <PlatformRulesListPage /> },
+              { path: '/platform-rules/create', element: <PlatformRuleFormPage /> },
+              { path: '/platform-rules/:id/edit', element: <PlatformRuleFormPage /> },
+
+              // Merchant Settlement Center
+              { path: '/merchant', element: <Navigate to="/merchant/settlements" replace /> },
+              { path: '/merchant/settlements', element: <MerchantSettlementsListPage /> },
+              { path: '/merchant/settlements/:id', element: <MerchantSettlementDetailPage /> },
+              { path: '/merchant/payouts', element: <MerchantPayoutsListPage /> },
+              { path: '/merchant/bank-accounts', element: <BankAccountsListPage /> },
 
               // Settings
               { path: '/settings/info', element: <MerchantProfilePage /> },
               { path: '/settings/wallet', element: <MerchantWalletPage /> },
+              { path: '/settings/api-keys', element: <ApiKeysPage /> },
               { path: '/settings/users', element: <PlaceholderPage title="User Management" /> },
               { path: '/settings/roles', element: <PlaceholderPage title="Role Management" /> },
               { path: '/settings/logs', element: <PlaceholderPage title="Operation Logs" /> },
