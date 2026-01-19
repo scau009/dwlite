@@ -116,7 +116,7 @@ class KicksDbApiClient
             }
 
             $data = $response->toArray();
-            $this->logger->debug('KicksDB API returned products', [
+            $this->logger->info('KicksDB API returned products', [
                 'page' => $pageNumber,
                 'count' => count($data['data'] ?? []),
                 'total' => $data['meta']['total'] ?? 0,
@@ -215,7 +215,7 @@ class KicksDbApiClient
                 $lastRank = $lastProduct['rank'] ?? null;
             }
 
-            $this->logger->debug('KicksDB API returned products (cursor mode)', [
+            $this->logger->info('KicksDB API returned products (cursor mode)', [
                 'after_rank' => $afterRank,
                 'count' => count($products),
                 'total' => $totalCount,

@@ -359,7 +359,7 @@ class FulfillmentService
     {
         // 只有订单处于 ALLOCATED 状态时才需要更新
         if (!$order->isAllocated()) {
-            $this->logger->debug('Order status not updated to FULFILLING: not in ALLOCATED state', [
+            $this->logger->info('Order status not updated to FULFILLING: not in ALLOCATED state', [
                 'orderId' => $order->getId(),
                 'currentStatus' => $order->getStatus(),
             ]);

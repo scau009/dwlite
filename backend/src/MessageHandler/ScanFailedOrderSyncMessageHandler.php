@@ -62,7 +62,7 @@ class ScanFailedOrderSyncMessageHandler
                 ));
                 ++$dispatched;
 
-                $this->logger->debug('Re-dispatched order sync', [
+                $this->logger->info('Re-dispatched order sync', [
                     'orderId' => $syncState->getOrder()->getId(),
                     'operation' => $operation,
                     'retryCount' => $syncState->getRetryCount(),

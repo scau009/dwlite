@@ -89,7 +89,7 @@ class ProductSyncService
         // Validate style ID
         if (!$externalProduct->hasValidStyleId()) {
             $job->incrementSkippedProducts();
-            $this->logger->debug('Skipping product without valid styleId', [
+            $this->logger->info('Skipping product without valid styleId', [
                 'external_id' => $externalProduct->externalId,
             ]);
 
@@ -114,7 +114,7 @@ class ProductSyncService
                 $job->incrementUpdatedProducts();
                 $job->incrementSyncedProducts();
 
-                $this->logger->debug('Updated existing product', [
+                $this->logger->info('Updated existing product', [
                     'product_id' => $product->getId(),
                     'external_id' => $externalProduct->externalId,
                 ]);
@@ -132,7 +132,7 @@ class ProductSyncService
                     // Product already mapped to this provider (different external_id, same styleNumber)
                     // Skip this external product to avoid duplicate mapping
                     $job->incrementSkippedProducts();
-                    $this->logger->debug('Skipping duplicate product mapping', [
+                    $this->logger->info('Skipping duplicate product mapping', [
                         'product_id' => $product->getId(),
                         'external_id' => $externalProduct->externalId,
                         'existing_external_id' => $existingMapping->getExternalId(),
@@ -149,7 +149,7 @@ class ProductSyncService
                 $job->incrementUpdatedProducts();
                 $job->incrementSyncedProducts();
 
-                $this->logger->debug('Mapped existing product', [
+                $this->logger->info('Mapped existing product', [
                     'product_id' => $product->getId(),
                     'external_id' => $externalProduct->externalId,
                 ]);
@@ -164,7 +164,7 @@ class ProductSyncService
             $job->incrementCreatedProducts();
             $job->incrementSyncedProducts();
 
-            $this->logger->debug('Created new product', [
+            $this->logger->info('Created new product', [
                 'product_id' => $product->getId(),
                 'external_id' => $externalProduct->externalId,
             ]);

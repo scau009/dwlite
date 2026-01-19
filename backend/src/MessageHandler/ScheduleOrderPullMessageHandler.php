@@ -53,7 +53,7 @@ class ScheduleOrderPullMessageHandler
                 );
                 ++$dispatchedCount;
 
-                $this->logger->debug('Dispatched order pull for channel', [
+                $this->logger->info('Dispatched order pull for channel', [
                     'channelId' => $channel->getId(),
                     'channelCode' => $channel->getCode(),
                 ]);

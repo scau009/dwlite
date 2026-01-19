@@ -272,7 +272,7 @@ class KicksCrewApiClient
             $options['json'] = $data;
         }
 
-        $this->logger->debug('[KICKSCREW] API request', [
+        $this->logger->info('[KICKSCREW] API request', [
             'method' => $method,
             'endpoint' => $endpoint,
             'data' => $data,
@@ -283,7 +283,7 @@ class KicksCrewApiClient
             $statusCode = $response->getStatusCode();
             $responseData = $response->toArray(false);
 
-            $this->logger->debug('[KICKSCREW] API response', [
+            $this->logger->info('[KICKSCREW] API response', [
                 'status_code' => $statusCode,
                 'response' => $responseData,
             ]);

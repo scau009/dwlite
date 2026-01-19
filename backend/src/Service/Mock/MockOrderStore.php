@@ -48,7 +48,7 @@ class MockOrderStore
             $this->removeFromPendingIndex($channelId, $mockOrder->mockOrderId);
         }
 
-        $this->logger->debug('Mock order stored', [
+        $this->logger->info('Mock order stored', [
             'channelId' => $channelId,
             'mockOrderId' => $mockOrder->mockOrderId,
             'status' => $mockOrder->status,
@@ -89,7 +89,7 @@ class MockOrderStore
         $this->cache->deleteItem($orderKey);
         $this->removeFromPendingIndex($channelId, $mockOrderId);
 
-        $this->logger->debug('Mock order deleted', [
+        $this->logger->info('Mock order deleted', [
             'channelId' => $channelId,
             'mockOrderId' => $mockOrderId,
         ]);

@@ -113,7 +113,7 @@ class SyncProductBatchMessageHandler
                     batchNumber: $message->batchNumber + 1,
                 ));
 
-                $this->logger->debug('Dispatched next batch message', [
+                $this->logger->info('Dispatched next batch message', [
                     'job_id' => $job->getId(),
                     'next_batch_number' => $message->batchNumber + 1,
                     'after_rank' => $lastRank,

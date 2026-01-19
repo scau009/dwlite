@@ -502,7 +502,7 @@ class ChannelProductSyncService
             [new DelayStamp(self::DEBOUNCE_TTL_SECONDS * 1000)]  // 毫秒
         );
 
-        $this->logger->debug('Dispatched delayed sync message', [
+        $this->logger->info('Dispatched delayed sync message', [
             'channelProductId' => $channelProduct->getId(),
             'triggerSource' => $triggerSource->value,
             'timestamp' => $currentTimestamp,
@@ -523,7 +523,7 @@ class ChannelProductSyncService
             return true;
         }
 
-        $this->logger->debug('Skipping outdated sync message', [
+        $this->logger->info('Skipping outdated sync message', [
             'channelProductId' => $message->channelProductId,
             'messageTimestamp' => $message->getDispatchTimestamp(),
             'latestTimestamp' => $latestTimestamp,

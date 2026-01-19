@@ -266,7 +266,7 @@ class KicksDbProvider implements ProductDataProviderInterface
         do {
             ++$batchNumber;
 
-            $this->logger->debug('Fetching batch', [
+            $this->logger->info('Fetching batch', [
                 'batch_number' => $batchNumber,
                 'after_rank' => $afterRank,
             ]);

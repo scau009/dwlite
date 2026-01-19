@@ -40,7 +40,7 @@ class SyncChannelProductMessageHandler
     {
         // 检查是否应该处理此消息（延迟消息去重）
         if (!$this->syncService->shouldProcessMessage($message)) {
-            $this->logger->debug('Skipping outdated sync message', [
+            $this->logger->info('Skipping outdated sync message', [
                 'channelProductId' => $message->channelProductId,
                 'timestamp' => $message->getDispatchTimestamp(),
             ]);

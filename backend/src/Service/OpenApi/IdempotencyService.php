@@ -30,7 +30,7 @@ class IdempotencyService
         $item = $this->cache->getItem($cacheKey);
 
         if ($item->isHit()) {
-            $this->logger->debug('Idempotency key found in cache', ['key' => $key]);
+            $this->logger->info('Idempotency key found in cache', ['key' => $key]);
 
             return [
                 'exists' => true,
@@ -54,7 +54,7 @@ class IdempotencyService
         $item->expiresAfter(self::CACHE_TTL);
         $this->cache->save($item);
 
-        $this->logger->debug('Stored idempotency key', ['key' => $key]);
+        $this->logger->info('Stored idempotency key', ['key' => $key]);
     }
 
     /**
@@ -65,7 +65,7 @@ class IdempotencyService
         $cacheKey = $this->getCacheKey($key);
         $this->cache->deleteItem($cacheKey);
 
-        $this->logger->debug('Invalidated idempotency key', ['key' => $key]);
+        $this->logger->info('Invalidated idempotency key', ['key' => $key]);
     }
 
     /**

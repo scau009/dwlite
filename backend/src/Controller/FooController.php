@@ -61,7 +61,7 @@ class FooController extends AbstractController
             'operation_time_ms' => round($duration * 1000, 2),
         ];
 
-        $this->logger->debug('Returning foo response', ['data' => $data]);
+        $this->logger->info('Returning foo response', ['data' => $data]);
 
         return new JsonResponse($data);
     }

@@ -68,7 +68,7 @@ class ScanPendingSyncMessageHandler
 
                 ++$dispatched;
 
-                $this->logger->debug('Re-dispatched sync for stale product', [
+                $this->logger->info('Re-dispatched sync for stale product', [
                     'channelProductId' => $product->getId(),
                     'operation' => $operation,
                 ]);
