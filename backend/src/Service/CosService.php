@@ -22,7 +22,7 @@ class CosService
     ) {
         $this->region = $region;
         $this->bucket = $bucket;
-        $this->cdnDomain = $cdnDomain ?: null;
+        $this->cdnDomain = $this->normalizeCdnDomain($cdnDomain);
 
         $this->client = new Client([
             'region' => $region,
@@ -89,10 +89,12 @@ class CosService
      */
     public function deleteFile(string $cosKey): void
     {
+        $normalizedCosKey = $this->normalizeCosKey($cosKey);
+
         try {
             $this->client->deleteObject([
                 'Bucket' => $this->bucket,
-                'Key' => $cosKey,
+                'Key' => $normalizedCosKey,
             ]);
         } catch (\Exception $e) {
             // Log error but don't throw - file might not exist
@@ -104,11 +106,13 @@ class CosService
      */
     public function getUrl(string $cosKey): string
     {
+        $normalizedCosKey = $this->normalizeCosKey($cosKey);
+
         if ($this->cdnDomain) {
-            return 'https://'.$this->cdnDomain.'/'.$cosKey;
+            return rtrim($this->cdnDomain, '/').'/'.$normalizedCosKey;
         }
 
-        return 'https://'.$this->bucket.'.cos.'.$this->region.'.myqcloud.com/'.$cosKey;
+        return 'https://'.$this->bucket.'.cos.'.$this->region.'.myqcloud.com/'.$normalizedCosKey;
     }
 
     /**
@@ -121,6 +125,7 @@ class CosService
      */
     public function getSignedUrl(string $cosKey, int $expires = 3600, ?string $imageParams = null, bool $inline = false): string
     {
+        $normalizedCosKey = $this->normalizeCosKey($cosKey);
         $args = [];
 
         // Add response-content-disposition for inline display
@@ -131,7 +136,7 @@ class CosService
         // Use getObjectUrl which properly handles ResponseContentDisposition
         $signedUrl = $this->client->getObjectUrl(
             $this->bucket,
-            $cosKey,
+            $normalizedCosKey,
             '+'.$expires.' seconds',
             $args
         );
@@ -149,10 +154,61 @@ class CosService
      */
     public function getPresignedUrl(string $cosKey, int $expires = 3600): string
     {
+        $normalizedCosKey = $this->normalizeCosKey($cosKey);
+
         return $this->client->getPresignedUrl('putObject', [
             'Bucket' => $this->bucket,
-            'Key' => $cosKey,
+            'Key' => $normalizedCosKey,
         ], '+'.$expires.' seconds');
+    }
+
+    /**
+     * Normalize COS object key by removing leading slash.
+     */
+    private function normalizeCosKey(string $cosKey): string
+    {
+        return ltrim($cosKey, '/');
+    }
+
+    /**
+     * Normalize CDN domain to base URL (scheme + host [+port]).
+     *
+     * Examples:
+     * - cdn.example.com -> https://cdn.example.com
+     * - https://cdn.example.com -> https://cdn.example.com
+     * - https://cdn.example.com/path -> https://cdn.example.com
+     */
+    private function normalizeCdnDomain(?string $cdnDomain): ?string
+    {
+        if ($cdnDomain === null) {
+            return null;
+        }
+
+        $trimmed = trim($cdnDomain);
+        if ($trimmed === '') {
+            return null;
+        }
+
+        // Allow values without schema.
+        $value = $trimmed;
+        if (!str_starts_with($value, 'http://') && !str_starts_with($value, 'https://')) {
+            $value = 'https://'.$value;
+        }
+
+        $parsed = parse_url($value);
+        if (!is_array($parsed) || !isset($parsed['host']) || $parsed['host'] === '') {
+            return null;
+        }
+
+        $scheme = strtolower($parsed['scheme'] ?? 'https');
+        if ($scheme !== 'http' && $scheme !== 'https') {
+            return null;
+        }
+
+        $host = strtolower($parsed['host']);
+        $port = isset($parsed['port']) ? ':'.$parsed['port'] : '';
+
+        return $scheme.'://'.$host.$port;
     }
 
     /**

@@ -832,6 +832,7 @@ class ProductController extends AbstractController
             'categoryName' => $product->getCategory()?->getName(),
             'skuCount' => $product->getSkuCount(),
             'priceRange' => $priceRange,
+            'currency' => $this->resolveProductCurrency($product),
             'primaryImageUrl' => $primaryImageUrl,
             'tags' => array_map(
                 fn ($t) => ['id' => $t->getId(), 'name' => $t->getName()],
@@ -874,6 +875,19 @@ class ProductController extends AbstractController
         }
 
         return $data;
+    }
+
+    private function resolveProductCurrency(Product $product): ?string
+    {
+        foreach ($product->getSkus() as $sku) {
+            if ($sku->isActive()) {
+                return $sku->getCurrency();
+            }
+        }
+
+        $firstSku = $product->getSkus()->first();
+
+        return $firstSku instanceof ProductSku ? $firstSku->getCurrency() : null;
     }
 
     private function serializeSku(ProductSku $sku): array

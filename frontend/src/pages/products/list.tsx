@@ -18,6 +18,7 @@ import {
 import { QueryFilter, ProFormText, ProFormSelect } from '@ant-design/pro-components';
 import { PlusOutlined, ShoppingOutlined, EditOutlined, CloseOutlined, CheckOutlined } from '@ant-design/icons';
 import {
+  CURRENCIES,
   productApi,
   type Product,
   type ProductListParams,
@@ -42,9 +43,10 @@ function ProductCard({ product, selectable, selected, onSelect }: ProductCardPro
 
   const priceDisplay = () => {
     const { min, max } = product.priceRange;
+    const symbol = CURRENCIES.find((currency) => currency.value === product.currency)?.symbol || '¥';
     if (min === null || max === null) return t('products.noPrice');
-    if (min === max) return `¥${min.toFixed(2)}`;
-    return `¥${min.toFixed(2)} - ¥${max.toFixed(2)}`;
+    if (min === max) return `${symbol}${min.toFixed(2)}`;
+    return `${symbol}${min.toFixed(2)} - ${symbol}${max.toFixed(2)}`;
   };
 
   const statusLabel = () => {

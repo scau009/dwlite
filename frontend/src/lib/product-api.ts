@@ -36,6 +36,7 @@ export interface Product {
   categoryName: string | null;
   skuCount: number;
   priceRange: { min: number | null; max: number | null };
+  currency?: Currency | null;
   primaryImageUrl: string | null;
   tags: Array<{ id: string; name: string }>;
   createdAt: string;
