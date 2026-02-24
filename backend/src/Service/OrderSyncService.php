@@ -577,9 +577,28 @@ class OrderSyncService
         SalesChannel $salesChannel,
         string $externalProductId,
     ): ?\App\Entity\ChannelProduct {
-        return $this->channelProductRepo->findByExternalId(
+        $matched = $this->channelProductRepo->findByExternalId(
             $salesChannel,
             $externalProductId,
         );
+
+        if ($matched !== null) {
+            return $matched;
+        }
+
+        // MOCK channel supports using ChannelProduct.id as externalProductId
+        // for local debugging before first push assigns a stable externalId.
+        if (strtoupper($salesChannel->getCode()) !== 'MOCK') {
+            return null;
+        }
+
+        $mockChannelProduct = $this->channelProductRepo->find($externalProductId);
+        if ($mockChannelProduct === null) {
+            return null;
+        }
+
+        return $mockChannelProduct->getSalesChannel()->getId() === $salesChannel->getId()
+            ? $mockChannelProduct
+            : null;
     }
 }

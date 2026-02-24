@@ -97,14 +97,18 @@ class TestOrderPullCommand extends Command
             $salesChannel->setConfig(array_merge($salesChannel->getConfig() ?? [], ['api_key' => $apiKey]));
         }
 
-        // Check if channel has API key configured
+        // KicksCrew requires api_key, MOCK and other local debug channels may not.
+        $requiresApiKey = $gateway instanceof KicksCrewGateway;
         $hasApiKey = $salesChannel->getConfigValue('api_key') !== null;
-        $io->info('Has API Key: '.($hasApiKey ? 'Yes' : 'No'));
+        if ($requiresApiKey) {
+            $io->info('Has API Key: '.($hasApiKey ? 'Yes' : 'No'));
+            if (!$hasApiKey) {
+                $io->error('No API key configured. Either set api_key in SalesChannel.config or use --api-key option.');
 
-        if (!$hasApiKey) {
-            $io->error('No API key configured. Either set api_key in SalesChannel.config or use --api-key option.');
-
-            return Command::FAILURE;
+                return Command::FAILURE;
+            }
+        } else {
+            $io->info('API Key not required for this gateway.');
         }
 
         // Single order sync mode
