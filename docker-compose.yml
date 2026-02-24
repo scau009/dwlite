@@ -12,6 +12,7 @@ services:
     environment:
       - APP_ENV=dev
       - APP_SECRET=${APP_SECRET:-change-me-in-production}
+      - DATABASE_URL=mysql://root:root123123@mysql:3306/dwlite?serverVersion=8.0.32&charset=utf8mb4
       - TZ=UTC
     extra_hosts:
       - "host.docker.internal:host-gateway"
@@ -28,6 +29,9 @@ services:
       interval: 10s
       timeout: 5s
       retries: 3
+    depends_on:
+      mysql:
+        condition: service_healthy
 
   worker:
     build:
@@ -39,12 +43,14 @@ services:
     environment:
       - APP_ENV=dev
       - APP_SECRET=${APP_SECRET:-change-me-in-production}
+      - DATABASE_URL=mysql://root:root123123@mysql:3306/dwlite?serverVersion=8.0.32&charset=utf8mb4
       - TZ=UTC
     extra_hosts:
       - "host.docker.internal:host-gateway"
     command: php bin/console messenger:consume async --time-limit=3600 --memory-limit=128M -vv
     depends_on:
       - backend
+      - mysql
     restart: unless-stopped
     healthcheck:
       test: ["NONE"]
@@ -67,12 +73,14 @@ services:
     environment:
       - APP_ENV=dev
       - APP_SECRET=${APP_SECRET:-change-me-in-production}
+      - DATABASE_URL=mysql://root:root123123@mysql:3306/dwlite?serverVersion=8.0.32&charset=utf8mb4
       - TZ=UTC
     extra_hosts:
       - "host.docker.internal:host-gateway"
     command: php bin/console messenger:consume scheduler_default --time-limit=3600 --memory-limit=128M -vv
     depends_on:
       - backend
+      - mysql
     restart: unless-stopped
     healthcheck:
       test: ["NONE"]
@@ -188,6 +196,25 @@ services:
       - "1025:1025"   # SMTP
       - "8025:8025"   # Web UI
 
+  mysql:
+    image: mysql:8.0
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=root123123
+      - MYSQL_DATABASE=dwlite
+      - TZ=UTC
+    command:
+      - --default-authentication-plugin=mysql_native_password
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./doc/schema_all.sql:/docker-entrypoint-initdb.d/001-schema_all.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -proot123123 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
 volumes:
   backend_logs:
   loki_data:
@@ -195,3 +222,4 @@ volumes:
   prometheus_data:
   grafana_data:
   redis_data:
+  mysql_data:

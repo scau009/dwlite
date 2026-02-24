@@ -23,8 +23,10 @@ class ExpireReservationsMessageHandler
 
     public function __invoke(ExpireReservationsMessage $message): void
     {
+        $now = $message->getNow();
+
         $this->logger->info('Starting reservation expiration cleanup', [
-            'scheduledAt' => $message->scheduledAt->format(\DateTimeInterface::ATOM),
+            'executedAt' => $now->format(\DateTimeInterface::ATOM),
             'limit' => $message->limit,
         ]);
 

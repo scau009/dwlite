@@ -54,10 +54,7 @@ class MainSchedule implements ScheduleProviderInterface
                 RecurringMessage::every('1 hour', ScanPendingSettlementsMessage::create()),
 
                 // Inventory reservation expiration - expire overdue reservations every 1 minute
-                RecurringMessage::every('1 minute', new ExpireReservationsMessage(
-                    new \DateTimeImmutable('now', new \DateTimeZone('UTC')),
-                    100  // process up to 100 expired reservations per run
-                )),
+                RecurringMessage::every('1 minute', ExpireReservationsMessage::create()),
             );
         } else {
             $schedule->add(
