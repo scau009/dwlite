@@ -9,6 +9,7 @@ services:
       - ./backend:/app
       - ./backend/Caddyfile:/etc/caddy/Caddyfile
       - backend_logs:/app/var/log
+    command: frankenphp run --watch
     environment:
       - APP_ENV=dev
       - APP_SECRET=${APP_SECRET:-change-me-in-production}

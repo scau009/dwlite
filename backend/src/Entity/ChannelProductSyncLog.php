@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
-use App\Enum\SyncTriggerSource;
+use App\Enum\SyncTriggerSourceEnum;
 use App\Repository\ChannelProductSyncLogRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Uid\Ulid;
@@ -149,9 +149,9 @@ class ChannelProductSyncLog
         return $this->triggerSource;
     }
 
-    public function setTriggerSource(string|SyncTriggerSource $triggerSource): static
+    public function setTriggerSource(string|SyncTriggerSourceEnum $triggerSource): static
     {
-        $this->triggerSource = $triggerSource instanceof SyncTriggerSource
+        $this->triggerSource = $triggerSource instanceof SyncTriggerSourceEnum
             ? $triggerSource->value
             : $triggerSource;
 
@@ -403,7 +403,7 @@ class ChannelProductSyncLog
      */
     public static function createForAggregate(
         ChannelProduct $channelProduct,
-        SyncTriggerSource $triggerSource,
+        SyncTriggerSourceEnum $triggerSource,
         ?string $triggerListingId = null,
         ?string $triggerMerchantId = null,
         ?string $triggerInventoryId = null,
@@ -437,7 +437,7 @@ class ChannelProductSyncLog
         $log->setChannelProductId($channelProduct->getId());
         $log->setSalesChannelId($channelProduct->getSalesChannel()->getId());
         $log->setOperation($operation);
-        $log->setTriggerSource(SyncTriggerSource::MANUAL->value);
+        $log->setTriggerSource(SyncTriggerSourceEnum::MANUAL->value);
         $log->setBeforeData([
             'price' => $channelProduct->getPlatformPrice(),
             'stock' => $channelProduct->getStockQuantity(),

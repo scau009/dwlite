@@ -7,7 +7,7 @@ use App\Dto\Admin\Query\ChannelProductListQuery;
 use App\Entity\ChannelProduct;
 use App\Entity\ChannelProductSource;
 use App\Entity\ChannelProductSyncLog;
-use App\Enum\SyncTriggerSource;
+use App\Enum\SyncTriggerSourceEnum;
 use App\Message\PushChannelProductMessage;
 use App\Repository\ChannelProductRepository;
 use App\Repository\ChannelProductSyncLogRepository;
@@ -36,8 +36,7 @@ class ChannelProductController extends AbstractController
         private TranslatorInterface $translator,
         private CosService $cosService,
         private MessageBusInterface $messageBus,
-    ) {
-    }
+    ) {}
 
     #[Route('', name: 'admin_channel_product_list', methods: ['GET'])]
     public function list(#[MapQueryString] ChannelProductListQuery $query = new ChannelProductListQuery()): JsonResponse
@@ -49,7 +48,7 @@ class ChannelProductController extends AbstractController
         );
 
         return $this->json([
-            'data' => array_map(fn (ChannelProduct $cp) => $this->serializeChannelProduct($cp), $result['data']),
+            'data' => array_map(fn(ChannelProduct $cp) => $this->serializeChannelProduct($cp), $result['data']),
             'total' => $result['total'],
             'page' => $query->getPage(),
             'limit' => $query->getLimit(),
@@ -83,7 +82,7 @@ class ChannelProductController extends AbstractController
         $this->entityManager->flush();
 
         // Trigger sync to external channel
-        $this->syncService->triggerSyncFromChannelProduct($channelProduct, SyncTriggerSource::MANUAL);
+        $this->syncService->triggerSyncFromChannelProduct($channelProduct, SyncTriggerSourceEnum::MANUAL);
 
         return $this->json([
             'message' => $this->translator->trans('admin.channelProduct.activated'),
@@ -107,7 +106,7 @@ class ChannelProductController extends AbstractController
         $this->entityManager->flush();
 
         // Trigger sync to external channel
-        $this->syncService->triggerSyncFromChannelProduct($channelProduct, SyncTriggerSource::MANUAL);
+        $this->syncService->triggerSyncFromChannelProduct($channelProduct, SyncTriggerSourceEnum::MANUAL);
 
         return $this->json([
             'message' => $this->translator->trans('admin.channelProduct.paused'),
@@ -165,7 +164,7 @@ class ChannelProductController extends AbstractController
         $this->entityManager->flush();
 
         // Trigger sync to external channel
-        $this->syncService->triggerSyncFromChannelProduct($channelProduct, SyncTriggerSource::MANUAL);
+        $this->syncService->triggerSyncFromChannelProduct($channelProduct, SyncTriggerSourceEnum::MANUAL);
 
         return $this->json([
             'message' => $this->translator->trans('admin.channelProduct.syncTriggered'),
@@ -221,7 +220,7 @@ class ChannelProductController extends AbstractController
         );
 
         return $this->json([
-            'data' => array_map(fn (ChannelProductSyncLog $log) => $this->serializeSyncLog($log), $result['data']),
+            'data' => array_map(fn(ChannelProductSyncLog $log) => $this->serializeSyncLog($log), $result['data']),
             'total' => $result['total'],
             'page' => $page,
             'limit' => $limit,
@@ -272,7 +271,7 @@ class ChannelProductController extends AbstractController
             ],
             'productSku' => [
                 'id' => $sku->getId(),
-                'skuCode' => $product->getStyleNumber().'-'.$sku->getSkuName(),
+                'skuCode' => $product->getStyleNumber() . '-' . $sku->getSkuName(),
                 'productName' => $product->getName(),
                 'productId' => $product->getId(),
                 'styleNumber' => $product->getStyleNumber(),

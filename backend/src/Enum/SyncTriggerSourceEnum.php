@@ -7,7 +7,7 @@ namespace App\Enum;
 /**
  * Trigger sources for channel product synchronization.
  */
-enum SyncTriggerSource: string
+enum SyncTriggerSourceEnum: string
 {
     // Listing operations
     case LISTING_CREATE = 'listing_create';

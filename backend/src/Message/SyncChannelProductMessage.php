@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Message;
 
-use App\Enum\SyncTriggerSource;
+use App\Enum\SyncTriggerSourceEnum;
 
 /**
  * Message to trigger channel product aggregation.
@@ -22,15 +22,14 @@ readonly class SyncChannelProductMessage implements AsyncMessageInterface
         public ?string $merchantId = null,
         public ?string $merchantInventoryId = null,
         public ?string $dispatchTimestamp = null,
-    ) {
-    }
+    ) {}
 
     /**
      * Create from SyncTriggerSource enum.
      */
     public static function create(
         string $channelProductId,
-        SyncTriggerSource $triggerSource,
+        SyncTriggerSourceEnum $triggerSource,
         ?string $inventoryListingId = null,
         ?string $merchantId = null,
         ?string $merchantInventoryId = null,
@@ -49,9 +48,9 @@ readonly class SyncChannelProductMessage implements AsyncMessageInterface
     /**
      * Get trigger source as enum.
      */
-    public function getTriggerSourceEnum(): SyncTriggerSource
+    public function getTriggerSourceEnum(): SyncTriggerSourceEnum
     {
-        return SyncTriggerSource::from($this->triggerSource);
+        return SyncTriggerSourceEnum::from($this->triggerSource);
     }
 
     /**

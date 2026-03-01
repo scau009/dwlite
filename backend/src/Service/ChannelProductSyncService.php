@@ -9,11 +9,10 @@ use App\Entity\ChannelProductSource;
 use App\Entity\ChannelProductSyncLog;
 use App\Entity\InventoryListing;
 use App\Entity\MerchantInventory;
-use App\Enum\SyncTriggerSource;
+use App\Enum\SyncTriggerSourceEnum;
 use App\Message\SyncChannelProductMessage;
 use App\Repository\ChannelProductRepository;
 use App\Repository\ChannelProductSourceRepository;
-use App\Repository\ChannelProductSyncLogRepository;
 use App\Repository\InventoryListingRepository;
 use App\Service\ChannelGateway\ChannelGatewayContext;
 use App\Service\ChannelGateway\ChannelGatewayInterface;
@@ -44,15 +43,13 @@ class ChannelProductSyncService
         private ChannelProductRepository $channelProductRepo,
         private ChannelProductSourceRepository $sourceRepo,
         private InventoryListingRepository $listingRepo,
-        private ChannelProductSyncLogRepository $syncLogRepo,
         private ChannelGatewayRegistry $gatewayRegistry,
         private EntityManagerInterface $entityManager,
         private MessageBusInterface $messageBus,
         private RedisClient $redis,
         private LoggerInterface $logger,
         private BusinessNoGenerator $businessNoGenerator,
-    ) {
-    }
+    ) {}
 
     /**
      * Trigger sync from inventory listing change.
@@ -61,7 +58,7 @@ class ChannelProductSyncService
      */
     public function triggerSyncFromListing(
         InventoryListing $listing,
-        SyncTriggerSource $triggerSource,
+        SyncTriggerSourceEnum $triggerSource,
     ): void {
         // Find or create channel product
         $channelProduct = $this->findOrCreateChannelProduct($listing);
@@ -70,7 +67,7 @@ class ChannelProductSyncService
         }
 
         // Find or create source link
-        $this->ensureSourceExists($channelProduct, $listing, $triggerSource);
+        $this->ensureSourceExists($channelProduct, $listing);
 
         // Dispatch with debounce
         $this->dispatchWithDebounce(
@@ -89,7 +86,7 @@ class ChannelProductSyncService
      */
     public function triggerSyncFromInventory(
         MerchantInventory $inventory,
-        SyncTriggerSource $triggerSource,
+        SyncTriggerSourceEnum $triggerSource,
     ): void {
         // Find all listings for this inventory
         $listings = $this->listingRepo->findByInventory($inventory);
@@ -123,7 +120,7 @@ class ChannelProductSyncService
      */
     public function triggerSyncFromChannelProduct(
         ChannelProduct $channelProduct,
-        SyncTriggerSource $triggerSource,
+        SyncTriggerSourceEnum $triggerSource,
         ?string $merchantId = null,
     ): void {
         $this->dispatchWithDebounce(
@@ -142,7 +139,7 @@ class ChannelProductSyncService
      */
     public function aggregateChannelProduct(
         ChannelProduct $channelProduct,
-        SyncTriggerSource $triggerSource,
+        SyncTriggerSourceEnum $triggerSource,
         ?InventoryListing $triggerListing = null,
         ?string $triggerMerchantId = null,
         ?string $triggerInventoryId = null,
@@ -160,10 +157,10 @@ class ChannelProductSyncService
         $this->entityManager->persist($syncLog);
 
         try {
-            // Sync source status based on listing's actual status (self-healing)
-            if ($triggerListing !== null) {
-                $this->syncSourceStatus($channelProduct, $triggerListing);
-            }
+            // Sync ALL source statuses based on listing's actual status (self-healing).
+            // Because debounce may skip intermediate messages, we must check all sources
+            // instead of only the trigger listing to ensure complete self-healing.
+            $this->syncAllSourceStatuses($channelProduct);
 
             // Recalculate aggregated stock
             $channelProduct->recalculateStock();
@@ -176,9 +173,8 @@ class ChannelProductSyncService
                 $channelProduct->markNeedsSync();
             }
 
-            $this->entityManager->flush();
-
-            // Mark log as success
+            // Mark log as success before flush to ensure atomicity
+            // (avoids syncLog stuck in PROCESSING if a second flush were to fail)
             $syncLog->markSuccess([
                 'price' => $channelProduct->getPlatformPrice(),
                 'stock' => $channelProduct->getStockQuantity(),
@@ -198,7 +194,16 @@ class ChannelProductSyncService
         } catch (\Throwable $e) {
             $channelProduct->markSyncFailed($e->getMessage());
             $syncLog->markFailed($e->getMessage());
-            $this->entityManager->flush();
+
+            try {
+                $this->entityManager->flush();
+            } catch (\Throwable $flushException) {
+                $this->logger->error('Failed to persist error state during aggregation', [
+                    'channelProductId' => $channelProduct->getId(),
+                    'originalError' => $e->getMessage(),
+                    'flushError' => $flushException->getMessage(),
+                ]);
+            }
 
             throw $e;
         }
@@ -278,13 +283,31 @@ class ChannelProductSyncService
         } catch (ChannelGatewayException $e) {
             $channelProduct->markSyncFailed($e->getMessage());
             $syncLog->markFailed($e->getMessage(), $e->getErrorCode());
-            $this->entityManager->flush();
+
+            try {
+                $this->entityManager->flush();
+            } catch (\Throwable $flushException) {
+                $this->logger->error('Failed to persist error state during push', [
+                    'channelProductId' => $channelProduct->getId(),
+                    'originalError' => $e->getMessage(),
+                    'flushError' => $flushException->getMessage(),
+                ]);
+            }
 
             throw $e;
         } catch (\Throwable $e) {
             $channelProduct->markSyncFailed($e->getMessage());
             $syncLog->markFailed($e->getMessage());
-            $this->entityManager->flush();
+
+            try {
+                $this->entityManager->flush();
+            } catch (\Throwable $flushException) {
+                $this->logger->error('Failed to persist error state during push', [
+                    'channelProductId' => $channelProduct->getId(),
+                    'originalError' => $e->getMessage(),
+                    'flushError' => $flushException->getMessage(),
+                ]);
+            }
 
             throw $e;
         }
@@ -344,8 +367,7 @@ class ChannelProductSyncService
      */
     private function ensureSourceExists(
         ChannelProduct $channelProduct,
-        InventoryListing $listing,
-        SyncTriggerSource $triggerSource,
+        InventoryListing $listing
     ): void {
         $source = $this->sourceRepo->findOneByProductAndListing($channelProduct, $listing);
         $shouldBeActive = $listing->getStatus() === InventoryListing::STATUS_ACTIVE;
@@ -447,6 +469,8 @@ class ChannelProductSyncService
         $activeSources = $channelProduct->getActiveSources();
 
         if ($activeSources->isEmpty()) {
+            $channelProduct->setPlatformPrice('0.00');
+
             return;
         }
 
@@ -474,7 +498,7 @@ class ChannelProductSyncService
      */
     private function dispatchWithDebounce(
         ChannelProduct $channelProduct,
-        SyncTriggerSource $triggerSource,
+        SyncTriggerSourceEnum $triggerSource,
         ?string $inventoryListingId,
         ?string $merchantId,
         ?string $merchantInventoryId,
@@ -482,12 +506,7 @@ class ChannelProductSyncService
         $timestampKey = sprintf('sync:timestamp:%s', $channelProduct->getId());
         $currentTimestamp = (string) microtime(true);
 
-        // 记录最新的请求时间戳
-        $this->redis->set($timestampKey, $currentTimestamp);
-        // 设置过期时间，防止 key 堆积
-        $this->redis->expire($timestampKey, self::DEBOUNCE_TTL_SECONDS + 10);
-
-        // 派发延迟消息
+        // 先派发延迟消息，确保消息成功入队后再更新时间戳
         $message = SyncChannelProductMessage::create(
             $channelProduct->getId(),
             $triggerSource,
@@ -501,6 +520,9 @@ class ChannelProductSyncService
             $message,
             [new DelayStamp(self::DEBOUNCE_TTL_SECONDS * 1000)]  // 毫秒
         );
+
+        // 消息派发成功后再记录时间戳（原子操作，防止 key 堆积）
+        $this->redis->setex($timestampKey, self::DEBOUNCE_TTL_SECONDS + 10, $currentTimestamp);
 
         $this->logger->info('Dispatched delayed sync message', [
             'channelProductId' => $channelProduct->getId(),
@@ -550,7 +572,7 @@ class ChannelProductSyncService
             sizeValue: $sku->getSizeValue(),
             price: $channelProduct->getPlatformPrice(),
             compareAtPrice: $channelProduct->getPlatformCompareAtPrice(),
-            stock: $channelProduct->getStockQuantity(),
+            stock: $channelProduct->getEffectiveStock(),
             barcode: $sku->getBarcode(),
         );
 

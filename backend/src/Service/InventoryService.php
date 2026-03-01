@@ -9,7 +9,7 @@ use App\Entity\Merchant;
 use App\Entity\MerchantInventory;
 use App\Entity\ProductSku;
 use App\Entity\Warehouse;
-use App\Enum\SyncTriggerSource;
+use App\Enum\SyncTriggerSourceEnum;
 use App\Repository\MerchantInventoryRepository;
 use App\Repository\ProductSkuRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -23,8 +23,7 @@ class InventoryService
         private EntityManagerInterface $entityManager,
         private LoggerInterface $logger,
         private ChannelProductSyncService $channelProductSyncService,
-    ) {
-    }
+    ) {}
 
     /**
      * 获取或创建库存记录.
@@ -92,7 +91,7 @@ class InventoryService
                 $item->getUnitCost(),
                 $operatorId,
                 $operatorName,
-                sprintf('入库单 %s 发货，SKU: %s', $order->getOrderNo(), $item->getStyleNumber().'-'.$item->getSkuName())
+                sprintf('入库单 %s 发货，SKU: %s', $order->getOrderNo(), $item->getStyleNumber() . '-' . $item->getSkuName())
             );
 
             $this->entityManager->flush();
@@ -186,7 +185,7 @@ class InventoryService
             if ($inventory !== null) {
                 $this->channelProductSyncService->triggerSyncFromInventory(
                     $inventory,
-                    SyncTriggerSource::INVENTORY_INBOUND
+                    SyncTriggerSourceEnum::INVENTORY_INBOUND
                 );
             }
         }
@@ -412,7 +411,7 @@ class InventoryService
         // 触发渠道商品库存同步
         $this->channelProductSyncService->triggerSyncFromInventory(
             $inventory,
-            SyncTriggerSource::ORDER_CANCEL
+            SyncTriggerSourceEnum::ORDER_CANCEL
         );
     }
 
@@ -717,7 +716,7 @@ class InventoryService
         // 触发渠道商品库存同步
         $this->channelProductSyncService->triggerSyncFromInventory(
             $inventory,
-            SyncTriggerSource::INVENTORY_ADJUST
+            SyncTriggerSourceEnum::INVENTORY_ADJUST
         );
 
         return $inventory;
@@ -859,7 +858,7 @@ class InventoryService
         foreach ($affectedInventories as $inventory) {
             $this->channelProductSyncService->triggerSyncFromInventory(
                 $inventory,
-                SyncTriggerSource::INVENTORY_IMPORT
+                SyncTriggerSourceEnum::INVENTORY_IMPORT
             );
         }
 
@@ -893,7 +892,7 @@ class InventoryService
 
         // 记录流水
         $sku = $inventory->getProductSku();
-        $skuCode = $sku->getProduct()->getStyleNumber().'-'.$sku->getSizeValue();
+        $skuCode = $sku->getProduct()->getStyleNumber() . '-' . $sku->getSizeValue();
         $notes = $isOverride
             ? sprintf('Excel 导入（覆盖），SKU: %s', $skuCode)
             : sprintf('Excel 导入（累加），SKU: %s', $skuCode);

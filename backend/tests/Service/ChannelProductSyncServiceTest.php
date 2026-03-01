@@ -10,7 +10,7 @@ use App\Entity\InventoryListing;
 use App\Entity\MerchantInventory;
 use App\Entity\ProductSku;
 use App\Entity\SalesChannel;
-use App\Enum\SyncTriggerSource;
+use App\Enum\SyncTriggerSourceEnum;
 use App\Message\PushChannelProductMessage;
 use App\Message\SyncChannelProductMessage;
 use App\Repository\ChannelProductRepository;

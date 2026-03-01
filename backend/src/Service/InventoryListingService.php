@@ -9,7 +9,7 @@ use App\Entity\Merchant;
 use App\Entity\MerchantInventory;
 use App\Entity\MerchantSalesChannel;
 use App\Entity\User;
-use App\Enum\SyncTriggerSource;
+use App\Enum\SyncTriggerSourceEnum;
 use App\Repository\InventoryListingRepository;
 use App\Repository\MerchantInventoryRepository;
 use App\Repository\MerchantSalesChannelRepository;
@@ -29,8 +29,7 @@ class InventoryListingService
         private ListingOperationLogService $logService,
         private ChannelProductSyncService $syncService,
         private BusinessNoGenerator $businessNoGenerator,
-    ) {
-    }
+    ) {}
 
     /**
      * Create a new inventory listing.
@@ -114,7 +113,7 @@ class InventoryListingService
         $this->logService->logCreate($listing, $operator);
 
         // Trigger channel product sync
-        $this->syncService->triggerSyncFromListing($listing, SyncTriggerSource::LISTING_CREATE);
+        $this->syncService->triggerSyncFromListing($listing, SyncTriggerSourceEnum::LISTING_CREATE);
 
         return $listing;
     }
@@ -202,7 +201,7 @@ class InventoryListingService
 
         // Trigger channel product sync if price or allocation changed
         if ($beforePrice !== $afterPrice || $beforeAllocation !== $afterAllocation) {
-            $this->syncService->triggerSyncFromListing($listing, SyncTriggerSource::LISTING_UPDATE);
+            $this->syncService->triggerSyncFromListing($listing, SyncTriggerSourceEnum::LISTING_UPDATE);
         }
 
         return $listing;
@@ -223,7 +222,7 @@ class InventoryListingService
         $this->logService->logActivate($listing, $operator);
 
         // Trigger channel product sync
-        $this->syncService->triggerSyncFromListing($listing, SyncTriggerSource::LISTING_ACTIVATE);
+        $this->syncService->triggerSyncFromListing($listing, SyncTriggerSourceEnum::LISTING_ACTIVATE);
     }
 
     /**
@@ -238,7 +237,7 @@ class InventoryListingService
         $this->logService->logPause($listing, $operator, $previousStatus);
 
         // Trigger channel product sync
-        $this->syncService->triggerSyncFromListing($listing, SyncTriggerSource::LISTING_PAUSE);
+        $this->syncService->triggerSyncFromListing($listing, SyncTriggerSourceEnum::LISTING_PAUSE);
     }
 
     /**
@@ -262,7 +261,7 @@ class InventoryListingService
         }
 
         // Trigger channel product sync before deletion (so the sync service can find the ChannelProduct)
-        $this->syncService->triggerSyncFromListing($listing, SyncTriggerSource::LISTING_DELETE);
+        $this->syncService->triggerSyncFromListing($listing, SyncTriggerSourceEnum::LISTING_DELETE);
 
         $this->entityManager->remove($listing);
         $this->entityManager->flush();
