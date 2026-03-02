@@ -101,8 +101,7 @@ class PoizonApiClient
     public function request(string $appKey, string $appSecret, string $method, string $endpoint, array $params = []): array
     {
         $params['app_key'] = $appKey;
-//        $params['timestamp'] = (int) (microtime(true) * 1000);
-        $params['timestamp'] = 1772035152111;
+        $params['timestamp'] = (int) (microtime(true) * 1000);
         $sign = $this->createSign($params, $appSecret);
         $params['sign'] = $sign;
 
