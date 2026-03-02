@@ -40,6 +40,15 @@ framework:
                     delay: 1000
                     multiplier: 2
                     jitter: 0.5
+            poizon.client:
+                base_uri: 'https://open.poizon.com'
+                timeout: 30
+                max_redirects: 3
+                retry_failed:
+                    max_retries: 3
+                    delay: 1000
+                    multiplier: 2
+                    jitter: 0.5
 
 when@test:
     framework:

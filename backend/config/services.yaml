@@ -100,6 +100,15 @@ services:
         tags:
             - { name: 'app.channel_gateway', key: 'KICKSCREW' }
 
+    # Poizon Gateway
+    App\Service\ChannelGateway\Provider\Poizon\PoizonApiClient:
+        arguments:
+            $httpClient: '@poizon.client'
+
+    App\Service\ChannelGateway\Provider\Poizon\PoizonGateway:
+        tags:
+            - { name: 'app.channel_gateway', key: 'POIZON' }
+
     # Channel Gateway Registry with tagged service locator
     App\Service\ChannelGateway\ChannelGatewayRegistry:
         arguments:

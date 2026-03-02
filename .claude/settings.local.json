@@ -36,7 +36,8 @@
       "Bash(vendor/bin/phpunit:*)",
       "Bash(php bin/console:*)",
       "Bash(php -d memory_limit=512M vendor/bin/phpstan analyse:*)",
-      "Bash(docker-compose logs:*)"
+      "Bash(docker-compose logs:*)",
+      "WebFetch(domain:open.poizon.com)"
     ]
   }
 }
