@@ -43,6 +43,276 @@ class PoizonApiClient
         ]);
     }
 
+    // ========== Product/SKU APIs ==========
+
+    /**
+     * Query SKU & SPU information by brand official item number (article number).
+     *
+     * @return array<string, mixed>
+     */
+    public function querySkuInfoByArticleNumber(
+        string $appKey,
+        string $appSecret,
+        string $articleNumber,
+        string $region,
+        ?bool $sellerStatusEnable = null,
+        ?bool $buyStatusEnable = null,
+        string $language = 'en',
+    ): array {
+        $params = [
+            'articleNumber' => $articleNumber,
+            'region' => $region,
+            'language' => $language,
+        ];
+
+        if ($sellerStatusEnable !== null) {
+            $params['sellerStatusEnable'] = $sellerStatusEnable;
+        }
+
+        if ($buyStatusEnable !== null) {
+            $params['buyStatusEnable'] = $buyStatusEnable;
+        }
+
+        return $this->request($appKey, $appSecret, 'POST', '/dop/api/v1/pop/api/v1/intl-commodity/intl/sku/sku-basic-info/by-article-number', $params);
+    }
+
+    // ========== Listing APIs ==========
+
+    /**
+     * Create a new manual listing bid on Poizon.
+     *
+     * @return array<string, mixed>
+     */
+    public function manualListing(
+        string $appKey,
+        string $appSecret,
+        string $requestId,
+        int $globalSkuId,
+        int $price,
+        int $quantity,
+        string $countryCode,
+        string $deliveryCountryCode,
+        string $currency,
+        string $language = 'en',
+        string $timeZone = 'Asia/Shanghai',
+        ?string $sizeType = null,
+        ?string $merchantSource = null,
+    ): array {
+        $params = [
+            'requestId' => $requestId,
+            'globalSkuId' => $globalSkuId,
+            'price' => $price,
+            'quantity' => $quantity,
+            'countryCode' => $countryCode,
+            'deliveryCountryCode' => $deliveryCountryCode,
+            'currency' => $currency,
+            'language' => $language,
+            'timeZone' => $timeZone,
+        ];
+
+        if ($sizeType !== null) {
+            $params['sizeType'] = $sizeType;
+        }
+
+        if ($merchantSource !== null) {
+            $params['merchantSource'] = $merchantSource;
+        }
+
+        return $this->request($appKey, $appSecret, 'POST', '/dop/api/v1/pop/api/v1/submit-bid/normal-autonomous-bidding', $params);
+    }
+
+    /**
+     * Update an existing manual listing bid on Poizon.
+     *
+     * @return array<string, mixed>
+     */
+    public function updateManualListing(
+        string $appKey,
+        string $appSecret,
+        string $requestId,
+        string $sellerBiddingNo,
+        ?int $globalSkuId,
+        int $price,
+        int $quantity,
+        int $oldQuantity,
+        string $countryCode,
+        string $deliveryCountryCode,
+        string $currency,
+        string $language = 'en',
+        string $timeZone = 'Asia/Shanghai',
+    ): array {
+        $params = [
+            'requestId' => $requestId,
+            'sellerBiddingNo' => $sellerBiddingNo,
+            'price' => $price,
+            'quantity' => $quantity,
+            'oldQuantity' => $oldQuantity,
+            'countryCode' => $countryCode,
+            'deliveryCountryCode' => $deliveryCountryCode,
+            'currency' => $currency,
+            'language' => $language,
+            'timeZone' => $timeZone,
+        ];
+
+        if ($globalSkuId !== null) {
+            $params['globalSkuId'] = $globalSkuId;
+        }
+
+        return $this->request($appKey, $appSecret, 'POST', '/dop/api/v1/pop/api/v1/update-bid/normal-autonomous-bidding', $params);
+    }
+
+    /**
+     * Cancel an existing listing bid on Poizon.
+     *
+     * @return array<string, mixed>
+     */
+    public function cancelListing(
+        string $appKey,
+        string $appSecret,
+        string $sellerBiddingNo,
+        string $language = 'en',
+        string $timeZone = 'Asia/Shanghai',
+    ): array {
+        return $this->request($appKey, $appSecret, 'POST', '/dop/api/v1/pop/api/v1/cancel-bid/cancel-bidding', [
+            'sellerBiddingNo' => $sellerBiddingNo,
+            'language' => $language,
+            'timeZone' => $timeZone,
+        ]);
+    }
+
+    // ========== Order APIs ==========
+
+    /**
+     * Query the Poizon order list.
+     *
+     * Endpoint: POST /dop/api/v1/pop/api/v2/order/generic_list
+     * Time range: max 7 days (start_created / end_created). Defaults to last 7 days if omitted.
+     *
+     * @return array<string, mixed>
+     */
+    public function queryOrders(
+        string $appKey,
+        string $appSecret,
+        ?string $orderNo = null,
+        ?string $orderType = null,
+        ?string $expressNo = null,
+        ?int $orderStatus = null,
+        ?string $startCreated = null,
+        ?string $endCreated = null,
+        ?int $skuId = null,
+        ?int $spuId = null,
+        ?string $warehouseCode = null,
+        ?bool $orderByCreateTimeDesc = null,
+        ?int $confirmOrderStatus = null,
+        int $pageNo = 1,
+        int $pageSize = 20,
+        ?int $orderBySpu = null,
+        string $language = 'en',
+        string $timeZone = 'Asia/Shanghai',
+    ): array {
+        $params = [
+            'page_no' => $pageNo,
+            'page_size' => $pageSize,
+            'language' => $language,
+            'timeZone' => $timeZone,
+        ];
+
+        if ($orderNo !== null) {
+            $params['order_no'] = $orderNo;
+        }
+        if ($orderType !== null) {
+            $params['order_type'] = $orderType;
+        }
+        if ($expressNo !== null) {
+            $params['express_no'] = $expressNo;
+        }
+        if ($orderStatus !== null) {
+            $params['order_status'] = $orderStatus;
+        }
+        if ($startCreated !== null) {
+            $params['start_created'] = $startCreated;
+        }
+        if ($endCreated !== null) {
+            $params['end_created'] = $endCreated;
+        }
+        if ($skuId !== null) {
+            $params['sku_id'] = $skuId;
+        }
+        if ($spuId !== null) {
+            $params['spu_id'] = $spuId;
+        }
+        if ($warehouseCode !== null) {
+            $params['warehouse_code'] = $warehouseCode;
+        }
+        if ($orderByCreateTimeDesc !== null) {
+            $params['order_by_create_time_desc'] = $orderByCreateTimeDesc;
+        }
+        if ($confirmOrderStatus !== null) {
+            $params['confirmOrderStatus'] = $confirmOrderStatus;
+        }
+        if ($orderBySpu !== null) {
+            $params['order_by_spu'] = $orderBySpu;
+        }
+
+        return $this->request($appKey, $appSecret, 'POST', '/dop/api/v1/pop/api/v2/order/generic_list', $params);
+    }
+
+    /**
+     * Confirm an order on Poizon.
+     *
+     * @return array<string, mixed>
+     */
+    public function confirmOrder(
+        string $appKey,
+        string $appSecret,
+        string $orderItemNo,
+        string $language = 'en',
+        string $timeZone = 'Asia/Shanghai',
+    ): array {
+        return $this->request($appKey, $appSecret, 'POST', '/dop/api/v1/pop/api/v1/order/confirm', [
+            'orderItemNo' => $orderItemNo,
+            'language' => $language,
+            'timeZone' => $timeZone,
+        ]);
+    }
+
+    /**
+     * Ship one or more orders on Poizon.
+     *
+     * @param string[] $orderNoList  Order number(s) to ship
+     * @param int      $carrier      Carrier code (e.g. 7=UPS, 8=FedEx, 100=Self-delivery)
+     * @param string   $deliveryRegion Seller's shipping origin (US, CN, HK, JP, KR …)
+     * @param string   $deliveryType   OFFLINE_EXPRESS_DELIVERY | SELF_DELIVERY | ONLINE_EXPRESS_DELIVERY
+     *
+     * @return array<string, mixed>
+     */
+    public function shipOrder(
+        string $appKey,
+        string $appSecret,
+        array $orderNoList,
+        int $carrier,
+        string $deliveryRegion,
+        string $deliveryType,
+        ?string $expressNo = null,
+        string $language = 'en',
+        string $timeZone = 'Asia/Shanghai',
+    ): array {
+        $params = [
+            'order_no_list' => $orderNoList,
+            'carrier' => $carrier,
+            'delivery_region' => $deliveryRegion,
+            'delivery_type' => $deliveryType,
+            'language' => $language,
+            'timeZone' => $timeZone,
+        ];
+
+        if ($expressNo !== null) {
+            $params['express_no'] = $expressNo;
+        }
+
+        return $this->request($appKey, $appSecret, 'POST', '/dop/api/v1/pop/api/v1/order/delivery', $params);
+    }
+
     // ========== Internal Methods ==========
 
     /**
