@@ -322,22 +322,6 @@ class MockGateway extends AbstractChannelGateway
         );
     }
 
-    public function testConnection(ChannelGatewayContext $context): bool
-    {
-        $this->logOperationStart('testConnection');
-        $this->applySimulatedDelay($context, 'testConnection');
-
-        if ($this->shouldSimulateFailure($context, 'testConnection')) {
-            $this->logOperationFailure('testConnection', new \RuntimeException('Simulated connection failure'));
-
-            return false;
-        }
-
-        $this->logOperationSuccess('testConnection');
-
-        return true;
-    }
-
     /**
      * Check if failure should be simulated for this operation.
      */

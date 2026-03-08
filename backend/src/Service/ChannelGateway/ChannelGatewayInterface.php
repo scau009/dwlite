@@ -103,9 +103,4 @@ interface ChannelGatewayInterface
         ShipOrderRequest $request
     ): ShipOrderResponse;
 
-    /**
-     * Test connection with provided credentials.
-     * Used for validating merchant configuration.
-     */
-    public function testConnection(ChannelGatewayContext $context): bool;
 }

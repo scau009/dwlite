@@ -62,31 +62,6 @@ class PoizonGateway extends AbstractChannelGateway
         return self::CHANNEL_NAME;
     }
 
-    /**
-     * Test connection by calling a lightweight API endpoint.
-     *
-     * Queries a known brand ID; returns true if the call does not raise
-     * an authentication error.
-     */
-    public function testConnection(ChannelGatewayContext $context): bool
-    {
-        $this->logOperationStart('testConnection');
-
-        $appKey = $this->getAppKey($context);
-        $appSecret = $this->getAppSecret($context);
-
-        try {
-            $this->apiClient->getBrandsByIds($appKey, $appSecret, [1]);
-            $this->logOperationSuccess('testConnection');
-
-            return true;
-        } catch (Throwable $e) {
-            $this->logOperationFailure('testConnection', $e);
-
-            return false;
-        }
-    }
-
     public function pushProduct(
         ChannelGatewayContext $context,
         PushProductRequest $request
@@ -267,9 +242,6 @@ class PoizonGateway extends AbstractChannelGateway
 
         $appKey = $this->getAppKey($context);
         $appSecret = $this->getAppSecret($context);
-        $language = (string) $context->getConfigValue('language', 'en');
-        $timeZone = (string) $context->getConfigValue('timezone', 'Asia/Shanghai');
-
         $sellerBiddingNo = $channelProduct->getExternalId();
         if (empty($sellerBiddingNo)) {
             throw new ChannelApiException('[POIZON] externalId (sellerBiddingNo) not set', 'CONFIG_ERROR', 400);
@@ -279,8 +251,6 @@ class PoizonGateway extends AbstractChannelGateway
             appKey: $appKey,
             appSecret: $appSecret,
             sellerBiddingNo: $sellerBiddingNo,
-            language: $language,
-            timeZone: $timeZone,
         );
 
         $success = ($response['data'] ?? false) === true;

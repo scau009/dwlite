@@ -402,35 +402,6 @@ class KicksCrewGateway extends AbstractChannelGateway
     }
 
     /**
-     * Test connection by querying a known product.
-     */
-    public function testConnection(ChannelGatewayContext $context): bool
-    {
-        $this->logOperationStart('testConnection');
-
-        $apiKey = $this->getApiKey($context);
-
-        try {
-            // Test with a common Nike product
-            $response = $this->apiClient->getProduct($apiKey, 'DD1391-100');
-
-            $success = $response['code'] === 0;
-
-            if ($success) {
-                $this->logOperationSuccess('testConnection');
-            } else {
-                $this->logOperationFailure('testConnection', new \RuntimeException('Invalid response'));
-            }
-
-            return $success;
-        } catch (\Throwable $e) {
-            $this->logOperationFailure('testConnection', $e);
-
-            return false;
-        }
-    }
-
-    /**
      * Get the API client instance.
      *
      * This is exposed for use by console commands that need direct API access.
