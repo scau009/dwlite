@@ -12,6 +12,7 @@ import {
   type ChannelProductSyncStatus,
 } from '@/lib/channel-product-api';
 import { channelApi, type SalesChannel } from '@/lib/channel-api';
+import { getCurrencySymbol } from '@/lib/product-api';
 
 const { Text } = Typography;
 
@@ -184,7 +185,7 @@ export function ChannelProductsListPage() {
       width: 120,
       search: false,
       render: (_, record) => (
-        <Text strong>${record.platformPrice}</Text>
+        <Text strong>{getCurrencySymbol(record.salesChannel.currency)}{record.platformPrice}</Text>
       ),
     },
     {

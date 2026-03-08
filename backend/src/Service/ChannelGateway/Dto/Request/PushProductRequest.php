@@ -17,6 +17,7 @@ readonly class PushProductRequest
     public function __construct(
         public string $internalId,
         public ?string $externalId,
+        public string $styleNumber,
         public string $title,
         public string $description,
         public string $brand,
@@ -26,5 +27,15 @@ readonly class PushProductRequest
         public string $currency,
         public ?array $attributes = null,
     ) {
+    }
+
+    public function getTotalStock()
+    {
+        return array_sum(array_column($this->skus, 'stock'));
+    }
+
+    public function getPrice()
+    {
+        return min(array_column($this->skus, 'price'));
     }
 }

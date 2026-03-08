@@ -122,6 +122,10 @@ class SyncChannelProductMessageHandler
                     'channelProductId' => $channelProduct->getId(),
                     'operation' => $operation,
                 ]);
+            }else{
+                $this->logger->info('No push needed for channel product', [
+                    'channelProductId' => $channelProduct->getId(),
+                ]);
             }
         } catch (\Throwable $e) {
             $this->logger->error('Failed to sync channel product', [

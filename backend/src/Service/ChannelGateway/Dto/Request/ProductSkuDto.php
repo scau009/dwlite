@@ -10,14 +10,11 @@ namespace App\Service\ChannelGateway\Dto\Request;
 readonly class ProductSkuDto
 {
     public function __construct(
-        public string $internalId,
-        public ?string $externalId,
-        public ?string $skuCode,
-        public ?string $sizeValue,
+        public string $sizeValue,
+        public string $sizeUnit,
         public string $price,
         public ?string $compareAtPrice,
         public int $stock,
-        public ?string $barcode = null,
     ) {
     }
 }

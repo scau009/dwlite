@@ -268,6 +268,7 @@ class ChannelProductController extends AbstractController
                 'id' => $channel->getId(),
                 'code' => $channel->getCode(),
                 'name' => $channel->getName(),
+                'currency' => $channel->getCurrency(),
             ],
             'productSku' => [
                 'id' => $sku->getId(),
@@ -327,6 +328,7 @@ class ChannelProductController extends AbstractController
                 'fulfillmentType' => $listing->getFulfillmentType(),
                 'pricingModel' => $listing->getPricingModel(),
                 'status' => $listing->getStatus(),
+                'currency' => $source->getChannelProduct()->getSalesChannel()->getCurrency(),
             ],
             'merchant' => [
                 'id' => $merchant->getId(),

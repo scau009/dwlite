@@ -222,4 +222,16 @@ class TestPoizonApiCommand extends Command
         $output->writeln(json_encode($response, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
     }
 
+    /**
+     * --method=querySkuInfoByArticleNumber
+     * --params={\"articleNumber\":\"12800767421\"}
+     * @param array $params
+     * @param OutputInterface $output
+     * @return void
+     */
+    private function querySkuInfoByArticleNumber(array $params, OutputInterface $output): void
+    {
+        $response = $this->apiClient->querySkuInfoByArticleNumber($this->appKey, $this->appSecret, $params['articleNumber']);
+        $output->writeln(json_encode($response, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+    }
 }

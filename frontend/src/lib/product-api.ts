@@ -11,7 +11,7 @@ export const SIZE_UNITS: { value: SizeUnit; label: string }[] = [
   { value: 'CM', label: 'CM (厘米)' },
 ];
 
-export type Currency = 'USD' | 'CNY' | 'EUR' | 'GBP' | 'JPY';
+export type Currency = 'USD' | 'CNY' | 'EUR' | 'GBP' | 'JPY' | 'HKD' | 'KRW' | 'SGD';
 
 export const CURRENCIES: { value: Currency; label: string; symbol: string }[] = [
   { value: 'USD', label: 'USD ($)', symbol: '$' },
@@ -19,7 +19,14 @@ export const CURRENCIES: { value: Currency; label: string; symbol: string }[] = 
   { value: 'EUR', label: 'EUR (€)', symbol: '€' },
   { value: 'GBP', label: 'GBP (£)', symbol: '£' },
   { value: 'JPY', label: 'JPY (¥)', symbol: '¥' },
+  { value: 'HKD', label: 'HKD (HK$)', symbol: 'HK$' },
+  { value: 'KRW', label: 'KRW (₩)', symbol: '₩' },
+  { value: 'SGD', label: 'SGD (S$)', symbol: 'S$' },
 ];
+
+export function getCurrencySymbol(currency: string): string {
+  return CURRENCIES.find((c) => c.value === currency)?.symbol ?? currency;
+}
 
 export interface Product {
   id: string;

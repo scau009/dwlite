@@ -37,7 +37,7 @@ use Symfony\Component\Messenger\Stamp\DelayStamp;
  */
 class ChannelProductSyncService
 {
-    private const DEBOUNCE_TTL_SECONDS = 5;
+    private const DEBOUNCE_TTL_SECONDS = 1;
 
     public function __construct(
         private ChannelProductRepository $channelProductRepo,
@@ -329,6 +329,7 @@ class ChannelProductSyncService
         // Try to find existing
         $channelProduct = $this->channelProductRepo->findOneByChannelAndSku($salesChannel, $productSku);
 
+        $needsFlush = false;
         if ($channelProduct === null) {
             // Create new
             $channelProduct = new ChannelProduct();
@@ -337,8 +338,16 @@ class ChannelProductSyncService
             $channelProduct->setProductSku($productSku);
             $channelProduct->setPlatformPrice($listing->getPrice());
             $channelProduct->setStatus(ChannelProduct::STATUS_DRAFT);
-
             $this->entityManager->persist($channelProduct);
+            $needsFlush = true;
+        }
+
+        if ($salesChannel->getConfigValue('autoPush', false) && $listing->getStatus() == InventoryListing::STATUS_ACTIVE) {
+            $channelProduct->setStatus(ChannelProduct::STATUS_ACTIVE);
+            $needsFlush = true;
+        }
+
+        if ($needsFlush) {
             $this->entityManager->flush();
         }
 
@@ -566,14 +575,11 @@ class ChannelProductSyncService
 
         // Build SKU DTO with actual data
         $skuDto = new ProductSkuDto(
-            internalId: $channelProduct->getId(),
-            externalId: $channelProduct->getExternalId(),
-            skuCode: $product->getStyleNumber(),
-            sizeValue: $sku->getSizeValue(),
+            sizeValue: $sku->getSizeValue() ?? '',
+            sizeUnit: $sku->getSizeUnit()?->value ?? 'US',
             price: $channelProduct->getPlatformPrice(),
             compareAtPrice: $channelProduct->getPlatformCompareAtPrice(),
-            stock: $channelProduct->getEffectiveStock(),
-            barcode: $sku->getBarcode(),
+            stock: $channelProduct->getEffectiveStock()
         );
 
         // Build images array
@@ -590,6 +596,7 @@ class ChannelProductSyncService
         $request = new PushProductRequest(
             internalId: $channelProduct->getId(),
             externalId: $channelProduct->getExternalId(),
+            styleNumber: $product->getStyleNumber(),
             title: $product->getName(),
             description: $product->getDescription() ?? '',
             brand: $product->getBrand()?->getName() ?? '',
@@ -602,6 +609,12 @@ class ChannelProductSyncService
                 'size_system' => $sku->getSizeUnit() !== null ? $sku->getSizeUnit()->value : 'US',
             ],
         );
+        if ($request->getTotalStock() <= 0 || $request->getPrice() <= 0) {
+            return [
+                'success' => false,
+                'message' => 'Stock must be greater than 0',
+            ];
+        }
 
         $response = $gateway->pushProduct($context, $request);
 

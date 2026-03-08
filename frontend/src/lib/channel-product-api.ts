@@ -60,6 +60,7 @@ export interface ChannelProductSource {
     fulfillmentType: FulfillmentType;
     pricingModel: PricingModel;
     status: ListingStatus;
+    currency: string;
   };
   merchant: {
     id: string;
@@ -79,6 +80,7 @@ export interface ChannelProduct {
     id: string;
     code: string;
     name: string;
+    currency: string;
   };
   productSku: {
     id: string;

@@ -56,7 +56,7 @@ class PoizonApiClient
         string $appKey,
         string $appSecret,
         string $articleNumber,
-        string $region,
+        string $region = 'HK',
         ?bool  $sellerStatusEnable = null,
         ?bool  $buyStatusEnable = null,
         string $language = 'en',
@@ -182,7 +182,6 @@ class PoizonApiClient
         string  $countryCode,
         string  $deliveryCountryCode,
         string  $currency,
-        string  $language = 'en',
         ?int    $globalSkuId = null,
         ?int    $skuId = null,
         ?string $sizeType = null,
@@ -196,7 +195,6 @@ class PoizonApiClient
             'countryCode' => $countryCode,
             'deliveryCountryCode' => $deliveryCountryCode,
             'currency' => $currency,
-            'language' => $language,
         ];
         if ($skuId !== null) {
             $params['skuId'] = $skuId;
@@ -420,18 +418,14 @@ class PoizonApiClient
         int     $carrier,
         string  $deliveryRegion,
         string  $deliveryType,
-        ?string $expressNo = null,
-        string  $language = 'en',
-        string  $timeZone = 'Asia/Shanghai',
+        ?string $expressNo = null
     ): array
     {
         $params = [
             'order_no_list' => $orderNoList,
             'carrier' => $carrier,
             'delivery_region' => $deliveryRegion,
-            'delivery_type' => $deliveryType,
-            'language' => $language,
-            'timeZone' => $timeZone,
+            'delivery_type' => $deliveryType
         ];
 
         if ($expressNo !== null) {
@@ -528,6 +522,7 @@ class PoizonApiClient
             'method' => $method,
             'endpoint' => $endpoint,
             'app_key' => $appKey,
+            'options' => $options
         ]);
 
         try {

@@ -38,6 +38,7 @@ import {
   type FulfillmentType,
   type StockMode,
 } from '@/lib/channel-product-api';
+import { getCurrencySymbol } from '@/lib/product-api';
 
 // Stock mode i18n key mapping
 const stockModeI18nKeyMap: Record<StockMode, string> = {
@@ -282,7 +283,7 @@ export function ChannelProductDetailPage() {
       title: t('channelProducts.sourcePrice'),
       dataIndex: ['listing', 'price'],
       width: 100,
-      render: (_, record) => <span className="font-medium">${record.listing.price}</span>,
+      render: (_, record) => <span className="font-medium">{getCurrencySymbol(record.listing.currency)}{record.listing.price}</span>,
     },
     {
       title: t('channelProducts.sourceAvailable'),
@@ -538,7 +539,7 @@ export function ChannelProductDetailPage() {
           </Descriptions.Item>
 
           <Descriptions.Item label={t('channelProducts.platformPrice')}>
-            <span className="font-semibold">${product.platformPrice}</span>
+            <span className="font-semibold">{getCurrencySymbol(product.salesChannel.currency)}{product.platformPrice}</span>
           </Descriptions.Item>
           <Descriptions.Item label={t('channelProducts.stockQuantity')}>
             <span className={product.stockQuantity === 0 ? 'text-red-500' : ''}>
