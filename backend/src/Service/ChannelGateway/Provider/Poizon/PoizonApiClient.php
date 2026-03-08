@@ -9,7 +9,13 @@ use App\Service\ChannelGateway\Exception\ChannelAuthException;
 use App\Service\ChannelGateway\Exception\ChannelRateLimitException;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Uid\Uuid;
+use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\DecodingExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
+use function LaravelIdea\throw_if;
 
 /**
  * HTTP client wrapper for the Poizon (得物) Open API.
@@ -148,7 +154,7 @@ class PoizonApiClient
         ?int   $globalSkuId = null,
         int    $biddingType = PoizonBiddingTypeEnum::ShipToVerify->value, //Listing type, 20:Ship-to-Verify, 25:Consignment
         string $region = 'HK',
-        string $currency = 'HKD',
+        string $currency = 'CNY',
     ): array
     {
         $params = [];
@@ -482,13 +488,20 @@ class PoizonApiClient
     /**
      * Make a signed authenticated request to the Poizon Open API.
      *
+     * @param string $appKey
+     * @param string $appSecret
+     * @param string $method
+     * @param string $endpoint
      * @param array<string, mixed> $params
      *
      * @return array<string, mixed>
      *
-     * @throws ChannelAuthException
-     * @throws ChannelRateLimitException
-     * @throws ChannelApiException
+     * @throws ClientExceptionInterface
+     * @throws DecodingExceptionInterface
+     * @throws RedirectionExceptionInterface
+     * @throws ServerExceptionInterface
+     * @throws TransportExceptionInterface
+     * @throws \Throwable
      */
     public function request(string $appKey, string $appSecret, string $method, string $endpoint, array $params = []): array
     {
@@ -542,17 +555,13 @@ class PoizonApiClient
                     $responseData['msg'] ?? $responseData['message'] ?? 'Unknown error'
                 );
             }
+            if ($responseData['code'] != 200) {
+                throw new \Exception($responseData['msg'] ?? $responseData['message'] ?? 'Unknown error');
+            }
 
             return $responseData;
-        } catch (ChannelApiException|ChannelAuthException|ChannelRateLimitException $e) {
-            throw $e;
         } catch (\Throwable $e) {
-            $this->logger->error('[POIZON] API request failed', [
-                'endpoint' => $endpoint,
-                'error' => $e->getMessage(),
-            ]);
-
-            throw new ChannelApiException(sprintf('[POIZON] API error: %s', $e->getMessage()), 'REQUEST_FAILED', 500);
+            throw $e;
         }
     }
 

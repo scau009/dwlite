@@ -250,32 +250,8 @@ class ChannelProductSyncService
                 default => throw new \InvalidArgumentException(sprintf('Unknown operation: %s', $operation)),
             };
 
-            if ($response['success']) {
-                // Update channel product
-                if (isset($response['externalId'])) {
-                    $channelProduct->setExternalId($response['externalId']);
-                }
-                if (isset($response['externalUrl'])) {
-                    $channelProduct->setExternalUrl($response['externalUrl']);
-                }
-                $channelProduct->markSynced();
-
-                $syncLog->markSuccess([
-                    'price' => $channelProduct->getPlatformPrice(),
-                    'stock' => $channelProduct->getStockQuantity(),
-                    'status' => $channelProduct->getStatus(),
-                    'syncStatus' => $channelProduct->getSyncStatus(),
-                    'externalId' => $channelProduct->getExternalId(),
-                ]);
-                $syncLog->setExternalResponse($response['data'] ?? null);
-            } else {
-                $channelProduct->markSyncFailed($response['message'] ?? 'Unknown error');
-                $syncLog->markFailed(
-                    $response['message'] ?? 'Push failed',
-                    $response['errorCode'] ?? null,
-                    $response['data'] ?? null,
-                );
-            }
+            // Handle response
+            $this->handleResponse($operation, $response, $channelProduct, $syncLog);
 
             $this->entityManager->flush();
 
@@ -311,6 +287,87 @@ class ChannelProductSyncService
 
             throw $e;
         }
+    }
+
+    /**
+     * @param string $operation
+     * @param array $response
+     * @param ChannelProduct $channelProduct
+     * @param ChannelProductSyncLog $syncLog
+     * @return void
+     */
+    private function handleResponse(string $operation,array $response, ChannelProduct $channelProduct, ChannelProductSyncLog $syncLog)
+    {
+        if ($response['success']) {
+            match ($operation) {
+                ChannelProductSyncLog::OPERATION_PUSH_PRODUCT => $this->handlePushProductResponse($response, $channelProduct, $syncLog),
+                ChannelProductSyncLog::OPERATION_UPDATE_STOCK_PRICE => $this->handleUpdateStockPriceResponse($response, $channelProduct, $syncLog),
+                ChannelProductSyncLog::OPERATION_DELIST => $this->handleDelistResponse($response, $channelProduct, $syncLog),
+                default => throw new \InvalidArgumentException(sprintf('Unknown operation: %s', $operation)),
+            };
+        } else {
+            $channelProduct->markSyncFailed($response['message'] ?? 'Unknown error');
+            $syncLog->markFailed(
+                $response['message'] ?? 'Push failed',
+                $response['errorCode'] ?? null,
+                $response['data'] ?? null,
+            );
+        }
+    }
+
+    private function handleDelistResponse(array $response, ChannelProduct $channelProduct, ChannelProductSyncLog $syncLog)
+    {
+        $channelProduct->markDelisted();
+
+        $syncLog->markSuccess([
+            'status' => $channelProduct->getStatus(),
+            'syncStatus' => $channelProduct->getSyncStatus(),
+        ]);
+        $syncLog->setExternalResponse($response['data'] ?? null);
+    }
+
+    private function handleUpdateStockPriceResponse(array $response, ChannelProduct $channelProduct, ChannelProductSyncLog $syncLog)
+    {
+        foreach ($response['data'] ?? [] as $channelProductId => $responseDatum) {
+            if ($channelProductId === $channelProduct->getId()) {
+                if (!isset($responseDatum['externalId'])) {
+                    continue;
+                }
+                $channelProduct->setExternalId($responseDatum['externalId']);
+            }
+        }
+        $channelProduct->markSynced();
+
+        $syncLog->markSuccess([
+            'price' => $channelProduct->getPlatformPrice(),
+            'stock' => $channelProduct->getStockQuantity(),
+            'status' => $channelProduct->getStatus(),
+            'syncStatus' => $channelProduct->getSyncStatus(),
+            'externalId' => $channelProduct->getExternalId(),
+        ]);
+        $syncLog->setExternalResponse($response['data'] ?? null);
+
+    }
+
+    private function handlePushProductResponse(array $response, ChannelProduct $channelProduct, ChannelProductSyncLog $syncLog)
+    {
+        // Update channel product
+        if (isset($response['externalId'])) {
+            $channelProduct->setExternalId($response['externalId']);
+        }
+        if (isset($response['externalUrl'])) {
+            $channelProduct->setExternalUrl($response['externalUrl']);
+        }
+        $channelProduct->markSynced();
+
+        $syncLog->markSuccess([
+            'price' => $channelProduct->getPlatformPrice(),
+            'stock' => $channelProduct->getStockQuantity(),
+            'status' => $channelProduct->getStatus(),
+            'syncStatus' => $channelProduct->getSyncStatus(),
+            'externalId' => $channelProduct->getExternalId(),
+        ]);
+        $syncLog->setExternalResponse($response['data'] ?? null);
     }
 
     /**

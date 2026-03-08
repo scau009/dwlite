@@ -65,15 +65,15 @@ class PoizonGateway extends AbstractChannelGateway
         return self::CHANNEL_NAME;
     }
 
+    /**
+     * @throws Throwable
+     */
     public function pushProduct(
         ChannelGatewayContext $context,
         PushProductRequest    $request
     ): PushProductResponse
     {
-        $this->logger->debug('[POIZON] pushProduct request', compact('request', 'context'));
-        $this->logOperationStart('pushProduct', [
-            'skuCount' => count($request->skus),
-        ]);
+        $this->logOperationStart('pushProduct', compact('request', 'context'));
 
         $appKey = $this->getAppKey($context);
         $appSecret = $this->getAppSecret($context);
@@ -104,8 +104,6 @@ class PoizonGateway extends AbstractChannelGateway
         if (empty($poizonSkuId)) {
             throw new ChannelApiException('[POIZON] PoizonSkuId not match', 'DATA_ERROR', 404);
         }
-        $data = [];
-        $sellerBiddingNo = null;
 
         $price = (int)round((float)$sku->price * 100);
         $quantity = $sku->stock;
@@ -126,6 +124,7 @@ class PoizonGateway extends AbstractChannelGateway
             $sellerBiddingNo = $response['data']['sellerBiddingNo'] ?? null;
         } catch (Throwable $e) {
             $this->logOperationFailure('pushProduct', $e, compact('request', 'context'));
+            throw $e;
         }
 
         $success = $data !== [];
@@ -151,9 +150,7 @@ class PoizonGateway extends AbstractChannelGateway
         array                 $channelProducts
     ): UpdateStockPriceResponse
     {
-        $this->logOperationStart('updateStockPrice', [
-            'productCount' => count($channelProducts),
-        ]);
+        $this->logOperationStart('updateStockPrice', compact('context', 'channelProducts'));
 
         $appKey = $this->getAppKey($context);
         $appSecret = $this->getAppSecret($context);
@@ -201,7 +198,9 @@ class PoizonGateway extends AbstractChannelGateway
 
                 $responseData = $response['data'] ?? null;
                 if ($responseData !== null) {
-                    $data[$channelProduct->getId()] = $responseData;
+                    $data[$channelProduct->getId()] = [
+                        'externalId' => $responseData['sellerBiddingNo'],
+                    ] ?? null;
                 }
             } catch (Throwable $e) {
                 $this->logOperationFailure('updateStockPrice', $e, [
@@ -213,11 +212,12 @@ class PoizonGateway extends AbstractChannelGateway
         }
 
         $successCount = count(array_filter($results));
-
-        $this->logOperationSuccess('updateStockPrice', [
-            'updatedCount' => $successCount,
-            'totalCount' => count($results),
-        ]);
+        if ($successCount > 0) {
+            $this->logOperationSuccess('updateStockPrice', [
+                'updatedCount' => $successCount,
+                'totalCount' => count($results),
+            ]);
+        }
 
         return new UpdateStockPriceResponse(
             success: $successCount === count($results) && count($results) > 0,
@@ -602,8 +602,8 @@ class PoizonGateway extends AbstractChannelGateway
                 continue;
             }
             foreach ($item['skuInfoList'] as $skuInfo) {
-                foreach ($skuInfo['sizeList'] as $props) {
-                    if ($props['sizeValue'] === 'Size' && $props['value'] == $sizeValue) {
+                foreach ($skuInfo['regionSalePvInfoList'] as $props) {
+                    if ($props['name'] === 'Size' && $props['value'] == $sizeValue) {
                         return $skuInfo['skuId'];
                     }
                 }

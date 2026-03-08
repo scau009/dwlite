@@ -114,8 +114,6 @@ class PushChannelProductMessageHandler
                 'errorCode' => $e->getErrorCode(),
             ]);
 
-            // Re-throw to let Messenger handle retry
-            throw $e;
         } catch (\Throwable $e) {
             $this->logger->error('Unexpected error during push', [
                 'channelProductId' => $channelProduct->getId(),
@@ -123,9 +121,6 @@ class PushChannelProductMessageHandler
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
-
-            // Re-throw to let Messenger handle retry
-            throw $e;
         }
     }
 }

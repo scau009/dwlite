@@ -539,6 +539,16 @@ class ChannelProduct
     }
 
     /**
+     * 标记已下架.
+     */
+    public function markDelisted(): void
+    {
+        $this->status = self::STATUS_DELISTED;
+        $this->lastSyncedAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
+        $this->syncError = null;
+    }
+
+    /**
      * 标记同步失败.
      */
     public function markSyncFailed(string $error): void
