@@ -21,6 +21,8 @@ use App\Service\ChannelGateway\Dto\Response\ShipOrderResponse;
 use App\Service\ChannelGateway\Dto\Response\UpdateStockPriceResponse;
 use App\Service\ChannelGateway\Exception\ChannelApiException;
 use Psr\Log\LoggerInterface;
+use Random\RandomException;
+use Throwable;
 
 /**
  * Channel gateway implementation for Poizon (得物).
@@ -78,7 +80,7 @@ class PoizonGateway extends AbstractChannelGateway
             $this->logOperationSuccess('testConnection');
 
             return true;
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $this->logOperationFailure('testConnection', $e);
 
             return false;
@@ -103,7 +105,6 @@ class PoizonGateway extends AbstractChannelGateway
 
         $currency = $context->getCurrency();
         $language = (string) $context->getConfigValue('language', 'en');
-        $timeZone = (string) $context->getConfigValue('timezone', 'Asia/Shanghai');
 
         $data = [];
         $firstSellerBiddingNo = null;
@@ -119,21 +120,18 @@ class PoizonGateway extends AbstractChannelGateway
             $globalSkuId = (int) $sku->externalId;
             $price = (int) round((float) $sku->price * 100);
             $quantity = $sku->stock;
-            $requestId = bin2hex(random_bytes(16));
 
             try {
                 $response = $this->apiClient->manualListing(
                     appKey: $appKey,
                     appSecret: $appSecret,
-                    requestId: $requestId,
-                    globalSkuId: $globalSkuId,
                     price: $price,
                     quantity: $quantity,
                     countryCode: $countryCode,
                     deliveryCountryCode: $countryCode,
                     currency: $currency,
                     language: $language,
-                    timeZone: $timeZone,
+                    globalSkuId: $globalSkuId,
                 );
 
                 $sellerBiddingNo = $response['data']['sellerBiddingNo'] ?? null;
@@ -145,7 +143,7 @@ class PoizonGateway extends AbstractChannelGateway
                         $firstSellerBiddingNo = (string) $sellerBiddingNo;
                     }
                 }
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 $this->logOperationFailure('pushProduct', $e, [
                     'skuInternalId' => $sku->internalId,
                     'globalSkuId' => $globalSkuId,
@@ -169,7 +167,10 @@ class PoizonGateway extends AbstractChannelGateway
     }
 
     /**
+     * @param ChannelGatewayContext $context
      * @param ChannelProduct[] $channelProducts
+     * @return UpdateStockPriceResponse
+     * @throws RandomException
      */
     public function updateStockPrice(
         ChannelGatewayContext $context,
@@ -207,23 +208,20 @@ class PoizonGateway extends AbstractChannelGateway
 
             $price = (int) round((float) $channelProduct->getPlatformPrice() * 100);
             $quantity = $channelProduct->getEffectiveStock();
-            $requestId = bin2hex(random_bytes(16));
 
             try {
                 $response = $this->apiClient->updateManualListing(
                     appKey: $appKey,
                     appSecret: $appSecret,
-                    requestId: $requestId,
                     sellerBiddingNo: $externalId,
                     globalSkuId: null,
+                    skuId: null,
                     price: $price,
                     quantity: $quantity,
                     oldQuantity: $quantity,
                     countryCode: $countryCode,
                     deliveryCountryCode: $countryCode,
                     currency: $currency,
-                    language: $language,
-                    timeZone: $timeZone,
                 );
 
                 $results[$channelProduct->getId()] = true;
@@ -232,7 +230,7 @@ class PoizonGateway extends AbstractChannelGateway
                 if ($responseData !== null) {
                     $data[$channelProduct->getId()] = $responseData;
                 }
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 $this->logOperationFailure('updateStockPrice', $e, [
                     'channelProductId' => $channelProduct->getId(),
                     'sellerBiddingNo' => $externalId,
@@ -336,7 +334,7 @@ class PoizonGateway extends AbstractChannelGateway
         foreach ($rawOrders as $rawOrder) {
             try {
                 $orders[] = $this->mapOrderFromPoizon($rawOrder, $context);
-            } catch (\Throwable $e) {
+            } catch (Throwable $e) {
                 $this->logger->warning('[POIZON] Failed to map order', [
                     'orderNo' => $rawOrder['order_no'] ?? 'unknown',
                     'error' => $e->getMessage(),

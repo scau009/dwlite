@@ -8,6 +8,7 @@ use App\Service\ChannelGateway\Exception\ChannelApiException;
 use App\Service\ChannelGateway\Exception\ChannelAuthException;
 use App\Service\ChannelGateway\Exception\ChannelRateLimitException;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\Uid\Uuid;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 /**
@@ -22,8 +23,9 @@ class PoizonApiClient
 
     public function __construct(
         private readonly HttpClientInterface $httpClient,
-        private readonly LoggerInterface $logger,
-    ) {
+        private readonly LoggerInterface     $logger,
+    )
+    {
     }
 
     // ========== Brand APIs ==========
@@ -38,7 +40,7 @@ class PoizonApiClient
     public function getBrandsByIds(string $appKey, string $appSecret, array $brandIds, string $language = 'en'): array
     {
         return $this->request($appKey, $appSecret, 'POST', '/dop/api/v1/pop/api/v1/intl-commodity/intl/brand/query/by-id', [
-            'brandIds' => $brandIds,
+            'brandIds' => array_map('intval', $brandIds),
             'language' => $language,
         ]);
     }
@@ -55,10 +57,11 @@ class PoizonApiClient
         string $appSecret,
         string $articleNumber,
         string $region,
-        ?bool $sellerStatusEnable = null,
-        ?bool $buyStatusEnable = null,
+        ?bool  $sellerStatusEnable = null,
+        ?bool  $buyStatusEnable = null,
         string $language = 'en',
-    ): array {
+    ): array
+    {
         $params = [
             'articleNumber' => $articleNumber,
             'region' => $region,
@@ -76,6 +79,94 @@ class PoizonApiClient
         return $this->request($appKey, $appSecret, 'POST', '/dop/api/v1/pop/api/v1/intl-commodity/intl/sku/sku-basic-info/by-article-number', $params);
     }
 
+    /**
+     * Query SPU information by brand ID.
+     *
+     * @param string $appKey
+     * @param string $appSecret
+     * @param array $brandIdList
+     * @param int $page
+     * @param int $pageSize
+     * @param string $language
+     * @return mixed[]
+     */
+    public function querySpuInformationByBrandId(
+        string $appKey,
+        string $appSecret,
+        array  $brandIdList,
+        int    $page = 1,
+        int    $pageSize = 20,
+        string $language = 'en',
+    ): array
+    {
+        return $this->request($appKey, $appSecret, 'POST', '/dop/api/v1/pop/api/v1/intl-commodity/intl/spu/spu-basic-info/by-brandId', [
+            'brandIdList' => array_map('intval', $brandIdList),
+            'pageNum' => $page,
+            'pageSize' => $pageSize,
+            'language' => $language,
+        ]);
+    }
+
+    /**
+     * Query SKU information by global SPU ID.
+     *
+     * @param string $appKey
+     * @param string $appSecret
+     * @param array<int> $globalSpuIds
+     * @param string $region
+     * @return array
+     */
+    public function getSkuInformationByGlobalSpuId(
+        string $appKey,
+        string $appSecret,
+        array  $globalSpuIds,
+        string $region = 'HK',
+    ): array
+    {
+        return $this->request($appKey, $appSecret, 'POST', '/dop/api/v1/pop/api/v1/intl-commodity/intl/sku/sku-basic-info/by-global-spu', [
+            'globalSpuIds' => array_map('intval', $globalSpuIds),
+            'region' => $region,
+        ]);
+    }
+
+    /**
+     * Query the lowest price for a SKU or global SKU.
+     *
+     * @param string $appKey
+     * @param string $appSecret
+     * @param int|null $skuId
+     * @param int|null $globalSkuId
+     * @param PoizonBiddingTypeEnum $biddingType
+     * @param string $region
+     * @param string $currency
+     * @return array
+     */
+    public function queryLowestPrice(
+        string $appKey,
+        string $appSecret,
+        ?int   $skuId = null,
+        ?int   $globalSkuId = null,
+        int    $biddingType = PoizonBiddingTypeEnum::ShipToVerify->value, //Listing type, 20:Ship-to-Verify, 25:Consignment
+        string $region = 'HK',
+        string $currency = 'HKD',
+    ): array
+    {
+        $params = [];
+
+        if ($skuId !== null) {
+            $params['skuId'] = $skuId;
+        }
+
+        if ($globalSkuId !== null) {
+            $params['globalSkuId'] = $globalSkuId;
+        }
+        $params['biddingType'] = $biddingType;
+        $params['region'] = $region;
+        $params['currency'] = $currency;
+
+        return $this->request($appKey, $appSecret, 'POST', '/dop/api/v1/pop/api/v1/recommend-bid/price', $params);
+    }
+
     // ========== Listing APIs ==========
 
     /**
@@ -84,31 +175,35 @@ class PoizonApiClient
      * @return array<string, mixed>
      */
     public function manualListing(
-        string $appKey,
-        string $appSecret,
-        string $requestId,
-        int $globalSkuId,
-        int $price,
-        int $quantity,
-        string $countryCode,
-        string $deliveryCountryCode,
-        string $currency,
-        string $language = 'en',
-        string $timeZone = 'Asia/Shanghai',
+        string  $appKey,
+        string  $appSecret,
+        int     $price,
+        int     $quantity,
+        string  $countryCode,
+        string  $deliveryCountryCode,
+        string  $currency,
+        string  $language = 'en',
+        ?int    $globalSkuId = null,
+        ?int    $skuId = null,
         ?string $sizeType = null,
         ?string $merchantSource = null,
-    ): array {
+    ): array
+    {
         $params = [
-            'requestId' => $requestId,
-            'globalSkuId' => $globalSkuId,
+            'requestId' => Uuid::v4()->toRfc4122(),
             'price' => $price,
             'quantity' => $quantity,
             'countryCode' => $countryCode,
             'deliveryCountryCode' => $deliveryCountryCode,
             'currency' => $currency,
             'language' => $language,
-            'timeZone' => $timeZone,
         ];
+        if ($skuId !== null) {
+            $params['skuId'] = $skuId;
+        }
+        if ($globalSkuId !== null) {
+            $params['globalSkuId'] = $globalSkuId;
+        }
 
         if ($sizeType !== null) {
             $params['sizeType'] = $sizeType;
@@ -122,6 +217,43 @@ class PoizonApiClient
     }
 
     /**
+     * Query the listing bid information.
+     *
+     * @param string $appKey
+     * @param string $appSecret
+     * @param array|null $sellerBiddingNoList
+     * @param int|null $skuId
+     * @param int|null $globalSkuId
+     * @param string $region
+     * @param int $pageSize
+     * @return array
+     */
+    public function queryListingList(
+        string $appKey,
+        string $appSecret,
+        ?array  $sellerBiddingNoList = null,
+        ?int    $skuId = null,
+        ?int   $globalSkuId = null,
+        string $region = 'HK',
+        int    $pageSize = 20,
+    ): array
+    {
+        if ($skuId !== null) {
+            $params['skuId'] = $skuId;
+        }
+        if ($globalSkuId !== null) {
+            $params['globalSkuId'] = $globalSkuId;
+        }
+        if ($sellerBiddingNoList !== null) {
+            $params['sellerBiddingNoList'] = array_map('intval', $sellerBiddingNoList);
+        }
+        $params['region'] = $region;
+        $params['pageSize'] = $pageSize;
+
+        return $this->request($appKey, $appSecret, 'POST', '/dop/api/v1/pop/api/v1/retrieve-bid/general-type-bidding-list', $params);
+    }
+
+    /**
      * Update an existing manual listing bid on Poizon.
      *
      * @return array<string, mixed>
@@ -129,20 +261,19 @@ class PoizonApiClient
     public function updateManualListing(
         string $appKey,
         string $appSecret,
-        string $requestId,
         string $sellerBiddingNo,
-        ?int $globalSkuId,
-        int $price,
-        int $quantity,
-        int $oldQuantity,
+        ?int   $globalSkuId,
+        ?int   $skuId,
+        int    $price,
+        int    $quantity,
+        int    $oldQuantity,
         string $countryCode,
         string $deliveryCountryCode,
-        string $currency,
-        string $language = 'en',
-        string $timeZone = 'Asia/Shanghai',
-    ): array {
+        string $currency
+    ): array
+    {
         $params = [
-            'requestId' => $requestId,
+            'requestId' => Uuid::v4()->toRfc4122(),
             'sellerBiddingNo' => $sellerBiddingNo,
             'price' => $price,
             'quantity' => $quantity,
@@ -150,12 +281,13 @@ class PoizonApiClient
             'countryCode' => $countryCode,
             'deliveryCountryCode' => $deliveryCountryCode,
             'currency' => $currency,
-            'language' => $language,
-            'timeZone' => $timeZone,
         ];
 
         if ($globalSkuId !== null) {
             $params['globalSkuId'] = $globalSkuId;
+        }
+        if ($skuId !== null) {
+            $params['skuId'] = $skuId;
         }
 
         return $this->request($appKey, $appSecret, 'POST', '/dop/api/v1/pop/api/v1/update-bid/normal-autonomous-bidding', $params);
@@ -170,13 +302,10 @@ class PoizonApiClient
         string $appKey,
         string $appSecret,
         string $sellerBiddingNo,
-        string $language = 'en',
-        string $timeZone = 'Asia/Shanghai',
-    ): array {
+    ): array
+    {
         return $this->request($appKey, $appSecret, 'POST', '/dop/api/v1/pop/api/v1/cancel-bid/cancel-bidding', [
             'sellerBiddingNo' => $sellerBiddingNo,
-            'language' => $language,
-            'timeZone' => $timeZone,
         ]);
     }
 
@@ -191,25 +320,26 @@ class PoizonApiClient
      * @return array<string, mixed>
      */
     public function queryOrders(
-        string $appKey,
-        string $appSecret,
+        string  $appKey,
+        string  $appSecret,
         ?string $orderNo = null,
         ?string $orderType = null,
         ?string $expressNo = null,
-        ?int $orderStatus = null,
+        ?int    $orderStatus = null,
         ?string $startCreated = null,
         ?string $endCreated = null,
-        ?int $skuId = null,
-        ?int $spuId = null,
+        ?int    $skuId = null,
+        ?int    $spuId = null,
         ?string $warehouseCode = null,
-        ?bool $orderByCreateTimeDesc = null,
-        ?int $confirmOrderStatus = null,
-        int $pageNo = 1,
-        int $pageSize = 20,
-        ?int $orderBySpu = null,
-        string $language = 'en',
-        string $timeZone = 'Asia/Shanghai',
-    ): array {
+        ?bool   $orderByCreateTimeDesc = null,
+        ?int    $confirmOrderStatus = null,
+        int     $pageNo = 1,
+        int     $pageSize = 20,
+        ?int    $orderBySpu = null,
+        string  $language = 'en',
+        string  $timeZone = 'Asia/Shanghai',
+    ): array
+    {
         $params = [
             'page_no' => $pageNo,
             'page_size' => $pageSize,
@@ -268,7 +398,8 @@ class PoizonApiClient
         string $orderItemNo,
         string $language = 'en',
         string $timeZone = 'Asia/Shanghai',
-    ): array {
+    ): array
+    {
         return $this->request($appKey, $appSecret, 'POST', '/dop/api/v1/pop/api/v1/order/confirm', [
             'orderItemNo' => $orderItemNo,
             'language' => $language,
@@ -279,24 +410,25 @@ class PoizonApiClient
     /**
      * Ship one or more orders on Poizon.
      *
-     * @param string[] $orderNoList  Order number(s) to ship
-     * @param int      $carrier      Carrier code (e.g. 7=UPS, 8=FedEx, 100=Self-delivery)
-     * @param string   $deliveryRegion Seller's shipping origin (US, CN, HK, JP, KR …)
-     * @param string   $deliveryType   OFFLINE_EXPRESS_DELIVERY | SELF_DELIVERY | ONLINE_EXPRESS_DELIVERY
+     * @param string[] $orderNoList Order number(s) to ship
+     * @param int $carrier Carrier code (e.g. 7=UPS, 8=FedEx, 100=Self-delivery)
+     * @param string $deliveryRegion Seller's shipping origin (US, CN, HK, JP, KR …)
+     * @param string $deliveryType OFFLINE_EXPRESS_DELIVERY | SELF_DELIVERY | ONLINE_EXPRESS_DELIVERY
      *
      * @return array<string, mixed>
      */
     public function shipOrder(
-        string $appKey,
-        string $appSecret,
-        array $orderNoList,
-        int $carrier,
-        string $deliveryRegion,
-        string $deliveryType,
+        string  $appKey,
+        string  $appSecret,
+        array   $orderNoList,
+        int     $carrier,
+        string  $deliveryRegion,
+        string  $deliveryType,
         ?string $expressNo = null,
-        string $language = 'en',
-        string $timeZone = 'Asia/Shanghai',
-    ): array {
+        string  $language = 'en',
+        string  $timeZone = 'Asia/Shanghai',
+    ): array
+    {
         $params = [
             'order_no_list' => $orderNoList,
             'carrier' => $carrier,
@@ -345,14 +477,14 @@ class PoizonApiClient
             if (is_array($value)) {
                 // Encode as JSON, then strip the outer [ ] brackets
                 $encoded = json_encode($value, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-                $value = substr((string) $encoded, 1, -1);
+                $value = substr((string)$encoded, 1, -1);
             }
 
             // Both key and value must be URL-encoded (UTF-8)
-            $parts[] = urlencode((string) $key).'='.urlencode((string) $value);
+            $parts[] = urlencode((string)$key) . '=' . urlencode((string)$value);
         }
 
-        $queryString = implode('&', $parts).$appSecret;
+        $queryString = implode('&', $parts) . $appSecret;
 
         return strtoupper(md5($queryString));
     }
@@ -371,7 +503,7 @@ class PoizonApiClient
     public function request(string $appKey, string $appSecret, string $method, string $endpoint, array $params = []): array
     {
         $params['app_key'] = $appKey;
-        $params['timestamp'] = (int) (microtime(true) * 1000);
+        $params['timestamp'] = (int)(microtime(true) * 1000);
         $sign = $this->createSign($params, $appSecret);
         $params['sign'] = $sign;
 
@@ -403,7 +535,7 @@ class PoizonApiClient
         ]);
 
         try {
-            $response = $this->httpClient->request($method, self::BASE_URL.$endpoint, $options);
+            $response = $this->httpClient->request($method, self::BASE_URL . $endpoint, $options);
             $statusCode = $response->getStatusCode();
             $responseData = $response->toArray(false);
 
@@ -415,7 +547,7 @@ class PoizonApiClient
             if ($statusCode >= 400) {
                 $this->handleHttpError(
                     $statusCode,
-                    (string) ($responseData['code'] ?? 'UNKNOWN'),
+                    (string)($responseData['code'] ?? 'UNKNOWN'),
                     $responseData['msg'] ?? $responseData['message'] ?? 'Unknown error'
                 );
             }

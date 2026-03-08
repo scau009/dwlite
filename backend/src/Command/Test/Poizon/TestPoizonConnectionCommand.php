@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Command;
+namespace App\Command\Test\Poizon;
 
 use App\Entity\SalesChannel;
 use App\Repository\SalesChannelRepository;
