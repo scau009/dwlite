@@ -283,9 +283,6 @@ class PoizonGateway extends AbstractChannelGateway
 
         $appKey = $this->getAppKey($context);
         $appSecret = $this->getAppSecret($context);
-        $language = (string) $context->getConfigValue('language', 'en');
-        $timeZone = (string) $context->getConfigValue('timezone', 'Asia/Shanghai');
-
         $response = $this->apiClient->queryOrders(
             appKey: $appKey,
             appSecret: $appSecret,
@@ -294,8 +291,6 @@ class PoizonGateway extends AbstractChannelGateway
             endCreated: $request->endTime->format('Y-m-d H:i:s'),
             pageNo: $request->page,
             pageSize: $request->pageSize,
-            language: $language,
-            timeZone: $timeZone,
         );
 
         $orders = [];

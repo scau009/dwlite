@@ -335,16 +335,12 @@ class PoizonApiClient
         ?int    $confirmOrderStatus = null,
         int     $pageNo = 1,
         int     $pageSize = 20,
-        ?int    $orderBySpu = null,
-        string  $language = 'en',
-        string  $timeZone = 'Asia/Shanghai',
+        ?int    $orderBySpu = null
     ): array
     {
         $params = [
             'page_no' => $pageNo,
             'page_size' => $pageSize,
-            'language' => $language,
-            'timeZone' => $timeZone,
         ];
 
         if ($orderNo !== null) {

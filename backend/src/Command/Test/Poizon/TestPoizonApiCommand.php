@@ -209,4 +209,17 @@ class TestPoizonApiCommand extends Command
         $output->writeln(json_encode($response, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
     }
 
+    /**
+     * --method=queryOrderList
+     * --params={\"orderStatusList\":[\"PENDING\",\"SHIPPED\",\"CANCELLED\"]}
+     * @param array $params
+     * @param OutputInterface $output
+     * @return void
+     */
+    private function queryOrderList(array $params, OutputInterface $output): void
+    {
+        $response = $this->apiClient->queryOrders($this->appKey, $this->appSecret);
+        $output->writeln(json_encode($response, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+    }
+
 }
