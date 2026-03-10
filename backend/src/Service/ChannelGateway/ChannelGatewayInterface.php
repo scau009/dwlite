@@ -103,4 +103,18 @@ interface ChannelGatewayInterface
         ShipOrderRequest $request
     ): ShipOrderResponse;
 
+    /**
+     * Callback invoked after a sync operation completes successfully.
+     *
+     * Allows each channel gateway to store channel-specific extra data
+     * (e.g. bidding IDs, listing tokens) into the ChannelProduct.extra field.
+     *
+     * @param array<string, mixed> $response Raw response data from the gateway operation
+     */
+    public function onAfterSync(
+        string $operation,
+        ChannelProduct $channelProduct,
+        array $response
+    ): void;
+
 }

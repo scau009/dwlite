@@ -253,38 +253,21 @@ class ChannelProductSyncService
             // Handle response
             $this->handleResponse($operation, $response, $channelProduct, $syncLog);
 
+            // Allow gateway to store channel-specific extra data after successful sync
+            if ($response['success']) {
+                $gateway->onAfterSync($operation, $channelProduct, $response);
+            }
+
             $this->entityManager->flush();
 
             return $syncLog;
         } catch (ChannelGatewayException $e) {
             $channelProduct->markSyncFailed($e->getMessage());
             $syncLog->markFailed($e->getMessage(), $e->getErrorCode());
-
-            try {
-                $this->entityManager->flush();
-            } catch (\Throwable $flushException) {
-                $this->logger->error('Failed to persist error state during push', [
-                    'channelProductId' => $channelProduct->getId(),
-                    'originalError' => $e->getMessage(),
-                    'flushError' => $flushException->getMessage(),
-                ]);
-            }
-
             throw $e;
         } catch (\Throwable $e) {
             $channelProduct->markSyncFailed($e->getMessage());
             $syncLog->markFailed($e->getMessage());
-
-            try {
-                $this->entityManager->flush();
-            } catch (\Throwable $flushException) {
-                $this->logger->error('Failed to persist error state during push', [
-                    'channelProductId' => $channelProduct->getId(),
-                    'originalError' => $e->getMessage(),
-                    'flushError' => $flushException->getMessage(),
-                ]);
-            }
-
             throw $e;
         }
     }
@@ -296,7 +279,7 @@ class ChannelProductSyncService
      * @param ChannelProductSyncLog $syncLog
      * @return void
      */
-    private function handleResponse(string $operation,array $response, ChannelProduct $channelProduct, ChannelProductSyncLog $syncLog)
+    private function handleResponse(string $operation,array $response, ChannelProduct $channelProduct, ChannelProductSyncLog $syncLog): void
     {
         if ($response['success']) {
             match ($operation) {
@@ -326,7 +309,7 @@ class ChannelProductSyncService
         $syncLog->setExternalResponse($response['data'] ?? null);
     }
 
-    private function handleUpdateStockPriceResponse(array $response, ChannelProduct $channelProduct, ChannelProductSyncLog $syncLog)
+    private function handleUpdateStockPriceResponse(array $response, ChannelProduct $channelProduct, ChannelProductSyncLog $syncLog): void
     {
         foreach ($response['data'] ?? [] as $channelProductId => $responseDatum) {
             if ($channelProductId === $channelProduct->getId()) {

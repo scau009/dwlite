@@ -17,6 +17,7 @@ CREATE TABLE `channel_products` (
     `sync_status` VARCHAR(20) NOT NULL DEFAULT 'pending' COMMENT 'pending, syncing, synced, failed',
     `last_synced_at` DATETIME NULL,
     `sync_error` TEXT NULL COMMENT 'Last sync error message',
+    `extra` JSON NULL COMMENT 'Extra channel-specific data',
     `status` VARCHAR(20) NOT NULL DEFAULT 'draft' COMMENT 'draft, pending, active, paused, rejected, delisted',
     `total_sold_quantity` INT NOT NULL DEFAULT 0 COMMENT 'Total sold quantity',
     `created_at` DATETIME NOT NULL,
@@ -29,3 +30,7 @@ CREATE TABLE `channel_products` (
     CONSTRAINT `fk_cp_channel` FOREIGN KEY (`sales_channel_id`) REFERENCES `sales_channels` (`id`),
     CONSTRAINT `fk_cp_sku` FOREIGN KEY (`product_sku_id`) REFERENCES `product_skus` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Platform channel products';
+
+ALTER TABLE `channel_products`
+    ADD COLUMN `extra` JSON NULL COMMENT 'Extra channel-specific data'
+        AFTER `external_url`;

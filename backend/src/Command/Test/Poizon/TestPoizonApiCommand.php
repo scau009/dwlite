@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Command\Test\Poizon;
 
+use App\Repository\ChannelProductRepository;
 use App\Service\ChannelGateway\Provider\Poizon\PoizonApiClient;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -20,11 +21,13 @@ class TestPoizonApiCommand extends Command
     private string $appSecret;
 
     private PoizonApiClient $apiClient;
+    private ChannelProductRepository $channelProductRepository;
 
-    public function __construct(PoizonApiClient $apiClient)
+    public function __construct(PoizonApiClient $apiClient, ChannelProductRepository $channelProductRepository)
     {
         parent::__construct();
         $this->apiClient = $apiClient;
+        $this->channelProductRepository = $channelProductRepository;
     }
 
     protected function configure()
@@ -167,7 +170,7 @@ class TestPoizonApiCommand extends Command
 
     /**
      * --method=updateListing
-     * --params={\"sellerBiddingNo\":\"151220034159736818\",\"globalSkuId\":12800767421,\"price\":84000,\"quantity\":1,\"oldQuantity\":1,\"countryCode\":\"HK\",\"deliveryCountryCode\":\"HK\",\"currency\":\"CNY\",\"language\":\"en\",\"timeZone\":\"Asia/Shanghai\"}
+     * --params={\"sellerBiddingNo\":\"151220034162611765\",\"skuId\":683390522,\"price\":84000,\"quantity\":1,\"oldQuantity\":1,\"countryCode\":\"HK\",\"deliveryCountryCode\":\"HK\",\"currency\":\"CNY\",\"language\":\"en\",\"timeZone\":\"Asia/Shanghai\"}
      * @param array $params
      * @param OutputInterface $output
      * @return void

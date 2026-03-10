@@ -92,6 +92,9 @@ class ChannelProduct
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $syncError = null;  // 最后一次同步错误信息
 
+    #[ORM\Column(type: 'json', nullable: true)]
+    private ?array $extra = null;  // 额外渠道对接信息
+
     // 状态
     #[ORM\Column(type: 'string', length: 20)]
     private string $status = self::STATUS_DRAFT;
@@ -326,6 +329,18 @@ class ChannelProduct
         return $this;
     }
 
+    public function getExtra(): ?array
+    {
+        return $this->extra;
+    }
+
+    public function setExtra(?array $extra): static
+    {
+        $this->extra = $extra;
+
+        return $this;
+    }
+
     public function getStatus(): string
     {
         return $this->status;
@@ -543,7 +558,7 @@ class ChannelProduct
      */
     public function markDelisted(): void
     {
-        $this->status = self::STATUS_DELISTED;
+        $this->syncStatus = self::SYNC_STATUS_SYNCED;
         $this->lastSyncedAt = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
         $this->syncError = null;
     }

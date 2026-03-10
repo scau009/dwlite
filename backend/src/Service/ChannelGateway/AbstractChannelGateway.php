@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Service\ChannelGateway;
 
+use App\Entity\ChannelProduct;
 use App\Service\ChannelGateway\Dto\Response\ChannelResponse;
 use App\Service\ChannelGateway\Exception\ChannelApiException;
 use App\Service\ChannelGateway\Exception\ChannelAuthException;
@@ -114,5 +115,15 @@ abstract class AbstractChannelGateway implements ChannelGatewayInterface
     protected function createUtcDateTime(string $datetime = 'now'): \DateTimeImmutable
     {
         return new \DateTimeImmutable($datetime, new \DateTimeZone('UTC'));
+    }
+
+    /**
+     * Default no-op implementation. Override in concrete gateways to store
+     * channel-specific extra data into ChannelProduct after a successful sync.
+     *
+     * @param array<string, mixed> $response
+     */
+    public function onAfterSync(string $operation, ChannelProduct $channelProduct, array $response): void
+    {
     }
 }

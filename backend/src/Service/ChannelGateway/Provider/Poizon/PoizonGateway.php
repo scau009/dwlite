@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Service\ChannelGateway\Provider\Poizon;
 
 use App\Entity\ChannelProduct;
+use App\Entity\ChannelProductSyncLog;
 use App\Repository\ChannelProductRepository;
 use App\Service\ChannelGateway\AbstractChannelGateway;
 use App\Service\ChannelGateway\ChannelGatewayContext;
@@ -121,6 +122,7 @@ class PoizonGateway extends AbstractChannelGateway
             );
 
             $data = $response['data'] ?? null;
+            $data['poizonSkuId'] = $poizonSkuId;
             $sellerBiddingNo = $response['data']['sellerBiddingNo'] ?? null;
         } catch (Throwable $e) {
             $this->logOperationFailure('pushProduct', $e, compact('request', 'context'));
@@ -175,6 +177,14 @@ class PoizonGateway extends AbstractChannelGateway
                 $results[$channelProduct->getId()] = false;
                 continue;
             }
+            $poizonSkuId = $channelProduct->getExtra()['poizonSkuId'] ?? null;
+            if (empty($poizonSkuId)) {
+                $this->logger->warning('[POIZON] Skipping product: poizonSkuId not set', [
+                    'channelProductId' => $channelProduct->getId(),
+                ]);
+                $results[$channelProduct->getId()] = false;
+                continue;
+            }
 
             $price = (int)round((float)$channelProduct->getPlatformPrice() * 100);
             $quantity = $channelProduct->getEffectiveStock();
@@ -185,7 +195,7 @@ class PoizonGateway extends AbstractChannelGateway
                     appSecret: $appSecret,
                     sellerBiddingNo: $externalId,
                     globalSkuId: null,
-                    skuId: null,
+                    skuId: intval($poizonSkuId),
                     price: $price,
                     quantity: $quantity,
                     oldQuantity: $quantity,
@@ -410,6 +420,16 @@ class PoizonGateway extends AbstractChannelGateway
         );
     }
 
+    public function onAfterSync(string $operation,
+                                ChannelProduct $channelProduct,
+                                array $response): void
+    {
+        if ($operation === ChannelProductSyncLog::OPERATION_PUSH_PRODUCT) {
+            $channelProduct->setExtra([
+                'poizonSkuId' => $response['data']['poizonSkuId'] ?? null,
+            ]);
+        }
+    }
     /**
      * Resolve Poizon carrier integer code.
      *

@@ -95,19 +95,13 @@ class SyncChannelProductMessageHandler
 
         try {
             // Perform aggregation
-            $syncLog = $this->syncService->aggregateChannelProduct(
+            $this->syncService->aggregateChannelProduct(
                 $channelProduct,
                 $message->getTriggerSourceEnum(),
                 $triggerListing,
                 $message->merchantId,
                 $message->merchantInventoryId,
             );
-
-            $this->logger->info('Channel product aggregation completed', [
-                'channelProductId' => $channelProduct->getId(),
-                'syncLogId' => $syncLog->getId(),
-                'syncStatus' => $channelProduct->getSyncStatus(),
-            ]);
 
             // Check if we need to push to external channel
             if ($this->shouldPushToChannel($channelProduct)) {
@@ -118,14 +112,6 @@ class SyncChannelProductMessageHandler
                     $operation,
                 ));
 
-                $this->logger->info('Dispatched push to channel', [
-                    'channelProductId' => $channelProduct->getId(),
-                    'operation' => $operation,
-                ]);
-            }else{
-                $this->logger->info('No push needed for channel product', [
-                    'channelProductId' => $channelProduct->getId(),
-                ]);
             }
         } catch (\Throwable $e) {
             $this->logger->error('Failed to sync channel product', [
