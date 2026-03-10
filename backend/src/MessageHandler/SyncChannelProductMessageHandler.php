@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\MessageHandler;
 
 use App\Entity\ChannelProduct;
+use App\Enum\SyncTriggerSourceEnum;
 use App\Message\PushChannelProductMessage;
 use App\Message\SyncChannelProductMessage;
 use App\Repository\ChannelProductRepository;
@@ -27,13 +28,14 @@ use Symfony\Component\Messenger\MessageBusInterface;
 class SyncChannelProductMessageHandler
 {
     public function __construct(
-        private ChannelProductRepository $channelProductRepo,
+        private ChannelProductRepository   $channelProductRepo,
         private InventoryListingRepository $listingRepo,
-        private ChannelProductSyncService $syncService,
-        private MessageBusInterface $messageBus,
-        private LockFactory $lockFactory,
-        private LoggerInterface $logger,
-    ) {
+        private ChannelProductSyncService  $syncService,
+        private MessageBusInterface        $messageBus,
+        private LockFactory                $lockFactory,
+        private LoggerInterface            $logger,
+    )
+    {
     }
 
     public function __invoke(SyncChannelProductMessage $message): void
@@ -110,6 +112,7 @@ class SyncChannelProductMessageHandler
                 $this->messageBus->dispatch(new PushChannelProductMessage(
                     $channelProduct->getId(),
                     $operation,
+                    $message->getTriggerSourceEnum() == SyncTriggerSourceEnum::CHANNEL_RE_ACTIVATE
                 ));
 
             }
@@ -135,17 +138,8 @@ class SyncChannelProductMessageHandler
             return false;
         }
 
-        // Push if product is active (includes re-listing from delisted status)
-        if ($channelProduct->getStatus() === ChannelProduct::STATUS_ACTIVE) {
-            return true;
-        }
-
-        // Push if product is paused (to sync stock=0 to channel)
-        if ($channelProduct->getStatus() === ChannelProduct::STATUS_PAUSED) {
-            return true;
-        }
-
-        return false;
+        // Only active products are pushed through the regular sync flow.
+        return $channelProduct->getStatus() === ChannelProduct::STATUS_ACTIVE;
     }
 
     /**

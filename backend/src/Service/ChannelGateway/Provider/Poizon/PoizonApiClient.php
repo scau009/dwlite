@@ -7,6 +7,7 @@ namespace App\Service\ChannelGateway\Provider\Poizon;
 use App\Service\ChannelGateway\Exception\ChannelApiException;
 use App\Service\ChannelGateway\Exception\ChannelAuthException;
 use App\Service\ChannelGateway\Exception\ChannelRateLimitException;
+use App\Service\ChannelGateway\Provider\Poizon\Exception\PoizonApiException;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Uid\Uuid;
 use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
@@ -15,6 +16,7 @@ use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
+use Throwable;
 use function LaravelIdea\throw_if;
 
 /**
@@ -501,7 +503,7 @@ class PoizonApiClient
      * @throws RedirectionExceptionInterface
      * @throws ServerExceptionInterface
      * @throws TransportExceptionInterface
-     * @throws \Throwable
+     * @throws Throwable
      */
     public function request(string $appKey, string $appSecret, string $method, string $endpoint, array $params = []): array
     {
@@ -538,31 +540,27 @@ class PoizonApiClient
             'options' => $options
         ]);
 
-        try {
-            $response = $this->httpClient->request($method, self::BASE_URL . $endpoint, $options);
-            $statusCode = $response->getStatusCode();
-            $responseData = $response->toArray(false);
+        $response = $this->httpClient->request($method, self::BASE_URL . $endpoint, $options);
+        $statusCode = $response->getStatusCode();
+        $responseData = $response->toArray(false);
 
-            $this->logger->info('[POIZON] API response', [
-                'status_code' => $statusCode,
-                'response' => $responseData,
-            ]);
+        $this->logger->info('[POIZON] API response', [
+            'status_code' => $statusCode,
+            'response' => $responseData,
+        ]);
 
-            if ($statusCode >= 400) {
-                $this->handleHttpError(
-                    $statusCode,
-                    (string)($responseData['code'] ?? 'UNKNOWN'),
-                    $responseData['msg'] ?? $responseData['message'] ?? 'Unknown error'
-                );
-            }
-            if ($responseData['code'] != 200) {
-                throw new \Exception($responseData['msg'] ?? $responseData['message'] ?? 'Unknown error');
-            }
-
-            return $responseData;
-        } catch (\Throwable $e) {
-            throw $e;
+        if ($statusCode >= 400) {
+            $this->handleHttpError(
+                $statusCode,
+                (string)($responseData['code'] ?? 'UNKNOWN'),
+                $responseData['msg'] ?? $responseData['message'] ?? 'Unknown error'
+            );
         }
+        if ($responseData['code'] != 200) {
+            throw new PoizonApiException($responseData['msg'] ?? $responseData['message'] ?? 'Unknown error',$responseData['code']);
+        }
+
+        return $responseData;
     }
 
     /**

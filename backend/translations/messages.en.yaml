@@ -165,12 +165,10 @@ admin:
   channelProduct:
     notFound: 'Channel product not found'
     alreadyActive: 'Channel product is already active'
-    alreadyPaused: 'Channel product is already paused'
     alreadyDelisted: 'Channel product is already delisted'
-    cannotDelistStatus: 'Can only delist active or paused products'
+    cannotDelistStatus: 'Can only delist active products'
     noExternalId: 'Cannot delist product without external ID'
     activated: 'Channel product activated'
-    paused: 'Channel product paused'
     delisted: 'Channel product delisted'
     syncTriggered: 'Sync triggered'
 

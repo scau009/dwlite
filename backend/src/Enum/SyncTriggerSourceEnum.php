@@ -27,6 +27,7 @@ enum SyncTriggerSourceEnum: string
 
     // System operations
     case MANUAL = 'manual';
+    case CHANNEL_RE_ACTIVATE = 'channel_re_activate';
     case SCHEDULED = 'scheduled';
     case COMPENSATION = 'compensation';
 

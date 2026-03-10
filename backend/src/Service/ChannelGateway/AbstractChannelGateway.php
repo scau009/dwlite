@@ -126,4 +126,9 @@ abstract class AbstractChannelGateway implements ChannelGatewayInterface
     public function onAfterSync(string $operation, ChannelProduct $channelProduct, array $response): void
     {
     }
+
+    public function getOperation(string $operation, bool $isReActive = false): string
+    {
+        return $operation;
+    }
 }

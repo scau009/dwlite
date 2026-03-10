@@ -90,30 +90,6 @@ class ChannelProductController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}/pause', name: 'admin_channel_product_pause', methods: ['POST'])]
-    public function pause(string $id): JsonResponse
-    {
-        $channelProduct = $this->channelProductRepository->find($id);
-        if (!$channelProduct) {
-            return $this->json(['error' => $this->translator->trans('admin.channelProduct.notFound')], Response::HTTP_NOT_FOUND);
-        }
-
-        if ($channelProduct->isPaused()) {
-            return $this->json(['error' => $this->translator->trans('admin.channelProduct.alreadyPaused')], Response::HTTP_BAD_REQUEST);
-        }
-
-        $channelProduct->pause();
-        $this->entityManager->flush();
-
-        // Trigger sync to external channel
-        $this->syncService->triggerSyncFromChannelProduct($channelProduct, SyncTriggerSourceEnum::MANUAL);
-
-        return $this->json([
-            'message' => $this->translator->trans('admin.channelProduct.paused'),
-            'data' => $this->serializeChannelProduct($channelProduct),
-        ]);
-    }
-
     #[Route('/{id}/delist', name: 'admin_channel_product_delist', methods: ['POST'])]
     public function delist(string $id): JsonResponse
     {
@@ -126,8 +102,8 @@ class ChannelProductController extends AbstractController
             return $this->json(['error' => $this->translator->trans('admin.channelProduct.alreadyDelisted')], Response::HTTP_BAD_REQUEST);
         }
 
-        // Only allow delist for active or paused products with externalId
-        if (!$channelProduct->isActive() && !$channelProduct->isPaused()) {
+        // Only allow delist for active products with externalId
+        if (!$channelProduct->isActive()) {
             return $this->json(['error' => $this->translator->trans('admin.channelProduct.cannotDelistStatus')], Response::HTTP_BAD_REQUEST);
         }
 
@@ -164,7 +140,11 @@ class ChannelProductController extends AbstractController
         $this->entityManager->flush();
 
         // Trigger sync to external channel
-        $this->syncService->triggerSyncFromChannelProduct($channelProduct, SyncTriggerSourceEnum::MANUAL);
+        if (!$channelProduct->getExternalId()) {
+            $this->syncService->triggerSyncFromChannelProduct($channelProduct, SyncTriggerSourceEnum::CHANNEL_RE_ACTIVATE);
+        }else{
+            $this->syncService->triggerSyncFromChannelProduct($channelProduct, SyncTriggerSourceEnum::MANUAL);
+        }
 
         return $this->json([
             'message' => $this->translator->trans('admin.channelProduct.syncTriggered'),

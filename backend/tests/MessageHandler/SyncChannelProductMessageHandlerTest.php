@@ -175,38 +175,6 @@ class SyncChannelProductMessageHandlerTest extends TestCase
         ($this->handler)($message);
     }
 
-    public function testAggregatesAndDispatchesPushForPausedProduct(): void
-    {
-        $message = $this->createMessage();
-        $channelProduct = $this->createMockChannelProduct(
-            status: ChannelProduct::STATUS_PAUSED,
-            syncStatus: ChannelProduct::SYNC_STATUS_PENDING,
-            externalId: 'EXT-456',
-        );
-        $syncLog = $this->createMock(ChannelProductSyncLog::class);
-        $syncLog->method('getId')->willReturn('LOG003');
-
-        $this->syncService->method('shouldProcessMessage')->willReturn(true);
-        $this->configureLock();
-
-        $this->channelProductRepo->method('find')->willReturn($channelProduct);
-
-        $this->syncService->expects($this->once())
-            ->method('aggregateChannelProduct')
-            ->willReturn($syncLog);
-
-        $this->messageBus->expects($this->once())
-            ->method('dispatch')
-            ->with($this->callback(function ($msg) {
-                return $msg instanceof PushChannelProductMessage
-                    && $msg->channelProductId === 'CP001'
-                    && $msg->operation === PushChannelProductMessage::OPERATION_UPDATE_STOCK_PRICE;
-            }))
-            ->willReturn(new Envelope(new PushChannelProductMessage('CP001', PushChannelProductMessage::OPERATION_UPDATE_STOCK_PRICE)));
-
-        ($this->handler)($message);
-    }
-
     public function testAggregatesWithoutPushWhenSyncStatusNotPending(): void
     {
         $message = $this->createMessage();

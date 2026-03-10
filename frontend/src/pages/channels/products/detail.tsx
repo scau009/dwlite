@@ -19,7 +19,6 @@ import {
   ArrowLeftOutlined,
   SyncOutlined,
   PlayCircleOutlined,
-  PauseCircleOutlined,
   LinkOutlined,
   ExclamationCircleOutlined,
   StopOutlined,
@@ -50,10 +49,7 @@ const stockModeI18nKeyMap: Record<StockMode, string> = {
 // Status color mapping
 const statusColorMap: Record<ChannelProductStatus, string> = {
   draft: 'default',
-  pending: 'processing',
   active: 'success',
-  paused: 'warning',
-  rejected: 'error',
   delisted: 'default',
 };
 
@@ -132,22 +128,6 @@ export function ChannelProductDetailPage() {
     try {
       await channelProductApi.activateChannelProduct(id);
       message.success(t('channelProducts.activated'));
-      loadProduct();
-      actionRef.current?.reload();
-    } catch (error) {
-      const err = error as { error?: string };
-      message.error(err.error || t('common.error'));
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  const handlePause = async () => {
-    if (!id) return;
-    setActionLoading(true);
-    try {
-      await channelProductApi.pauseChannelProduct(id);
-      message.success(t('channelProducts.paused'));
       loadProduct();
       actionRef.current?.reload();
     } catch (error) {
@@ -420,26 +400,17 @@ export function ChannelProductDetailPage() {
           {t('common.back')}
         </Button>
         <Space>
-          {product.status !== 'active' && product.status !== 'delisted' && (
+          {product.status !== 'active' && (
             <Button
               type="primary"
               icon={<PlayCircleOutlined />}
               loading={actionLoading}
               onClick={handleActivate}
             >
-              {t('channelProducts.activate')}
+              {product.status === 'delisted' ? t('channelProducts.relist') : t('channelProducts.activate')}
             </Button>
           )}
-          {product.status === 'active' && (
-            <Button
-              icon={<PauseCircleOutlined />}
-              loading={actionLoading}
-              onClick={handlePause}
-            >
-              {t('channelProducts.pause')}
-            </Button>
-          )}
-          {(product.status === 'active' || product.status === 'paused') && product.externalId && (
+          {product.status === 'active' && product.externalId && (
             <Button
               danger
               icon={<StopOutlined />}

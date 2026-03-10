@@ -6,6 +6,7 @@ namespace App\Service\ChannelGateway\Provider\Poizon;
 
 use App\Entity\ChannelProduct;
 use App\Entity\ChannelProductSyncLog;
+use App\Message\PushChannelProductMessage;
 use App\Repository\ChannelProductRepository;
 use App\Service\ChannelGateway\AbstractChannelGateway;
 use App\Service\ChannelGateway\ChannelGatewayContext;
@@ -22,8 +23,8 @@ use App\Service\ChannelGateway\Dto\Response\ReceiverDto;
 use App\Service\ChannelGateway\Dto\Response\ShipOrderResponse;
 use App\Service\ChannelGateway\Dto\Response\UpdateStockPriceResponse;
 use App\Service\ChannelGateway\Exception\ChannelApiException;
+use App\Service\ChannelGateway\Provider\Poizon\Exception\PoizonApiException;
 use Psr\Log\LoggerInterface;
-use Random\RandomException;
 use Throwable;
 
 /**
@@ -213,11 +214,15 @@ class PoizonGateway extends AbstractChannelGateway
                     ] ?? null;
                 }
             } catch (Throwable $e) {
-                $this->logOperationFailure('updateStockPrice', $e, [
-                    'channelProductId' => $channelProduct->getId(),
-                    'sellerBiddingNo' => $externalId,
-                ]);
-                $results[$channelProduct->getId()] = false;
+                if ($e instanceof PoizonApiException && $e->isNoNeedModifyException()) {
+                    $results[$channelProduct->getId()] = true;
+                } else {
+                    $this->logOperationFailure('updateStockPrice', $e, [
+                        'channelProductId' => $channelProduct->getId(),
+                        'sellerBiddingNo' => $externalId,
+                    ]);
+                    $results[$channelProduct->getId()] = false;
+                }
             }
         }
 
@@ -420,9 +425,9 @@ class PoizonGateway extends AbstractChannelGateway
         );
     }
 
-    public function onAfterSync(string $operation,
+    public function onAfterSync(string         $operation,
                                 ChannelProduct $channelProduct,
-                                array $response): void
+                                array          $response): void
     {
         if ($operation === ChannelProductSyncLog::OPERATION_PUSH_PRODUCT) {
             $channelProduct->setExtra([
@@ -430,6 +435,15 @@ class PoizonGateway extends AbstractChannelGateway
             ]);
         }
     }
+
+    public function getOperation(string $operation, bool $isReActive = false): string
+    {
+        if ($operation === PushChannelProductMessage::OPERATION_UPDATE_STOCK_PRICE && $isReActive) {
+            return PushChannelProductMessage::OPERATION_PUSH_PRODUCT;
+        }
+        return $operation;
+    }
+
     /**
      * Resolve Poizon carrier integer code.
      *

@@ -20,7 +20,7 @@ readonly class PushChannelProductMessage implements AsyncMessageInterface
     public function __construct(
         public string $channelProductId,
         public string $operation,
-        public bool $forceFullSync = false,
+        public bool $isReActive = false,
     ) {
     }
 

@@ -78,7 +78,7 @@ class PushChannelProductMessageHandler
             $syncLog = $this->syncService->pushToChannel(
                 $channelProduct,
                 $message->operation,
-                $message->forceFullSync,
+                $message->isReActive,
             );
 
             if ($syncLog->isSuccess()) {

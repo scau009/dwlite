@@ -117,4 +117,5 @@ interface ChannelGatewayInterface
         array $response
     ): void;
 
+    public function getOperation(string $operation,bool $isReActive): string;
 }

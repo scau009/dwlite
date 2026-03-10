@@ -16,9 +16,10 @@ use App\Entity\SalesChannel;
 readonly class ChannelGatewayContext
 {
     public function __construct(
-        private SalesChannel $salesChannel,
+        private SalesChannel          $salesChannel,
         private ?MerchantSalesChannel $merchantChannel = null,
-    ) {
+    )
+    {
     }
 
     public function getChannelCode(): string

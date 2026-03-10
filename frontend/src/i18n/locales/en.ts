@@ -2215,10 +2215,7 @@ export default {
 
     // Status
     statusDraft: 'Draft',
-    statusPending: 'Pending',
     statusActive: 'Active',
-    statusPaused: 'Paused',
-    statusRejected: 'Rejected',
     statusDelisted: 'Delisted',
 
     // Sync Status
@@ -2229,7 +2226,6 @@ export default {
 
     // Actions
     activate: 'Activate',
-    pause: 'Pause',
     delist: 'Delist',
     relist: 'Relist',
     sync: 'Sync',
@@ -2237,7 +2233,6 @@ export default {
 
     // Messages
     activated: 'Channel product activated',
-    paused: 'Channel product paused',
     delisted: 'Channel product delisted',
     syncTriggered: 'Sync triggered successfully',
     syncTriggeredWithCorrection: 'Sync triggered, corrected {{count}} source status(es)',

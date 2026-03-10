@@ -1,7 +1,7 @@
 import { apiFetch } from './api-client';
 
 // Types
-export type ChannelProductStatus = 'draft' | 'pending' | 'active' | 'paused' | 'rejected' | 'delisted';
+export type ChannelProductStatus = 'draft' | 'active' | 'delisted';
 export type ChannelProductSyncStatus = 'pending' | 'syncing' | 'synced' | 'failed';
 export type StockMode = 'aggregate' | 'lowest' | 'fixed';
 
@@ -166,17 +166,6 @@ export const channelProductApi = {
     id: string
   ): Promise<{ message: string; data: ChannelProduct }> => {
     return apiFetch(`/api/admin/channel-products/${id}/activate`, {
-      method: 'POST',
-    });
-  },
-
-  /**
-   * 暂停渠道商品
-   */
-  pauseChannelProduct: async (
-    id: string
-  ): Promise<{ message: string; data: ChannelProduct }> => {
-    return apiFetch(`/api/admin/channel-products/${id}/pause`, {
       method: 'POST',
     });
   },

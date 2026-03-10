@@ -217,7 +217,7 @@ class ChannelProductSyncService
     public function pushToChannel(
         ChannelProduct $channelProduct,
         string $operation,
-        bool $forceFullSync = false,
+        bool $isReActive = false,
     ): ChannelProductSyncLog {
         // Create sync log
         $syncLog = ChannelProductSyncLog::createForPush($channelProduct, $operation);
@@ -241,7 +241,7 @@ class ChannelProductSyncService
             // Create gateway context
             $context = new ChannelGatewayContext($salesChannel);
             $gateway = $this->gatewayRegistry->get($salesChannel->getCode());
-
+            $operation = $gateway->getOperation($operation,$isReActive);
             // Perform push based on operation
             $response = match ($operation) {
                 ChannelProductSyncLog::OPERATION_PUSH_PRODUCT => $this->doPushProduct($gateway, $context, $channelProduct),

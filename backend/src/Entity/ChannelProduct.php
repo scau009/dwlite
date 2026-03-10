@@ -35,10 +35,7 @@ class ChannelProduct
 
     // 上架状态
     public const STATUS_DRAFT = 'draft';              // 草稿
-    public const STATUS_PENDING = 'pending';          // 待审核
-    public const STATUS_ACTIVE = 'active';            // 已上架
-    public const STATUS_PAUSED = 'paused';            // 已暂停
-    public const STATUS_REJECTED = 'rejected';        // 已拒绝
+    public const STATUS_ACTIVE = 'active';            // 启用
     public const STATUS_DELISTED = 'delisted';        // 已下架（从外部渠道移除）
 
     #[ORM\Id]
@@ -417,24 +414,9 @@ class ChannelProduct
         return $this->status === self::STATUS_DRAFT;
     }
 
-    public function isPending(): bool
-    {
-        return $this->status === self::STATUS_PENDING;
-    }
-
     public function isActive(): bool
     {
         return $this->status === self::STATUS_ACTIVE;
-    }
-
-    public function isPaused(): bool
-    {
-        return $this->status === self::STATUS_PAUSED;
-    }
-
-    public function isRejected(): bool
-    {
-        return $this->status === self::STATUS_REJECTED;
     }
 
     public function isDelisted(): bool
@@ -586,15 +568,6 @@ class ChannelProduct
     public function activate(): void
     {
         $this->status = self::STATUS_ACTIVE;
-        $this->markNeedsSync();
-    }
-
-    /**
-     * 暂停上架.
-     */
-    public function pause(): void
-    {
-        $this->status = self::STATUS_PAUSED;
         $this->markNeedsSync();
     }
 

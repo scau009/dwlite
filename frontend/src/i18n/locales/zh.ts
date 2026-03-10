@@ -2212,10 +2212,7 @@ export default {
 
     // Status
     statusDraft: '草稿',
-    statusPending: '待处理',
     statusActive: '已激活',
-    statusPaused: '已暂停',
-    statusRejected: '已拒绝',
     statusDelisted: '已下架',
 
     // Sync Status
@@ -2226,7 +2223,6 @@ export default {
 
     // Actions
     activate: '激活',
-    pause: '暂停',
     delist: '下架',
     relist: '重新上架',
     sync: '同步',
@@ -2234,7 +2230,6 @@ export default {
 
     // Messages
     activated: '渠道商品已激活',
-    paused: '渠道商品已暂停',
     delisted: '渠道商品已下架',
     syncTriggered: '已触发同步',
     syncTriggeredWithCorrection: '已触发同步，修正了 {{count}} 个数据源状态',

@@ -18,10 +18,7 @@ const { Text } = Typography;
 
 const statusColorMap: Record<ChannelProductStatus, string> = {
   draft: 'default',
-  pending: 'processing',
   active: 'success',
-  paused: 'warning',
-  rejected: 'error',
   delisted: 'default',
 };
 
@@ -59,20 +56,6 @@ export function ChannelProductsListPage() {
     try {
       await channelProductApi.activateChannelProduct(record.id);
       message.success(t('channelProducts.activated'));
-      actionRef.current?.reload();
-    } catch (error) {
-      const err = error as { error?: string };
-      message.error(err.error || t('common.error'));
-    } finally {
-      setActionLoading(null);
-    }
-  };
-
-  const handlePause = async (record: ChannelProduct) => {
-    setActionLoading(record.id);
-    try {
-      await channelProductApi.pauseChannelProduct(record.id);
-      message.success(t('channelProducts.paused'));
       actionRef.current?.reload();
     } catch (error) {
       const err = error as { error?: string };
@@ -206,10 +189,7 @@ export function ChannelProductsListPage() {
       valueType: 'select',
       valueEnum: {
         draft: { text: t('channelProducts.statusDraft') },
-        pending: { text: t('channelProducts.statusPending') },
         active: { text: t('channelProducts.statusActive') },
-        paused: { text: t('channelProducts.statusPaused') },
-        rejected: { text: t('channelProducts.statusRejected') },
         delisted: { text: t('channelProducts.statusDelisted') },
       },
       render: (_, record) => (
@@ -277,8 +257,8 @@ export function ChannelProductsListPage() {
       fixed: 'right',
       render: (_, record) => {
         const isLoading = actionLoading === record.id;
-        const canDelist = (record.status === 'active' || record.status === 'paused') && record.externalId;
-        const canActivate = record.status !== 'active' && record.status !== 'rejected';
+        const canDelist = record.status === 'active' && Boolean(record.externalId);
+        const canActivate = record.status !== 'active';
         const isRelist = record.status === 'delisted';
         return (
           <Space size="small">
@@ -290,16 +270,6 @@ export function ChannelProductsListPage() {
                 onClick={() => handleActivate(record)}
               >
                 {isRelist ? t('channelProducts.relist') : t('channelProducts.activate')}
-              </Button>
-            )}
-            {record.status === 'active' && (
-              <Button
-                type="link"
-                size="small"
-                loading={isLoading}
-                onClick={() => handlePause(record)}
-              >
-                {t('channelProducts.pause')}
               </Button>
             )}
             {canDelist && (
