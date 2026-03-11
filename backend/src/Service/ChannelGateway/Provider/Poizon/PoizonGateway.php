@@ -519,8 +519,17 @@ class PoizonGateway extends AbstractChannelGateway
 
         // Map order items
         $items = [];
+        $sizeValue = '';
+        if ($rawOrder['localValueInfoList']) {
+            foreach ($rawOrder['localValueInfoList'] as $localValueInfo) {
+                if ($localValueInfo['name'] === 'Size') {
+                    $sizeValue = $localValueInfo['localValue'] ?? '';
+                    break;
+                }
+            }
+        }
         $item = new PulledOrderItemDto(
-            externalProductId: (string)($rawOrder['spu_id'] ?? ''),
+            externalProductId: (string)($rawOrder['seller_bidding_no'] ?? ''),
             externalSkuId: isset($rawOrder['sku_id']) ? (string)$rawOrder['sku_id'] : null,
             productName: (string)($rawOrder['title'] ?? ''),
             productImage: $rawOrder['logo_url'] ?? null,
@@ -528,11 +537,12 @@ class PoizonGateway extends AbstractChannelGateway
             unitPrice: $this->formatPrice($rawOrder['sku_price'] ?? 0, $currency),
             totalPrice: $this->formatPrice($rawOrder['amount'] ?? 0, $currency),
             skuCode: $rawOrder['article_number'] ?? null,
-            sizeValue: $rawOrder['properties'] ?? null,
+            sizeValue: $sizeValue ?: ($rawOrder['properties'] ?? ''),
             attributes: [
                 'seller_bidding_no' => $rawOrder['seller_bidding_no'] ?? null,
                 'inventory_no' => $rawOrder['inventory_no'] ?? null,
                 'brand_id' => $rawOrder['brand_id'] ?? null,
+                'earliest_delivery_time' => $rawOrder['earliest_delivery_time'] ?? null,
             ],
         );
         $items[] = $item;
@@ -550,7 +560,7 @@ class PoizonGateway extends AbstractChannelGateway
 
         return new PulledOrderDto(
             externalOrderId: (string)($rawOrder['order_no'] ?? ''),
-            externalOrderNo: (string)($rawOrder['order_no'] ?? ''),
+            externalOrderNo: $rawOrder['buyer_order_no'] ?: (string)($rawOrder['order_no'] ?? ''),
             status: $this->mapOrderStatus($rawOrder['order_status'] ?? 0),
             paymentStatus: $this->mapPaymentStatus($rawOrder['pay_status'] ?? 0),
             receiver: $receiver,

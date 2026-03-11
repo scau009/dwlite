@@ -15,6 +15,8 @@ use App\Service\BusinessNoGenerator;
 use App\Service\ChannelGateway\ChannelGatewayInterface;
 use App\Service\ChannelGateway\ChannelGatewayRegistry;
 use App\Service\ChannelGateway\Dto\Response\ChannelResponse;
+use App\Service\ChannelGateway\Dto\Response\PulledOrderDto;
+use App\Service\ChannelGateway\Dto\Response\ReceiverDto;
 use App\Service\ChannelGateway\Dto\Response\ShipOrderResponse;
 use App\Service\Fulfillment\FulfillmentCompletionService;
 use App\Service\OrderSync\ChannelStatusMapper;
@@ -149,5 +151,99 @@ class OrderSyncServiceTest extends TestCase
         $result = $this->service->shipOrder($order);
 
         $this->assertInstanceOf(OrderSyncLog::class, $result);
+    }
+
+    public function testProcessChannelOrderRethrowsOriginalExceptionWithoutFlushingWhenEntityManagerClosed(): void
+    {
+        $channel = $this->createMock(SalesChannel::class);
+        $channel->method('getId')->willReturn('channel-123');
+
+        $pulledOrder = $this->createPulledOrderDto();
+        $originalException = new \RuntimeException('Original failure');
+
+        $this->entityManager->expects($this->once())
+            ->method('persist');
+        $this->entityManager->expects($this->once())
+            ->method('isOpen')
+            ->willReturn(false);
+        $this->entityManager->expects($this->never())
+            ->method('flush');
+
+        $this->orderRepository->expects($this->once())
+            ->method('findByExternalOrderId')
+            ->with($pulledOrder->externalOrderId, $channel)
+            ->willThrowException($originalException);
+
+        $this->logger->expects($this->once())
+            ->method('warning')
+            ->with(
+                'Skipping sync log flush because EntityManager is closed',
+                [
+                    'externalOrderId' => $pulledOrder->externalOrderId,
+                    'error' => $originalException->getMessage(),
+                ]
+            );
+
+        $this->expectExceptionObject($originalException);
+
+        $this->service->processChannelOrder($channel, $pulledOrder);
+    }
+
+    public function testProcessChannelOrderFlushesFailedSyncLogWhenEntityManagerIsOpen(): void
+    {
+        $channel = $this->createMock(SalesChannel::class);
+        $channel->method('getId')->willReturn('channel-123');
+
+        $pulledOrder = $this->createPulledOrderDto();
+        $originalException = new \RuntimeException('Original failure');
+
+        $this->entityManager->expects($this->once())
+            ->method('persist');
+        $this->entityManager->expects($this->once())
+            ->method('isOpen')
+            ->willReturn(true);
+        $this->entityManager->expects($this->once())
+            ->method('flush');
+
+        $this->orderRepository->expects($this->once())
+            ->method('findByExternalOrderId')
+            ->with($pulledOrder->externalOrderId, $channel)
+            ->willThrowException($originalException);
+
+        $this->logger->expects($this->never())
+            ->method('warning');
+
+        $this->expectExceptionObject($originalException);
+
+        $this->service->processChannelOrder($channel, $pulledOrder);
+    }
+
+    private function createPulledOrderDto(): PulledOrderDto
+    {
+        return new PulledOrderDto(
+            externalOrderId: 'EXT123',
+            externalOrderNo: 'EXT123',
+            status: 'pending',
+            paymentStatus: 'pending',
+            receiver: new ReceiverDto(
+                name: 'Receiver',
+                phone: '13800000000',
+                address: 'Test Address',
+                province: 'Shanghai',
+                city: 'Shanghai',
+                district: 'Pudong',
+                postalCode: '200000',
+            ),
+            totalAmount: '100.00',
+            productAmount: '100.00',
+            shippingAmount: '0.00',
+            discountAmount: '0.00',
+            currency: 'CNY',
+            placedAt: new \DateTimeImmutable('2026-03-12T00:00:00+00:00'),
+            paidAt: null,
+            items: [],
+            buyerRemark: null,
+            rawData: null,
+        );
     }
 }

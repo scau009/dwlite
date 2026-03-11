@@ -82,7 +82,11 @@ class ChannelProductController extends AbstractController
         $this->entityManager->flush();
 
         // Trigger sync to external channel
-        $this->syncService->triggerSyncFromChannelProduct($channelProduct, SyncTriggerSourceEnum::MANUAL);
+        if ($channelProduct->getExternalId()) {
+            $this->syncService->triggerSyncFromChannelProduct($channelProduct, SyncTriggerSourceEnum::CHANNEL_RE_ACTIVATE);
+        }else{
+            $this->syncService->triggerSyncFromChannelProduct($channelProduct, SyncTriggerSourceEnum::MANUAL);
+        }
 
         return $this->json([
             'message' => $this->translator->trans('admin.channelProduct.activated'),

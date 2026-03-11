@@ -420,13 +420,15 @@ export function ChannelProductDetailPage() {
               {t('channelProducts.delist')}
             </Button>
           )}
-          <Button
-            icon={<SyncOutlined />}
-            loading={actionLoading}
-            onClick={handleSync}
-          >
-            {t('channelProducts.sync')}
-          </Button>
+          {product.status !== 'delisted' && (
+            <Button
+              icon={<SyncOutlined />}
+              loading={actionLoading}
+              onClick={handleSync}
+            >
+              {t('channelProducts.sync')}
+            </Button>
+          )}
         </Space>
       </div>
 

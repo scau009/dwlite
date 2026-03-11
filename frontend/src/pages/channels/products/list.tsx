@@ -283,14 +283,16 @@ export function ChannelProductsListPage() {
                 {t('channelProducts.delist')}
               </Button>
             )}
-            <Button
-              type="link"
-              size="small"
-              loading={isLoading}
-              onClick={() => handleSync(record)}
-            >
-              {t('channelProducts.sync')}
-            </Button>
+            {record.status !== 'delisted' && (
+              <Button
+                type="link"
+                size="small"
+                loading={isLoading}
+                onClick={() => handleSync(record)}
+              >
+                {t('channelProducts.sync')}
+              </Button>
+            )}
           </Space>
         );
       },

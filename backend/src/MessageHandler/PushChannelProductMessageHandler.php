@@ -37,7 +37,6 @@ class PushChannelProductMessageHandler
         $this->logger->info('Processing push to channel', [
             'channelProductId' => $message->channelProductId,
             'operation' => $message->operation,
-            'forceFullSync' => $message->forceFullSync,
         ]);
 
         // Acquire distributed lock

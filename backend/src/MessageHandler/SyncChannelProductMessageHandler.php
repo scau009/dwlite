@@ -107,6 +107,7 @@ class SyncChannelProductMessageHandler
 
             // Check if we need to push to external channel
             if ($this->shouldPushToChannel($channelProduct)) {
+                $channelProduct->setSyncStatus(ChannelProduct::SYNC_STATUS_SYNCING);
                 $operation = $this->determineOperation($channelProduct);
 
                 $this->messageBus->dispatch(new PushChannelProductMessage(
@@ -114,7 +115,6 @@ class SyncChannelProductMessageHandler
                     $operation,
                     $message->getTriggerSourceEnum() == SyncTriggerSourceEnum::CHANNEL_RE_ACTIVATE
                 ));
-
             }
         } catch (\Throwable $e) {
             $this->logger->error('Failed to sync channel product', [

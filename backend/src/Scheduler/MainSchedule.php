@@ -33,9 +33,9 @@ class MainSchedule implements ScheduleProviderInterface
         if ($this->environment === 'prod') {
             $schedule->add(
                 // KicksDB product sync - runs daily at 22:40 UTC
-//                RecurringMessage::cron('40 22 * * *', new StartProductSyncMessage(
-//                    KicksDbProvider::PROVIDER_NAME,
-//                )),
+                RecurringMessage::cron('40 22 * * *', new StartProductSyncMessage(
+                    KicksDbProvider::PROVIDER_NAME,
+                )),
 
                 // Channel product sync compensation - scan for stale pending products every 5 minutes
                 // This catches any products stuck in pending status due to message loss or processing failures

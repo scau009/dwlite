@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Service;
 
+use App\Entity\ChannelProduct;
 use App\Entity\Order;
 use App\Entity\OrderItem;
 use App\Entity\OrderSyncLog;
@@ -213,8 +214,16 @@ class OrderSyncService
 
             return 'created';
         } catch (\Throwable $e) {
-            $syncLog->markFailed($e->getMessage());
-            $this->entityManager->flush();
+            if ($this->entityManager->isOpen()) {
+                $syncLog->markFailed($e->getMessage());
+                $this->entityManager->flush();
+            } else {
+                $this->logger->warning('Skipping sync log flush because EntityManager is closed', [
+                    'externalOrderId' => $pulledOrder->externalOrderId,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+
             throw $e;
         }
     }
@@ -576,7 +585,7 @@ class OrderSyncService
     private function matchChannelProduct(
         SalesChannel $salesChannel,
         string $externalProductId,
-    ): ?\App\Entity\ChannelProduct {
+    ): ?ChannelProduct {
         $matched = $this->channelProductRepo->findByExternalId(
             $salesChannel,
             $externalProductId,

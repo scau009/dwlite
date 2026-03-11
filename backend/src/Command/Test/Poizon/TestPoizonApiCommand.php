@@ -4,13 +4,21 @@ declare(strict_types=1);
 
 namespace App\Command\Test\Poizon;
 
+use App\Message\ScheduleOrderPullMessage;
 use App\Repository\ChannelProductRepository;
+use App\Repository\SalesChannelRepository;
+use App\Service\ChannelGateway\ChannelGatewayContext;
+use App\Service\ChannelGateway\ChannelGatewayRegistry;
+use App\Service\ChannelGateway\Dto\Request\PullOrdersRequest;
 use App\Service\ChannelGateway\Provider\Poizon\PoizonApiClient;
+use App\Service\OrderSyncService;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Messenger\MessageBusInterface;
+use Symfony\Component\Messenger\Stamp\DelayStamp;
 use function Symfony\Component\DependencyInjection\Loader\Configurator\param;
 
 #[AsCommand(name: 'app:test_poizon_api', description: '测试Poizon API')]
@@ -20,13 +28,24 @@ class TestPoizonApiCommand extends Command
     private string $appSecret;
 
     private PoizonApiClient $apiClient;
-    private ChannelProductRepository $channelProductRepository;
 
-    public function __construct(PoizonApiClient $apiClient, ChannelProductRepository $channelProductRepository)
+    private ChannelGatewayRegistry $gatewayRegistry;
+    private MessageBusInterface $messageBus;
+    private SalesChannelRepository $salesChannelRepository;
+
+    private OrderSyncService $orderSyncService;
+    public function __construct(PoizonApiClient $apiClient,
+                                ChannelGatewayRegistry $gatewayRegistry,
+                                SalesChannelRepository $salesChannelRepository,
+                                OrderSyncService $orderSyncService,
+                                MessageBusInterface $messageBus)
     {
         parent::__construct();
+        $this->messageBus = $messageBus;
+        $this->gatewayRegistry = $gatewayRegistry;
+        $this->salesChannelRepository = $salesChannelRepository;
+        $this->orderSyncService = $orderSyncService;
         $this->apiClient = $apiClient;
-        $this->channelProductRepository = $channelProductRepository;
     }
 
     protected function configure()
@@ -235,5 +254,21 @@ class TestPoizonApiCommand extends Command
     {
         $response = $this->apiClient->querySkuInfoByArticleNumber($this->appKey, $this->appSecret, $params['articleNumber']);
         $output->writeln(json_encode($response, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+    }
+
+    /**
+     * --method=queryOrders
+     * --params={}
+     * @param array $params
+     * @param OutputInterface $output
+     * @return void
+     */
+    private function pullOrders(array $params, OutputInterface $output): void
+    {
+        $salesChannel = $this->salesChannelRepository->find('01KK65F93DKW9F3FCPM08PEK5Q');
+
+        $now = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
+        $this->orderSyncService->pullOrders($salesChannel, $now->modify(sprintf('-%d days', 5)), $now);
+
     }
 }
